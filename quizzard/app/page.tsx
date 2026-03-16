@@ -357,23 +357,24 @@ export default function LandingPage() {
       {/* Grain */}
       <div className="grain" />
 
+      {/* ── STATIC LOGO ── */}
+      <div style={{ position: "absolute", top: 20, left: 40, zIndex: 60 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo_trimmed.png" alt="Quizzard" style={{ height: "138px", width: "auto", display: "block" }} />
+      </div>
+
       {/* ── NAVBAR ── */}
       <nav
         style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
           padding: "0 40px", height: 64,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
+          display: "flex", alignItems: "center", justifyContent: "flex-end",
           background: scrolled ? "rgba(9,8,26,0.88)" : "transparent",
           backdropFilter: scrolled ? "blur(24px)" : "none",
           borderBottom: scrolled ? "1px solid rgba(140,82,255,0.12)" : "1px solid transparent",
           transition: "background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease",
         }}
       >
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Image src="/quizzard_logo.png" alt="Quizzard" width={130} height={36} style={{ objectFit: "contain" }} />
-        </div>
-
         {/* Nav links */}
         <div className="nav-links" style={{ display: "flex", gap: 36 }}>
           <a href="#features" className="nlink">Features</a>
@@ -840,7 +841,8 @@ export default function LandingPage() {
           gap: 20,
         }}
       >
-        <Image src="/quizzard_logo.png" alt="Quizzard" width={110} height={30} style={{ objectFit: "contain", opacity: 0.8 }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo_trimmed.png" alt="Quizzard" style={{ height: "32px", width: "auto", opacity: 0.75 }} />
         <p style={{ fontSize: 13, color: "rgba(237,233,255,0.28)" }}>
           © 2026 Quizzard — Built for students, by students.
         </p>
