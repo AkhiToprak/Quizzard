@@ -3,113 +3,241 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BookOpen, Settings } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+
+function getInitials(name?: string | null): string {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 const navLinks = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/notebooks', label: 'Notebooks', icon: BookOpen },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { href: '/notebooks', label: 'Notebooks', icon: 'auto_stories' },
+  { href: '/ai-chat',   label: 'AI Chat',   icon: 'smart_toy' },
+  { href: '/settings',  label: 'Settings',  icon: 'settings' },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   return (
     <aside
       style={{
         width: '256px',
         minWidth: '256px',
-        background: '#0d0c20',
-        borderRight: '1px solid rgba(140, 82, 255, 0.15)',
+        height: '100vh',
+        background: '#0d0d1a',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
-        fontFamily: "'Gliker', 'DM Sans', sans-serif",
+        gap: '16px',
+        paddingTop: '24px',
+        paddingBottom: '24px',
+        zIndex: 40,
+        overflowY: 'auto',
       }}
+      className="custom-scrollbar"
     >
       {/* Logo */}
-      <div
-        style={{
-          padding: '20px 20px 18px',
-          borderBottom: '1px solid rgba(140, 82, 255, 0.1)',
-        }}
-      >
+      <div style={{ padding: '0 24px', marginBottom: '8px' }}>
         <Image
           src="/logo_trimmed.png"
           alt="Quizzard"
           width={160}
           height={40}
           style={{ objectFit: 'contain', objectPosition: 'left' }}
+          priority
         />
       </div>
 
       {/* Nav */}
-      <nav style={{ padding: '16px 12px', flex: 1 }}>
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {navLinks.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href || pathname.startsWith(href + '/');
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '16px 20px',
-                    borderRadius: '12px',
-                    textDecoration: 'none',
-                    fontSize: '16px',
-                    fontWeight: isActive ? '600' : '400',
-                    color: isActive ? '#ede9ff' : 'rgba(237, 233, 255, 0.5)',
-                    background: isActive
-                      ? 'linear-gradient(135deg, rgba(140,82,255,0.25) 0%, rgba(81,112,255,0.15) 100%)'
-                      : 'transparent',
-                    boxShadow: isActive
-                      ? 'inset 0 0 0 1px rgba(140, 82, 255, 0.3)'
-                      : 'none',
-                    transition: 'color 0.15s ease, background 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(237, 233, 255, 0.85)';
-                      (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(140, 82, 255, 0.08)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(237, 233, 255, 0.5)';
-                      (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
-                    }
-                  }}
-                >
-                  <Icon
-                    size={18}
-                    style={{
-                      color: isActive ? '#8c52ff' : 'rgba(237, 233, 255, 0.4)',
-                      flexShrink: 0,
-                    }}
-                  />
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {navLinks.map(({ href, label, icon }) => {
+          const isActive =
+            pathname === href ||
+            (href !== '/dashboard' && pathname.startsWith(href + '/'));
+          return (
+            <Link
+              key={href}
+              href={href}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                margin: '0 8px',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                textDecoration: 'none',
+                fontSize: '15px',
+                fontWeight: '500',
+                color: isActive ? '#ffffff' : '#b9c3ff',
+                background: isActive
+                  ? 'linear-gradient(90deg, #ae89ff 0%, rgba(174,137,255,0.2) 100%)'
+                  : 'transparent',
+                transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLAnchorElement).style.background = '#1a1a2e';
+                  (e.currentTarget as HTMLAnchorElement).style.transform = 'translateX(4px)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLAnchorElement).style.transform = 'translateX(0)';
+                }
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '22px', flexShrink: 0 }}
+              >
+                {icon}
+              </span>
+              {label}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Bottom decoration */}
+      {/* New Quiz CTA */}
+      <div style={{ padding: '0 16px' }}>
+        <button
+          style={{
+            width: '100%',
+            padding: '14px 16px',
+            background: '#ffde59',
+            color: '#5f4f00',
+            borderRadius: '16px',
+            border: 'none',
+            fontWeight: '700',
+            fontSize: '15px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(255,222,89,0.15)',
+            transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+            fontFamily: 'inherit',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+            add_circle
+          </span>
+          New Quiz
+        </button>
+      </div>
+
+      {/* Bottom: logout + user profile */}
       <div
         style={{
-          padding: '16px 20px',
-          borderTop: '1px solid rgba(140, 82, 255, 0.1)',
-          fontSize: '11px',
-          color: 'rgba(237, 233, 255, 0.2)',
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase',
+          borderTop: '1px solid rgba(70,69,96,0.2)',
+          paddingTop: '16px',
         }}
       >
-        v0.1.0
+        <button
+          onClick={() => signOut({ callbackUrl: '/auth/login' })}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            margin: '0 8px',
+            padding: '12px 16px',
+            borderRadius: '12px',
+            width: 'calc(100% - 16px)',
+            background: 'transparent',
+            border: 'none',
+            color: '#b9c3ff',
+            fontSize: '15px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            textAlign: 'left',
+            fontFamily: 'inherit',
+            transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = '#1a1a2e';
+            (e.currentTarget as HTMLButtonElement).style.transform = 'translateX(4px)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+            (e.currentTarget as HTMLButtonElement).style.transform = 'translateX(0)';
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+            logout
+          </span>
+          Logout
+        </button>
+
+        {/* User profile */}
+        {session?.user && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '16px 24px',
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: '700',
+                color: '#ffffff',
+                flexShrink: 0,
+              }}
+            >
+              {getInitials(session.user.name)}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p
+                style={{
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  color: '#e5e3ff',
+                  margin: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {session.user.name}
+              </p>
+              <p
+                style={{
+                  fontSize: '10px',
+                  color: '#aaa8c8',
+                  margin: 0,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                The Neon Scholar
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

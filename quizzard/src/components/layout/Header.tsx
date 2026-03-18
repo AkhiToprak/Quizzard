@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
-import { LogOut } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 function getInitials(name?: string | null): string {
   if (!name) return '?';
@@ -13,109 +13,108 @@ function getInitials(name?: string | null): string {
     .slice(0, 2);
 }
 
+function getPageTitle(pathname: string): string {
+  if (pathname === '/dashboard') return 'Dashboard';
+  if (pathname.startsWith('/notebooks') && pathname.split('/').length === 3) return 'Notebook';
+  if (pathname.startsWith('/notebooks')) return 'Notebooks';
+  if (pathname.startsWith('/settings')) return 'Settings';
+  if (pathname.startsWith('/ai-chat')) return 'AI Chat';
+  return 'Quizzard';
+}
+
 export default function Header() {
   const { data: session } = useSession();
+  const pathname = usePathname();
+  const title = getPageTitle(pathname);
 
   return (
     <header
       style={{
-        height: '64px',
-        background: '#0d0c20',
-        borderBottom: '1px solid rgba(140, 82, 255, 0.15)',
+        height: '80px',
+        padding: '0 32px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'flex-end',
-        padding: '0 24px',
-        gap: '16px',
-        fontFamily: "'Gliker', 'DM Sans', sans-serif",
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        background: 'rgba(13,13,26,0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        zIndex: 30,
       }}
     >
-      {/* User info */}
-      {session?.user && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Name */}
-          <span
-            style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'rgba(237, 233, 255, 0.8)',
-            }}
-          >
-            {session.user.name}
-          </span>
+      {/* Page title */}
+      <h1
+        style={{
+          fontFamily: '"Shrikhand", serif',
+          fontStyle: 'italic',
+          fontSize: '24px',
+          fontWeight: '400',
+          color: '#ae89ff',
+          margin: 0,
+        }}
+      >
+        {title}
+      </h1>
 
-          {/* Avatar */}
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #8c52ff 0%, #5170ff 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontWeight: '700',
-              color: '#ede9ff',
-              letterSpacing: '0.03em',
-              flexShrink: 0,
-              boxShadow: '0 2px 8px rgba(140, 82, 255, 0.35)',
-            }}
-          >
-            {getInitials(session.user.name)}
+      {/* Right side */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        {session?.user && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '14px', fontWeight: '500', color: '#aaa8c8' }}>
+              Hello,{' '}
+              <span style={{ color: '#e5e3ff' }}>{session.user.name}</span>
+            </span>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: '700',
+                color: '#ffffff',
+                flexShrink: 0,
+              }}
+            >
+              {getInitials(session.user.name)}
+            </div>
           </div>
+        )}
 
-          {/* Divider */}
-          <div
-            style={{
-              width: '1px',
-              height: '24px',
-              background: 'rgba(140, 82, 255, 0.2)',
-            }}
-          />
-
-          {/* Logout */}
-          <button
-            onClick={() => signOut({ callbackUrl: '/auth/login' })}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '8px',
-              border: '1px solid rgba(237, 233, 255, 0.12)',
-              background: 'transparent',
-              color: 'rgba(237, 233, 255, 0.5)',
-              fontSize: '13px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'color 0.15s ease, border-color 0.15s ease, background 0.15s ease',
-              fontFamily: 'inherit',
-            }}
-            onMouseEnter={(e) => {
-              const btn = e.currentTarget;
-              btn.style.color = '#fca5a5';
-              btn.style.borderColor = 'rgba(252, 165, 165, 0.3)';
-              btn.style.background = 'rgba(252, 165, 165, 0.07)';
-            }}
-            onMouseLeave={(e) => {
-              const btn = e.currentTarget;
-              btn.style.color = 'rgba(237, 233, 255, 0.5)';
-              btn.style.borderColor = 'rgba(237, 233, 255, 0.12)';
-              btn.style.background = 'transparent';
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'scale(0.97)';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            <LogOut size={14} />
-            Logout
-          </button>
-        </div>
-      )}
+        <button
+          onClick={() => signOut({ callbackUrl: '/auth/login' })}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 20px',
+            borderRadius: '12px',
+            border: '1px solid rgba(70,69,96,0.3)',
+            background: 'transparent',
+            color: '#aaa8c8',
+            fontSize: '14px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = '#1d1d33';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+            logout
+          </span>
+          Logout
+        </button>
+      </div>
     </header>
   );
 }

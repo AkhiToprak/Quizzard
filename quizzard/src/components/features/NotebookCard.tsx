@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { FileText, Pencil, Trash2, Clock } from 'lucide-react';
 
 export interface NotebookData {
   id: string;
@@ -20,13 +19,74 @@ interface NotebookCardProps {
   onDelete: (notebook: NotebookData) => void;
 }
 
+interface AccentTheme {
+  accent: string;
+  accentBg: string;
+  badgeBg: string;
+  badgeBorder: string;
+  badgeText: string;
+  hoverBorder: string;
+}
+
+/** Map stored color hex → Neon Scholar accent theme */
+function getAccent(color: string | null): AccentTheme {
+  if (!color) return PRIMARY_THEME;
+  const hex = color.replace('#', '');
+  const r = parseInt(hex.slice(0, 2), 16) || 0;
+  const g = parseInt(hex.slice(2, 4), 16) || 0;
+  const b = parseInt(hex.slice(4, 6), 16) || 0;
+
+  // Yellow / warm
+  if (r > 180 && g > 150 && b < 120) return TERTIARY_THEME;
+  // Red / pink dominant
+  if (r > g + 40 && r > b + 40) return ERROR_THEME;
+  // Blue / periwinkle
+  if (b > r + 20 && b > g - 30 && r < 160) return SECONDARY_THEME;
+  return PRIMARY_THEME;
+}
+
+const PRIMARY_THEME: AccentTheme = {
+  accent: '#ae89ff',
+  accentBg: 'rgba(174,137,255,0.1)',
+  badgeBg: 'rgba(174,137,255,0.1)',
+  badgeBorder: 'rgba(174,137,255,0.2)',
+  badgeText: '#ae89ff',
+  hoverBorder: 'rgba(174,137,255,0.4)',
+};
+const SECONDARY_THEME: AccentTheme = {
+  accent: '#b9c3ff',
+  accentBg: 'rgba(185,195,255,0.1)',
+  badgeBg: 'rgba(185,195,255,0.1)',
+  badgeBorder: 'rgba(185,195,255,0.2)',
+  badgeText: '#b9c3ff',
+  hoverBorder: 'rgba(185,195,255,0.4)',
+};
+const TERTIARY_THEME: AccentTheme = {
+  accent: '#ffedb3',
+  accentBg: 'rgba(255,237,179,0.1)',
+  badgeBg: 'rgba(255,237,179,0.1)',
+  badgeBorder: 'rgba(255,237,179,0.2)',
+  badgeText: '#f0d04c',
+  hoverBorder: 'rgba(255,237,179,0.4)',
+};
+const ERROR_THEME: AccentTheme = {
+  accent: '#fd6f85',
+  accentBg: 'rgba(253,111,133,0.1)',
+  badgeBg: 'rgba(253,111,133,0.1)',
+  badgeBorder: 'rgba(253,111,133,0.2)',
+  badgeText: '#c8475d',
+  hoverBorder: 'rgba(253,111,133,0.4)',
+};
+
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
+  const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return 'Today';
+  if (hours < 1) return 'Just now';
+  if (hours < 24) return `${hours}h ago`;
   if (days === 1) return 'Yesterday';
   if (days < 7) return `${days}d ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -34,219 +94,238 @@ function formatDate(dateStr: string) {
 
 export default function NotebookCard({ notebook, onEdit, onDelete }: NotebookCardProps) {
   const [hovered, setHovered] = useState(false);
-  const accentColor = notebook.color || '#8c52ff';
+  const [menuOpen, setMenuOpen] = useState(false);
+  const theme = getAccent(notebook.color);
+  const docCount = notebook._count.pages != null && notebook._count.pages > 0
+    ? `${notebook._count.pages} page${notebook._count.pages !== 1 ? 's' : ''}`
+    : `${notebook._count.documents} doc${notebook._count.documents !== 1 ? 's' : ''}`;
 
   return (
     <div
       style={{ position: 'relative' }}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
     >
-      <Link
-        href={`/notebooks/${notebook.id}`}
-        style={{ textDecoration: 'none', display: 'block' }}
-      >
+      <Link href={`/notebooks/${notebook.id}`} style={{ textDecoration: 'none', display: 'block' }}>
         <div
           style={{
-            background: '#0d0c20',
-            border: `1px solid ${hovered ? `${accentColor}40` : 'rgba(140,82,255,0.15)'}`,
-            borderRadius: '14px',
-            padding: '0',
+            position: 'relative',
+            background: '#12122a',
+            borderRadius: '12px',
             overflow: 'hidden',
+            border: `1px solid ${hovered ? theme.hoverBorder : 'rgba(70,69,96,0.1)'}`,
             boxShadow: hovered
-              ? `0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px ${accentColor}20`
-              : '0 4px 20px rgba(0,0,0,0.25)',
-            transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-            transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s ease, border-color 0.18s ease',
+              ? `0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px ${theme.hoverBorder}`
+              : '0 8px 24px rgba(0,0,0,0.3)',
+            transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+            transition: 'transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s cubic-bezier(0.22,1,0.36,1), border-color 0.5s cubic-bezier(0.22,1,0.36,1)',
             cursor: 'pointer',
-            display: 'flex',
-            flexDirection: 'column',
+            minHeight: '160px',
           }}
         >
-          {/* Top accent bar */}
-          <div style={{ height: '4px', background: accentColor, flexShrink: 0 }} />
+          {/* Left accent strip */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '8px',
+              background: theme.accent,
+              zIndex: 2,
+            }}
+          />
 
-          <div style={{ padding: '18px 20px 16px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
-            {/* Subject tag */}
-            {notebook.subject && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div
-                  style={{
-                    width: '7px',
-                    height: '7px',
-                    borderRadius: '50%',
-                    background: accentColor,
-                    flexShrink: 0,
-                  }}
-                />
+          {/* Spiral rings */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '8px',
+              top: 0,
+              bottom: 0,
+              width: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-around',
+              padding: '16px 0',
+              opacity: 0.3,
+              zIndex: 2,
+            }}
+          >
+            {[0,1,2,3,4,5].map((i) => (
+              <div
+                key={i}
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  border: '1.5px solid #ffffff',
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Dot pattern + content */}
+          <div
+            className="notebook-pattern"
+            style={{
+              paddingLeft: '40px',
+              padding: '24px 24px 24px 40px',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              minHeight: '160px',
+            }}
+          >
+            {/* Top row: badge + more_vert */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              {notebook.subject ? (
                 <span
                   style={{
-                    fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    color: accentColor,
+                    padding: '3px 10px',
+                    background: theme.badgeBg,
+                    border: `1px solid ${theme.badgeBorder}`,
+                    borderRadius: '9999px',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    color: theme.badgeText,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
+                    letterSpacing: '0.08em',
                   }}
                 >
                   {notebook.subject}
                 </span>
-              </div>
-            )}
+              ) : (
+                <div />
+              )}
 
-            {/* Notebook name */}
+              {/* more_vert trigger — intercept click */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setMenuOpen((v) => !v);
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#aaa8c8',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '2px',
+                  borderRadius: '6px',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = theme.accent; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#aaa8c8'; }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>more_vert</span>
+              </button>
+            </div>
+
+            {/* Title */}
             <h3
               style={{
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '16px',
-                fontWeight: '700',
-                color: '#ede9ff',
+                fontFamily: '"Epilogue", serif',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: hovered ? theme.accent : '#e5e3ff',
                 margin: 0,
-                letterSpacing: '-0.02em',
                 lineHeight: 1.3,
+                transition: 'color 0.3s cubic-bezier(0.22,1,0.36,1)',
               }}
             >
               {notebook.name}
             </h3>
 
-            {/* Description */}
-            {notebook.description && (
-              <p
-                style={{
-                  fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                  fontSize: '13px',
-                  color: 'rgba(237,233,255,0.45)',
-                  margin: 0,
-                  lineHeight: 1.5,
-                  overflow: 'hidden',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                }}
-              >
-                {notebook.description}
-              </p>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div
-            style={{
-              padding: '10px 20px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              borderTop: '1px solid rgba(140,82,255,0.08)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <FileText size={13} style={{ color: 'rgba(237,233,255,0.3)' }} />
-              <span
-                style={{
-                  fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                  fontSize: '12px',
-                  color: 'rgba(237,233,255,0.3)',
-                }}
-              >
-                {notebook._count.pages != null && notebook._count.pages > 0
-                  ? `${notebook._count.pages} page${notebook._count.pages !== 1 ? 's' : ''}`
-                  : `${notebook._count.documents} doc${notebook._count.documents !== 1 ? 's' : ''}`}
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Clock size={12} style={{ color: 'rgba(237,233,255,0.25)' }} />
-              <span
-                style={{
-                  fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                  fontSize: '12px',
-                  color: 'rgba(237,233,255,0.25)',
-                }}
-              >
-                {formatDate(notebook.updatedAt)}
+            {/* Footer */}
+            <div
+              style={{
+                marginTop: 'auto',
+                paddingTop: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderTop: '1px solid rgba(70,69,96,0.05)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#aaa8c8' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>description</span>
+                <span style={{ fontSize: '12px' }}>{docCount}</span>
+              </div>
+              <span style={{ fontSize: '10px', color: '#737390', fontStyle: 'italic' }}>
+                Updated {formatDate(notebook.updatedAt)}
               </span>
             </div>
           </div>
         </div>
       </Link>
 
-      {/* Edit / Delete buttons — shown on hover */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '12px',
-          right: '12px',
-          display: 'flex',
-          gap: '4px',
-          opacity: hovered ? 1 : 0,
-          transform: hovered ? 'translateY(0)' : 'translateY(-4px)',
-          transition: 'opacity 0.15s ease, transform 0.15s ease',
-          pointerEvents: hovered ? 'auto' : 'none',
-          zIndex: 10,
-        }}
-      >
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onEdit(notebook);
-          }}
-          title="Edit notebook"
+      {/* Dropdown menu */}
+      {menuOpen && (
+        <div
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '8px',
-            background: 'rgba(13,12,32,0.9)',
-            border: '1px solid rgba(140,82,255,0.25)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: 'rgba(237,233,255,0.6)',
-            transition: 'background 0.12s ease, color 0.12s ease',
+            position: 'absolute',
+            top: '48px',
+            right: '24px',
+            background: '#1d1d33',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            overflow: 'hidden',
+            zIndex: 100,
+            minWidth: '140px',
           }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.2)';
-            (e.currentTarget as HTMLButtonElement).style.color = '#8c52ff';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(13,12,32,0.9)';
-            (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.6)';
-          }}
+          onClick={(e) => e.stopPropagation()}
         >
-          <Pencil size={13} />
-        </button>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onDelete(notebook);
-          }}
-          title="Delete notebook"
-          style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '8px',
-            background: 'rgba(13,12,32,0.9)',
-            border: '1px solid rgba(239,68,68,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: 'rgba(237,233,255,0.6)',
-            transition: 'background 0.12s ease, color 0.12s ease',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.15)';
-            (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(13,12,32,0.9)';
-            (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.6)';
-          }}
-        >
-          <Trash2 size={13} />
-        </button>
-      </div>
+          <button
+            onClick={(e) => { e.preventDefault(); setMenuOpen(false); onEdit(notebook); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              width: '100%',
+              padding: '12px 16px',
+              background: 'transparent',
+              border: 'none',
+              color: '#e5e3ff',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              textAlign: 'left',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#23233c'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ae89ff' }}>edit</span>
+            Edit
+          </button>
+          <button
+            onClick={(e) => { e.preventDefault(); setMenuOpen(false); onDelete(notebook); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              width: '100%',
+              padding: '12px 16px',
+              background: 'transparent',
+              border: 'none',
+              color: '#fd6f85',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              textAlign: 'left',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.1)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 }

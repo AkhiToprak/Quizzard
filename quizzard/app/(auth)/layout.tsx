@@ -29,7 +29,7 @@ function AuthParticles() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const COLORS = ["#8c52ff", "#5170ff", "#b899ff", "#6040cc"];
+    const COLORS = ["#ae89ff", "#b9c3ff", "#8348f6", "#884efb"];
 
     const resize = () => {
       canvas.width = container.offsetWidth;
@@ -44,13 +44,13 @@ function AuthParticles() {
     };
     window.addEventListener("mousemove", onMouseMove);
 
-    particlesRef.current = Array.from({ length: 40 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 1.2 + 0.3,
+    particlesRef.current = Array.from({ length: 50 }, () => ({
+      x: Math.random() * (canvas.width || 1920),
+      y: Math.random() * (canvas.height || 1080),
+      size: Math.random() * 1.5 + 0.3,
       speedX: (Math.random() - 0.5) * 0.15,
       speedY: (Math.random() - 0.5) * 0.15,
-      opacity: Math.random() * 0.25 + 0.04,
+      opacity: Math.random() * 0.2 + 0.04,
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
       magnetism: Math.random() * 3 + 0.5,
       tx: 0,
@@ -110,61 +110,86 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main style={{ background: "#09081a", color: "#ede9ff", minHeight: "100vh", overflowX: "hidden", position: "relative" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Shrikhand&family=Gliker:wght@400;500;600;700&display=swap');
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Gliker', 'DM Sans', sans-serif; background: #09081a; }
-
-        /* Grain texture */
-        .grain {
-          position: fixed; inset: 0; pointer-events: none; z-index: 999;
-          opacity: 0.022;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
-        }
-
-        /* Logo link */
-        .auth-logo {
-          display: inline-block;
-          opacity: 0.9;
-          transition: opacity 0.2s ease;
-        }
-        .auth-logo:hover { opacity: 1; }
-
-        /* Form container animation */
-        .auth-form-container {
-          animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(24px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .auth-container { padding: 20px !important; }
-        }
-      `}</style>
-
-      {/* Grain */}
-      <div className="grain" />
+    <main
+      style={{
+        background: "#0d0d1a",
+        color: "#e5e3ff",
+        minHeight: "100vh",
+        overflowX: "hidden",
+        position: "relative",
+      }}
+    >
+      {/* Grain texture */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 999,
+          opacity: 0.022,
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E\")",
+        }}
+      />
 
       {/* Particles */}
       <AuthParticles />
 
-      {/* Radial glow blobs */}
-      <div style={{ position: "absolute", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(140,82,255,0.08) 0%, transparent 70%)", top: "10%", left: "50%", transform: "translateX(-50%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(81,112,255,0.06) 0%, transparent 70%)", bottom: "5%", right: "10%", pointerEvents: "none" }} />
-
-      {/* Container */}
+      {/* Ambient blobs */}
       <div
-        className="auth-container"
+        style={{
+          position: "absolute",
+          top: "-10%",
+          left: "-10%",
+          width: "40%",
+          height: "40%",
+          background: "rgba(174,137,255,0.1)",
+          filter: "blur(120px)",
+          borderRadius: "50%",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-10%",
+          right: "-10%",
+          width: "40%",
+          height: "40%",
+          background: "rgba(185,195,255,0.05)",
+          filter: "blur(120px)",
+          borderRadius: "50%",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Neon glow center */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(circle at center, rgba(174,137,255,0.12) 0%, rgba(13,13,26,0) 70%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Bottom fade */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          height: "128px",
+          background:
+            "linear-gradient(to top, rgba(174,137,255,0.05), transparent)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Centered content */}
+      <div
         style={{
           position: "relative",
           zIndex: 10,
@@ -173,26 +198,26 @@ export default function AuthLayout({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "40px",
+          padding: "40px 24px",
         }}
       >
-        {/* Logo */}
-        <a href="/" className="auth-logo" style={{ marginBottom: 48, display: "block" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_trimmed.png" alt="Quizzard" style={{ height: "80px", width: "auto" }} />
-        </a>
-
-        {/* Form wrapper */}
         <div
-          className="auth-form-container"
           style={{
             width: "100%",
-            maxWidth: "420px",
+            maxWidth: "480px",
+            animation: "authSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         >
           {children}
         </div>
       </div>
+
+      <style>{`
+        @keyframes authSlideUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </main>
   );
 }

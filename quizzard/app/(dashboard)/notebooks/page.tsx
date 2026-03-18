@@ -1,31 +1,31 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, BookOpen } from 'lucide-react';
 import NotebookCard, { type NotebookData } from '@/components/features/NotebookCard';
 import NotebookForm from '@/components/features/NotebookForm';
+
+const FILTER_PILLS = ['All Subjects', 'Science', 'History', 'Languages', 'Literature'];
 
 function SkeletonCard() {
   return (
     <div
       style={{
-        background: '#0d0c20',
-        border: '1px solid rgba(140,82,255,0.12)',
-        borderRadius: '14px',
+        background: '#12122a',
+        borderRadius: '12px',
         overflow: 'hidden',
+        minHeight: '160px',
+        position: 'relative',
       }}
     >
-      <div style={{ height: '4px', background: 'rgba(140,82,255,0.15)' }} />
-      <div style={{ padding: '18px 20px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <div style={{ width: '60px', height: '10px', borderRadius: '5px', background: 'rgba(237,233,255,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />
-        <div style={{ width: '80%', height: '14px', borderRadius: '6px', background: 'rgba(237,233,255,0.08)', animation: 'pulse 1.5s ease-in-out infinite 0.1s' }} />
-        <div style={{ width: '100%', height: '11px', borderRadius: '5px', background: 'rgba(237,233,255,0.05)', animation: 'pulse 1.5s ease-in-out infinite 0.2s' }} />
-        <div style={{ width: '70%', height: '11px', borderRadius: '5px', background: 'rgba(237,233,255,0.05)', animation: 'pulse 1.5s ease-in-out infinite 0.25s' }} />
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '8px', background: 'rgba(174,137,255,0.2)' }} />
+      <div style={{ padding: '24px 24px 24px 40px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ width: '64px', height: '20px', borderRadius: '9999px', background: 'rgba(229,227,255,0.06)' }} />
+        <div style={{ width: '80%', height: '18px', borderRadius: '6px', background: 'rgba(229,227,255,0.08)' }} />
+        <div style={{ width: '60%', height: '14px', borderRadius: '5px', background: 'rgba(229,227,255,0.05)' }} />
       </div>
-      <div style={{ padding: '10px 20px 14px', borderTop: '1px solid rgba(140,82,255,0.08)', display: 'flex', justifyContent: 'space-between' }}>
-        <div style={{ width: '50px', height: '11px', borderRadius: '5px', background: 'rgba(237,233,255,0.05)', animation: 'pulse 1.5s ease-in-out infinite' }} />
-        <div style={{ width: '40px', height: '11px', borderRadius: '5px', background: 'rgba(237,233,255,0.05)', animation: 'pulse 1.5s ease-in-out infinite 0.15s' }} />
-      </div>
+      <style>{`
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+      `}</style>
     </div>
   );
 }
@@ -33,6 +33,7 @@ function SkeletonCard() {
 export default function NotebooksPage() {
   const [notebooks, setNotebooks] = useState<NotebookData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('All Subjects');
   const [showForm, setShowForm] = useState(false);
   const [editingNotebook, setEditingNotebook] = useState<NotebookData | null>(null);
   const [formLoading, setFormLoading] = useState(false);
@@ -62,10 +63,7 @@ export default function NotebooksPage() {
         body: JSON.stringify(data),
       });
       const json = await res.json();
-      if (json.success) {
-        setShowForm(false);
-        await fetchNotebooks();
-      }
+      if (json.success) { setShowForm(false); await fetchNotebooks(); }
     } finally {
       setFormLoading(false);
     }
@@ -81,11 +79,7 @@ export default function NotebooksPage() {
         body: JSON.stringify(data),
       });
       const json = await res.json();
-      if (json.success) {
-        setEditingNotebook(null);
-        setShowForm(false);
-        await fetchNotebooks();
-      }
+      if (json.success) { setEditingNotebook(null); setShowForm(false); await fetchNotebooks(); }
     } finally {
       setFormLoading(false);
     }
@@ -97,195 +91,83 @@ export default function NotebooksPage() {
     try {
       const res = await fetch(`/api/notebooks/${deleteTarget.id}`, { method: 'DELETE' });
       const json = await res.json();
-      if (json.success) {
-        setDeleteTarget(null);
-        await fetchNotebooks();
-      }
+      if (json.success) { setDeleteTarget(null); await fetchNotebooks(); }
     } finally {
       setDeleteLoading(false);
     }
   };
 
-  return (
-    <div style={{ maxWidth: '960px' }}>
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
+  const totalDocs = notebooks.reduce((s, n) => s + (n._count.documents || 0), 0);
 
-      {/* Page header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '32px',
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontFamily: "'Gliker', 'DM Sans', sans-serif",
-              fontSize: '28px',
-              fontWeight: '700',
-              color: '#ede9ff',
-              margin: 0,
-              letterSpacing: '-0.03em',
-            }}
-          >
-            My Notebooks
-          </h1>
-          {!isLoading && notebooks.length > 0 && (
-            <p
+  return (
+    <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+      {/* Filter pills */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '32px', flexWrap: 'wrap' }}>
+        {FILTER_PILLS.map((pill) => {
+          const active = pill === activeFilter;
+          return (
+            <button
+              key={pill}
+              onClick={() => setActiveFilter(pill)}
               style={{
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                padding: '8px 20px',
+                borderRadius: '9999px',
+                border: 'none',
+                background: active ? '#ae89ff' : '#1d1d33',
+                color: active ? '#2a0066' : '#aaa8c8',
                 fontSize: '14px',
-                color: 'rgba(237,233,255,0.4)',
-                margin: '6px 0 0',
+                fontWeight: active ? 700 : 500,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                boxShadow: active ? '0 4px 12px rgba(174,137,255,0.3)' : 'none',
+                transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1)',
               }}
             >
-              {notebooks.length} notebook{notebooks.length !== 1 ? 's' : ''}
-            </p>
-          )}
-        </div>
+              {pill}
+            </button>
+          );
+        })}
 
+        {/* New Notebook button — right side */}
         <button
           onClick={() => { setEditingNotebook(null); setShowForm(true); }}
           style={{
+            marginLeft: 'auto',
             display: 'flex',
             alignItems: 'center',
-            gap: '7px',
-            padding: '10px 18px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #8c52ff, #5170ff)',
+            gap: '8px',
+            padding: '8px 24px',
+            borderRadius: '9999px',
             border: 'none',
-            fontFamily: "'Gliker', 'DM Sans', sans-serif",
+            background: '#ae89ff',
+            color: '#2a0066',
             fontSize: '14px',
-            fontWeight: '700',
-            color: '#ede9ff',
+            fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 4px 20px rgba(140,82,255,0.3)',
-            transition: 'opacity 0.12s ease, transform 0.1s ease',
+            fontFamily: 'inherit',
+            boxShadow: '0 4px 16px rgba(174,137,255,0.25)',
+            transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
           }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.opacity = '0.9';
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.opacity = '1';
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
-          }}
-          onMouseDown={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0) scale(0.98)';
-          }}
-          onMouseUp={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px) scale(1)';
-          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+          onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'; }}
+          onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
         >
-          <Plus size={16} />
-          New Notebook
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+          Add Notebook
         </button>
       </div>
 
-      {/* Loading state */}
+      {/* Loading */}
       {isLoading && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '20px',
-          }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
           {[0, 1, 2].map((i) => <SkeletonCard key={i} />)}
         </div>
       )}
 
-      {/* Empty state */}
-      {!isLoading && notebooks.length === 0 && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '80px 20px',
-            gap: '16px',
-            textAlign: 'center',
-          }}
-        >
-          <div
-            style={{
-              width: '72px',
-              height: '72px',
-              borderRadius: '20px',
-              background: 'rgba(140,82,255,0.08)',
-              border: '1px solid rgba(140,82,255,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <BookOpen size={32} style={{ color: 'rgba(140,82,255,0.4)' }} />
-          </div>
-          <div>
-            <p
-              style={{
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '16px',
-                fontWeight: '600',
-                color: '#ede9ff',
-                margin: '0 0 6px',
-              }}
-            >
-              No notebooks yet
-            </p>
-            <p
-              style={{
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '14px',
-                color: 'rgba(237,233,255,0.35)',
-                margin: 0,
-              }}
-            >
-              Create your first notebook to start studying
-            </p>
-          </div>
-          <button
-            onClick={() => { setEditingNotebook(null); setShowForm(true); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '7px',
-              padding: '10px 20px',
-              marginTop: '4px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #8c52ff, #5170ff)',
-              border: 'none',
-              fontFamily: "'Gliker', 'DM Sans', sans-serif",
-              fontSize: '14px',
-              fontWeight: '700',
-              color: '#ede9ff',
-              cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(140,82,255,0.28)',
-            }}
-          >
-            <Plus size={15} />
-            Create your first notebook
-          </button>
-        </div>
-      )}
-
-      {/* Notebook grid */}
-      {!isLoading && notebooks.length > 0 && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '20px',
-          }}
-        >
+      {/* Grid */}
+      {!isLoading && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
           {notebooks.map((nb) => (
             <NotebookCard
               key={nb.id}
@@ -294,10 +176,113 @@ export default function NotebooksPage() {
               onDelete={(n) => setDeleteTarget(n)}
             />
           ))}
+
+          {/* Add card */}
+          <div
+            onClick={() => { setEditingNotebook(null); setShowForm(true); }}
+            style={{
+              background: 'rgba(18,18,42,0.5)',
+              borderRadius: '12px',
+              border: '2px dashed rgba(70,69,96,0.3)',
+              minHeight: '160px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'border-color 0.3s cubic-bezier(0.22,1,0.36,1)',
+              gap: '8px',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(174,137,255,0.5)';
+              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.add-icon-wrap');
+              if (icon) { icon.style.background = 'rgba(174,137,255,0.2)'; icon.style.transform = 'scale(1.1)'; }
+              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>('.add-label');
+              if (label) label.style.color = '#e5e3ff';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(70,69,96,0.3)';
+              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.add-icon-wrap');
+              if (icon) { icon.style.background = '#18182a'; icon.style.transform = 'scale(1)'; }
+              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>('.add-label');
+              if (label) label.style.color = '#aaa8c8';
+            }}
+          >
+            <span
+              className="add-icon-wrap"
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#18182a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.3s cubic-bezier(0.22,1,0.36,1), transform 0.3s cubic-bezier(0.22,1,0.36,1)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#737390' }}>add</span>
+            </span>
+            <p className="add-label" style={{ fontWeight: 700, color: '#aaa8c8', margin: '4px 0 0', transition: 'color 0.2s' }}>
+              New Subject
+            </p>
+            <p style={{ fontSize: '12px', color: '#737390', margin: 0, textAlign: 'center', padding: '0 24px' }}>
+              Organize your thoughts in a new notebook
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Create / Edit form modal */}
+      {/* Stats footer */}
+      {!isLoading && (
+        <div
+          style={{
+            marginTop: '48px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            gap: '24px',
+          }}
+        >
+          {[
+            { icon: 'book_4', color: '#ae89ff', bg: 'rgba(174,137,255,0.1)', value: notebooks.length, label: 'Total Notebooks' },
+            { icon: 'article', color: '#ffedb3', bg: 'rgba(255,237,179,0.1)', value: totalDocs, label: 'Active Documents' },
+            { icon: 'flash_on', color: '#b9c3ff', bg: 'rgba(185,195,255,0.1)', value: '—', label: 'Mastered Cards' },
+          ].map(({ icon, color, bg, value, label }) => (
+            <div
+              key={label}
+              style={{
+                background: '#18182a',
+                borderRadius: '16px',
+                padding: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '24px',
+              }}
+            >
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '14px',
+                  background: bg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ color, fontSize: '24px' }}>{icon}</span>
+              </div>
+              <div>
+                <p style={{ fontSize: '24px', fontWeight: 900, color: '#e5e3ff', margin: '0 0 2px' }}>{value}</p>
+                <p style={{ fontSize: '12px', color: '#aaa8c8', margin: 0 }}>{label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create / Edit modal */}
       {showForm && (
         <NotebookForm
           notebook={editingNotebook}
@@ -325,60 +310,48 @@ export default function NotebooksPage() {
         >
           <div
             style={{
-              background: '#0d0c20',
-              border: '1px solid rgba(239,68,68,0.2)',
-              borderRadius: '16px',
-              padding: '28px',
+              background: '#18182a',
+              borderRadius: '20px',
+              padding: '32px',
               width: '100%',
-              maxWidth: '380px',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+              maxWidth: '400px',
+              boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
               animation: 'slideUp 0.2s cubic-bezier(0.22,1,0.36,1)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <style>{`
-              @keyframes slideUp {
-                from { opacity: 0; transform: translateY(12px); }
-                to { opacity: 1; transform: translateY(0); }
-              }
+              @keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
             `}</style>
-            <h3
+            <div
               style={{
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '17px',
-                fontWeight: '700',
-                color: '#ede9ff',
-                margin: '0 0 8px',
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'rgba(253,111,133,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px',
               }}
             >
+              <span className="material-symbols-outlined" style={{ color: '#fd6f85', fontSize: '24px' }}>delete</span>
+            </div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
               Delete &ldquo;{deleteTarget.name}&rdquo;?
             </h3>
-            <p
-              style={{
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '13px',
-                color: 'rgba(237,233,255,0.4)',
-                margin: '0 0 24px',
-                lineHeight: 1.5,
-              }}
-            >
+            <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 28px', lineHeight: 1.6 }}>
               This will permanently delete the notebook and all its documents and chat history. This action cannot be undone.
             </p>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => { if (!deleteLoading) setDeleteTarget(null); }}
                 disabled={deleteLoading}
                 style={{
-                  flex: 1,
-                  padding: '10px',
-                  borderRadius: '11px',
-                  background: 'rgba(237,233,255,0.06)',
-                  border: '1px solid rgba(237,233,255,0.12)',
-                  fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: 'rgba(237,233,255,0.6)',
-                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  flex: 1, padding: '12px', borderRadius: '12px',
+                  background: '#23233c', border: 'none',
+                  fontSize: '14px', fontWeight: 600, color: '#aaa8c8',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 }}
               >
                 Cancel
@@ -387,17 +360,11 @@ export default function NotebooksPage() {
                 onClick={handleDelete}
                 disabled={deleteLoading}
                 style={{
-                  flex: 1,
-                  padding: '10px',
-                  borderRadius: '11px',
-                  background: deleteLoading ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.85)',
-                  border: 'none',
-                  fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  color: deleteLoading ? 'rgba(252,165,165,0.5)' : '#fca5a5',
-                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
-                  transition: 'background 0.12s ease',
+                  flex: 1, padding: '12px', borderRadius: '12px',
+                  background: deleteLoading ? 'rgba(253,111,133,0.2)' : '#fd6f85',
+                  border: 'none', fontSize: '14px', fontWeight: 700,
+                  color: deleteLoading ? '#aaa8c8' : '#490013',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 }}
               >
                 {deleteLoading ? 'Deleting…' : 'Delete'}
@@ -406,6 +373,41 @@ export default function NotebooksPage() {
           </div>
         </div>
       )}
+
+      {/* FAB */}
+      <button
+        onClick={() => { setEditingNotebook(null); setShowForm(true); }}
+        title="Quick Note"
+        style={{
+          position: 'fixed',
+          bottom: '32px',
+          right: '32px',
+          width: '64px',
+          height: '64px',
+          borderRadius: '50%',
+          background: '#ffde59',
+          border: 'none',
+          color: '#5f4f00',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 8px 32px rgba(255,222,89,0.3)',
+          zIndex: 50,
+          transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+        onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.9)'; }}
+        onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
+      >
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: '28px', fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+        >
+          edit_note
+        </span>
+      </button>
     </div>
   );
 }

@@ -19,6 +19,7 @@ model User {
   email         String    @unique
   name          String?
   password      String    // Will be hashed with bcrypt
+  dailyGoal     Int       @default(10)  // Pages the user wants to write/study per day
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
