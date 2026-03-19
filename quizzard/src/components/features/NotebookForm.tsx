@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import type { NotebookData } from './NotebookCard';
+import { PRESETS, matchPresets, type Preset } from '@/lib/presets';
 
 const COLOR_SWATCHES = [
   '#8c52ff',
@@ -15,11 +16,12 @@ const COLOR_SWATCHES = [
   '#a78bfa',
 ];
 
-interface FormData {
+export interface FormData {
   name: string;
   subject: string;
   description: string;
   color: string;
+  presetId?: string;
 }
 
 interface NotebookFormProps {
@@ -43,15 +45,36 @@ const inputStyle: React.CSSProperties = {
   transition: 'border-color 0.15s ease',
 };
 
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontFamily: "'Gliker', 'DM Sans', sans-serif",
+  fontSize: '12px',
+  fontWeight: '600',
+  color: 'rgba(237,233,255,0.5)',
+  marginBottom: '6px',
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+};
+
 export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }: NotebookFormProps) {
   const isEditing = !!notebook;
-  const [form, setForm] = useState<FormData>({
+
+  const [form, setForm] = useState<Omit<FormData, 'presetId'>>({
     name: notebook?.name ?? '',
     subject: notebook?.subject ?? '',
     description: notebook?.description ?? '',
     color: notebook?.color ?? '#8c52ff',
   });
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Preset state
+  const [suggestions, setSuggestions] = useState<Preset[]>([]);
+  const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
+  const [showAllPresets, setShowAllPresets] = useState(false);
+  // Language Learning special case
+  const [isLanguageMode, setIsLanguageMode] = useState(false);
+  const [languageName, setLanguageName] = useState('');
+  const langInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setForm({
@@ -60,13 +83,69 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
       description: notebook?.description ?? '',
       color: notebook?.color ?? '#8c52ff',
     });
+    setSelectedPreset(null);
+    setSuggestions([]);
+    setShowAllPresets(false);
+    setIsLanguageMode(false);
+    setLanguageName('');
   }, [notebook]);
+
+  // Focus language input when entering language mode
+  useEffect(() => {
+    if (isLanguageMode) {
+      setTimeout(() => langInputRef.current?.focus(), 50);
+    }
+  }, [isLanguageMode]);
+
+  const handleSubjectChange = (value: string) => {
+    setForm((p) => ({ ...p, subject: value }));
+    // Clear selected preset when user manually edits subject
+    if (selectedPreset && !isLanguageMode) {
+      setSelectedPreset(null);
+      setShowAllPresets(false);
+    }
+    setSuggestions(matchPresets(value));
+  };
+
+  const applyPreset = (preset: Preset) => {
+    if (preset.id === 'language-learning') {
+      setIsLanguageMode(true);
+      setSelectedPreset(preset);
+      setForm((p) => ({ ...p, color: preset.color, subject: '' }));
+      setLanguageName('');
+    } else {
+      setSelectedPreset(preset);
+      setIsLanguageMode(false);
+      setForm((p) => ({ ...p, subject: preset.label, color: preset.color }));
+    }
+    setSuggestions([]);
+    setShowAllPresets(false);
+  };
+
+  const clearPreset = () => {
+    setSelectedPreset(null);
+    setIsLanguageMode(false);
+    setLanguageName('');
+    setForm((p) => ({ ...p, subject: '' }));
+    setSuggestions([]);
+  };
+
+  const handleLanguageChange = (value: string) => {
+    setLanguageName(value);
+    setForm((p) => ({ ...p, subject: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    onSubmit(form);
+    onSubmit({ ...form, presetId: selectedPreset?.id });
   };
+
+  const noSuggestions =
+    !selectedPreset &&
+    !isLanguageMode &&
+    form.subject.trim().length >= 2 &&
+    suggestions.length === 0;
 
   return (
     <div
@@ -103,6 +182,46 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
             from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
           }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .preset-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Gliker', 'DM Sans', sans-serif;
+            transition: background 0.12s ease, border-color 0.12s ease, transform 0.1s ease;
+            white-space: nowrap;
+          }
+          .preset-pill:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+          }
+          .preset-pill:active { transform: scale(0.96); }
+          .preset-all-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            font-family: 'Gliker', 'DM Sans', sans-serif;
+            transition: background 0.1s ease;
+          }
+          .preset-all-item:hover { background: rgba(255,255,255,0.06); }
         `}</style>
 
         {/* Header */}
@@ -150,18 +269,7 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Name */}
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '12px',
-                fontWeight: '600',
-                color: 'rgba(237,233,255,0.5)',
-                marginBottom: '6px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
+            <label style={labelStyle}>
               Name <span style={{ color: '#8c52ff' }}>*</span>
             </label>
             <input
@@ -181,50 +289,311 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
 
           {/* Subject */}
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '12px',
-                fontWeight: '600',
-                color: 'rgba(237,233,255,0.5)',
-                marginBottom: '6px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Subject
-            </label>
-            <input
-              type="text"
-              value={form.subject}
-              onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
-              onFocus={() => setFocusedField('subject')}
-              onBlur={() => setFocusedField(null)}
-              placeholder="e.g. Biology, History, Math"
-              style={{
-                ...inputStyle,
-                borderColor: focusedField === 'subject' ? 'rgba(140,82,255,0.6)' : 'rgba(140,82,255,0.3)',
-              }}
-            />
+            <label style={labelStyle}>Subject</label>
+
+            {/* Active preset badge */}
+            {selectedPreset && !isLanguageMode && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '10px',
+                  background: `${selectedPreset.color}18`,
+                  border: `1px solid ${selectedPreset.color}40`,
+                  marginBottom: '8px',
+                  animation: 'fadeIn 0.15s ease',
+                }}
+              >
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: selectedPreset.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: selectedPreset.color,
+                    flex: 1,
+                  }}
+                >
+                  {selectedPreset.label} template
+                </span>
+                <button
+                  type="button"
+                  onClick={clearPreset}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'rgba(237,233,255,0.35)',
+                    padding: '0',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            )}
+
+            {/* Language Learning mode */}
+            {isLanguageMode && selectedPreset ? (
+              <div style={{ animation: 'fadeIn 0.15s ease' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    background: `${selectedPreset.color}18`,
+                    border: `1px solid ${selectedPreset.color}40`,
+                    marginBottom: '8px',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: selectedPreset.color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: selectedPreset.color,
+                      flex: 1,
+                    }}
+                  >
+                    Language Learning template
+                  </span>
+                  <button
+                    type="button"
+                    onClick={clearPreset}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'rgba(237,233,255,0.35)',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    color: 'rgba(237,233,255,0.4)',
+                    marginBottom: '6px',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Which language?
+                </label>
+                <input
+                  ref={langInputRef}
+                  type="text"
+                  value={languageName}
+                  onChange={(e) => handleLanguageChange(e.target.value)}
+                  onFocus={() => setFocusedField('language')}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="e.g. Spanish, Japanese, French…"
+                  style={{
+                    ...inputStyle,
+                    borderColor: focusedField === 'language'
+                      ? `${selectedPreset.color}99`
+                      : `${selectedPreset.color}50`,
+                  }}
+                />
+              </div>
+            ) : !selectedPreset ? (
+              <input
+                type="text"
+                value={form.subject}
+                onChange={(e) => handleSubjectChange(e.target.value)}
+                onFocus={() => setFocusedField('subject')}
+                onBlur={() => setFocusedField(null)}
+                placeholder="e.g. Biology, History, Math"
+                style={{
+                  ...inputStyle,
+                  borderColor: focusedField === 'subject' ? 'rgba(140,82,255,0.6)' : 'rgba(140,82,255,0.3)',
+                }}
+              />
+            ) : null}
+
+            {/* Suggestion pills */}
+            {suggestions.length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '6px',
+                  flexWrap: 'wrap',
+                  marginTop: '8px',
+                  animation: 'fadeIn 0.15s ease',
+                }}
+              >
+                {suggestions.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    className="preset-pill"
+                    onClick={() => applyPreset(preset)}
+                    style={{ color: preset.color, borderColor: `${preset.color}40` }}
+                  >
+                    <span
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        borderRadius: '50%',
+                        background: preset.color,
+                        display: 'inline-block',
+                        flexShrink: 0,
+                      }}
+                    />
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* No-match: browse all templates */}
+            {noSuggestions && !showAllPresets && (
+              <div style={{ marginTop: '8px', animation: 'fadeIn 0.15s ease' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAllPresets(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '0',
+                    cursor: 'pointer',
+                    fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                    fontSize: '12px',
+                    color: 'rgba(174,137,255,0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                    auto_awesome
+                  </span>
+                  Browse templates
+                </button>
+              </div>
+            )}
+
+            {/* All presets picker */}
+            {showAllPresets && (
+              <div
+                style={{
+                  marginTop: '8px',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '12px',
+                  padding: '6px',
+                  animation: 'fadeIn 0.15s ease',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '4px 8px 8px',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      color: 'rgba(237,233,255,0.35)',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Choose a template
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAllPresets(false)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'rgba(237,233,255,0.3)',
+                      display: 'flex',
+                      padding: '0',
+                    }}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+                {PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    className="preset-all-item"
+                    onClick={() => applyPreset(preset)}
+                  >
+                    <span
+                      style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        background: preset.color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        color: '#ede9ff',
+                      }}
+                    >
+                      {preset.label}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                        fontSize: '11px',
+                        color: 'rgba(237,233,255,0.35)',
+                        marginLeft: 'auto',
+                      }}
+                    >
+                      {preset.scaffold.length} sections
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Description */}
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '12px',
-                fontWeight: '600',
-                color: 'rgba(237,233,255,0.5)',
-                marginBottom: '6px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Description
-            </label>
+            <label style={labelStyle}>Description</label>
             <textarea
               value={form.description}
               onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
@@ -243,20 +612,7 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
 
           {/* Color picker */}
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontFamily: "'Gliker', 'DM Sans', sans-serif",
-                fontSize: '12px',
-                fontWeight: '600',
-                color: 'rgba(237,233,255,0.5)',
-                marginBottom: '10px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Color
-            </label>
+            <label style={labelStyle}>Color</label>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {COLOR_SWATCHES.map((c) => (
                 <button
@@ -318,16 +674,18 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
                 flex: 2,
                 padding: '11px',
                 borderRadius: '12px',
-                background: isLoading || !form.name.trim()
-                  ? 'rgba(140,82,255,0.3)'
-                  : 'linear-gradient(135deg, #8c52ff, #5170ff)',
+                background:
+                  isLoading || !form.name.trim()
+                    ? 'rgba(140,82,255,0.3)'
+                    : 'linear-gradient(135deg, #8c52ff, #5170ff)',
                 border: 'none',
                 fontFamily: "'Gliker', 'DM Sans', sans-serif",
                 fontSize: '14px',
                 fontWeight: '700',
                 color: isLoading || !form.name.trim() ? 'rgba(237,233,255,0.4)' : '#ede9ff',
                 cursor: isLoading || !form.name.trim() ? 'not-allowed' : 'pointer',
-                boxShadow: isLoading || !form.name.trim() ? 'none' : '0 4px 20px rgba(140,82,255,0.28)',
+                boxShadow:
+                  isLoading || !form.name.trim() ? 'none' : '0 4px 20px rgba(140,82,255,0.28)',
                 transition: 'opacity 0.12s ease, transform 0.1s ease',
               }}
               onMouseEnter={(e) => {

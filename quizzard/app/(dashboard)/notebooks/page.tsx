@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import NotebookCard, { type NotebookData } from '@/components/features/NotebookCard';
-import NotebookForm from '@/components/features/NotebookForm';
+import NotebookForm, { type FormData as NotebookFormData } from '@/components/features/NotebookForm';
+import { PRESETS, getPresetForSubject } from '@/lib/presets';
 
-const FILTER_PILLS = ['All Subjects', 'Science', 'History', 'Languages', 'Literature'];
+const ALL_LABEL = 'All Subjects';
 
 function SkeletonCard() {
   return (
@@ -33,7 +34,9 @@ function SkeletonCard() {
 export default function NotebooksPage() {
   const [notebooks, setNotebooks] = useState<NotebookData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState('All Subjects');
+  const [activeFilter, setActiveFilter] = useState(ALL_LABEL);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingNotebook, setEditingNotebook] = useState<NotebookData | null>(null);
   const [formLoading, setFormLoading] = useState(false);
@@ -54,7 +57,18 @@ export default function NotebooksPage() {
     fetchNotebooks();
   }, [fetchNotebooks]);
 
-  const handleCreate = async (data: { name: string; subject: string; description: string; color: string }) => {
+  useEffect(() => {
+    if (!filterOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [filterOpen]);
+
+  const handleCreate = async (data: NotebookFormData) => {
     setFormLoading(true);
     try {
       const res = await fetch('/api/notebooks', {
@@ -63,13 +77,24 @@ export default function NotebooksPage() {
         body: JSON.stringify(data),
       });
       const json = await res.json();
-      if (json.success) { setShowForm(false); await fetchNotebooks(); }
+      if (json.success) {
+        setShowForm(false);
+        // Scaffold sections if a preset was chosen (fire-and-forget, don't block UI)
+        if (data.presetId && json.data?.id) {
+          fetch(`/api/notebooks/${json.data.id}/scaffold`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ presetId: data.presetId }),
+          }).catch(() => {});
+        }
+        await fetchNotebooks();
+      }
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleEdit = async (data: { name: string; subject: string; description: string; color: string }) => {
+  const handleEdit = async (data: NotebookFormData) => {
     if (!editingNotebook) return;
     setFormLoading(true);
     try {
@@ -99,34 +124,182 @@ export default function NotebooksPage() {
 
   const totalDocs = notebooks.reduce((s, n) => s + (n._count.documents || 0), 0);
 
+  const filteredNotebooks =
+    activeFilter === 'All Subjects'
+      ? notebooks
+      : notebooks.filter((nb) => getPresetForSubject(nb.subject)?.label === activeFilter);
+
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-      {/* Filter pills */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '32px', flexWrap: 'wrap' }}>
-        {FILTER_PILLS.map((pill) => {
-          const active = pill === activeFilter;
-          return (
-            <button
-              key={pill}
-              onClick={() => setActiveFilter(pill)}
-              style={{
-                padding: '8px 20px',
-                borderRadius: '9999px',
-                border: 'none',
-                background: active ? '#ae89ff' : '#1d1d33',
-                color: active ? '#2a0066' : '#aaa8c8',
-                fontSize: '14px',
-                fontWeight: active ? 700 : 500,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                boxShadow: active ? '0 4px 12px rgba(174,137,255,0.3)' : 'none',
-                transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1)',
-              }}
-            >
-              {pill}
-            </button>
-          );
-        })}
+      {/* Toolbar: filter dropdown + add button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+
+        {/* Subject filter dropdown */}
+        <div ref={filterRef} style={{ position: 'relative' }}>
+          {/* Trigger button */}
+          <button
+            onClick={() => setFilterOpen((v) => !v)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 14px 8px 12px',
+              borderRadius: '10px',
+              border: `1px solid ${filterOpen ? 'rgba(174,137,255,0.35)' : 'rgba(174,137,255,0.12)'}`,
+              background: filterOpen ? 'rgba(174,137,255,0.08)' : '#1a1a2e',
+              color: '#e5e3ff',
+              fontSize: '13px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'border-color 0.15s, background 0.15s',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {/* Color dot for active preset */}
+            {activeFilter !== ALL_LABEL ? (
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff',
+                flexShrink: 0,
+              }} />
+            ) : (
+              <span className="material-symbols-outlined" style={{ fontSize: '15px', color: 'rgba(174,137,255,0.6)' }}>
+                filter_list
+              </span>
+            )}
+            <span style={{ color: activeFilter !== ALL_LABEL ? '#e5e3ff' : '#aaa8c8' }}>
+              {activeFilter !== ALL_LABEL ? activeFilter : 'All Subjects'}
+            </span>
+            <span className="material-symbols-outlined" style={{
+              fontSize: '16px',
+              color: 'rgba(174,137,255,0.5)',
+              marginLeft: '2px',
+              transition: 'transform 0.15s',
+              transform: filterOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}>
+              expand_more
+            </span>
+          </button>
+
+          {/* Dropdown panel */}
+          {filterOpen && (
+            <div style={{
+              position: 'absolute',
+              top: 'calc(100% + 6px)',
+              left: 0,
+              zIndex: 200,
+              background: '#18182e',
+              border: '1px solid rgba(174,137,255,0.18)',
+              borderRadius: '12px',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(174,137,255,0.06)',
+              padding: '6px',
+              minWidth: '200px',
+              animation: 'dropIn 0.12s cubic-bezier(0.22,1,0.36,1)',
+            }}>
+              <style>{`
+                @keyframes dropIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+              `}</style>
+
+              {/* All option */}
+              <button
+                onClick={() => { setActiveFilter(ALL_LABEL); setFilterOpen(false); }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '8px 10px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: activeFilter === ALL_LABEL ? 'rgba(174,137,255,0.12)' : 'transparent',
+                  color: activeFilter === ALL_LABEL ? '#e5e3ff' : '#aaa8c8',
+                  fontSize: '13px',
+                  fontWeight: activeFilter === ALL_LABEL ? 600 : 400,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => { if (activeFilter !== ALL_LABEL) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.06)'; }}
+                onMouseLeave={(e) => { if (activeFilter !== ALL_LABEL) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+              >
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(174,137,255,0.4)', flexShrink: 0 }} />
+                All Subjects
+                {activeFilter === ALL_LABEL && (
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#ae89ff', marginLeft: 'auto' }}>check</span>
+                )}
+              </button>
+
+              {/* Divider */}
+              <div style={{ height: '1px', background: 'rgba(174,137,255,0.08)', margin: '4px 6px' }} />
+
+              {/* Preset options */}
+              {PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => { setActiveFilter(preset.label); setFilterOpen(false); }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: activeFilter === preset.label ? 'rgba(174,137,255,0.12)' : 'transparent',
+                    color: activeFilter === preset.label ? '#e5e3ff' : '#aaa8c8',
+                    fontSize: '13px',
+                    fontWeight: activeFilter === preset.label ? 600 : 400,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => { if (activeFilter !== preset.label) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.06)'; }}
+                  onMouseLeave={(e) => { if (activeFilter !== preset.label) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                >
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: preset.color, flexShrink: 0 }} />
+                  {preset.label}
+                  {activeFilter === preset.label && (
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#ae89ff', marginLeft: 'auto' }}>check</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Active filter badge — shows when a preset is active */}
+        {activeFilter !== ALL_LABEL && (
+          <button
+            onClick={() => setActiveFilter(ALL_LABEL)}
+            title="Clear filter"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '5px 10px 5px 8px',
+              borderRadius: '8px',
+              border: `1px solid ${PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff'}33`,
+              background: `${PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff'}18`,
+              color: PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff',
+            }} />
+            {activeFilter}
+            <span className="material-symbols-outlined" style={{ fontSize: '13px', opacity: 0.7 }}>close</span>
+          </button>
+        )}
 
         {/* New Notebook button — right side */}
         <button
@@ -168,7 +341,7 @@ export default function NotebooksPage() {
       {/* Grid */}
       {!isLoading && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-          {notebooks.map((nb) => (
+          {filteredNotebooks.map((nb) => (
             <NotebookCard
               key={nb.id}
               notebook={nb}

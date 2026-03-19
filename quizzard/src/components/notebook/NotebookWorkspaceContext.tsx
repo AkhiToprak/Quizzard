@@ -10,14 +10,28 @@ interface NotebookMeta {
   color: string | null;
 }
 
+export interface NotebookChatItem {
+  id: string;
+  title: string;
+  contextPageIds: string[];
+  contextDocIds: string[];
+  createdAt: string;
+  updatedAt: string;
+  _count: { messages: number };
+}
+
 interface WorkspaceContextValue {
   notebookId: string;
   notebook: NotebookMeta | null;
-  sections: SectionNode[];        // tree structure
-  flatSections: SectionData[];    // flat list for lookups
+  sections: SectionNode[];
+  flatSections: SectionData[];
   activeSectionId: string | null;
   setActiveSectionId: (id: string) => void;
   activePageId: string | null;
+  activeChatId: string | null;
+  isScholarView: boolean;
+  chats: NotebookChatItem[];
+  refreshChats: () => void;
   refreshSections: () => void;
 }
 
@@ -35,12 +49,22 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
   const [flatSections, setFlatSections] = useState<SectionData[]>([]);
   const [sections, setSections] = useState<SectionNode[]>([]);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [chats, setChats] = useState<NotebookChatItem[]>([]);
 
   // Derive activePageId from URL
   const activePageId = (() => {
     const match = pathname.match(/\/notebooks\/[^/]+\/pages\/([^/]+)/);
     return match?.[1] ?? null;
   })();
+
+  // Derive activeChatId from URL
+  const activeChatId = (() => {
+    const match = pathname.match(/\/notebooks\/[^/]+\/chats\/([^/]+)/);
+    return match?.[1] ?? null;
+  })();
+
+  // Scholar view = on the notebook root or a chat page (not a notes page)
+  const isScholarView = !activePageId;
 
   const fetchNotebook = useCallback(async () => {
     try {
@@ -64,10 +88,21 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
     } catch { /* silent */ }
   }, [notebookId]);
 
+  const fetchChats = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/notebooks/${notebookId}/chats`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setChats(json.data as NotebookChatItem[]);
+      }
+    } catch { /* silent */ }
+  }, [notebookId]);
+
   useEffect(() => {
     fetchNotebook();
     fetchSections();
-  }, [fetchNotebook, fetchSections]);
+    fetchChats();
+  }, [fetchNotebook, fetchSections, fetchChats]);
 
   // Derive activeSectionId from activePageId after sections load
   useEffect(() => {
@@ -91,7 +126,10 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
     <NotebookWorkspaceContext.Provider value={{
       notebookId, notebook, sections, flatSections,
       activeSectionId, setActiveSectionId,
-      activePageId, refreshSections: fetchSections,
+      activePageId, activeChatId,
+      isScholarView,
+      chats, refreshChats: fetchChats,
+      refreshSections: fetchSections,
     }}>
       {children}
     </NotebookWorkspaceContext.Provider>

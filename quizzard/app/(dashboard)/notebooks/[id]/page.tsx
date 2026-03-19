@@ -1,17 +1,9 @@
 'use client';
 
 import { useState, useEffect, use, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-
-interface NotebookInfo {
-  id: string;
-  name: string;
-  subject: string | null;
-  description: string | null;
-  color: string | null;
-  updatedAt: string;
-}
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
+import CreateChatModal from '@/components/notebook/CreateChatModal';
 
 interface DocumentItem {
   id: string;
@@ -19,6 +11,14 @@ interface DocumentItem {
   fileSize: number;
   fileType: string;
   createdAt: string;
+}
+
+interface SectionRef {
+  id: string;
+  title: string;
+  pages: { id: string; title: string }[];
+  children?: SectionRef[];
+  parentId?: string | null;
 }
 
 function formatBytes(bytes: number) {
@@ -49,15 +49,15 @@ const ALLOWED_TYPES = ['application/pdf', 'application/vnd.openxmlformats-office
 export default function NotebookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { notebook, flatSections, refreshChats } = useNotebookWorkspace();
 
-  const [notebook, setNotebook] = useState<NotebookInfo | null>(null);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
-  const [redirected, setRedirected] = useState(false);
-
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -68,31 +68,17 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
   }, [id]);
 
   useEffect(() => {
-    // Fetch notebook info
-    fetch(`/api/notebooks/${id}`)
-      .then((r) => r.json())
-      .then((j) => { if (j.success) setNotebook(j.data); })
-      .catch(() => {});
-
     fetchDocs();
+  }, [fetchDocs]);
 
-    // Check for existing pages → redirect
-    fetch(`/api/notebooks/${id}/sections`)
-      .then((r) => r.json())
-      .then((j) => {
-        if (j.success && j.data) {
-          for (const section of j.data) {
-            if (section.pages && section.pages.length > 0) {
-              router.replace(`/notebooks/${id}/pages/${section.pages[0].id}`);
-              setRedirected(true);
-              return;
-            }
-          }
-        }
-      })
-      .catch(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  // Auto-open modal when ?new=1 is in URL (e.g. from "New chat" sidebar button)
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowCreateModal(true);
+      // Clean up the query param without navigation
+      router.replace(`/notebooks/${id}`);
+    }
+  }, [searchParams, id, router]);
 
   const upload = async (file: File) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -132,68 +118,73 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  if (redirected) return null;
+  const handleChatCreated = (chatId: string) => {
+    setShowCreateModal(false);
+    refreshChats();
+    router.push(`/notebooks/${id}/chats/${chatId}`);
+  };
+
+  // Build section tree for modal (reuse flatSections from context)
+  const sectionTree: SectionRef[] = flatSections
+    .filter(s => !s.parentId)
+    .map(s => ({
+      id: s.id,
+      title: s.title,
+      pages: s.pages,
+      children: flatSections
+        .filter(c => c.parentId === s.id)
+        .map(c => ({ id: c.id, title: c.title, pages: c.pages })),
+    }));
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+    <div style={{ flex: 1, overflowY: 'auto', height: '100%' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px' }}>
       {/* Header */}
       <header style={{ marginBottom: '48px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* Breadcrumb chips */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {notebook?.subject && (
-                <span
-                  style={{
-                    padding: '4px 12px',
-                    background: 'rgba(174,137,255,0.2)',
-                    color: '#cdb5ff',
-                    borderRadius: '9999px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                  }}
-                >
-                  {notebook.subject}
+              {notebook?.color && (
+                <span style={{
+                  padding: '4px 12px',
+                  background: 'rgba(174,137,255,0.2)',
+                  color: '#cdb5ff',
+                  borderRadius: '9999px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>auto_fix_high</span>
+                  Scholar
                 </span>
-              )}
-              {notebook?.updatedAt && (
-                <>
-                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#464560', flexShrink: 0 }} />
-                  <span style={{ fontSize: '14px', fontWeight: 500, color: '#aaa8c8' }}>
-                    Modified {formatDate(notebook.updatedAt)}
-                  </span>
-                </>
               )}
             </div>
 
             {/* Notebook name */}
-            <h2
-              style={{
-                fontFamily: '"Shrikhand", serif',
-                fontStyle: 'italic',
-                fontSize: '52px',
-                fontWeight: 400,
-                color: '#e5e3ff',
-                margin: 0,
-                lineHeight: 1.05,
-                letterSpacing: '-0.02em',
-              }}
-            >
+            <h2 style={{
+              fontFamily: '"Shrikhand", serif',
+              fontStyle: 'italic',
+              fontSize: '52px',
+              fontWeight: 400,
+              color: '#e5e3ff',
+              margin: 0,
+              lineHeight: 1.05,
+              letterSpacing: '-0.02em',
+            }}>
               {notebook?.name ?? '…'}
             </h2>
 
-            {notebook?.description && (
-              <p style={{ fontSize: '16px', color: '#b9c3ff', margin: 0, maxWidth: '560px', lineHeight: '1.6', fontWeight: 500 }}>
-                {notebook.description}
-              </p>
-            )}
+            <p style={{ fontSize: '15px', color: '#737390', margin: 0, fontWeight: 500 }}>
+              Feed the Scholar, review your vault, and start AI-powered chats.
+            </p>
           </div>
 
           {/* Start Chat CTA */}
-          <Link
-            href={`/ai-chat`}
+          <button
+            onClick={() => setShowCreateModal(true)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -204,15 +195,17 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
               borderRadius: '16px',
               fontWeight: 900,
               fontSize: '17px',
-              textDecoration: 'none',
+              border: 'none',
+              cursor: 'pointer',
               boxShadow: '0 8px 24px rgba(255,222,89,0.2)',
               transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
               flexShrink: 0,
+              fontFamily: "'Gliker', 'DM Sans', sans-serif",
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.02)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1)'; }}
-            onMouseDown={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(0.95)'; }}
-            onMouseUp={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.02)'; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+            onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'; }}
+            onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)'; }}
           >
             <span
               className="material-symbols-outlined"
@@ -221,316 +214,322 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
               auto_fix_high
             </span>
             Start Chat
-          </Link>
+          </button>
         </div>
       </header>
 
-      {/* Bento grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px', alignItems: 'start' }}>
+      <style>{`
+        @keyframes nb-fade-up {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes nb-pulse-glow {
+          0%, 100% { opacity: 0.5; }
+          50%       { opacity: 1; }
+        }
+        @keyframes nb-flame {
+          0%, 100% { transform: scaleY(1) rotate(-3deg); }
+          50%       { transform: scaleY(1.12) rotate(3deg); }
+        }
+        .nb-card {
+          animation: nb-fade-up 0.45s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        .nb-card:nth-child(1) { animation-delay: 0ms;   }
+        .nb-card:nth-child(2) { animation-delay: 80ms;  }
+        .nb-card:nth-child(3) { animation-delay: 160ms; }
+        .nb-card:nth-child(4) { animation-delay: 60ms;  }
+        .nb-upload:hover .nb-upload-icon {
+          transform: translateY(-2px) scale(1.06);
+        }
+        .nb-upload-icon {
+          transition: transform 0.25s cubic-bezier(0.22,1,0.36,1);
+        }
+        .nb-doc-row:hover .nb-doc-actions { opacity: 1; }
+        .nb-doc-actions { opacity: 0; transition: opacity 0.15s ease; }
+      `}</style>
 
-        {/* Left column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-          {/* Upload zone */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
-            style={{
-              background: '#1d1d33',
-              borderRadius: '24px',
-              padding: '32px',
-              border: `2px dashed ${isDragging ? '#ae89ff' : 'rgba(70,69,96,0.3)'}`,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              cursor: 'pointer',
-              minHeight: '280px',
-              transition: 'border-color 0.2s cubic-bezier(0.22,1,0.36,1)',
-            }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(174,137,255,0.5)'; }}
-            onMouseLeave={(e) => { if (!isDragging) (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(70,69,96,0.3)'; }}
+      {/* ── Bento grid ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1.75fr',
+        gridTemplateRows: 'auto auto 1fr',
+        gridTemplateAreas: `
+          "upload vault"
+          "streak vault"
+          "insight vault"
+        `,
+        gap: '16px',
+        alignItems: 'start',
+      }}>
+        {/* ── Upload zone ── */}
+        <div
+          className="nb-card nb-upload"
+          style={{ gridArea: 'upload' }}
+          onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".pdf,.docx,.txt,.md"
+            style={{ display: 'none' }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); }}
+          />
+          <div style={{
+            borderRadius: '20px',
+            padding: '18px 22px',
+            border: `2px dashed ${isDragging ? 'rgba(174,137,255,0.8)' : 'rgba(70,69,96,0.4)'}`,
+            background: isDragging
+              ? 'rgba(174,137,255,0.06)'
+              : 'linear-gradient(135deg, #1a1a2e 0%, #1d1d33 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '18px',
+            cursor: 'pointer',
+            transition: 'border-color 0.2s ease, background 0.2s ease',
+            boxShadow: isDragging
+              ? '0 0 0 4px rgba(174,137,255,0.12), inset 0 1px 0 rgba(255,255,255,0.04)'
+              : 'inset 0 1px 0 rgba(255,255,255,0.04)',
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(174,137,255,0.5)'; }}
+            onMouseLeave={e => { if (!isDragging) (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(70,69,96,0.4)'; }}
           >
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".pdf,.docx,.txt,.md"
-              style={{ display: 'none' }}
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }}
-            />
-            <div
-              style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '16px',
-                background: 'rgba(174,137,255,0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '24px',
-                transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '36px', color: '#ae89ff' }}>
+            <div className="nb-upload-icon" style={{
+              width: '48px', height: '48px', borderRadius: '14px',
+              background: 'linear-gradient(135deg, rgba(174,137,255,0.18) 0%, rgba(81,112,255,0.12) 100%)',
+              border: '1px solid rgba(174,137,255,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#ae89ff' }}>
                 {isUploading ? 'hourglass_empty' : 'cloud_upload'}
               </span>
             </div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
-              {isUploading ? 'Uploading…' : 'Feed the Scholar'}
-            </h3>
-            <p style={{ fontSize: '13px', color: '#aaa8c8', margin: '0 0 24px', lineHeight: 1.6, padding: '0 16px' }}>
-              Drag &amp; drop PDFs, images, or notes here. Our AI will digest the complexity for you.
-            </p>
-            <span
-              style={{
-                padding: '6px 16px',
-                background: '#23233c',
-                borderRadius: '9999px',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#737390',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-              }}
-            >
-              Max file size 50MB
-            </span>
-            {uploadError && (
-              <p style={{ fontSize: '12px', color: '#fd6f85', marginTop: '12px' }}>{uploadError}</p>
-            )}
-          </div>
-
-          {/* Study Streak card */}
-          <div
-            style={{
-              background: '#121222',
-              borderRadius: '24px',
-              padding: '32px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#b9c3ff', margin: 0 }}>Study Streak</h4>
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: '24px',
-                  color: '#ffde59',
-                  fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-                }}
-              >
-                local_fire_department
-              </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: '14px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 3px', letterSpacing: '-0.01em' }}>
+                {isUploading ? 'Uploading…' : 'Feed the Scholar'}
+              </p>
+              <p style={{ fontSize: '12px', color: '#737390', margin: 0, lineHeight: 1.5 }}>
+                PDF · DOCX · TXT · MD &nbsp;·&nbsp; max 50 MB
+              </p>
+              {uploadError && (
+                <p style={{ fontSize: '11px', color: '#fd6f85', margin: '4px 0 0' }}>{uploadError}</p>
+              )}
             </div>
-            <div
-              style={{
-                fontFamily: '"Shrikhand", serif',
-                fontStyle: 'italic',
-                fontSize: '36px',
-                color: '#e5e3ff',
-                lineHeight: 1,
-              }}
-            >
-              — Days
+            <div style={{
+              padding: '7px 16px', borderRadius: '10px',
+              background: 'rgba(174,137,255,0.14)', border: '1px solid rgba(174,137,255,0.25)',
+              fontSize: '12px', fontWeight: 700, color: '#c4a9ff', flexShrink: 0,
+              letterSpacing: '0.01em',
+            }}>
+              Browse
             </div>
-            <div
-              style={{
-                width: '100%',
-                height: '8px',
-                background: 'rgba(255,255,255,0.08)',
-                borderRadius: '9999px',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  height: '100%',
-                  width: '0%',
-                  background: 'linear-gradient(90deg, #ae89ff 0%, #ffde59 100%)',
-                  borderRadius: '9999px',
-                }}
-              />
-            </div>
-            <p style={{ fontSize: '12px', color: '#aaa8c8', margin: 0 }}>
-              Start studying to build your streak!
-            </p>
           </div>
         </div>
 
-        {/* Right column: Document Vault */}
-        <div
-          style={{
-            background: '#18182a',
-            borderRadius: '24px',
-            padding: '32px',
-          }}
-        >
-          {/* Vault header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>Document Vault</h3>
-              <span
+        {/* ── Study Streak ── */}
+        <div className="nb-card" style={{
+          gridArea: 'streak',
+          borderRadius: '20px',
+          padding: '20px 22px',
+          background: 'linear-gradient(135deg, #141424 0%, #0f0f1e 100%)',
+          border: '1px solid rgba(255,222,89,0.08)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+          display: 'flex', alignItems: 'center', gap: '18px',
+        }}>
+          <div style={{
+            width: '46px', height: '46px', borderRadius: '13px',
+            background: 'radial-gradient(circle at 50% 80%, rgba(255,165,0,0.18) 0%, rgba(255,222,89,0.06) 100%)',
+            border: '1px solid rgba(255,222,89,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <span className="material-symbols-outlined" style={{
+              fontSize: '24px', color: '#ffde59', fontVariationSettings: "'FILL' 1",
+              display: 'inline-block', animation: 'nb-flame 2.5s ease-in-out infinite', transformOrigin: 'bottom center',
+            }}>
+              local_fire_department
+            </span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,222,89,0.5)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                {notebook?.name ?? '…'} Streak
+              </span>
+              <span style={{ fontFamily: '"Shrikhand", serif', fontStyle: 'italic', fontSize: '22px', color: '#ffde59', lineHeight: 1, opacity: 0.6 }}>
+                —
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
+              {['M','T','W','T','F','S','S'].map((d, i) => (
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ height: '5px', borderRadius: '9999px', background: 'rgba(255,255,255,0.07)', width: '100%' }} />
+                  <span style={{ fontSize: '9px', color: '#464560', fontWeight: 600 }}>{d}</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: '11px', color: '#464560', margin: 0 }}>Start studying to build your streak!</p>
+          </div>
+        </div>
+
+        {/* ── AI Insight ── */}
+        <div className="nb-card" style={{
+          gridArea: 'insight',
+          borderRadius: '20px',
+          padding: '22px',
+          background: 'linear-gradient(145deg, rgba(140,82,255,0.12) 0%, rgba(81,112,255,0.06) 50%, rgba(13,12,32,0.8) 100%)',
+          border: '1px solid rgba(140,82,255,0.18)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 32px rgba(140,82,255,0.06)',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(140,82,255,0.25) 0%, transparent 70%)',
+            pointerEvents: 'none', animation: 'nb-pulse-glow 4s ease-in-out infinite',
+          }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <div style={{
+                width: '28px', height: '28px', borderRadius: '8px',
+                background: 'rgba(140,82,255,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#ae89ff', fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              </div>
+              <span style={{ fontFamily: '"Shrikhand", serif', fontStyle: 'italic', fontSize: '18px', color: '#ae89ff' }}>
+                AI Insight
+              </span>
+            </div>
+            <p style={{ fontSize: '13px', lineHeight: 1.75, color: 'rgba(185,195,255,0.7)', fontWeight: 400, margin: '0 0 16px' }}>
+              {documents.length > 0
+                ? <>Based on your {documents.length} document{documents.length !== 1 ? 's' : ''}, I&apos;m ready to help you study. Start a chat to dive in.</>
+                : 'Upload your first document to get AI-powered insights and study recommendations.'}
+            </p>
+            {documents.length > 0 ? (
+              <button
+                onClick={() => setShowCreateModal(true)}
                 style={{
-                  padding: '2px 8px',
-                  background: '#23233c',
-                  color: '#ae89ff',
-                  fontSize: '11px',
-                  fontWeight: 900,
-                  borderRadius: '6px',
-                  letterSpacing: '0.04em',
+                  padding: '9px 20px',
+                  background: 'linear-gradient(135deg, #8c52ff, #5170ff)',
+                  color: '#fff', border: 'none', borderRadius: '10px',
+                  fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  boxShadow: '0 4px 16px rgba(140,82,255,0.3)',
+                  transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1)',
                 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; }}
               >
+                Start a chat
+              </button>
+            ) : (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'rgba(140,82,255,0.5)', fontWeight: 600 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>lock</span>
+                Unlock by uploading
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Document Vault ── */}
+        <div className="nb-card" style={{
+          gridArea: 'vault',
+          background: 'linear-gradient(170deg, #1c1c30 0%, #18182a 60%)',
+          borderRadius: '22px', padding: '26px', alignSelf: 'stretch',
+          border: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 24px 48px rgba(0,0,0,0.2)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#e5e3ff', margin: 0, letterSpacing: '-0.02em' }}>
+                Document Vault
+              </h3>
+              <span style={{
+                padding: '3px 8px', background: 'rgba(174,137,255,0.1)', color: '#ae89ff',
+                fontSize: '10px', fontWeight: 900, borderRadius: '6px', letterSpacing: '0.06em',
+                border: '1px solid rgba(174,137,255,0.15)',
+              }}>
                 {String(documents.length).padStart(2, '0')} FILES
               </span>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                style={{
-                  padding: '8px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#aaa8c8',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#23233c'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>grid_view</span>
-              </button>
-              <button
-                style={{
-                  padding: '8px',
-                  background: 'rgba(174,137,255,0.1)',
-                  border: 'none',
-                  color: '#ae89ff',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>list</span>
-              </button>
+            <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '4px' }}>
+              {['grid_view','list'].map((icon, i) => (
+                <button key={icon} style={{
+                  padding: '6px 8px', background: i === 1 ? 'rgba(174,137,255,0.12)' : 'transparent',
+                  border: 'none', color: i === 1 ? '#ae89ff' : '#464560', borderRadius: '7px', cursor: 'pointer', display: 'flex',
+                  transition: 'background 0.12s, color 0.12s',
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{icon}</span>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Document rows */}
           {documents.length === 0 ? (
-            <div
-              style={{
-                padding: '48px 24px',
-                textAlign: 'center',
-                color: '#aaa8c8',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '12px',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '40px', color: '#464560' }}>folder_open</span>
-              <p style={{ fontSize: '14px', margin: 0 }}>No documents yet. Upload files using the zone on the left.</p>
+            <div style={{ padding: '56px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '64px', height: '64px', borderRadius: '18px',
+                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#464560' }}>folder_open</span>
+              </div>
+              <div>
+                <p style={{ fontSize: '15px', fontWeight: 700, color: '#aaa8c8', margin: '0 0 4px' }}>Vault is empty</p>
+                <p style={{ fontSize: '13px', color: '#464560', margin: 0 }}>Upload files above or select notebook pages when starting a chat.</p>
+              </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {documents.map((doc) => {
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {documents.map(doc => {
                 const { icon, color, bg } = getFileIcon(doc.fileType);
                 return (
                   <div
                     key={doc.id}
+                    className="nb-doc-row"
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      padding: '16px',
-                      background: '#1d1d33',
-                      borderRadius: '16px',
-                      border: '1px solid transparent',
-                      transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), border-color 0.2s cubic-bezier(0.22,1,0.36,1)',
+                      display: 'flex', alignItems: 'center', gap: '14px',
+                      padding: '13px 14px',
+                      background: 'rgba(255,255,255,0.025)', borderRadius: '14px',
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      transition: 'background 0.18s ease, border-color 0.18s ease', cursor: 'default',
                     }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.background = '#23233c';
-                      (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(70,69,96,0.2)';
-                      const visBtn = (e.currentTarget as HTMLDivElement).querySelector<HTMLButtonElement>('.vis-btn');
-                      if (visBtn) visBtn.style.opacity = '1';
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.05)';
+                      (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(174,137,255,0.15)';
                     }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.background = '#1d1d33';
-                      (e.currentTarget as HTMLDivElement).style.borderColor = 'transparent';
-                      const visBtn = (e.currentTarget as HTMLDivElement).querySelector<HTMLButtonElement>('.vis-btn');
-                      if (visBtn) visBtn.style.opacity = '0';
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.025)';
+                      (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.05)';
                     }}
                   >
-                    <div
-                      style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '12px',
-                        background: bg,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{ color, fontSize: '22px' }}>{icon}</span>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span className="material-symbols-outlined" style={{ color, fontSize: '19px' }}>{icon}</span>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          color: '#e5e3ff',
-                          margin: '0 0 2px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
+                      <p style={{ fontSize: '13px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {doc.fileName}
-                      </h4>
-                      <p style={{ fontSize: '12px', color: '#aaa8c8', margin: 0 }}>
-                        {formatBytes(doc.fileSize)} · Added {formatDate(doc.createdAt)}
+                      </p>
+                      <p style={{ fontSize: '11px', color: '#737390', margin: 0 }}>
+                        {formatBytes(doc.fileSize)} · {formatDate(doc.createdAt)}
                       </p>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <button
-                        className="vis-btn"
-                        style={{
-                          padding: '8px',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#aaa8c8',
-                          cursor: 'pointer',
-                          borderRadius: '8px',
-                          opacity: 0,
-                          transition: 'opacity 0.15s, color 0.15s',
-                        }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#e5e3ff'; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#aaa8c8'; }}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>visibility</span>
-                      </button>
+                    <div className="nb-doc-actions" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                       <button
                         onClick={() => handleDelete(doc.id)}
                         disabled={deletingId === doc.id}
-                        style={{
-                          padding: '8px',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#737390',
-                          cursor: 'pointer',
-                          borderRadius: '8px',
-                          transition: 'color 0.15s',
+                        style={{ padding: '6px', background: 'transparent', border: 'none', color: '#737390', cursor: 'pointer', borderRadius: '7px', display: 'flex', transition: 'color 0.12s, background 0.12s' }}
+                        onMouseEnter={e => {
+                          (e.currentTarget as HTMLButtonElement).style.color = '#fd6f85';
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.08)';
                         }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#fd6f85'; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#737390'; }}
+                        onMouseLeave={e => {
+                          (e.currentTarget as HTMLButtonElement).style.color = '#737390';
+                          (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                        }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
                           {deletingId === doc.id ? 'hourglass_empty' : 'delete'}
                         </span>
                       </button>
@@ -540,61 +539,21 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
               })}
             </div>
           )}
-
-          {/* AI Insight panel */}
-          <div
-            style={{
-              marginTop: '24px',
-              padding: '24px',
-              background: 'rgba(174,137,255,0.05)',
-              borderRadius: '16px',
-              border: '1px solid rgba(174,137,255,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '24px',
-              flexWrap: 'wrap',
-            }}
-          >
-            <div
-              style={{
-                fontFamily: '"Shrikhand", serif',
-                fontStyle: 'italic',
-                fontSize: '32px',
-                color: '#ae89ff',
-                flexShrink: 0,
-              }}
-            >
-              AI Insight
-            </div>
-            <p style={{ flex: 1, fontSize: '14px', lineHeight: 1.7, color: 'rgba(185,195,255,0.8)', fontWeight: 500, margin: 0, minWidth: '180px' }}>
-              {documents.length > 0
-                ? <>Based on your {documents.length} document{documents.length !== 1 ? 's' : ''}, I&apos;m ready to help you study. Would you like me to generate a summary?</>
-                : 'Upload your first document to get AI-powered insights and study recommendations.'}
-            </p>
-            {documents.length > 0 && (
-              <button
-                style={{
-                  padding: '10px 20px',
-                  background: '#ae89ff',
-                  color: '#2a0066',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontWeight: 700,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  flexShrink: 0,
-                  transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
-              >
-                Yes, please
-              </button>
-            )}
-          </div>
         </div>
       </div>
+
+      {/* Create chat modal */}
+      {showCreateModal && (
+        <CreateChatModal
+          notebookId={id}
+          notebookName={notebook?.name ?? ''}
+          sections={sectionTree}
+          documents={documents}
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleChatCreated}
+        />
+      )}
+    </div>
     </div>
   );
 }

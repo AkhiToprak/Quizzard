@@ -8,7 +8,7 @@ import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceCon
 import SectionListItem from '@/components/notebook/SectionListItem';
 
 export default function SectionPanel() {
-  const { notebookId, notebook, sections, refreshSections } = useNotebookWorkspace();
+  const { notebookId, notebook, sections, refreshSections, isScholarView } = useNotebookWorkspace();
   const [isCreating, setIsCreating] = useState(false);
   const [draftTitle, setDraftTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -131,8 +131,110 @@ export default function SectionPanel() {
         )}
       </div>
 
+      {/* SCHOLAR divider + button */}
+      <div>
+        {/* Divider */}
+        <div style={{
+          margin: '0 10px',
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, rgba(140,82,255,0.25), transparent)',
+        }} />
+
+        {/* Scholar button */}
+        <div style={{ padding: '8px 10px 4px' }}>
+          <Link
+            href={`/notebooks/${notebookId}`}
+            style={{ textDecoration: 'none', display: 'block' }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                background: isScholarView
+                  ? 'linear-gradient(135deg, rgba(140,82,255,0.2) 0%, rgba(81,112,255,0.12) 100%)'
+                  : 'transparent',
+                border: isScholarView
+                  ? '1px solid rgba(140,82,255,0.3)'
+                  : '1px solid transparent',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease, border-color 0.15s ease',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+              onMouseEnter={e => {
+                if (!isScholarView) {
+                  (e.currentTarget as HTMLDivElement).style.background = 'rgba(140,82,255,0.08)';
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(140,82,255,0.15)';
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isScholarView) {
+                  (e.currentTarget as HTMLDivElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'transparent';
+                }
+              }}
+            >
+              {/* Glow dot when active */}
+              {isScholarView && (
+                <div style={{
+                  position: 'absolute',
+                  top: '-8px',
+                  right: '-8px',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(140,82,255,0.4) 0%, transparent 70%)',
+                  pointerEvents: 'none',
+                }} />
+              )}
+
+              {/* Icon */}
+              <div style={{
+                width: '22px',
+                height: '22px',
+                borderRadius: '6px',
+                background: isScholarView
+                  ? 'linear-gradient(135deg, rgba(140,82,255,0.4), rgba(81,112,255,0.3))'
+                  : 'rgba(140,82,255,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                transition: 'background 0.15s ease',
+              }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '13px',
+                    color: isScholarView ? '#c4a9ff' : 'rgba(174,137,255,0.5)',
+                    fontVariationSettings: "'FILL' 1",
+                    transition: 'color 0.15s ease',
+                  }}
+                >
+                  school
+                </span>
+              </div>
+
+              <span style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: isScholarView ? '#c4a9ff' : 'rgba(174,137,255,0.5)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                transition: 'color 0.15s ease',
+              }}>
+                Scholar
+              </span>
+            </div>
+          </Link>
+        </div>
+      </div>
+
       {/* Add section button */}
-      <div style={{ padding: '8px 10px', borderTop: '1px solid rgba(140,82,255,0.08)' }}>
+      <div style={{ padding: '4px 10px 8px', borderTop: '1px solid rgba(140,82,255,0.08)' }}>
         <button
           data-new-section-btn
           onClick={() => setIsCreating(true)}

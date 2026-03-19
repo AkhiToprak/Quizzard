@@ -48,6 +48,7 @@ model Notebook {
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   documents     Document[]
   chatMessages  ChatMessage[]
+  chats         NotebookChat[]
   sections      Section[]
 
   @@index([userId])
@@ -75,21 +76,41 @@ model Document {
 // CHAT & CONVERSATION MODELS
 // ============================================================================
 
-model ChatMessage {
-  id            String    @id @default(cuid())
-  notebookId    String
-  userId        String
-  role          String    // "user" or "assistant"
-  content       String    // The message text
-  tokens        Int?      // Number of tokens used (for cost tracking)
-  createdAt     DateTime  @default(now())
+model NotebookChat {
+  id              String    @id @default(cuid())
+  notebookId      String
+  title           String    @default("New Chat")
+  contextPageIds  String[]  @default([])  // Page IDs from notebook fed as context
+  contextDocIds   String[]  @default([])  // Document IDs fed as context
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   // Relations
-  notebook      Notebook  @relation(fields: [notebookId], references: [id], onDelete: Cascade)
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notebook        Notebook      @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  messages        ChatMessage[]
+
+  @@index([notebookId])
+  @@map("notebook_chats")
+}
+
+model ChatMessage {
+  id            String        @id @default(cuid())
+  notebookId    String
+  userId        String
+  chatId        String?       // Link to a specific chat session
+  role          String        // "user" or "assistant"
+  content       String        // The message text
+  tokens        Int?          // Number of tokens used (for cost tracking)
+  createdAt     DateTime      @default(now())
+
+  // Relations
+  notebook      Notebook      @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat          NotebookChat? @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([notebookId])
   @@index([userId])
+  @@index([chatId])
   @@map("chat_messages")
 }
 

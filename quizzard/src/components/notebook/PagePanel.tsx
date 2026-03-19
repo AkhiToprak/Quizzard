@@ -3,22 +3,25 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, FileText, FilePlus, Trash2 } from 'lucide-react';
+import { Plus, FileText, FilePlus, Trash2, MessageSquare, Sparkles } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import { getSectionColor } from '@/components/notebook/SectionListItem';
+import type { NotebookChatItem } from '@/components/notebook/NotebookWorkspaceContext';
 
 export default function PagePanel() {
   const router = useRouter();
-  const { notebookId, flatSections, sections, activeSectionId, activePageId, refreshSections } = useNotebookWorkspace();
+  const {
+    notebookId, flatSections, sections, activeSectionId, activePageId,
+    activeChatId, isScholarView, chats, refreshChats, refreshSections,
+  } = useNotebookWorkspace();
+
   const [isCreating, setIsCreating] = useState(false);
   const [draftTitle, setDraftTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Find the active section node from the flat list
   const activeSection = flatSections.find(s => s.id === activeSectionId) ?? null;
   const pages = activeSection?.pages ?? [];
 
-  // Find color for active section
   const sectionNode = sections.flatMap(function flatten(s): typeof sections { return [s, ...s.children.flatMap(flatten)]; }).find(s => s.id === activeSectionId);
   const accentColor = sectionNode ? getSectionColor(sectionNode) : '#8c52ff';
 
@@ -55,6 +58,116 @@ export default function PagePanel() {
     } catch { /* silent */ }
   }, [notebookId, activePageId, router, refreshSections]);
 
+  const handleDeleteChat = useCallback(async (chatId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await fetch(`/api/notebooks/${notebookId}/chats/${chatId}`, { method: 'DELETE' });
+      refreshChats();
+      if (activeChatId === chatId) router.push(`/notebooks/${notebookId}`);
+    } catch { /* silent */ }
+  }, [notebookId, activeChatId, router, refreshChats]);
+
+  // ── Scholar mode: show chats ──────────────────────────────────────────────
+  if (isScholarView) {
+    return (
+      <div style={{
+        width: '200px',
+        minWidth: '200px',
+        background: '#0a0918',
+        borderRight: '1px solid rgba(140,82,255,0.08)',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        fontFamily: "'Gliker', 'DM Sans', sans-serif",
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '14px 14px 10px',
+          borderBottom: '1px solid rgba(140,82,255,0.08)',
+          minHeight: '58px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '7px',
+        }}>
+          <div style={{
+            width: '16px',
+            height: '16px',
+            borderRadius: '4px',
+            background: 'linear-gradient(135deg, rgba(140,82,255,0.4), rgba(81,112,255,0.3))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <Sparkles size={9} style={{ color: '#c4a9ff' }} />
+          </div>
+          <span style={{
+            fontSize: '12px',
+            fontWeight: 600,
+            color: 'rgba(196,169,255,0.7)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
+            Chats
+          </span>
+        </div>
+
+        {/* Chat list */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {chats.length === 0 && (
+            <div style={{ padding: '24px 14px', textAlign: 'center' }}>
+              <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.2)', margin: 0, lineHeight: 1.5 }}>
+                No chats yet.<br />Start a new chat below.
+              </p>
+            </div>
+          )}
+
+          {chats.map(chat => (
+            <ChatRow
+              key={chat.id}
+              chat={chat}
+              isActive={chat.id === activeChatId}
+              notebookId={notebookId}
+              onDelete={handleDeleteChat}
+            />
+          ))}
+        </div>
+
+        {/* New chat button */}
+        <div style={{ padding: '8px 10px', borderTop: '1px solid rgba(140,82,255,0.06)' }}>
+          <Link href={`/notebooks/${notebookId}?new=1`} style={{ textDecoration: 'none', display: 'block' }}>
+            <button
+              style={{
+                width: '100%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                padding: '6px 0',
+                borderRadius: '5px',
+                border: '1px solid rgba(140,82,255,0.2)',
+                background: 'rgba(140,82,255,0.06)',
+                color: 'rgba(196,169,255,0.5)',
+                fontFamily: "'Gliker', 'DM Sans', sans-serif",
+                fontSize: '11px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'background 0.12s ease, color 0.12s ease',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.14)';
+                (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.85)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.06)';
+                (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.5)';
+              }}
+            >
+              <Plus size={12} />
+              New chat
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Normal mode: show pages ───────────────────────────────────────────────
   return (
     <div style={{
       width: '200px',
@@ -191,6 +304,70 @@ export default function PagePanel() {
   );
 }
 
+// ── Chat row ───────────────────────────────────────────────────────────────
+function ChatRow({ chat, isActive, notebookId, onDelete }: {
+  chat: NotebookChatItem;
+  isActive: boolean;
+  notebookId: string;
+  onDelete: (id: string, e: React.MouseEvent) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const accentColor = '#8c52ff';
+
+  return (
+    <Link href={`/notebooks/${notebookId}/chats/${chat.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '7px 14px',
+          background: isActive
+            ? `linear-gradient(135deg, ${accentColor}18 0%, rgba(81,112,255,0.10) 100%)`
+            : hovered ? 'rgba(237,233,255,0.04)' : 'transparent',
+          borderLeft: isActive ? `2px solid ${accentColor}` : '2px solid transparent',
+          transition: 'background 0.1s ease',
+          cursor: 'pointer',
+        }}
+      >
+        <MessageSquare
+          size={13}
+          style={{ color: isActive ? accentColor : 'rgba(237,233,255,0.25)', flexShrink: 0 }}
+        />
+        <span style={{
+          flex: 1, minWidth: 0,
+          fontFamily: "'Gliker', 'DM Sans', sans-serif",
+          fontSize: '13px',
+          fontWeight: isActive ? 600 : 400,
+          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.6)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          {chat.title}
+        </span>
+        {hovered && !isActive && (
+          <button
+            onClick={e => onDelete(chat.id, e)}
+            title="Delete chat"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '18px', height: '18px', borderRadius: '3px',
+              border: 'none', background: 'transparent', cursor: 'pointer',
+              color: 'rgba(237,233,255,0.3)', padding: 0, flexShrink: 0,
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)'; }}
+          >
+            <Trash2 size={11} />
+          </button>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+// ── Page row ───────────────────────────────────────────────────────────────
 function PageRow({ page, isActive, notebookId, accentColor, onDelete }: {
   page: { id: string; title: string };
   isActive: boolean;
