@@ -36,6 +36,16 @@ export async function PUT(request: NextRequest, { params }: Params) {
       return badRequestResponse('drawingData must be an array');
     }
 
+    const MAX_STROKES = 10_000;
+    if (drawingData.length > MAX_STROKES) {
+      return badRequestResponse(`drawingData cannot exceed ${MAX_STROKES} strokes`);
+    }
+
+    // Each stroke must be an object (not deeply validated, but prevents primitive injection)
+    if (drawingData.some((stroke) => typeof stroke !== 'object' || stroke === null || Array.isArray(stroke))) {
+      return badRequestResponse('Each drawing stroke must be an object');
+    }
+
     const updated = await db.page.update({
       where: { id: pageId },
       data: { drawingData },

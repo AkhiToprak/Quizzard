@@ -15,17 +15,37 @@ datasource db {
 // ============================================================================
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  password      String    // Will be hashed with bcrypt
-  dailyGoal     Int       @default(10)  // Pages the user wants to write/study per day
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String?
+  password           String    // Will be hashed with bcrypt
+  dailyGoal          Int       @default(10)  // Pages the user wants to write/study per day (kept for backward compat)
+  username           String    @unique       // 3-20 chars, alphanumeric + underscores only
+  avatarUrl          String?                 // URL to uploaded avatar image, null = default
+  bio                String?   @db.VarChar(160) // Short bio, max 160 chars
+  onboardingComplete Boolean   @default(false)  // false until wizard step 3 is done
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  // Relations
-  notebooks     Notebook[]
-  chatMessages  ChatMessage[]
+  // Core relations
+  notebooks              Notebook[]
+  chatMessages           ChatMessage[]
+
+  // Phase 1 — Social relations
+  studyGoals             StudyGoal[]
+  sentFriendRequests     Friendship[]       @relation("SentFriendRequests")
+  receivedFriendRequests Friendship[]       @relation("ReceivedFriendRequests")
+  notifications          Notification[]
+  posts                  Post[]
+  postLikes              PostLike[]
+  postComments           PostComment[]
+  pollVotes              PollVote[]
+  postVisibility         PostVisibility[]
+  sharedByMe             SharedNotebook[]   @relation("SharedByMe")
+  sharedWithMe           SharedNotebook[]   @relation("SharedWithMe")
+  hostedSessions         CoWorkSession[]    @relation("HostedSessions")
+  coWorkJoined           CoWorkParticipant[]
+  pageLocks              PageLock[]
 
   @@map("users")
 }
@@ -45,11 +65,13 @@ model Notebook {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  documents     Document[]
-  chatMessages  ChatMessage[]
-  chats         NotebookChat[]
-  sections      Section[]
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents       Document[]
+  chatMessages    ChatMessage[]
+  chats           NotebookChat[]
+  sections        Section[]
+  shares          SharedNotebook[]
+  coWorkSessions  CoWorkSession[]
 
   @@index([userId])
   @@map("notebooks")
@@ -152,8 +174,9 @@ model Page {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  section       Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section       Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   images        PageImage[]
+  locks         PageLock[]
 
   @@index([sectionId])
   @@map("pages")
@@ -176,41 +199,240 @@ model PageImage {
 }
 
 // ============================================================================
-// FUTURE MODELS (to be implemented in later phases)
+// PHASE 1 — SOCIAL FEATURE MODELS
 // ============================================================================
 
-// Phase 11: Quizzes & Flashcards
-// model Quiz {
-//   id            String    @id @default(cuid())
-//   notebookId    String
-//   title         String
-//   questions     QuizQuestion[]
-//   createdAt     DateTime  @default(now())
-// }
+// --- 1.2 Study Goals ---
 
-// model Flashcard {
-//   id            String    @id @default(cuid())
-//   notebookId    String
-//   front         String    // Question or term
-//   back          String    // Answer or definition
-//   difficulty    Int?      // 1-5 scale for spaced repetition
-//   createdAt     DateTime  @default(now())
-// }
+model StudyGoal {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "hours" | "pages" | "quizzes" | "notebooks"
+  target    Int      // e.g., 10 hours, 20 pages per week
+  current   Int      @default(0)
+  weekStart DateTime // Monday 00:00 UTC of the goal week — resets weekly
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-// Phase 13: Social & Sharing
-// model SharedNotebook {
-//   id            String    @id @default(cuid())
-//   notebookId    String
-//   sharedWithId  String
-//   permission    String    // "view" or "edit"
-//   createdAt     DateTime  @default(now())
-// }
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-// Phase 14: Gamification
-// model UserStreak {
-//   id            String    @id @default(cuid())
-//   userId        String
-//   currentStreak Int       @default(0)
-//   longestStreak Int       @default(0)
-//   lastStudyDate DateTime?
-// }
+  @@index([userId])
+  @@index([userId, weekStart])
+  @@map("study_goals")
+}
+
+// --- 1.3 Friendships ---
+
+model Friendship {
+  id          String   @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      String   @default("pending") // "pending" | "accepted" | "declined"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requester   User     @relation("SentFriendRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee   User     @relation("ReceivedFriendRequests", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId])
+  @@map("friendships")
+}
+
+// --- 1.4 Notifications ---
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String                        // recipient
+  type      String                        // "friend_request" | "friend_accepted" | "notebook_shared" | "notebook_sent" | "co_work_invite" | "post_like" | "post_comment"
+  data      Json                          // flexible payload, varies by type
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// --- 1.5 Community Posts ---
+
+model Post {
+  id          String    @id @default(cuid())
+  authorId    String
+  content     String    @db.Text              // max ~2000 chars (enforced in API)
+  notebookRef String?                         // optional linked notebook ID
+  visibility  String    @default("public")    // "public" | "friends" | "specific"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  images      PostImage[]
+  poll        Poll?
+  likes       PostLike[]
+  comments    PostComment[]
+  visibleTo   PostVisibility[]               // only used when visibility = "specific"
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model PostImage {
+  id        String @id @default(cuid())
+  postId    String
+  url       String
+  sortOrder Int    @default(0)
+
+  post      Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@map("post_images")
+}
+
+model PostVisibility {
+  id     String @id @default(cuid())
+  postId String
+  userId String
+
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_visibility")
+}
+
+model Poll {
+  id       String       @id @default(cuid())
+  postId   String       @unique
+  question String
+
+  post     Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  options  PollOption[]
+
+  @@map("polls")
+}
+
+model PollOption {
+  id        String     @id @default(cuid())
+  pollId    String
+  text      String
+  sortOrder Int        @default(0)
+
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes     PollVote[]
+
+  @@index([pollId])
+  @@map("poll_options")
+}
+
+model PollVote {
+  id       String     @id @default(cuid())
+  optionId String
+  userId   String
+
+  option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+  @@map("poll_votes")
+}
+
+model PostLike {
+  id     String @id @default(cuid())
+  postId String
+  userId String
+
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@map("post_comments")
+}
+
+// --- 1.6 Shared Notebooks ---
+
+model SharedNotebook {
+  id           String   @id @default(cuid())
+  notebookId   String
+  sharedById   String
+  sharedWithId String?                       // null = community upload
+  type         String                        // "copy" | "live_view"
+  visibility   String   @default("public")   // "public" | "friends" | "specific"
+  createdAt    DateTime @default(now())
+
+  notebook     Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  sharedBy     User     @relation("SharedByMe", fields: [sharedById], references: [id], onDelete: Cascade)
+  sharedWith   User?    @relation("SharedWithMe", fields: [sharedWithId], references: [id], onDelete: Cascade)
+
+  @@index([notebookId])
+  @@index([sharedById])
+  @@index([sharedWithId])
+  @@index([visibility, createdAt])
+  @@map("shared_notebooks")
+}
+
+// --- 1.7 Co-Work Sessions ---
+
+model CoWorkSession {
+  id           String   @id @default(cuid())
+  notebookId   String
+  hostId       String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  endedAt      DateTime?
+
+  notebook     Notebook            @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  host         User                @relation("HostedSessions", fields: [hostId], references: [id], onDelete: Cascade)
+  participants CoWorkParticipant[]
+  pageLocks    PageLock[]
+
+  @@index([notebookId, isActive])
+  @@map("co_work_sessions")
+}
+
+model CoWorkParticipant {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  isActive  Boolean  @default(true)
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+
+  session   CoWorkSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@map("co_work_participants")
+}
+
+model PageLock {
+  id         String   @id @default(cuid())
+  sessionId  String
+  pageId     String
+  lockedById String
+  lockedAt   DateTime @default(now())
+  expiresAt  DateTime // lockedAt + 5 minutes — auto-expire stale locks
+
+  session    CoWorkSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  page       Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  lockedBy   User          @relation(fields: [lockedById], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, pageId])
+  @@map("page_locks")
+}

@@ -19,7 +19,7 @@ RUN npm run build
 FROM node:20-alpine AS dev
 WORKDIR /app
 COPY quizzard/package.json quizzard/package-lock.json* ./
-RUN npm ci
+RUN npm install
 COPY quizzard/ ./
 EXPOSE 3001
 CMD ["npm", "run", "dev"]

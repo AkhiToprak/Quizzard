@@ -63,6 +63,38 @@ export async function POST(request: NextRequest, { params }: Params) {
       return badRequestResponse('Chat title cannot be empty');
     }
 
+    if (title.trim().length > 200) {
+      return badRequestResponse('Chat title must be 200 characters or less');
+    }
+
+    // Validate IDs are arrays of strings
+    if (!Array.isArray(contextPageIds) || contextPageIds.some((id) => typeof id !== 'string')) {
+      return badRequestResponse('contextPageIds must be an array of strings');
+    }
+    if (!Array.isArray(contextDocIds) || contextDocIds.some((id) => typeof id !== 'string')) {
+      return badRequestResponse('contextDocIds must be an array of strings');
+    }
+
+    // Validate all page IDs belong to this notebook
+    if (contextPageIds.length > 0) {
+      const validPageCount = await db.page.count({
+        where: { id: { in: contextPageIds }, section: { notebookId } },
+      });
+      if (validPageCount !== contextPageIds.length) {
+        return badRequestResponse('One or more page IDs are invalid');
+      }
+    }
+
+    // Validate all document IDs belong to this notebook
+    if (contextDocIds.length > 0) {
+      const validDocCount = await db.document.count({
+        where: { id: { in: contextDocIds }, notebookId },
+      });
+      if (validDocCount !== contextDocIds.length) {
+        return badRequestResponse('One or more document IDs are invalid');
+      }
+    }
+
     const chat = await db.notebookChat.create({
       data: {
         notebookId,

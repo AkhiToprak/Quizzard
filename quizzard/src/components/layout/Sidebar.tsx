@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import FriendsList from '@/components/social/FriendsList';
+import AddFriendModal from '@/components/social/AddFriendModal';
 
 function getInitials(name?: string | null): string {
   if (!name) return '?';
@@ -25,6 +28,7 @@ const navLinks = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [addFriendOpen, setAddFriendOpen] = useState(false);
 
   return (
     <aside
@@ -105,6 +109,17 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Friends Section */}
+      <div
+        style={{
+          padding: '0 16px',
+          borderTop: '1px solid rgba(70,69,96,0.2)',
+          paddingTop: '12px',
+        }}
+      >
+        <FriendsList compact onAddFriendClick={() => setAddFriendOpen(true)} />
+      </div>
 
       {/* New Quiz CTA */}
       <div style={{ padding: '0 16px' }}>
@@ -239,6 +254,7 @@ export default function Sidebar() {
           </div>
         )}
       </div>
+      <AddFriendModal open={addFriendOpen} onClose={() => setAddFriendOpen(false)} />
     </aside>
   );
 }

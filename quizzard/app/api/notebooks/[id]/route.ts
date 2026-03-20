@@ -65,6 +65,18 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
       return badRequestResponse('Notebook name cannot be empty');
     }
+    if (name !== undefined && name.trim().length > 100) {
+      return badRequestResponse('Notebook name must be 100 characters or less');
+    }
+    if (description !== undefined && description && description.length > 500) {
+      return badRequestResponse('Description must be 500 characters or less');
+    }
+    if (subject !== undefined && subject && subject.length > 100) {
+      return badRequestResponse('Subject must be 100 characters or less');
+    }
+    if (color !== undefined && color && !/^#[0-9a-fA-F]{6}$/.test(color)) {
+      return badRequestResponse('Color must be a valid hex color (e.g. #8c52ff)');
+    }
 
     const updated = await db.notebook.update({
       where: { id },

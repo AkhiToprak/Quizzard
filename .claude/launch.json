@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "quizzard-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/toprakdemirel/Entwicklung/Quizzard/quizzard", "run", "dev"],
+      "port": 3000,
+      "autoPort": false
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 
@@ -14,6 +16,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Redirect to onboarding wizard if not completed
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user && !(session.user as any).onboardingComplete) {
+      router.replace('/auth/register');
+    }
+  }, [status, session, router]);
   const isNotebookWorkspace = NOTEBOOK_WORKSPACE_RE.test(pathname);
   const isAiChat = AI_CHAT_RE.test(pathname);
 

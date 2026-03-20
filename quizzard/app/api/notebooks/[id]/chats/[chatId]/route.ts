@@ -3,6 +3,7 @@ import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
   successResponse,
+  badRequestResponse,
   unauthorizedResponse,
   notFoundResponse,
   internalErrorResponse,
@@ -54,10 +55,48 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       contextDocIds?: string[];
     };
 
+    if (title !== undefined) {
+      if (typeof title !== 'string' || title.trim().length === 0) {
+        return badRequestResponse('Chat title cannot be empty');
+      }
+      if (title.trim().length > 200) {
+        return badRequestResponse('Chat title must be 200 characters or less');
+      }
+    }
+
+    // Validate IDs are arrays of strings and belong to this notebook
+    if (contextPageIds !== undefined) {
+      if (!Array.isArray(contextPageIds) || contextPageIds.some((id) => typeof id !== 'string')) {
+        return badRequestResponse('contextPageIds must be an array of strings');
+      }
+      if (contextPageIds.length > 0) {
+        const validPageCount = await db.page.count({
+          where: { id: { in: contextPageIds }, section: { notebookId } },
+        });
+        if (validPageCount !== contextPageIds.length) {
+          return badRequestResponse('One or more page IDs are invalid');
+        }
+      }
+    }
+
+    if (contextDocIds !== undefined) {
+      if (!Array.isArray(contextDocIds) || contextDocIds.some((id) => typeof id !== 'string')) {
+        return badRequestResponse('contextDocIds must be an array of strings');
+      }
+      if (contextDocIds.length > 0) {
+        const validDocCount = await db.document.count({
+          where: { id: { in: contextDocIds }, notebookId },
+        });
+        if (validDocCount !== contextDocIds.length) {
+          return badRequestResponse('One or more document IDs are invalid');
+        }
+      }
+    }
+
     const updated = await db.notebookChat.update({
       where: { id: chatId },
       data: {
-        ...(title !== undefined && { title }),
+        ...(title !== undefined && { title: title.trim() }),
         ...(contextPageIds !== undefined && { contextPageIds }),
         ...(contextDocIds !== undefined && { contextDocIds }),
       },
