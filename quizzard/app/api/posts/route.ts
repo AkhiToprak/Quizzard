@@ -114,6 +114,18 @@ export async function POST(request: NextRequest) {
       if (visibleToIds.length > 50) {
         return badRequestResponse('Cannot share with more than 50 users');
       }
+      // Validate all IDs are non-empty strings
+      if (visibleToIds.some((id) => typeof id !== 'string' || id.length === 0)) {
+        return badRequestResponse('All visibleTo IDs must be non-empty strings');
+      }
+      // Verify all users exist
+      const validUsers = await db.user.findMany({
+        where: { id: { in: visibleToIds } },
+        select: { id: true },
+      });
+      if (validUsers.length !== visibleToIds.length) {
+        return badRequestResponse('One or more user IDs are invalid');
+      }
     }
 
     // Process images
@@ -280,7 +292,11 @@ export async function GET(request: NextRequest) {
 
     // Add cursor condition
     if (cursor) {
-      where.createdAt = { lt: new Date(cursor) };
+      const cursorDate = new Date(cursor);
+      if (isNaN(cursorDate.getTime())) {
+        return badRequestResponse('Invalid cursor format');
+      }
+      where.createdAt = { lt: cursorDate };
     }
 
     const posts = await db.post.findMany({

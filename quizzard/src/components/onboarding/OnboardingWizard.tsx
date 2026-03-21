@@ -114,7 +114,7 @@ export default function OnboardingWizard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studyGoals: goals }),
       });
-      router.push('/dashboard');
+      router.push('/home');
     } catch {
       setStepError(3, 'Something went wrong. Please try again.');
       setLoading(false);

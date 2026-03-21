@@ -6,9 +6,17 @@ export function middleware(request: NextRequest) {
     request.cookies.get('next-auth.session-token')?.value ??
     request.cookies.get('__Secure-next-auth.session-token')?.value;
 
-  if (!token) {
+  const { pathname } = request.nextUrl;
+
+  // Authenticated users hitting "/" → redirect to /home
+  if (pathname === '/' && token) {
+    return NextResponse.redirect(new URL('/home', request.url));
+  }
+
+  // Unauthenticated users hitting protected routes → redirect to login
+  if (pathname !== '/' && !token) {
     const signInUrl = new URL('/auth/login', request.url);
-    signInUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+    signInUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(signInUrl);
   }
 
@@ -17,6 +25,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/dashboard/:path*',
     '/notebooks/:path*',
     '/settings/:path*',

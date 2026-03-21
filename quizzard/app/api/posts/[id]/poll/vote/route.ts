@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { canUserSeePost } from '@/lib/post-visibility';
 import {
   successResponse,
   badRequestResponse,
@@ -20,11 +21,13 @@ export async function POST(
 
     const { id: postId } = await params;
 
-    // Get the post's poll
+    // Get the post's poll and visibility info
     const post = await db.post.findUnique({
       where: { id: postId },
       select: {
         id: true,
+        authorId: true,
+        visibility: true,
         poll: {
           select: {
             id: true,
@@ -35,6 +38,12 @@ export async function POST(
     });
 
     if (!post) return notFoundResponse('Post not found');
+
+    // Enforce visibility
+    if (!(await canUserSeePost(post, userId))) {
+      return notFoundResponse('Post not found');
+    }
+
     if (!post.poll) return notFoundResponse('This post has no poll');
 
     const body = await request.json().catch(() => ({}));

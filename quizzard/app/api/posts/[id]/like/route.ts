@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { canUserSeePost } from '@/lib/post-visibility';
 import {
   successResponse,
   unauthorizedResponse,
@@ -21,10 +22,15 @@ export async function POST(
 
     const post = await db.post.findUnique({
       where: { id: postId },
-      select: { id: true, authorId: true },
+      select: { id: true, authorId: true, visibility: true },
     });
 
     if (!post) return notFoundResponse('Post not found');
+
+    // Enforce visibility
+    if (!(await canUserSeePost(post, userId))) {
+      return notFoundResponse('Post not found');
+    }
 
     // Check if already liked
     const existing = await db.postLike.findUnique({

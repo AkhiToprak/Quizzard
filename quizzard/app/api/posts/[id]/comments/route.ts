@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { canUserSeePost } from '@/lib/post-visibility';
 import {
   successResponse,
   createdResponse,
@@ -23,12 +24,15 @@ export async function GET(
 
     const { id: postId } = await params;
 
-    // Verify post exists
+    // Verify post exists and user can see it
     const post = await db.post.findUnique({
       where: { id: postId },
-      select: { id: true },
+      select: { id: true, authorId: true, visibility: true },
     });
     if (!post) return notFoundResponse('Post not found');
+    if (!(await canUserSeePost(post, userId))) {
+      return notFoundResponse('Post not found');
+    }
 
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get('cursor') || undefined;
@@ -37,7 +41,11 @@ export async function GET(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { postId };
     if (cursor) {
-      where.createdAt = { lt: new Date(cursor) };
+      const cursorDate = new Date(cursor);
+      if (isNaN(cursorDate.getTime())) {
+        return badRequestResponse('Invalid cursor format');
+      }
+      where.createdAt = { lt: cursorDate };
     }
 
     const comments = await db.postComment.findMany({
@@ -80,9 +88,23 @@ export async function POST(
 
     const post = await db.post.findUnique({
       where: { id: postId },
-      select: { id: true, authorId: true },
+      select: { id: true, authorId: true, visibility: true },
     });
     if (!post) return notFoundResponse('Post not found');
+    if (!(await canUserSeePost(post, userId))) {
+      return notFoundResponse('Post not found');
+    }
+
+    // Rate limit: max 5 comments per minute
+    const recentCount = await db.postComment.count({
+      where: {
+        authorId: userId,
+        createdAt: { gte: new Date(Date.now() - 60000) },
+      },
+    });
+    if (recentCount >= 5) {
+      return badRequestResponse('Too many comments. Please wait before posting again.');
+    }
 
     const body = await request.json().catch(() => ({}));
     const { content } = body as { content?: string };
