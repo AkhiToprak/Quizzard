@@ -35,9 +35,9 @@ export interface PostData {
   author: { id: string; username: string; avatarUrl: string | null };
   images: PostImage[];
   poll: Poll | null;
-  likeCount: number;
+  voteScore: number;
   commentCount: number;
-  isLiked: boolean;
+  userVote: number; // 1 = upvoted, -1 = downvoted, 0 = none
 }
 
 interface PostCardProps {
@@ -124,11 +124,13 @@ function linkifyContent(text: string): React.ReactNode[] {
 
 export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
   const { data: session } = useSession();
-  const currentUserId = (session?.user as { id?: string } | undefined)?.id;
+  const currentUserId = (session?.user as { id?: string; role?: string } | undefined)?.id;
+  const currentUserRole = (session?.user as { id?: string; role?: string } | undefined)?.role;
   const isAuthor = currentUserId === post.author.id;
+  const isAdmin = currentUserRole === 'admin';
 
-  const [liked, setLiked] = useState(post.isLiked);
-  const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [userVote, setUserVote] = useState(post.userVote);
+  const [voteScore, setVoteScore] = useState(post.voteScore);
   const [commentCount, setCommentCount] = useState(post.commentCount);
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -137,10 +139,11 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [poll, setPoll] = useState(post.poll);
-  const [liking, setLiking] = useState(false);
+  const [voting, setVoting] = useState(false);
 
   // Hover states
-  const [hoveredLike, setHoveredLike] = useState(false);
+  const [hoveredUpvote, setHoveredUpvote] = useState(false);
+  const [hoveredDownvote, setHoveredDownvote] = useState(false);
   const [hoveredComment, setHoveredComment] = useState(false);
   const [hoveredMenu, setHoveredMenu] = useState(false);
   const [hoveredMenuItem, setHoveredMenuItem] = useState<string | null>(null);
@@ -160,27 +163,40 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, [showMenu]);
 
-  const handleLike = async () => {
-    if (liking) return;
-    setLiking(true);
+  const handleVote = async (value: 1 | -1) => {
+    if (voting) return;
+    setVoting(true);
     // Optimistic update
-    setLiked(!liked);
-    setLikeCount((c) => (liked ? c - 1 : c + 1));
+    const prevVote = userVote;
+    const prevScore = voteScore;
+    if (userVote === value) {
+      // Toggle off
+      setUserVote(0);
+      setVoteScore((s) => s - value);
+    } else {
+      // New or switch vote
+      setUserVote(value);
+      setVoteScore((s) => s - prevVote + value);
+    }
     try {
-      const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' });
+      const res = await fetch(`/api/posts/${post.id}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value }),
+      });
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
-          setLiked(json.data.liked);
-          setLikeCount(json.data.likeCount);
+          setUserVote(json.data.userVote);
+          setVoteScore(json.data.voteScore);
         }
       }
     } catch {
       // Revert optimistic
-      setLiked(post.isLiked);
-      setLikeCount(post.likeCount);
+      setUserVote(prevVote);
+      setVoteScore(prevScore);
     } finally {
-      setLiking(false);
+      setVoting(false);
     }
   };
 
@@ -320,8 +336,8 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
             </div>
           </div>
 
-          {/* Menu */}
-          {isAuthor && (
+          {/* Menu — visible to author and admins */}
+          {(isAuthor || isAdmin) && (
             <div ref={menuRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowMenu(!showMenu)}
@@ -362,33 +378,37 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
                     zIndex: 10,
                   }}
                 >
-                  <button
-                    onClick={() => {
-                      setIsEditing(true);
-                      setEditContent(post.content);
-                      setShowMenu(false);
-                    }}
-                    onMouseEnter={() => setHoveredMenuItem('edit')}
-                    onMouseLeave={() => setHoveredMenuItem(null)}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: 'none',
-                      background: hoveredMenuItem === 'edit' ? 'rgba(255,255,255,0.05)' : 'transparent',
-                      color: COLORS.textPrimary,
-                      fontSize: 13,
-                      cursor: 'pointer',
-                      transition: `background 0.1s`,
-                      textAlign: 'left',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>edit</span>
-                    Edit
-                  </button>
+                  {/* Edit — only for author */}
+                  {isAuthor && (
+                    <button
+                      onClick={() => {
+                        setIsEditing(true);
+                        setEditContent(post.content);
+                        setShowMenu(false);
+                      }}
+                      onMouseEnter={() => setHoveredMenuItem('edit')}
+                      onMouseLeave={() => setHoveredMenuItem(null)}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '8px 12px',
+                        borderRadius: 8,
+                        border: 'none',
+                        background: hoveredMenuItem === 'edit' ? 'rgba(255,255,255,0.05)' : 'transparent',
+                        color: COLORS.textPrimary,
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        transition: `background 0.1s`,
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>edit</span>
+                      Edit
+                    </button>
+                  )}
+                  {/* Delete — for author and admin */}
                   <button
                     onClick={() => {
                       setShowMenu(false);
@@ -413,7 +433,7 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
                     }}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
-                    {deleting ? 'Deleting...' : 'Delete'}
+                    {deleting ? 'Deleting...' : isAdmin && !isAuthor ? 'Delete (Admin)' : 'Delete'}
                   </button>
                 </div>
               )}
@@ -528,22 +548,19 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
             marginTop: 4,
           }}
         >
-          {/* Like */}
+          {/* Upvote */}
           <button
-            onClick={handleLike}
-            onMouseEnter={() => setHoveredLike(true)}
-            onMouseLeave={() => setHoveredLike(false)}
+            onClick={() => handleVote(1)}
+            onMouseEnter={() => setHoveredUpvote(true)}
+            onMouseLeave={() => setHoveredUpvote(false)}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              padding: '6px 12px',
+              padding: '6px 8px',
               borderRadius: 8,
               border: 'none',
-              background: hoveredLike ? 'rgba(253,111,133,0.08)' : 'transparent',
-              color: liked ? '#fd6f85' : hoveredLike ? '#fd6f85' : COLORS.textMuted,
-              fontSize: 13,
-              fontWeight: 600,
+              background: hoveredUpvote ? 'rgba(174,137,255,0.08)' : 'transparent',
+              color: userVote === 1 ? COLORS.primary : hoveredUpvote ? COLORS.primary : COLORS.textMuted,
               cursor: 'pointer',
               transition: `all 0.15s ${EASING}`,
             }}
@@ -551,15 +568,58 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
             <span
               className="material-symbols-outlined"
               style={{
-                fontSize: 20,
-                fontVariationSettings: liked ? '"FILL" 1' : '"FILL" 0',
+                fontSize: 22,
+                fontVariationSettings: userVote === 1 ? '"FILL" 1' : '"FILL" 0',
                 transition: `all 0.2s ${EASING}`,
-                transform: liked ? 'scale(1.1)' : 'scale(1)',
+                transform: userVote === 1 ? 'scale(1.15)' : 'scale(1)',
               }}
             >
-              favorite
+              arrow_upward
             </span>
-            {likeCount > 0 && <span>{likeCount}</span>}
+          </button>
+
+          {/* Vote score */}
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: voteScore > 0 ? COLORS.primary : voteScore < 0 ? COLORS.error : COLORS.textMuted,
+              minWidth: 20,
+              textAlign: 'center',
+              userSelect: 'none',
+            }}
+          >
+            {voteScore}
+          </span>
+
+          {/* Downvote */}
+          <button
+            onClick={() => handleVote(-1)}
+            onMouseEnter={() => setHoveredDownvote(true)}
+            onMouseLeave={() => setHoveredDownvote(false)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '6px 8px',
+              borderRadius: 8,
+              border: 'none',
+              background: hoveredDownvote ? 'rgba(253,111,133,0.08)' : 'transparent',
+              color: userVote === -1 ? COLORS.error : hoveredDownvote ? COLORS.error : COLORS.textMuted,
+              cursor: 'pointer',
+              transition: `all 0.15s ${EASING}`,
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{
+                fontSize: 22,
+                fontVariationSettings: userVote === -1 ? '"FILL" 1' : '"FILL" 0',
+                transition: `all 0.2s ${EASING}`,
+                transform: userVote === -1 ? 'scale(1.15)' : 'scale(1)',
+              }}
+            >
+              arrow_downward
+            </span>
           </button>
 
           {/* Comment */}

@@ -21,6 +21,7 @@ function getInitials(name?: string | null): string {
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
   { href: '/notebooks', label: 'Notebooks', icon: 'auto_stories' },
+  { href: '/home',      label: 'Community', icon: 'groups' },
   { href: '/ai-chat',   label: 'AI Chat',   icon: 'smart_toy' },
   { href: '/settings',  label: 'Settings',  icon: 'settings' },
 ];
@@ -48,16 +49,16 @@ export default function Sidebar() {
       className="custom-scrollbar"
     >
       {/* Logo */}
-      <div style={{ padding: '0 24px', marginBottom: '8px' }}>
+      <Link href="/home" style={{ padding: '0 24px', marginBottom: '8px', display: 'block' }}>
         <Image
           src="/logo_trimmed.png"
           alt="Quizzard"
           width={160}
           height={40}
-          style={{ objectFit: 'contain', objectPosition: 'left' }}
+          style={{ objectFit: 'contain', objectPosition: 'left', cursor: 'pointer' }}
           priority
         />
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -208,23 +209,38 @@ export default function Sidebar() {
               padding: '16px 24px',
             }}
           >
-            <div
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                fontWeight: '700',
-                color: '#ffffff',
-                flexShrink: 0,
-              }}
-            >
-              {getInitials(session.user.name)}
-            </div>
+            {session.user.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={session.user.avatarUrl}
+                alt={session.user.name || 'Avatar'}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  flexShrink: 0,
+                }}
+              >
+                {getInitials(session.user.name)}
+              </div>
+            )}
             <div style={{ minWidth: 0 }}>
               <p
                 style={{

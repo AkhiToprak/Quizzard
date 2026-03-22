@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Component as MagicCursor } from "@/components/ui/magic-cursor";
 
 // =====================================================================
-// PARTICLE CANVAS (inspired by 21st.dev Particles component)
+// PARTICLE CANVAS
 // =====================================================================
 interface Particle {
   x: number;
@@ -111,49 +111,13 @@ function ParticleCanvas() {
 }
 
 // =====================================================================
-// ROTATING TEXT
-// =====================================================================
-const WORDS = ["Companion", "Wizard", "Tutor", "Coach"];
-
-function RotatingWord() {
-  const [idx, setIdx] = useState(0);
-  const [show, setShow] = useState(true);
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setShow(false);
-      setTimeout(() => {
-        setIdx((i) => (i + 1) % WORDS.length);
-        setShow(true);
-      }, 380);
-    }, 2800);
-    return () => clearInterval(t);
-  }, []);
-
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        color: "#ffde59",
-        transition: "opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1)",
-        opacity: show ? 1 : 0,
-        transform: show ? "translateY(0)" : "translateY(-14px)",
-        textShadow: "0 0 40px rgba(255,222,89,0.4)",
-      }}
-    >
-      {WORDS[idx]}
-    </span>
-  );
-}
-
-// =====================================================================
 // SVG ICONS
 // =====================================================================
 const Ic = {
-  brain: (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
-      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+  sparkle: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/>
+      <path d="M19 3l.75 2.25L22 6l-2.25.75L19 9l-.75-2.25L16 6l2.25-.75z"/>
     </svg>
   ),
   book: (
@@ -162,25 +126,22 @@ const Ic = {
       <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
     </svg>
   ),
-  cards: (
+  upload: (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="7" width="16" height="13" rx="2"/>
-      <path d="M22 5H7a2 2 0 0 0-2 2"/>
-      <path d="M6 3h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"/>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
     </svg>
   ),
-  calendar: (
+  brain: (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
+      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
     </svg>
   ),
-  play: (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+  check: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
     </svg>
   ),
   users: (
@@ -191,163 +152,201 @@ const Ic = {
       <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
   ),
-  upload: (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="17 8 12 3 7 8"/>
-      <line x1="12" y1="3" x2="12" y2="15"/>
-    </svg>
-  ),
-  sparkle: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/>
-      <path d="M19 3l.75 2.25L22 6l-2.25.75L19 9l-.75-2.25L16 6l2.25-.75z"/>
-    </svg>
-  ),
-  trophy: (
-    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#ffde59" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-      <path d="M4 22h16"/>
-      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-    </svg>
-  ),
-  hat: (
-    <svg width="62" height="62" viewBox="0 0 24 24" fill="none" stroke="#8c52ff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 18v-1a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v1"/>
-      <path d="M12 10V3"/>
-      <path d="M8 7l4-4 4 4"/>
-      <line x1="3" y1="18" x2="21" y2="18"/>
-    </svg>
-  ),
-  flame: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-    </svg>
-  ),
-  medal: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="15" r="5"/>
-      <path d="M8.56 2.9A7 7 0 0 1 19 9v4"/>
-      <path d="M5 9v4a7 7 0 0 0 3.44 6.1"/>
-      <line x1="12" y1="10" x2="12" y2="20"/>
-    </svg>
-  ),
-  chart: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"/>
-      <line x1="12" y1="20" x2="12" y2="4"/>
-      <line x1="6" y1="20" x2="6" y2="14"/>
-    </svg>
-  ),
-  bolt: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-    </svg>
-  ),
-  phone: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5" y="2" width="14" height="20" rx="2"/>
-      <line x1="12" y1="18" x2="12.01" y2="18"/>
-    </svg>
-  ),
   share: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
     </svg>
   ),
-  store: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-      <polyline points="9 22 9 12 15 12 15 22"/>
-    </svg>
-  ),
-  group: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  arrow: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"/>
+      <polyline points="12 5 19 12 12 19"/>
     </svg>
   ),
 };
 
 // =====================================================================
+// PRODUCT FRAME
+// =====================================================================
+function ProductFrame({ placeholder, alt }: { placeholder: string; alt: string }) {
+  return (
+    <div
+      style={{
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(140,82,255,0.2)",
+        borderRadius: 16,
+        overflow: "hidden",
+        boxShadow: "0 32px 80px rgba(140,82,255,0.08), 0 8px 32px rgba(0,0,0,0.4)",
+        position: "relative",
+      }}
+    >
+      {/* Browser dots */}
+      <div
+        style={{
+          padding: "12px 16px",
+          display: "flex",
+          gap: 6,
+          background: "rgba(140,82,255,0.06)",
+          borderBottom: "1px solid rgba(140,82,255,0.1)",
+        }}
+      >
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,95,87,0.7)" }} />
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,189,46,0.7)" }} />
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(39,201,63,0.7)" }} />
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={placeholder}
+        alt={alt}
+        style={{ width: "100%", height: "auto", display: "block" }}
+      />
+    </div>
+  );
+}
+
+// =====================================================================
+// PAS SECTION COMPONENT
+// =====================================================================
+function PASSection({
+  label,
+  problemHeadline,
+  agitateLines,
+  solveHeadline,
+  solveBullets,
+  ctaText,
+  screenshotPlaceholder,
+  screenshotAlt,
+  reverse,
+  id,
+}: {
+  label: string;
+  problemHeadline: string;
+  agitateLines: string[];
+  solveHeadline: string;
+  solveBullets: { bold: string; rest: string }[];
+  ctaText: string;
+  screenshotPlaceholder: string;
+  screenshotAlt: string;
+  reverse?: boolean;
+  id?: string;
+}) {
+  return (
+    <section
+      id={id}
+      style={{
+        padding: "100px 40px",
+        borderTop: "1px solid rgba(140,82,255,0.08)",
+      }}
+    >
+      <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+        {/* Problem + Agitate (centered) */}
+        <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 720, margin: "0 auto 72px" }}>
+          <p className="slabel reveal" style={{ marginBottom: 14 }}>{label}</p>
+          <h2
+            className="reveal d1"
+            style={{
+              fontFamily: "'Shrikhand', cursive",
+              fontSize: "clamp(30px, 4.5vw, 52px)",
+              letterSpacing: "-0.02em",
+              lineHeight: 1.08,
+              marginBottom: 24,
+              color: "#ede9ff",
+            }}
+          >
+            {problemHeadline}
+          </h2>
+          <div className="reveal d2">
+            {agitateLines.map((line, i) => (
+              <p
+                key={i}
+                style={{
+                  fontSize: "clamp(15px, 2vw, 17px)",
+                  color: "rgba(237,233,255,0.52)",
+                  lineHeight: 1.78,
+                  marginBottom: 8,
+                }}
+                dangerouslySetInnerHTML={{ __html: line }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Solve (two-column) */}
+        <div
+          className="pas-grid reveal d3"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 64,
+            alignItems: "center",
+            direction: reverse ? "rtl" : "ltr",
+          }}
+        >
+          {/* Text side */}
+          <div style={{ direction: "ltr" }}>
+            <h3
+              style={{
+                fontFamily: "'Shrikhand', cursive",
+                fontSize: "clamp(24px, 3vw, 36px)",
+                letterSpacing: "-0.01em",
+                marginBottom: 28,
+                color: "#ede9ff",
+                lineHeight: 1.15,
+              }}
+            >
+              {solveHeadline}
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {solveBullets.map((b) => (
+                <div key={b.bold} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <span style={{ color: "#8c52ff", display: "flex", flexShrink: 0, marginTop: 2 }}>{Ic.check}</span>
+                  <p style={{ fontSize: 16, color: "rgba(237,233,255,0.72)", lineHeight: 1.65 }}>
+                    <strong style={{ color: "#ede9ff" }}>{b.bold}</strong> {b.rest}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 36 }}>
+              <Link href="/auth/register" className="btn-yellow">
+                {ctaText} <span style={{ display: "flex" }}>{Ic.arrow}</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Screenshot side */}
+          <div style={{ direction: "ltr" }}>
+            <ProductFrame placeholder={screenshotPlaceholder} alt={screenshotAlt} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// =====================================================================
 // DATA
 // =====================================================================
-const FEATURES = [
-  {
-    icon: Ic.brain,
-    title: "AI Tutor",
-    desc: "Chat with AI about your uploaded documents. Get instant explanations, summaries, and answers 24/7 — always based on your own material.",
-    delay: 1,
-  },
-  {
-    icon: Ic.book,
-    title: "Smart Notebooks",
-    desc: "Organize everything by subject. Upload PDFs, lecture notes, slides, and more into clean, searchable notebooks with subfolders.",
-    delay: 2,
-  },
-  {
-    icon: Ic.cards,
-    title: "Quizzes & Flashcards",
-    desc: "AI generates multiple-choice quizzes and spaced-repetition flashcards from your material. Active recall proven to boost retention.",
-    delay: 3,
-  },
-  {
-    icon: Ic.calendar,
-    title: "Exam Planner",
-    desc: "Add your exam dates and Quizzard builds a personalized study schedule. Daily reminders take the stress out of planning.",
-    delay: 1,
-  },
-  {
-    icon: Ic.play,
-    title: "YouTube & Articles",
-    desc: "Find relevant YouTube videos and articles for any topic. Quizzard analyzes them and adds context directly to your notebook.",
-    delay: 2,
-  },
-  {
-    icon: Ic.users,
-    title: "Study Together",
-    desc: "Share notebooks with friends, create study groups, and browse the community notebook marketplace. Learn better, together.",
-    delay: 3,
-  },
-];
-
 const STEPS = [
   {
     n: "01",
     icon: Ic.book,
     title: "Create a Notebook",
-    desc: "Set up a notebook for each subject. Give it a name, add a description, and organize it with subfolders.",
+    desc: "Set up a notebook for each subject. Name it, organize with subfolders.",
   },
   {
     n: "02",
     icon: Ic.upload,
     title: "Upload Your Material",
-    desc: "Drop in PDFs, lecture notes, slides, or links to YouTube videos and articles. Everything in one place.",
+    desc: "Drop in PDFs, notes, slides, or YouTube links. Everything in one place.",
   },
   {
     n: "03",
     icon: Ic.brain,
     title: "Study with AI",
-    desc: "Chat with your tutor, get quizzes, make flashcards, and let Quizzard plan your path to exam day.",
+    desc: "Chat, get quizzes, make flashcards, and plan your path to exam day.",
   },
-];
-
-const ACTIVITY = [
-  { name: "Alex", action: "studied Organic Chemistry for 2 hours", time: "Just now", initials: "A", color: "#8c52ff" },
-  { name: "Maria", action: "created 24 flashcards for Calculus", time: "5m ago", initials: "M", color: "#5170ff" },
-  { name: "Jonas", action: "scored 96% on History quiz", time: "1h ago", initials: "J", color: "#b040a0" },
-];
-
-const BADGES = [
-  { icon: Ic.flame, label: "Study Streaks" },
-  { icon: Ic.medal, label: "Achievements" },
-  { icon: Ic.chart, label: "Activity Board" },
-  { icon: Ic.bolt, label: "Daily Goals" },
 ];
 
 // =====================================================================
@@ -386,7 +385,7 @@ export default function LandingPage() {
 
         body { font-family: 'Gliker', 'DM Sans', sans-serif; background: #09081a; }
 
-/* ── Scroll reveal ── */
+        /* ── Scroll reveal ── */
         .reveal {
           opacity: 0;
           transform: translateY(36px);
@@ -416,6 +415,10 @@ export default function LandingPage() {
           box-shadow: 0 10px 48px rgba(255,222,89,0.38), 0 4px 16px rgba(0,0,0,0.5);
         }
         .btn-yellow:active { transform: translateY(0); }
+        .btn-yellow:focus-visible {
+          outline: 2px solid #ffde59;
+          outline-offset: 3px;
+        }
 
         .btn-ghost {
           display: inline-flex; align-items: center; gap: 8px;
@@ -431,23 +434,9 @@ export default function LandingPage() {
           border-color: rgba(140,82,255,0.65);
           transform: translateY(-2px);
         }
-
-        /* ── Feature cards ── */
-        .fcard {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(140,82,255,0.14);
-          border-radius: 20px; padding: 32px;
-          transition:
-            transform 0.3s cubic-bezier(0.22,1,0.36,1),
-            box-shadow 0.3s cubic-bezier(0.22,1,0.36,1),
-            border-color 0.3s ease,
-            background 0.3s ease;
-        }
-        .fcard:hover {
-          transform: translateY(-7px);
-          box-shadow: 0 24px 64px rgba(140,82,255,0.13), 0 4px 20px rgba(0,0,0,0.5);
-          border-color: rgba(140,82,255,0.38);
-          background: rgba(140,82,255,0.06);
+        .btn-ghost:focus-visible {
+          outline: 2px solid #8c52ff;
+          outline-offset: 3px;
         }
 
         /* ── Nav link ── */
@@ -457,14 +446,6 @@ export default function LandingPage() {
           transition: color 0.2s ease;
         }
         .nlink:hover { color: #ede9ff; }
-
-        /* ── Gradient text ── */
-        .grad-text {
-          background: linear-gradient(120deg, #8c52ff 0%, #5170ff 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
 
         /* ── Section label ── */
         .slabel {
@@ -481,11 +462,12 @@ export default function LandingPage() {
 
         /* ── Responsive ── */
         @media (max-width: 768px) {
-          .community-grid { grid-template-columns: 1fr !important; }
+          .hero-grid { grid-template-columns: 1fr !important; }
           .hero-btns { flex-direction: column; align-items: center; }
           .nav-links { display: none !important; }
           .nav-auth { gap: 8px !important; }
-          .stats-row { gap: 24px !important; }
+          .pas-grid { grid-template-columns: 1fr !important; direction: ltr !important; }
+          .steps-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
         }
       `}</style>
 
@@ -510,14 +492,9 @@ export default function LandingPage() {
           transition: "background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease",
         }}
       >
-        {/* Nav links */}
         <div className="nav-links" style={{ display: "flex", gap: 36, marginRight: 48 }}>
-          <a href="#features" className="nlink">Features</a>
           <a href="#how-it-works" className="nlink">How It Works</a>
-          <a href="#community" className="nlink">Community</a>
         </div>
-
-        {/* Auth */}
         <div className="nav-auth" style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <Link href="/auth/login" className="nlink">Log in</Link>
           <Link href="/auth/register" className="btn-yellow" style={{ padding: "9px 20px", fontSize: 14 }}>
@@ -530,7 +507,7 @@ export default function LandingPage() {
       <section
         style={{
           position: "relative", minHeight: "100vh",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          display: "flex", alignItems: "center",
           overflow: "hidden", padding: "120px 40px 80px",
         }}
       >
@@ -539,155 +516,145 @@ export default function LandingPage() {
         <div style={{ position: "absolute", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(81,112,255,0.09) 0%, transparent 70%)", top: "45%", right: "8%", pointerEvents: "none" }} />
         <div style={{ position: "absolute", width: 350, height: 350, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,222,89,0.05) 0%, transparent 70%)", bottom: "15%", left: "12%", pointerEvents: "none" }} />
 
-        {/* Particles */}
         <ParticleCanvas />
 
-        {/* Content */}
-        <div style={{ textAlign: "center", maxWidth: 820, position: "relative", zIndex: 1 }}>
-          <div
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 7,
-              background: "rgba(140,82,255,0.12)",
-              border: "1px solid rgba(140,82,255,0.28)",
-              color: "#c4a0ff", borderRadius: 100, padding: "7px 16px",
-              fontSize: 13, fontWeight: 500, letterSpacing: "0.02em",
-              marginBottom: 32,
-            }}
-          >
-            <span style={{ display: "flex", alignItems: "center", color: "#c4a0ff" }}>{Ic.sparkle}</span>AI-Powered Study Companion
-          </div>
+        {/* Two-column hero */}
+        <div
+          className="hero-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 64,
+            alignItems: "center",
+            maxWidth: 1200,
+            margin: "0 auto",
+            position: "relative",
+            zIndex: 1,
+            width: "100%",
+          }}
+        >
+          {/* Left - Copy */}
+          <div>
+            <div
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 7,
+                background: "rgba(140,82,255,0.12)",
+                border: "1px solid rgba(140,82,255,0.28)",
+                color: "#c4a0ff", borderRadius: 100, padding: "7px 16px",
+                fontSize: 13, fontWeight: 500, letterSpacing: "0.02em",
+                marginBottom: 32,
+              }}
+            >
+              <span style={{ display: "flex", alignItems: "center", color: "#c4a0ff" }}>{Ic.sparkle}</span>
+              AI-Powered Study Platform
+            </div>
 
-          <h1
-            style={{
-              fontFamily: "'Shrikhand', cursive",
-              fontSize: "clamp(52px, 9vw, 96px)",
-              lineHeight: 1.03,
-              letterSpacing: "-0.02em",
-              marginBottom: 28,
-              color: "#ede9ff",
-            }}
-          >
-            Your AI Study{" "}
-            <RotatingWord />
-          </h1>
-
-          <p
-            style={{
-              fontSize: "clamp(16px, 2.2vw, 20px)",
-              lineHeight: 1.75,
-              color: "rgba(237,233,255,0.58)",
-              maxWidth: 580,
-              margin: "0 auto 52px",
-            }}
-          >
-            Upload your study material, chat with AI, get quizzes and flashcards, and
-            plan your exam prep — all in one place.
-          </p>
-
-          <div className="hero-btns" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/auth/register" className="btn-yellow">Start for Free →</Link>
-            <a href="#how-it-works" className="btn-ghost">See How It Works</a>
-          </div>
-
-          <p style={{ marginTop: 20, fontSize: 13, color: "rgba(237,233,255,0.3)", letterSpacing: "0.02em" }}>
-            No credit card · Free during beta · Invite your friends
-          </p>
-
-          {/* Stats */}
-          <div
-            className="stats-row"
-            style={{
-              display: "flex", gap: 64, justifyContent: "center",
-              marginTop: 80, flexWrap: "wrap",
-              borderTop: "1px solid rgba(140,82,255,0.12)",
-              paddingTop: 40,
-            }}
-          >
-            {[
-              { val: "Free Beta", label: "Join now" },
-              { val: "All-in-One", label: "Study platform" },
-            ].map((s) => (
-              <div key={s.label} style={{ textAlign: "center" }}>
-                <div
-                  style={{
-                    fontFamily: "'Shrikhand', cursive",
-                    fontSize: 28, color: "#ede9ff", marginBottom: 4,
-                  }}
-                >
-                  {s.val}
-                </div>
-                <div style={{ fontSize: 13, color: "rgba(237,233,255,0.35)", letterSpacing: "0.04em" }}>
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FEATURES ── */}
-      <section
-        id="features"
-        style={{
-          padding: "120px 40px",
-          borderTop: "1px solid rgba(140,82,255,0.1)",
-        }}
-      >
-        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 80 }}>
-            <p className="slabel reveal" style={{ marginBottom: 14 }}>Features</p>
-            <h2
-              className="reveal d1"
+            <h1
               style={{
                 fontFamily: "'Shrikhand', cursive",
-                fontSize: "clamp(36px, 5vw, 60px)",
+                fontSize: "clamp(42px, 7vw, 80px)",
+                lineHeight: 1.05,
                 letterSpacing: "-0.02em",
-                marginBottom: 18, lineHeight: 1.05,
+                marginBottom: 24,
+                color: "#ede9ff",
               }}
             >
-              Everything to ace your studies
-            </h2>
+              Ace Every Exam<br />
+              <span style={{ color: "#ffde59", textShadow: "0 0 40px rgba(255,222,89,0.3)" }}>
+                Without the All-Nighters
+              </span>
+            </h1>
+
             <p
-              className="reveal d2"
               style={{
-                fontSize: 18, color: "rgba(237,233,255,0.5)",
-                maxWidth: 500, margin: "0 auto", lineHeight: 1.75,
+                fontSize: "clamp(16px, 2vw, 19px)",
+                lineHeight: 1.72,
+                color: "rgba(237,233,255,0.58)",
+                maxWidth: 480,
+                marginBottom: 40,
               }}
             >
-              One app. Every tool you need. Powered by AI that understands your own material.
+              Upload your notes. Quizzard turns them into quizzes, flashcards,
+              and a study plan that actually works.
             </p>
+
+            <div className="hero-btns" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <Link href="/auth/register" className="btn-yellow">
+                Start Studying Free <span style={{ display: "flex" }}>{Ic.arrow}</span>
+              </Link>
+              <a href="#how-it-works" className="btn-ghost">See How It Works</a>
+            </div>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))",
-              gap: 24,
-            }}
-          >
-            {FEATURES.map((f) => (
-              <div key={f.title} className={`fcard reveal d${f.delay}`}>
-                <div style={{
-                  width: 52, height: 52, borderRadius: 14, marginBottom: 18,
-                  background: "rgba(140,82,255,0.14)", display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "#b899ff",
-                }}>{f.icon}</div>
-                <h3
-                  style={{
-                    fontFamily: "'Shrikhand', cursive",
-                    fontSize: 22, marginBottom: 10, color: "#ede9ff",
-                  }}
-                >
-                  {f.title}
-                </h3>
-                <p style={{ fontSize: 15, color: "rgba(237,233,255,0.5)", lineHeight: 1.75 }}>
-                  {f.desc}
-                </p>
-              </div>
-            ))}
+          {/* Right - Product visual */}
+          <div className="reveal d2">
+            <ProductFrame
+              placeholder="https://placehold.co/800x520/09081a/8c52ff?text=Dashboard+Preview"
+              alt="Quizzard dashboard preview"
+            />
           </div>
         </div>
       </section>
+
+      {/* ── PAS BLOCK 1: Organization ── */}
+      <PASSection
+        label="THE PROBLEM"
+        problemHeadline="Your Notes Are Everywhere. Your Grades Show It."
+        agitateLines={[
+          "Lecture slides in Drive. Notes in three apps. Highlights on paper.",
+          "You spend more time <strong style='color:#ede9ff'>finding</strong> what to study than actually studying.",
+          "And when the exam is in 3 days, you panic-cram a 200-page PDF with no plan.",
+        ]}
+        solveHeadline="One Place for Everything"
+        solveBullets={[
+          { bold: "Upload anything", rest: "— PDFs, slides, notes, YouTube links" },
+          { bold: "Organized by subject", rest: "— Notebooks with subfolders, always searchable" },
+          { bold: "AI reads your material", rest: "— Answers from YOUR notes, not generic responses" },
+        ]}
+        ctaText="Try It Free"
+        screenshotPlaceholder="https://placehold.co/700x480/09081a/8c52ff?text=Notebook+View"
+        screenshotAlt="Quizzard notebook view"
+      />
+
+      {/* ── PAS BLOCK 2: Study Method ── */}
+      <PASSection
+        label="SOUND FAMILIAR?"
+        problemHeadline="Re-reading Your Notes Doesn't Work. Science Says So."
+        agitateLines={[
+          "You highlight everything. Re-read the same page 4 times. <em>Feel</em> productive.",
+          "Then the exam hits and you can't recall a thing.",
+          "<strong style='color:#ede9ff'>Active recall is proven to 2x retention.</strong> But making your own flashcards takes forever.",
+        ]}
+        solveHeadline="AI Builds Your Study Tools in Seconds"
+        solveBullets={[
+          { bold: "Auto-generated quizzes", rest: "— Multiple choice from your own material" },
+          { bold: "Smart flashcards", rest: "— Spaced repetition that adapts to you" },
+          { bold: "Instant explanations", rest: "— Ask the AI tutor anything about your uploads" },
+        ]}
+        ctaText="Generate Your First Quiz"
+        screenshotPlaceholder="https://placehold.co/700x480/09081a/5170ff?text=Quiz+Interface"
+        screenshotAlt="Quizzard quiz interface"
+        reverse
+      />
+
+      {/* ── PAS BLOCK 3: Planning ── */}
+      <PASSection
+        label="THE REAL KILLER"
+        problemHeadline="You Know You Should Start. You Just Don't Know Where."
+        agitateLines={[
+          "No plan. No schedule. No accountability.",
+          "So you open Netflix &quot;just for one episode&quot; and it's 2 AM the night before.",
+        ]}
+        solveHeadline="Your Personal Exam Countdown"
+        solveBullets={[
+          { bold: "Add your exam dates", rest: "— Quizzard builds a day-by-day plan" },
+          { bold: "Daily goals", rest: "— Know exactly what to cover today" },
+          { bold: "Stay motivated", rest: "— Streaks, achievements, and progress tracking" },
+        ]}
+        ctaText="Plan Your Next Exam"
+        screenshotPlaceholder="https://placehold.co/700x480/09081a/ffde59?text=Exam+Planner"
+        screenshotAlt="Quizzard exam planner"
+      />
 
       {/* ── HOW IT WORKS ── */}
       <section
@@ -715,9 +682,10 @@ export default function LandingPage() {
           </div>
 
           <div
+            className="steps-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gridTemplateColumns: "repeat(3, 1fr)",
               gap: 56,
             }}
           >
@@ -756,173 +724,36 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ── COMMUNITY ── */}
-      <section id="community" style={{ padding: "120px 40px" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
-          <div
-            className="community-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 80,
-              alignItems: "center",
-            }}
-          >
-            {/* Left */}
-            <div>
-              <p className="slabel reveal" style={{ marginBottom: 14 }}>Community</p>
-              <h2
-                className="reveal d1"
-                style={{
-                  fontFamily: "'Shrikhand', cursive",
-                  fontSize: "clamp(32px, 4vw, 52px)",
-                  letterSpacing: "-0.02em",
-                  marginBottom: 22, lineHeight: 1.08,
-                }}
-              >
-                Study together,<br />grow together
-              </h2>
-              <p
-                className="reveal d2"
-                style={{
-                  fontSize: 16, color: "rgba(237,233,255,0.52)",
-                  lineHeight: 1.82, marginBottom: 36,
-                }}
-              >
-                Share notebooks with friends, create study groups, and discover community notebooks
-                in the marketplace. See what your friends are crushing and get inspired.
-              </p>
-              <div className="reveal d3" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {[
-                  { icon: Ic.phone, label: "Friends' study activity feed" },
-                  { icon: Ic.share, label: "One-click notebook sharing" },
-                  { icon: Ic.store, label: "Community notebook marketplace" },
-                  { icon: Ic.group, label: "Collaborative study groups" },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 12,
-                      fontSize: 15, color: "rgba(237,233,255,0.72)",
-                    }}
-                  >
-                    <span style={{ color: "#8c52ff", display: "flex" }}>{item.icon}</span>
-                    {item.label}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right - Mock activity card */}
-            <div className="reveal d2">
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(140,82,255,0.2)",
-                  borderRadius: 24, padding: 32,
-                  position: "relative", overflow: "hidden",
-                  boxShadow: "0 32px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(140,82,255,0.1)",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute", width: 240, height: 240, borderRadius: "50%",
-                    background: "radial-gradient(circle, rgba(140,82,255,0.12) 0%, transparent 70%)",
-                    top: -80, right: -60, pointerEvents: "none",
-                  }}
-                />
-                <p
-                  style={{
-                    fontFamily: "'Shrikhand', cursive",
-                    fontSize: 15, color: "#a882ff", marginBottom: 24,
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  Friends Activity
-                </p>
-                {ACTIVITY.map((a) => (
-                  <div
-                    key={a.name}
-                    style={{
-                      display: "flex", gap: 12, alignItems: "flex-start",
-                      padding: "14px 0",
-                      borderBottom: "1px solid rgba(140,82,255,0.1)",
-                    }}
-                  >
-                    <div style={{
-                      width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
-                      background: a.color, display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 13, fontWeight: 700, color: "#fff",
-                    }}>{a.initials}</div>
-                    <div style={{ flex: 1 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: "#ede9ff" }}>{a.name}</span>
-                      <span style={{ fontSize: 14, color: "rgba(237,233,255,0.48)" }}> {a.action}</span>
-                    </div>
-                    <span style={{ fontSize: 12, color: "rgba(237,233,255,0.3)", whiteSpace: "nowrap" }}>
-                      {a.time}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="reveal d4" style={{ textAlign: "center", marginTop: 64 }}>
+            <Link href="/auth/register" className="btn-yellow">
+              Get Started in 2 Minutes <span style={{ display: "flex" }}>{Ic.arrow}</span>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ── GAMIFICATION ── */}
-      <section
-        style={{
-          padding: "100px 40px",
-          background: "linear-gradient(180deg, transparent, rgba(140,82,255,0.05), transparent)",
-          borderTop: "1px solid rgba(140,82,255,0.08)",
-          borderBottom: "1px solid rgba(140,82,255,0.08)",
-        }}
-      >
-        <div style={{ maxWidth: 880, margin: "0 auto", textAlign: "center" }}>
-          <div className="reveal" style={{ marginBottom: 24, display: "flex", justifyContent: "center" }}>{Ic.trophy}</div>
-          <h2
-            className="reveal d1"
-            style={{
-              fontFamily: "'Shrikhand', cursive",
-              fontSize: "clamp(28px, 4vw, 48px)",
-              letterSpacing: "-0.02em", marginBottom: 16,
-            }}
-          >
-            Stay motivated. Earn rewards.
-          </h2>
-          <p
-            className="reveal d2"
-            style={{
-              fontSize: 17, color: "rgba(237,233,255,0.52)",
-              lineHeight: 1.78, maxWidth: 500, margin: "0 auto 48px",
-            }}
-          >
-            Study streaks, trophies, XP levels, and a GitHub-style activity board keep you consistent.
-            Like Duolingo, but for everything.
-          </p>
-          <div className="reveal d3" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-            {BADGES.map((b) => (
-              <div
-                key={b.label}
-                style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  background: "rgba(140,82,255,0.1)",
-                  border: "1px solid rgba(140,82,255,0.22)",
-                  borderRadius: 100, padding: "11px 22px",
-                  fontSize: 14, color: "rgba(237,233,255,0.78)",
-                  transition: "background 0.2s ease, border-color 0.2s ease",
-                }}
-              >
-                <span style={{ color: "#8c52ff", display: "flex" }}>{b.icon}</span>
-                {b.label}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── PAS BLOCK 4: Community ── */}
+      <PASSection
+        id="community"
+        label="YOU'RE NOT ALONE"
+        problemHeadline="Studying Alone Sucks. It Doesn't Have To."
+        agitateLines={[
+          "You're stuck on a concept at midnight. No one to ask. No one to keep you accountable.",
+          "Solo studying feels isolating — and isolation kills motivation.",
+        ]}
+        solveHeadline="Study With Friends. Learn From Everyone."
+        solveBullets={[
+          { bold: "Add friends", rest: "— See what your friends are studying and stay motivated together" },
+          { bold: "Share notebooks", rest: "— One click to share your best notes with your crew" },
+          { bold: "Study groups", rest: "— Create or join groups for any subject" },
+          { bold: "Community marketplace", rest: "— Browse and use notebooks from other students" },
+        ]}
+        ctaText="Join the Community"
+        screenshotPlaceholder="https://placehold.co/700x480/09081a/b899ff?text=Community+Page"
+        screenshotAlt="Quizzard community page"
+        reverse
+      />
 
       {/* ── FINAL CTA ── */}
       <section
@@ -942,9 +773,8 @@ export default function LandingPage() {
           }}
         />
         <div style={{ position: "relative", zIndex: 1, maxWidth: 680, margin: "0 auto" }}>
-          <div className="reveal" style={{ marginBottom: 28, display: "flex", justifyContent: "center" }}>{Ic.hat}</div>
           <h2
-            className="reveal d1"
+            className="reveal"
             style={{
               fontFamily: "'Shrikhand', cursive",
               fontSize: "clamp(38px, 6vw, 72px)",
@@ -952,28 +782,23 @@ export default function LandingPage() {
               marginBottom: 22, lineHeight: 1.04,
             }}
           >
-            Ready to become a top student?
+            Your Next Exam Doesn&apos;t Have to Be{" "}
+            <span style={{ color: "#ffde59", textShadow: "0 0 40px rgba(255,222,89,0.3)" }}>Stressful</span>
           </h2>
           <p
-            className="reveal d2"
+            className="reveal d1"
             style={{
               fontSize: 18, color: "rgba(237,233,255,0.52)",
-              lineHeight: 1.78, marginBottom: 52,
+              lineHeight: 1.78, marginBottom: 48,
             }}
           >
-            Join the beta for free. We&apos;re testing with real students — your feedback shapes the product.
+            Quizzard is free. Real students are already using it to study smarter.
           </p>
-          <div className="reveal d3">
+          <div className="reveal d2">
             <Link href="/auth/register" className="btn-yellow" style={{ fontSize: 18, padding: "18px 52px" }}>
-              Start Studying for Free →
+              Start Studying Free <span style={{ display: "flex" }}>{Ic.arrow}</span>
             </Link>
           </div>
-          <p
-            className="reveal d4"
-            style={{ marginTop: 22, fontSize: 13, color: "rgba(237,233,255,0.28)", letterSpacing: "0.02em" }}
-          >
-            No credit card · Invite your friends · Free forever for beta testers
-          </p>
         </div>
       </section>
 

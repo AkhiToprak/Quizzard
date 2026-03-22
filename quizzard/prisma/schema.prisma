@@ -20,6 +20,9 @@ model User {
   email              String    @unique
   name               String?
   password           String    // Will be hashed with bcrypt
+  role               String    @default("user")  // "user" | "admin"
+  banned             Boolean   @default(false)    // Banned users cannot log in
+  banReason          String?                      // Optional reason shown to banned user
   dailyGoal          Int       @default(10)  // Pages the user wants to write/study per day (kept for backward compat)
   username           String    @unique       // 3-20 chars, alphanumeric + underscores only
   avatarUrl          String?                 // URL to uploaded avatar image, null = default
@@ -38,8 +41,9 @@ model User {
   receivedFriendRequests Friendship[]       @relation("ReceivedFriendRequests")
   notifications          Notification[]
   posts                  Post[]
-  postLikes              PostLike[]
+  postVotes              PostVote[]
   postComments           PostComment[]
+  commentVotes           CommentVote[]
   pollVotes              PollVote[]
   postVisibility         PostVisibility[]
   sharedByMe             SharedNotebook[]   @relation("SharedByMe")
@@ -245,7 +249,7 @@ model Friendship {
 model Notification {
   id        String   @id @default(cuid())
   userId    String                        // recipient
-  type      String                        // "friend_request" | "friend_accepted" | "notebook_shared" | "notebook_sent" | "co_work_invite" | "post_like" | "post_comment"
+  type      String                        // "friend_request" | "friend_accepted" | "notebook_shared" | "notebook_sent" | "co_work_invite" | "post_upvote" | "post_comment"
   data      Json                          // flexible payload, varies by type
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -271,7 +275,7 @@ model Post {
   author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   images      PostImage[]
   poll        Poll?
-  likes       PostLike[]
+  votes       PostVote[]
   comments    PostComment[]
   visibleTo   PostVisibility[]               // only used when visibility = "specific"
 
@@ -340,30 +344,49 @@ model PollVote {
   @@map("poll_votes")
 }
 
-model PostLike {
+model PostVote {
   id     String @id @default(cuid())
   postId String
   userId String
+  value  Int              // 1 = upvote, -1 = downvote
 
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
-  @@map("post_likes")
+  @@map("post_votes")
 }
 
 model PostComment {
-  id        String   @id @default(cuid())
-  postId    String
-  authorId  String
-  content   String   @db.VarChar(500)
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  postId          String
+  authorId        String
+  parentCommentId String?
+  content         String   @db.VarChar(500)
+  createdAt       DateTime @default(now())
 
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post            Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author          User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent          PostComment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         PostComment[]     @relation("CommentReplies")
+  votes           CommentVote[]
 
   @@index([postId, createdAt])
+  @@index([parentCommentId])
   @@map("post_comments")
+}
+
+model CommentVote {
+  id        String @id @default(cuid())
+  commentId String
+  userId    String
+  value     Int              // 1 = upvote, -1 = downvote
+
+  comment   PostComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@map("comment_votes")
 }
 
 // --- 1.6 Shared Notebooks ---

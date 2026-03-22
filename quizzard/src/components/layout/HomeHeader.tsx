@@ -132,8 +132,8 @@ export default function HomeHeader() {
             <Image
               src="/logo_trimmed.png"
               alt="Quizzard"
-              width={36}
-              height={36}
+              width={120}
+              height={32}
               style={{ objectFit: 'contain' }}
             />
           </Link>

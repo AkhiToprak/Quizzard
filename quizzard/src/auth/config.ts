@@ -31,6 +31,9 @@ export const authOptions: NextAuthOptions = {
             username: true,
             avatarUrl: true,
             onboardingComplete: true,
+            role: true,
+            banned: true,
+            banReason: true,
           },
         });
 
@@ -41,6 +44,11 @@ export const authOptions: NextAuthOptions = {
         );
         if (!user || !passwordMatch) return null;
 
+        // Block banned users from logging in
+        if (user.banned) {
+          throw new Error(user.banReason ? `Account banned: ${user.banReason}` : 'Your account has been banned.');
+        }
+
         return {
           id: user.id,
           email: user.email,
@@ -48,17 +56,32 @@ export const authOptions: NextAuthOptions = {
           username: user.username,
           avatarUrl: user.avatarUrl ?? undefined,
           onboardingComplete: user.onboardingComplete,
+          role: user.role,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.username = (user as any).username;
         token.avatarUrl = (user as any).avatarUrl;
         token.onboardingComplete = (user as any).onboardingComplete;
+        token.role = (user as any).role;
+      }
+      // Re-read from DB when session is explicitly updated (e.g. after onboarding)
+      if (trigger === 'update' && token.id) {
+        const freshUser = await db.user.findUnique({
+          where: { id: token.id as string },
+          select: { onboardingComplete: true, username: true, avatarUrl: true, role: true },
+        });
+        if (freshUser) {
+          token.onboardingComplete = freshUser.onboardingComplete;
+          token.username = freshUser.username;
+          token.avatarUrl = freshUser.avatarUrl ?? undefined;
+          token.role = freshUser.role;
+        }
       }
       return token;
     },
@@ -68,6 +91,7 @@ export const authOptions: NextAuthOptions = {
         session.user.username = token.username as string;
         session.user.avatarUrl = token.avatarUrl as string | undefined;
         (session.user as any).onboardingComplete = token.onboardingComplete;
+        (session.user as any).role = token.role;
       }
       return session;
     },

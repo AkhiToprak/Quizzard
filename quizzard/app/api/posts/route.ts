@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
               },
             },
           },
-          _count: { select: { likes: true, comments: true } },
+          _count: { select: { comments: true } },
         },
       });
     });
@@ -334,15 +334,15 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-        _count: { select: { likes: true, comments: true } },
-        likes: {
+        _count: { select: { comments: true } },
+        votes: {
           where: { userId },
-          select: { id: true },
+          select: { value: true },
           take: 1,
         },
       },
       orderBy: feed === 'trending'
-        ? [{ likes: { _count: 'desc' } }, { createdAt: 'desc' }]
+        ? [{ votes: { _count: 'desc' } }, { createdAt: 'desc' }]
         : { createdAt: 'desc' },
       take: limit + 1, // Fetch one extra to determine if there's a next page
     });
@@ -350,6 +350,19 @@ export async function GET(request: NextRequest) {
     const hasMore = posts.length > limit;
     const sliced = hasMore ? posts.slice(0, limit) : posts;
     const nextCursor = hasMore ? sliced[sliced.length - 1].createdAt.toISOString() : null;
+
+    // Fetch vote scores for all posts in batch
+    const postIds = sliced.map((p) => p.id);
+    const voteScores = postIds.length > 0
+      ? await db.postVote.groupBy({
+          by: ['postId'],
+          where: { postId: { in: postIds } },
+          _sum: { value: true },
+        })
+      : [];
+    const voteScoreMap = new Map(
+      voteScores.map((v) => [v.postId, v._sum.value ?? 0])
+    );
 
     // For polls, check if user has voted
     const pollIds = sliced
@@ -367,7 +380,7 @@ export async function GET(request: NextRequest) {
       : [];
     const votedOptionIds = new Set(userVotes.map((v) => v.optionId));
 
-    const formatted = sliced.map((post) => formatPostWithVotes(post, votedOptionIds));
+    const formatted = sliced.map((post) => formatPostWithVotes(post, votedOptionIds, voteScoreMap));
 
     return successResponse({
       posts: formatted,
@@ -420,15 +433,15 @@ function formatPost(post: any, userId: string) {
           })),
         }
       : null,
-    likeCount: post._count.likes,
+    voteScore: 0,
     commentCount: post._count.comments,
-    isLiked: false, // Just created
+    userVote: 0, // Just created
   };
 }
 
 // Helper: format a post with vote info (used for feed)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatPostWithVotes(post: any, votedOptionIds: Set<string>) {
+function formatPostWithVotes(post: any, votedOptionIds: Set<string>, voteScoreMap: Map<string, number>) {
   return {
     id: post.id,
     content: post.content,
@@ -454,8 +467,8 @@ function formatPostWithVotes(post: any, votedOptionIds: Set<string>) {
           })),
         }
       : null,
-    likeCount: post._count.likes,
+    voteScore: voteScoreMap.get(post.id) ?? 0,
     commentCount: post._count.comments,
-    isLiked: post.likes?.length > 0,
+    userVote: post.votes?.[0]?.value ?? 0,
   };
 }

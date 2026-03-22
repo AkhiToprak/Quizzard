@@ -65,23 +65,38 @@ export default function Header() {
               Hello,{' '}
               <span style={{ color: '#e5e3ff' }}>{session.user.name}</span>
             </span>
-            <div
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                fontWeight: '700',
-                color: '#ffffff',
-                flexShrink: 0,
-              }}
-            >
-              {getInitials(session.user.name)}
-            </div>
+            {session.user.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={session.user.avatarUrl}
+                alt={session.user.name || 'Avatar'}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  flexShrink: 0,
+                }}
+              >
+                {getInitials(session.user.name)}
+              </div>
+            )}
           </div>
         )}
 

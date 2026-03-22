@@ -14,6 +14,8 @@ export interface NotebookPreviewCardProps {
   author: { id: string; username: string; avatarUrl?: string | null };
   sharedAt: string;
   onCopy?: (notebookId: string) => void;
+  isAdmin?: boolean;
+  onAdminDelete?: (shareId: string) => void;
 }
 
 const TRANSITION = 'cubic-bezier(0.22,1,0.36,1)';
@@ -40,6 +42,7 @@ function getInitial(username: string): string {
 }
 
 export default function NotebookPreviewCard({
+  shareId,
   notebookId,
   name,
   subject,
@@ -49,10 +52,14 @@ export default function NotebookPreviewCard({
   author,
   sharedAt,
   onCopy,
+  isAdmin,
+  onAdminDelete,
 }: NotebookPreviewCardProps) {
   const [hovered, setHovered] = useState(false);
   const [copyBtnHovered, setCopyBtnHovered] = useState(false);
   const [copying, setCopying] = useState(false);
+  const [adminDeleteHovered, setAdminDeleteHovered] = useState(false);
+  const [adminDeleting, setAdminDeleting] = useState(false);
 
   const accentColor = color || '#ae89ff';
   const isLive = shareType.toLowerCase() === 'live';
@@ -66,6 +73,18 @@ export default function NotebookPreviewCard({
       await onCopy(notebookId);
     } finally {
       setCopying(false);
+    }
+  };
+
+  const handleAdminDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!onAdminDelete || adminDeleting) return;
+    setAdminDeleting(true);
+    try {
+      await onAdminDelete(shareId);
+    } finally {
+      setAdminDeleting(false);
     }
   };
 
@@ -301,6 +320,48 @@ export default function NotebookPreviewCard({
               {copying ? 'hourglass_empty' : 'content_copy'}
             </span>
             {copying ? 'Copying...' : 'Get Copy'}
+          </button>
+        </div>
+      )}
+
+      {/* Admin delete button — appears on hover for admins only */}
+      {isAdmin && onAdminDelete && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            opacity: hovered ? 1 : 0,
+            transition: `opacity 0.2s ${TRANSITION}`,
+            pointerEvents: hovered ? 'auto' : 'none',
+          }}
+        >
+          <button
+            onClick={handleAdminDelete}
+            disabled={adminDeleting}
+            onMouseEnter={() => setAdminDeleteHovered(true)}
+            onMouseLeave={() => setAdminDeleteHovered(false)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '4px 10px',
+              background: adminDeleteHovered ? 'rgba(253,111,133,0.2)' : 'rgba(253,111,133,0.1)',
+              color: '#fd6f85',
+              fontSize: '11px',
+              fontWeight: 600,
+              border: '1px solid rgba(253,111,133,0.25)',
+              borderRadius: '8px',
+              cursor: adminDeleting ? 'wait' : 'pointer',
+              transition: `background 0.15s ${TRANSITION}`,
+              fontFamily: 'inherit',
+              opacity: adminDeleting ? 0.7 : 1,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+              delete
+            </span>
+            {adminDeleting ? '...' : 'Remove'}
           </button>
         </div>
       )}

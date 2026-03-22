@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import NotebookPreviewCard from './NotebookPreviewCard';
 import type { NotebookPreviewCardProps } from './NotebookPreviewCard';
 
@@ -36,6 +37,9 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function NotebookBrowser() {
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
+
   const [filter, setFilter] = useState<FilterTab>('all');
   const [search, setSearch] = useState('');
   const [subject, setSubject] = useState('');
@@ -129,6 +133,20 @@ export default function NotebookBrowser() {
       setError('Failed to copy notebook. Please try again.');
     } finally {
       setCopyingId(null);
+    }
+  };
+
+  const handleAdminDelete = async (shareId: string) => {
+    try {
+      const res = await fetch(`/api/admin/community/notebooks/${shareId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setNotebooks((prev) => prev.filter((nb) => nb.shareId !== shareId));
+        setTotal((t) => t - 1);
+      }
+    } catch {
+      setError('Failed to remove notebook. Please try again.');
     }
   };
 
@@ -499,6 +517,8 @@ export default function NotebookBrowser() {
               <NotebookPreviewCard
                 {...nb}
                 onCopy={handleCopy}
+                isAdmin={isAdmin}
+                onAdminDelete={isAdmin ? handleAdminDelete : undefined}
               />
             </div>
           ))}

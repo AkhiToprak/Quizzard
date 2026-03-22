@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import StepIndicator from './StepIndicator';
@@ -35,6 +35,7 @@ const INITIAL_FORM: FormData = {
 
 export default function OnboardingWizard() {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
@@ -114,6 +115,8 @@ export default function OnboardingWizard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studyGoals: goals }),
       });
+      // Refresh the JWT token so middleware sees onboardingComplete: true
+      await updateSession();
       router.push('/home');
     } catch {
       setStepError(3, 'Something went wrong. Please try again.');

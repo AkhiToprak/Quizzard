@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserId, getAdminUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
   successResponse,
@@ -37,8 +37,8 @@ export async function GET(
             },
           },
         },
-        _count: { select: { likes: true, comments: true } },
-        likes: { where: { userId }, select: { id: true }, take: 1 },
+        _count: { select: { comments: true } },
+        votes: { where: { userId }, select: { value: true }, take: 1 },
         visibleTo: { where: { userId }, select: { id: true }, take: 1 },
       },
     });
@@ -49,6 +49,13 @@ export async function GET(
     if (!(await canUserSeePost(post, userId))) {
       return notFoundResponse('Post not found');
     }
+
+    // Get vote score
+    const voteResult = await db.postVote.aggregate({
+      where: { postId },
+      _sum: { value: true },
+    });
+    const voteScore = voteResult._sum.value ?? 0;
 
     // Get user's poll votes
     let votedOptionIds = new Set<string>();
@@ -63,7 +70,7 @@ export async function GET(
       votedOptionIds = new Set(userVotes.map((v) => v.optionId));
     }
 
-    return successResponse(formatPost(post, votedOptionIds));
+    return successResponse(formatPost(post, votedOptionIds, voteScore));
   } catch {
     return internalErrorResponse();
   }
@@ -112,10 +119,17 @@ export async function PUT(
             },
           },
         },
-        _count: { select: { likes: true, comments: true } },
-        likes: { where: { userId }, select: { id: true }, take: 1 },
+        _count: { select: { comments: true } },
+        votes: { where: { userId }, select: { value: true }, take: 1 },
       },
     });
+
+    // Get vote score
+    const voteResult = await db.postVote.aggregate({
+      where: { postId },
+      _sum: { value: true },
+    });
+    const voteScore = voteResult._sum.value ?? 0;
 
     // Get user's poll votes
     let votedOptionIds = new Set<string>();
@@ -130,13 +144,13 @@ export async function PUT(
       votedOptionIds = new Set(userVotes.map((v) => v.optionId));
     }
 
-    return successResponse(formatPost(updated, votedOptionIds));
+    return successResponse(formatPost(updated, votedOptionIds, voteScore));
   } catch {
     return internalErrorResponse();
   }
 }
 
-// DELETE — delete a post
+// DELETE — delete a post (owner or admin)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -146,6 +160,7 @@ export async function DELETE(
     if (!userId) return unauthorizedResponse();
 
     const { id: postId } = await params;
+    const isAdmin = !!(await getAdminUserId(request));
 
     const post = await db.post.findUnique({
       where: { id: postId },
@@ -153,9 +168,11 @@ export async function DELETE(
     });
 
     if (!post) return notFoundResponse('Post not found');
-    if (post.authorId !== userId) return forbiddenResponse('You can only delete your own posts');
+    if (post.authorId !== userId && !isAdmin) {
+      return forbiddenResponse('You can only delete your own posts');
+    }
 
-    // Cascade delete handles all related records (images, poll, likes, comments, visibility)
+    // Cascade delete handles all related records (images, poll, votes, comments, visibility)
     await db.post.delete({ where: { id: postId } });
 
     return successResponse({ deleted: true });
@@ -166,7 +183,7 @@ export async function DELETE(
 
 // Helper: format a post for response
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatPost(post: any, votedOptionIds: Set<string>) {
+function formatPost(post: any, votedOptionIds: Set<string>, voteScore: number) {
   return {
     id: post.id,
     content: post.content,
@@ -193,8 +210,8 @@ function formatPost(post: any, votedOptionIds: Set<string>) {
           })),
         }
       : null,
-    likeCount: post._count.likes,
+    voteScore,
     commentCount: post._count.comments,
-    isLiked: post.likes?.length > 0,
+    userVote: post.votes?.[0]?.value ?? 0,
   };
 }

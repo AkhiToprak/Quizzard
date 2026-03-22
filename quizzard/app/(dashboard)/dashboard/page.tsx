@@ -139,7 +139,7 @@ export default function DashboardPage() {
       <section
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '24px',
         }}
       >
@@ -211,7 +211,7 @@ export default function DashboardPage() {
 
       {/* Bento grid */}
       <section>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '24px' }}>
 
           {/* Recent Activity */}
           <div

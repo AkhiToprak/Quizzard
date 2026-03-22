@@ -1,14 +1,28 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 function getInitials(name?: string | null): string {
   if (!name) return '?';
   return name.split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2);
 }
 
-type Section = 'account' | 'notifications' | 'goals' | 'privacy';
+type Section = 'account' | 'notifications' | 'goals' | 'privacy' | 'admin';
+
+interface AdminUser {
+  id: string;
+  email: string;
+  name: string | null;
+  username: string;
+  avatarUrl: string | null;
+  role: string;
+  banned: boolean;
+  banReason: string | null;
+  createdAt: string;
+  notebookCount: number;
+  postCount: number;
+}
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -100,6 +114,105 @@ export default function SettingsPage() {
     setGoalLoading(false);
   };
 
+  // Admin state
+  const isAdmin = (session?.user as any)?.role === 'admin';
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [adminTotal, setAdminTotal] = useState(0);
+  const [adminPage, setAdminPage] = useState(1);
+  const [adminTotalPages, setAdminTotalPages] = useState(1);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminActionLoading, setAdminActionLoading] = useState<string | null>(null);
+  const [banModalUser, setBanModalUser] = useState<AdminUser | null>(null);
+  const [banReason, setBanReason] = useState('');
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<AdminUser | null>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const fetchAdminUsers = useCallback(async (search: string, page: number) => {
+    setAdminLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: '20' });
+      if (search.trim()) params.set('search', search.trim());
+      const res = await fetch(`/api/admin/users?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAdminUsers(data.data.users);
+        setAdminTotal(data.data.total);
+        setAdminPage(data.data.page);
+        setAdminTotalPages(data.data.totalPages);
+      }
+    } catch { /* ignore */ }
+    setAdminLoading(false);
+  }, []);
+
+  // Fetch users when admin section is active
+  useEffect(() => {
+    if (activeSection === 'admin' && isAdmin) {
+      fetchAdminUsers(adminSearch, adminPage);
+    }
+  }, [activeSection, isAdmin, adminPage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounced search
+  const handleAdminSearchChange = (value: string) => {
+    setAdminSearch(value);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
+      setAdminPage(1);
+      fetchAdminUsers(value, 1);
+    }, 400);
+  };
+
+  const handleBanUser = async () => {
+    if (!banModalUser) return;
+    setAdminActionLoading(banModalUser.id);
+    try {
+      const res = await fetch(`/api/admin/users/${banModalUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ban', reason: banReason.trim() || undefined }),
+      });
+      if (res.ok) {
+        setAdminUsers((prev) =>
+          prev.map((u) => u.id === banModalUser.id ? { ...u, banned: true, banReason: banReason.trim() || null } : u)
+        );
+      }
+    } catch { /* ignore */ }
+    setAdminActionLoading(null);
+    setBanModalUser(null);
+    setBanReason('');
+  };
+
+  const handleUnbanUser = async (userId: string) => {
+    setAdminActionLoading(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unban' }),
+      });
+      if (res.ok) {
+        setAdminUsers((prev) =>
+          prev.map((u) => u.id === userId ? { ...u, banned: false, banReason: null } : u)
+        );
+      }
+    } catch { /* ignore */ }
+    setAdminActionLoading(null);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteConfirmUser) return;
+    setAdminActionLoading(deleteConfirmUser.id);
+    try {
+      const res = await fetch(`/api/admin/users/${deleteConfirmUser.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setAdminUsers((prev) => prev.filter((u) => u.id !== deleteConfirmUser.id));
+        setAdminTotal((t) => t - 1);
+      }
+    } catch { /* ignore */ }
+    setAdminActionLoading(null);
+    setDeleteConfirmUser(null);
+  };
+
   const [passwords, setPasswords] = useState({ current: '', newPass: '', confirm: '' });
   const [pwStatus, setPwStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
   const [pwLoading, setPwLoading] = useState(false);
@@ -141,6 +254,7 @@ export default function SettingsPage() {
     { section: 'notifications', icon: 'notifications_active', label: 'Notifications' },
     { section: 'goals', icon: 'track_changes', label: 'Study Goals' },
     { section: 'privacy', icon: 'lock', label: 'Privacy & Security' },
+    ...(isAdmin ? [{ section: 'admin' as Section, icon: 'admin_panel_settings', label: 'User Management' }] : []),
   ];
 
   return (
@@ -180,23 +294,37 @@ export default function SettingsPage() {
             {/* Avatar + name */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
               <div style={{ position: 'relative' }}>
-                <div
-                  style={{
-                    width: '96px',
-                    height: '96px',
-                    borderRadius: '24px',
-                    background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '32px',
-                    fontWeight: 700,
-                    color: '#ffffff',
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  {getInitials(session?.user?.name)}
-                </div>
+                {session?.user?.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={session.user.avatarUrl}
+                    alt={session.user.name || 'Avatar'}
+                    style={{
+                      width: '96px',
+                      height: '96px',
+                      borderRadius: '24px',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '96px',
+                      height: '96px',
+                      borderRadius: '24px',
+                      background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '32px',
+                      fontWeight: 700,
+                      color: '#ffffff',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {getInitials(session?.user?.name)}
+                  </div>
+                )}
                 <button
                   style={{
                     position: 'absolute',
@@ -701,6 +829,396 @@ export default function SettingsPage() {
               </button>
             </form>
           </section>
+
+          {/* Admin: User Management */}
+          {isAdmin && (
+            <section
+              style={{
+                background: '#18182a',
+                borderRadius: '32px',
+                padding: '32px',
+                display: activeSection === 'admin' ? 'flex' : 'none',
+                flexDirection: 'column',
+                gap: '24px',
+              }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div
+                  style={{
+                    width: '48px', height: '48px', borderRadius: '16px',
+                    background: 'rgba(255,222,89,0.15)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ color: '#ffde59', fontSize: '24px' }}>admin_panel_settings</span>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>User Management</h3>
+                  <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
+                    Search, ban, or delete users. {adminTotal > 0 && <span style={{ color: '#ae89ff' }}>{adminTotal} total users</span>}
+                  </p>
+                </div>
+              </div>
+
+              {/* Search bar */}
+              <div style={{ position: 'relative' }}>
+                <div
+                  style={{
+                    position: 'absolute', left: 0, top: 0, bottom: 0,
+                    paddingLeft: '16px', display: 'flex', alignItems: 'center',
+                    pointerEvents: 'none', color: '#737390',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by name, username, or email…"
+                  value={adminSearch}
+                  onChange={(e) => handleAdminSearchChange(e.target.value)}
+                  style={{
+                    ...inputStyle,
+                    paddingLeft: '44px',
+                    paddingRight: adminSearch ? '44px' : '20px',
+                  }}
+                  onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
+                  onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+                />
+                {adminSearch && (
+                  <button
+                    onClick={() => { setAdminSearch(''); setAdminPage(1); fetchAdminUsers('', 1); }}
+                    style={{
+                      position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                      background: 'rgba(70,69,96,0.3)', border: 'none', borderRadius: '8px',
+                      width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', color: '#aaa8c8',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Loading state */}
+              {adminLoading && (
+                <div style={{ textAlign: 'center', padding: '24px', color: '#aaa8c8', fontSize: '14px' }}>
+                  Loading users…
+                </div>
+              )}
+
+              {/* User list */}
+              {!adminLoading && adminUsers.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '32px', color: '#737390', fontSize: '14px' }}>
+                  {adminSearch ? 'No users found for that search.' : 'No users found.'}
+                </div>
+              )}
+
+              {!adminLoading && adminUsers.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {adminUsers.map((user) => {
+                    const isUserLoading = adminActionLoading === user.id;
+                    const isSelf = user.id === session?.user?.id;
+                    return (
+                      <div
+                        key={user.id}
+                        style={{
+                          background: user.banned ? 'rgba(253,111,133,0.05)' : '#121222',
+                          borderRadius: '16px',
+                          padding: '16px 20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '16px',
+                          border: user.banned ? '1px solid rgba(253,111,133,0.15)' : '1px solid transparent',
+                          transition: 'background 0.15s',
+                          opacity: isUserLoading ? 0.6 : 1,
+                        }}
+                      >
+                        {/* Avatar */}
+                        <div
+                          style={{
+                            width: '40px', height: '40px', borderRadius: '12px',
+                            background: user.banned
+                              ? 'linear-gradient(135deg, #fd6f85 0%, #c8475d 100%)'
+                              : 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '14px', fontWeight: 700, color: '#fff', flexShrink: 0,
+                          }}
+                        >
+                          {(user.name || user.username).charAt(0).toUpperCase()}
+                        </div>
+
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff' }}>
+                              {user.name || user.username}
+                            </span>
+                            <span style={{ fontSize: '12px', color: '#737390' }}>@{user.username}</span>
+                            {user.role === 'admin' && (
+                              <span style={{
+                                fontSize: '10px', fontWeight: 700, color: '#ffde59',
+                                background: 'rgba(255,222,89,0.12)', padding: '2px 8px',
+                                borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em',
+                              }}>
+                                Admin
+                              </span>
+                            )}
+                            {user.banned && (
+                              <span style={{
+                                fontSize: '10px', fontWeight: 700, color: '#fd6f85',
+                                background: 'rgba(253,111,133,0.12)', padding: '2px 8px',
+                                borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em',
+                              }}>
+                                Banned
+                              </span>
+                            )}
+                            {isSelf && (
+                              <span style={{
+                                fontSize: '10px', fontWeight: 700, color: '#4ade80',
+                                background: 'rgba(74,222,128,0.12)', padding: '2px 8px',
+                                borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em',
+                              }}>
+                                You
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+                            <span style={{ fontSize: '12px', color: '#aaa8c8' }}>{user.email}</span>
+                            <span style={{ fontSize: '11px', color: '#737390' }}>
+                              {user.notebookCount} notebook{user.notebookCount !== 1 ? 's' : ''} · {user.postCount} post{user.postCount !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          {user.banned && user.banReason && (
+                            <p style={{ fontSize: '11px', color: '#fd6f85', margin: '4px 0 0', fontStyle: 'italic' }}>
+                              Reason: {user.banReason}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        {!isSelf && user.role !== 'admin' && (
+                          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                            {user.banned ? (
+                              <button
+                                onClick={() => handleUnbanUser(user.id)}
+                                disabled={isUserLoading}
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: '4px',
+                                  padding: '8px 14px', borderRadius: '10px', border: 'none',
+                                  background: 'rgba(74,222,128,0.12)', color: '#4ade80',
+                                  fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                                  fontFamily: 'inherit', transition: 'background 0.15s',
+                                }}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(74,222,128,0.2)'; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(74,222,128,0.12)'; }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>lock_open</span>
+                                Unban
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => { setBanModalUser(user); setBanReason(''); }}
+                                disabled={isUserLoading}
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: '4px',
+                                  padding: '8px 14px', borderRadius: '10px', border: 'none',
+                                  background: 'rgba(255,222,89,0.1)', color: '#ffde59',
+                                  fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                                  fontFamily: 'inherit', transition: 'background 0.15s',
+                                }}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,222,89,0.18)'; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,222,89,0.1)'; }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>block</span>
+                                Ban
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeleteConfirmUser(user)}
+                              disabled={isUserLoading}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '4px',
+                                padding: '8px 14px', borderRadius: '10px', border: 'none',
+                                background: 'rgba(253,111,133,0.1)', color: '#fd6f85',
+                                fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                                fontFamily: 'inherit', transition: 'background 0.15s',
+                              }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.18)'; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.1)'; }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete</span>
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {!adminLoading && adminTotalPages > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', paddingTop: '8px' }}>
+                  <button
+                    onClick={() => setAdminPage((p) => Math.max(1, p - 1))}
+                    disabled={adminPage <= 1}
+                    style={{
+                      padding: '8px 16px', borderRadius: '10px', border: 'none',
+                      background: adminPage <= 1 ? '#1d1d33' : '#23233c',
+                      color: adminPage <= 1 ? '#464560' : '#e5e3ff',
+                      fontSize: '13px', fontWeight: 700, cursor: adminPage <= 1 ? 'default' : 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    Previous
+                  </button>
+                  <span style={{ fontSize: '13px', color: '#aaa8c8' }}>
+                    Page {adminPage} of {adminTotalPages}
+                  </span>
+                  <button
+                    onClick={() => setAdminPage((p) => Math.min(adminTotalPages, p + 1))}
+                    disabled={adminPage >= adminTotalPages}
+                    style={{
+                      padding: '8px 16px', borderRadius: '10px', border: 'none',
+                      background: adminPage >= adminTotalPages ? '#1d1d33' : '#23233c',
+                      color: adminPage >= adminTotalPages ? '#464560' : '#e5e3ff',
+                      fontSize: '13px', fontWeight: 700, cursor: adminPage >= adminTotalPages ? 'default' : 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Ban Modal */}
+          {banModalUser && (
+            <div
+              style={{
+                position: 'fixed', inset: 0, zIndex: 9999,
+                background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+              onClick={() => setBanModalUser(null)}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: '#18182a', borderRadius: '24px', padding: '32px',
+                  width: '100%', maxWidth: '440px',
+                  boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(255,222,89,0.15)',
+                }}
+              >
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
+                  Ban @{banModalUser.username}
+                </h3>
+                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: '0 0 20px' }}>
+                  This user won&apos;t be able to log in. You can unban them later.
+                </p>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#cbd2ff', marginBottom: '8px', paddingLeft: '4px' }}>
+                  Ban Reason (optional)
+                </label>
+                <textarea
+                  placeholder="e.g. Spam, inappropriate content…"
+                  value={banReason}
+                  onChange={(e) => setBanReason(e.target.value)}
+                  rows={3}
+                  style={{
+                    ...inputStyle,
+                    resize: 'vertical',
+                    minHeight: '80px',
+                  }}
+                  onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(255,222,89,0.3)'; }}
+                  onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+                />
+                <div style={{ display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setBanModalUser(null)}
+                    style={{
+                      padding: '12px 24px', borderRadius: '12px', border: '1px solid rgba(70,69,96,0.3)',
+                      background: 'transparent', color: '#aaa8c8', fontSize: '14px', fontWeight: 700,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBanUser}
+                    style={{
+                      padding: '12px 24px', borderRadius: '12px', border: 'none',
+                      background: '#ffde59', color: '#5f4f00', fontSize: '14px', fontWeight: 700,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                      boxShadow: '0 4px 16px rgba(255,222,89,0.2)',
+                    }}
+                  >
+                    Confirm Ban
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirm Modal */}
+          {deleteConfirmUser && (
+            <div
+              style={{
+                position: 'fixed', inset: 0, zIndex: 9999,
+                background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+              onClick={() => setDeleteConfirmUser(null)}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: '#18182a', borderRadius: '24px', padding: '32px',
+                  width: '100%', maxWidth: '440px',
+                  boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(253,111,133,0.2)',
+                }}
+              >
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fd6f85', margin: '0 0 8px' }}>
+                  Delete @{deleteConfirmUser.username}?
+                </h3>
+                <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 8px', lineHeight: 1.6 }}>
+                  This will <strong style={{ color: '#fd6f85' }}>permanently delete</strong> this user and all their data:
+                </p>
+                <ul style={{ fontSize: '13px', color: '#aaa8c8', margin: '0 0 20px', paddingLeft: '20px', lineHeight: 1.8 }}>
+                  <li>{deleteConfirmUser.notebookCount} notebook{deleteConfirmUser.notebookCount !== 1 ? 's' : ''}</li>
+                  <li>{deleteConfirmUser.postCount} post{deleteConfirmUser.postCount !== 1 ? 's' : ''}</li>
+                  <li>All comments, friends, and shared content</li>
+                </ul>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setDeleteConfirmUser(null)}
+                    style={{
+                      padding: '12px 24px', borderRadius: '12px', border: '1px solid rgba(70,69,96,0.3)',
+                      background: 'transparent', color: '#aaa8c8', fontSize: '14px', fontWeight: 700,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteUser}
+                    style={{
+                      padding: '12px 24px', borderRadius: '12px', border: 'none',
+                      background: '#c8475d', color: '#fff', fontSize: '14px', fontWeight: 700,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                      boxShadow: '0 4px 16px rgba(253,111,133,0.2)',
+                    }}
+                  >
+                    Delete Permanently
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Danger Zone */}
           <section

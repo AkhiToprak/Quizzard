@@ -39,7 +39,7 @@ export default function AvatarStep({
       if (!res.ok) {
         setUploadError(json.error || 'Upload failed');
       } else {
-        onAvatarChange(json.url || json.avatarUrl || '');
+        onAvatarChange(json.data?.avatarUrl || json.avatarUrl || json.url || '');
       }
     } catch {
       setUploadError('Upload failed. Please try again.');

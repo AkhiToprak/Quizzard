@@ -13,6 +13,21 @@ import {
 
 const MAX_COMMENT_LENGTH = 500;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function formatComment(c: any, voteScoreMap: Map<string, number>, userVoteMap: Map<string, number>): any {
+  return {
+    id: c.id,
+    content: c.content,
+    createdAt: c.createdAt,
+    parentCommentId: c.parentCommentId ?? null,
+    author: c.author,
+    voteScore: voteScoreMap.get(c.id) ?? 0,
+    userVote: userVoteMap.get(c.id) ?? 0,
+    replyCount: c._count?.replies ?? 0,
+    replies: (c.replies ?? []).map((r: any) => formatComment(r, voteScoreMap, userVoteMap)),
+  };
+}
+
 // GET — get comments for a post (cursor-paginated)
 export async function GET(
   request: NextRequest,
@@ -24,7 +39,6 @@ export async function GET(
 
     const { id: postId } = await params;
 
-    // Verify post exists and user can see it
     const post = await db.post.findUnique({
       where: { id: postId },
       select: { id: true, authorId: true, visibility: true },
@@ -36,10 +50,11 @@ export async function GET(
 
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get('cursor') || undefined;
+    const parentId = searchParams.get('parentId') || undefined;
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { postId };
+    const where: any = { postId, parentCommentId: parentId ?? null };
     if (cursor) {
       const cursorDate = new Date(cursor);
       if (isNaN(cursorDate.getTime())) {
@@ -52,6 +67,15 @@ export async function GET(
       where,
       include: {
         author: { select: { id: true, username: true, avatarUrl: true } },
+        _count: { select: { replies: true } },
+        replies: {
+          take: 3,
+          orderBy: { createdAt: 'asc' },
+          include: {
+            author: { select: { id: true, username: true, avatarUrl: true } },
+            _count: { select: { replies: true } },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
       take: limit + 1,
@@ -61,13 +85,36 @@ export async function GET(
     const sliced = hasMore ? comments.slice(0, limit) : comments;
     const nextCursor = hasMore ? sliced[sliced.length - 1].createdAt.toISOString() : null;
 
+    // Collect all comment IDs (top-level + nested replies) for vote data
+    const allCommentIds: string[] = [];
+    for (const c of sliced) {
+      allCommentIds.push(c.id);
+      for (const r of c.replies) {
+        allCommentIds.push(r.id);
+      }
+    }
+
+    // Batch fetch vote scores
+    const voteScores = allCommentIds.length > 0
+      ? await db.commentVote.groupBy({
+          by: ['commentId'],
+          where: { commentId: { in: allCommentIds } },
+          _sum: { value: true },
+        })
+      : [];
+    const voteScoreMap = new Map(voteScores.map((v) => [v.commentId, v._sum.value ?? 0]));
+
+    // Batch fetch user's votes
+    const userVotes = allCommentIds.length > 0
+      ? await db.commentVote.findMany({
+          where: { commentId: { in: allCommentIds }, userId },
+          select: { commentId: true, value: true },
+        })
+      : [];
+    const userVoteMap = new Map(userVotes.map((v) => [v.commentId, v.value]));
+
     return successResponse({
-      comments: sliced.map((c) => ({
-        id: c.id,
-        content: c.content,
-        createdAt: c.createdAt,
-        author: c.author,
-      })),
+      comments: sliced.map((c) => formatComment(c, voteScoreMap, userVoteMap)),
       nextCursor,
     });
   } catch {
@@ -107,7 +154,7 @@ export async function POST(
     }
 
     const body = await request.json().catch(() => ({}));
-    const { content } = body as { content?: string };
+    const { content, parentCommentId } = body as { content?: string; parentCommentId?: string };
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return badRequestResponse('Comment content is required');
@@ -116,10 +163,22 @@ export async function POST(
       return badRequestResponse(`Comment must be ${MAX_COMMENT_LENGTH} characters or less`);
     }
 
+    // Validate parent comment if replying
+    if (parentCommentId) {
+      const parent = await db.postComment.findUnique({
+        where: { id: parentCommentId },
+        select: { id: true, postId: true },
+      });
+      if (!parent || parent.postId !== postId) {
+        return badRequestResponse('Invalid parent comment');
+      }
+    }
+
     const comment = await db.postComment.create({
       data: {
         postId,
         authorId: userId,
+        parentCommentId: parentCommentId ?? null,
         content: content.trim(),
       },
       include: {
@@ -127,16 +186,20 @@ export async function POST(
       },
     });
 
-    // Notify post author (don't notify self)
-    if (post.authorId !== userId) {
+    // Notify post author or parent comment author
+    const notifyUserId = parentCommentId
+      ? (await db.postComment.findUnique({ where: { id: parentCommentId }, select: { authorId: true } }))?.authorId
+      : post.authorId;
+
+    if (notifyUserId && notifyUserId !== userId) {
       const commenter = await db.user.findUnique({
         where: { id: userId },
         select: { username: true },
       });
       await db.notification.create({
         data: {
-          userId: post.authorId,
-          type: 'post_comment',
+          userId: notifyUserId,
+          type: parentCommentId ? 'comment_reply' : 'post_comment',
           data: {
             fromUserId: userId,
             fromUsername: commenter?.username,
@@ -151,7 +214,12 @@ export async function POST(
       id: comment.id,
       content: comment.content,
       createdAt: comment.createdAt,
+      parentCommentId: comment.parentCommentId,
       author: comment.author,
+      voteScore: 0,
+      userVote: 0,
+      replyCount: 0,
+      replies: [],
     });
   } catch {
     return internalErrorResponse();

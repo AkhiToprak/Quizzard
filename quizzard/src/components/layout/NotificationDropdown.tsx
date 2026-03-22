@@ -33,8 +33,9 @@ const NOTIFICATION_ICONS: Record<string, string> = {
   friend_request: 'person_add',
   friend_accepted: 'how_to_reg',
   notebook_sent: 'menu_book',
-  post_like: 'favorite',
+  post_upvote: 'arrow_upward',
   post_comment: 'chat_bubble',
+  comment_reply: 'reply',
   co_work_invite: 'group_work',
 };
 
@@ -52,10 +53,12 @@ function getNotificationText(n: Notification): string {
       return `${safeStr(data.username, 'Someone')} accepted your friend request`;
     case 'notebook_sent':
       return `${safeStr(data.sharedBy, 'Someone')} shared "${safeStr(data.notebookName, 'a notebook')}" with you`;
-    case 'post_like':
-      return `${safeStr(data.fromUsername, 'Someone')} liked your post`;
+    case 'post_upvote':
+      return `${safeStr(data.fromUsername, 'Someone')} upvoted your post`;
     case 'post_comment':
       return `${safeStr(data.fromUsername, 'Someone')} commented on your post`;
+    case 'comment_reply':
+      return `${safeStr(data.fromUsername, 'Someone')} replied to your comment`;
     case 'co_work_invite':
       return `${safeStr(data.username, 'Someone')} invited you to co-work on "${safeStr(data.notebookName, 'a notebook')}"`;
     default:
