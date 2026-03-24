@@ -2,8 +2,7 @@
 
 import { use } from 'react';
 import { NotebookWorkspaceProvider } from '@/components/notebook/NotebookWorkspaceContext';
-import SectionPanel from '@/components/notebook/SectionPanel';
-import PagePanel from '@/components/notebook/PagePanel';
+import UnifiedSidebar from '@/components/notebook/UnifiedSidebar';
 
 export default function NotebookWorkspaceLayout({
   children,
@@ -17,8 +16,7 @@ export default function NotebookWorkspaceLayout({
   return (
     <NotebookWorkspaceProvider notebookId={id}>
       <div style={{ display: 'flex', flex: 1, height: '100%', overflow: 'hidden' }}>
-        <SectionPanel />
-        <PagePanel />
+        <UnifiedSidebar />
         <div style={{
           flex: 1,
           minWidth: 0,

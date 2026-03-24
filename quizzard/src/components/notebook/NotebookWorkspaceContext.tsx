@@ -29,7 +29,6 @@ interface WorkspaceContextValue {
   setActiveSectionId: (id: string) => void;
   activePageId: string | null;
   activeChatId: string | null;
-  isScholarView: boolean;
   chats: NotebookChatItem[];
   refreshChats: () => void;
   refreshSections: () => void;
@@ -62,9 +61,6 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
     const match = pathname.match(/\/notebooks\/[^/]+\/chats\/([^/]+)/);
     return match?.[1] ?? null;
   })();
-
-  // Scholar view = on the notebook root or a chat page (not a notes page)
-  const isScholarView = !activePageId;
 
   const fetchNotebook = useCallback(async () => {
     try {
@@ -127,7 +123,6 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
       notebookId, notebook, sections, flatSections,
       activeSectionId, setActiveSectionId,
       activePageId, activeChatId,
-      isScholarView,
       chats, refreshChats: fetchChats,
       refreshSections: fetchSections,
     }}>
