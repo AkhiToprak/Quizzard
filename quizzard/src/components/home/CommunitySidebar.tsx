@@ -49,13 +49,7 @@ function getAvatarGradient(id: string): string {
 
 /* ─── No mock data — only real friends from API ─── */
 
-/* ─── Trending tags ─── */
-const TRENDING_TAGS = [
-  { label: '#MCAT_Prep', color: '#ff6b6b' },
-  { label: '#SAT_Logic', color: '#ffde59' },
-  { label: '#React_Hooks', color: '#4ecdc4' },
-  { label: '#World_History', color: '#ffb142' },
-];
+/* ─── Trending tags — will be populated from API later ─── */
 
 /* ─── Main component ─── */
 export default function CommunitySidebar() {
@@ -63,7 +57,6 @@ export default function CommunitySidebar() {
   const [loading, setLoading] = useState(true);
   const [hoveredPublish, setHoveredPublish] = useState(false);
   const [hoveredFriend, setHoveredFriend] = useState<string | null>(null);
-  const [hoveredTag, setHoveredTag] = useState<string | null>(null);
   const [hoveredSeeAll, setHoveredSeeAll] = useState(false);
 
   const fetchFriends = useCallback(async () => {
@@ -388,45 +381,7 @@ export default function CommunitySidebar() {
         </div>
       </div>
 
-      {/* Trending Tags */}
-      <div
-        style={{
-          background: COLORS.cardBg,
-          borderRadius: 16,
-          border: `1px solid ${COLORS.borderSubtle}`,
-          padding: '14px 16px 16px',
-        }}
-      >
-        <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary, marginBottom: 12 }}>
-          Trending Tags
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {TRENDING_TAGS.map((tag) => {
-            const isHovered = hoveredTag === tag.label;
-            return (
-              <button
-                key={tag.label}
-                onMouseEnter={() => setHoveredTag(tag.label)}
-                onMouseLeave={() => setHoveredTag(null)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: isHovered ? `${tag.color}22` : `${tag.color}11`,
-                  color: tag.color,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: `background 0.15s ${EASING}, transform 0.15s ${EASING}`,
-                  transform: isHovered ? 'translateY(-1px)' : 'none',
-                }}
-              >
-                {tag.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* Trending Tags — TODO: populate from API */}
 
       <style>{`
         @keyframes communityPulse {
