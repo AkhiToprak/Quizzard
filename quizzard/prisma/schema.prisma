@@ -77,6 +77,7 @@ model Notebook {
   sections        Section[]
   shares          SharedNotebook[]
   coWorkSessions  CoWorkSession[]
+  flashcardSets   FlashcardSet[]
 
   @@index([userId])
   @@map("notebooks")
@@ -115,6 +116,7 @@ model NotebookChat {
   // Relations
   notebook        Notebook      @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   messages        ChatMessage[]
+  flashcardSets   FlashcardSet[]
 
   @@index([notebookId])
   @@map("notebook_chats")
@@ -139,6 +141,43 @@ model ChatMessage {
   @@index([userId])
   @@index([chatId])
   @@map("chat_messages")
+}
+
+// ============================================================================
+// FLASHCARD MODELS
+// ============================================================================
+
+model FlashcardSet {
+  id         String       @id @default(cuid())
+  notebookId String
+  chatId     String
+  messageId  String       // assistant message that created this set
+  title      String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  notebook   Notebook     @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  chat       NotebookChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  flashcards Flashcard[]
+
+  @@index([notebookId])
+  @@index([chatId])
+  @@map("flashcard_sets")
+}
+
+model Flashcard {
+  id             String       @id @default(cuid())
+  flashcardSetId String
+  question       String
+  answer         String       @db.Text
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  flashcardSet   FlashcardSet @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
+
+  @@index([flashcardSetId])
+  @@map("flashcards")
 }
 
 // ============================================================================

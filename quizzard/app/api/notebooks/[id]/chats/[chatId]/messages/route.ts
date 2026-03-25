@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { anthropic, AI_MODEL, MONTHLY_TOKEN_LIMIT } from '@/lib/anthropic';
@@ -11,6 +12,42 @@ import {
   internalErrorResponse,
 } from '@/lib/api-response';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+
+/** Tool definition for structured flashcard creation */
+const FLASHCARD_TOOL: Anthropic.Messages.Tool = {
+  name: 'create_flashcards',
+  description:
+    'Create a set of study flashcards. Use this tool when the user asks you to create, generate, or make flashcards from their notes or on a topic. Each flashcard has a question on the front and an answer on the back.',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      title: {
+        type: 'string',
+        description: 'A short, descriptive title for the flashcard set (e.g. "Cell Biology Key Terms")',
+      },
+      flashcards: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            question: {
+              type: 'string',
+              description: 'The question or prompt on the front of the card',
+            },
+            answer: {
+              type: 'string',
+              description: 'The answer on the back of the card. Can use bullet points or numbered lists for complex answers.',
+            },
+          },
+          required: ['question', 'answer'],
+        },
+        description: 'Array of flashcard objects with question and answer',
+        minItems: 1,
+      },
+    },
+    required: ['title', 'flashcards'],
+  },
+};
 
 type Params = { params: Promise<{ id: string; chatId: string }> };
 
@@ -150,6 +187,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       'You are Scholar, an AI study assistant embedded in the Quizzard notebook app.',
       'Help the user study, understand, and review their notes and documents.',
       'Be concise, clear, and educational. Use markdown formatting when helpful.',
+      '',
+      'You have access to a `create_flashcards` tool. When the user asks you to create, generate, or make flashcards, use this tool. Create high-quality flashcards with clear questions and concise answers. For complex answers, use bullet points or numbered lists.',
     ];
 
     if (contextParts.length > 0) {
@@ -159,20 +198,138 @@ export async function POST(request: NextRequest, { params }: Params) {
       );
     }
 
-    // ── Call Anthropic API ──
+    // ── Call Anthropic API (with tools) ──
     const response = await anthropic.messages.create({
       model: AI_MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: systemParts.join('\n'),
       messages: conversationMessages,
+      tools: [FLASHCARD_TOOL],
     });
-
-    const assistantContent =
-      response.content[0].type === 'text' ? response.content[0].text : '';
 
     const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
 
-    // ── Persist both messages to DB ──
+    // ── Extract text and tool_use blocks from response ──
+    let assistantText = '';
+    let flashcardToolUse: { id: string; input: { title: string; flashcards: { question: string; answer: string }[] } } | null = null;
+
+    for (const block of response.content) {
+      if (block.type === 'text') {
+        assistantText += block.text;
+      } else if (block.type === 'tool_use' && block.name === 'create_flashcards') {
+        flashcardToolUse = {
+          id: block.id,
+          input: block.input as { title: string; flashcards: { question: string; answer: string }[] },
+        };
+      }
+    }
+
+    // ── If tool_use: create flashcards in DB ──
+    let flashcardSetData: { id: string; title: string; cardCount: number } | null = null;
+
+    if (flashcardToolUse) {
+      const { title: setTitle, flashcards } = flashcardToolUse.input;
+
+      // Validate
+      if (!setTitle || !Array.isArray(flashcards) || flashcards.length === 0) {
+        // Fallback: treat as text-only response
+        assistantText = assistantText || 'I tried to create flashcards but the format was invalid. Please try again.';
+      } else {
+        // Create flashcard set + cards in a transaction, along with messages
+        const result = await db.$transaction(async (tx) => {
+          // Save user message
+          const userMsg = await tx.chatMessage.create({
+            data: {
+              notebookId,
+              userId,
+              chatId,
+              role: 'user',
+              content: message.trim(),
+              tokens: response.usage.input_tokens,
+            },
+          });
+
+          // Create flashcard set
+          const fSet = await tx.flashcardSet.create({
+            data: {
+              notebookId,
+              chatId,
+              messageId: '', // placeholder, updated below
+              title: setTitle,
+              flashcards: {
+                create: flashcards.map((fc, i) => ({
+                  question: fc.question,
+                  answer: fc.answer,
+                  sortOrder: i,
+                })),
+              },
+            },
+            include: { flashcards: true },
+          });
+
+          // Build assistant content with marker
+          const markerText = assistantText
+            ? `${assistantText}\n\n[flashcard_set:${fSet.id}]`
+            : `I've created a flashcard set "${setTitle}" with ${flashcards.length} cards.\n\n[flashcard_set:${fSet.id}]`;
+
+          // Save assistant message
+          const assistantMsg = await tx.chatMessage.create({
+            data: {
+              notebookId,
+              userId,
+              chatId,
+              role: 'assistant',
+              content: markerText,
+              tokens: response.usage.output_tokens,
+            },
+          });
+
+          // Update flashcard set with message ID
+          await tx.flashcardSet.update({
+            where: { id: fSet.id },
+            data: { messageId: assistantMsg.id },
+          });
+
+          await tx.notebookChat.update({
+            where: { id: chatId },
+            data: { updatedAt: new Date() },
+          });
+
+          return { userMsg, assistantMsg, fSet };
+        });
+
+        flashcardSetData = {
+          id: result.fSet.id,
+          title: result.fSet.title,
+          cardCount: result.fSet.flashcards.length,
+        };
+
+        return successResponse({
+          userMessage: {
+            id: result.userMsg.id,
+            role: result.userMsg.role,
+            content: result.userMsg.content,
+            createdAt: result.userMsg.createdAt,
+          },
+          assistantMessage: {
+            id: result.assistantMsg.id,
+            role: result.assistantMsg.role,
+            content: result.assistantMsg.content,
+            createdAt: result.assistantMsg.createdAt,
+          },
+          flashcardSet: flashcardSetData,
+          usage: {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+            totalTokens,
+            monthlyUsed: usedTokens + totalTokens,
+            monthlyLimit: MONTHLY_TOKEN_LIMIT,
+          },
+        });
+      }
+    }
+
+    // ── Standard text-only response path ──
     const [userMsg, assistantMsg] = await db.$transaction([
       db.chatMessage.create({
         data: {
@@ -190,7 +347,7 @@ export async function POST(request: NextRequest, { params }: Params) {
           userId,
           chatId,
           role: 'assistant',
-          content: assistantContent,
+          content: assistantText,
           tokens: response.usage.output_tokens,
         },
       }),

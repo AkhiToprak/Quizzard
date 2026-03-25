@@ -10,6 +10,12 @@ interface NotebookMeta {
   color: string | null;
 }
 
+export interface FlashcardSetSummary {
+  id: string;
+  title: string;
+  createdAt: string;
+}
+
 export interface NotebookChatItem {
   id: string;
   title: string;
@@ -18,6 +24,7 @@ export interface NotebookChatItem {
   createdAt: string;
   updatedAt: string;
   _count: { messages: number };
+  flashcardSets: FlashcardSetSummary[];
 }
 
 interface WorkspaceContextValue {
@@ -29,6 +36,7 @@ interface WorkspaceContextValue {
   setActiveSectionId: (id: string) => void;
   activePageId: string | null;
   activeChatId: string | null;
+  activeFlashcardSetId: string | null;
   chats: NotebookChatItem[];
   refreshChats: () => void;
   refreshSections: () => void;
@@ -59,6 +67,12 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
   // Derive activeChatId from URL
   const activeChatId = (() => {
     const match = pathname.match(/\/notebooks\/[^/]+\/chats\/([^/]+)/);
+    return match?.[1] ?? null;
+  })();
+
+  // Derive activeFlashcardSetId from URL
+  const activeFlashcardSetId = (() => {
+    const match = pathname.match(/\/notebooks\/[^/]+\/flashcards\/([^/]+)/);
     return match?.[1] ?? null;
   })();
 
@@ -122,7 +136,7 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
     <NotebookWorkspaceContext.Provider value={{
       notebookId, notebook, sections, flatSections,
       activeSectionId, setActiveSectionId,
-      activePageId, activeChatId,
+      activePageId, activeChatId, activeFlashcardSetId,
       chats, refreshChats: fetchChats,
       refreshSections: fetchSections,
     }}>

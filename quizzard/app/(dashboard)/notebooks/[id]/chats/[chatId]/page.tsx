@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, use, useRef, useCallback } from 'react';
-import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus } from 'lucide-react';
+import Link from 'next/link';
+import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 
 interface ChatMessage {
@@ -127,7 +128,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       const json = await res.json();
 
       if (json.success && json.data) {
-        const { userMessage, assistantMessage, usage } = json.data;
+        const { userMessage, assistantMessage, flashcardSet, usage } = json.data;
 
         // Replace temp message with real ones
         setChat(prev => {
@@ -141,6 +142,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
 
         if (usage) {
           setTokenUsage({ monthlyUsed: usage.monthlyUsed, monthlyLimit: usage.monthlyLimit });
+        }
+
+        // Refresh sidebar chats if flashcards were created
+        if (flashcardSet) {
+          refreshChats();
         }
       } else {
         // Remove optimistic message on error
@@ -361,7 +367,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
               lineHeight: 1.65,
               whiteSpace: 'pre-wrap',
             }}>
-              {msg.content}
+              <MessageContent content={msg.content} notebookId={notebookId} />
             </div>
           </div>
         ))}
@@ -846,4 +852,69 @@ function PanelSectionItem({ section, selectedPageIds, onTogglePage, depth }: {
       )}
     </div>
   );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MessageContent — Renders message text with flashcard set links
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const FLASHCARD_MARKER_RE = /\[flashcard_set:([^\]]+)\]/g;
+
+function MessageContent({ content, notebookId }: { content: string; notebookId: string }) {
+  // Check if there are any flashcard markers
+  if (!content.includes('[flashcard_set:')) {
+    return <>{content}</>;
+  }
+
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  const regex = new RegExp(FLASHCARD_MARKER_RE);
+
+  while ((match = regex.exec(content)) !== null) {
+    // Add text before the marker
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+
+    const setId = match[1];
+    parts.push(
+      <Link
+        key={`fc-${setId}`}
+        href={`/notebooks/${notebookId}/flashcards/${setId}`}
+        onClick={e => e.stopPropagation()}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          padding: '8px 14px', margin: '6px 0',
+          borderRadius: '10px',
+          background: 'linear-gradient(135deg, rgba(140,82,255,0.2), rgba(81,112,255,0.15))',
+          border: '1px solid rgba(140,82,255,0.3)',
+          color: '#c4a9ff',
+          fontSize: '13px', fontWeight: 600,
+          textDecoration: 'none',
+          transition: 'background 0.15s ease, border-color 0.15s ease',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(135deg, rgba(140,82,255,0.3), rgba(81,112,255,0.25))';
+          (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(140,82,255,0.5)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(135deg, rgba(140,82,255,0.2), rgba(81,112,255,0.15))';
+          (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(140,82,255,0.3)';
+        }}
+      >
+        <Layers size={14} />
+        Open Flashcards
+      </Link>
+    );
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+
+  return <>{parts}</>;
 }

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowLeft, Plus, FolderPlus, ChevronRight, Trash2,
-  FileText, FilePlus, MessageSquare, Sparkles,
+  FileText, FilePlus, MessageSquare, Sparkles, Layers,
 } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import { getSectionColor } from '@/components/notebook/SectionListItem';
@@ -681,17 +681,28 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
   notebookId: string;
   onDelete: (id: string, e: React.MouseEvent) => void;
 }) {
+  const { activeFlashcardSetId } = useNotebookWorkspace();
   const [hovered, setHovered] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const accentColor = '#8c52ff';
+  const hasFlashcards = chat.flashcardSets && chat.flashcardSets.length > 0;
+
+  // Auto-expand if a flashcard set in this chat is active
+  useEffect(() => {
+    if (activeFlashcardSetId && hasFlashcards) {
+      const match = chat.flashcardSets.some(fs => fs.id === activeFlashcardSetId);
+      if (match) setExpanded(true);
+    }
+  }, [activeFlashcardSetId, hasFlashcards, chat.flashcardSets]);
 
   return (
-    <Link href={`/notebooks/${notebookId}/chats/${chat.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+    <>
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          display: 'flex', alignItems: 'center', gap: '7px',
-          padding: '5px 14px 5px 30px',
+          display: 'flex', alignItems: 'center', gap: '5px',
+          padding: '5px 14px 5px 22px',
           background: isActive
             ? `linear-gradient(135deg, ${accentColor}18 0%, rgba(81,112,255,0.10) 100%)`
             : hovered ? 'rgba(237,233,255,0.04)' : 'transparent',
@@ -700,20 +711,46 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
           cursor: 'pointer',
         }}
       >
-        <MessageSquare
-          size={12}
-          style={{ color: isActive ? '#c4a9ff' : 'rgba(237,233,255,0.25)', flexShrink: 0 }}
-        />
-        <span style={{
-          flex: 1, minWidth: 0,
-          fontFamily: "'DM Sans', sans-serif",
-          fontSize: '12px',
-          fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {chat.title}
-        </span>
+        {/* Expand chevron (only if has flashcard sub-items) */}
+        {hasFlashcards ? (
+          <div
+            onClick={e => { e.preventDefault(); e.stopPropagation(); setExpanded(v => !v); }}
+            style={{ display: 'flex', flexShrink: 0, color: 'rgba(237,233,255,0.3)', width: '14px' }}
+          >
+            <ChevronRight
+              size={12}
+              style={{
+                transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                transition: 'transform 0.12s ease',
+              }}
+            />
+          </div>
+        ) : (
+          <div style={{ width: '14px', flexShrink: 0 }} />
+        )}
+
+        <Link
+          href={`/notebooks/${notebookId}/chats/${chat.id}`}
+          style={{
+            textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '7px',
+            flex: 1, minWidth: 0,
+          }}
+        >
+          <MessageSquare
+            size={12}
+            style={{ color: isActive ? '#c4a9ff' : 'rgba(237,233,255,0.25)', flexShrink: 0 }}
+          />
+          <span style={{
+            flex: 1, minWidth: 0,
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: '12px',
+            fontWeight: isActive ? 600 : 400,
+            color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {chat.title}
+          </span>
+        </Link>
         {hovered && !isActive && (
           <button
             onClick={e => onDelete(chat.id, e)}
@@ -730,6 +767,69 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
             <Trash2 size={11} />
           </button>
         )}
+      </div>
+
+      {/* Flashcard sub-items */}
+      {expanded && hasFlashcards && chat.flashcardSets.map(fs => {
+        const isSetActive = fs.id === activeFlashcardSetId;
+        return (
+          <FlashcardSetRow
+            key={fs.id}
+            flashcardSet={fs}
+            isActive={isSetActive}
+            notebookId={notebookId}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FlashcardSetRow — Sub-item under a chat for a flashcard set
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function FlashcardSetRow({ flashcardSet, isActive, notebookId }: {
+  flashcardSet: { id: string; title: string };
+  isActive: boolean;
+  notebookId: string;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const accentColor = '#8c52ff';
+
+  return (
+    <Link
+      href={`/notebooks/${notebookId}/flashcards/${flashcardSet.id}`}
+      style={{ textDecoration: 'none', display: 'block' }}
+    >
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '7px',
+          padding: '4px 14px 4px 52px',
+          background: isActive
+            ? `linear-gradient(135deg, ${accentColor}18 0%, rgba(81,112,255,0.10) 100%)`
+            : hovered ? 'rgba(237,233,255,0.04)' : 'transparent',
+          borderLeft: isActive ? `3px solid ${accentColor}` : '3px solid transparent',
+          transition: 'background 0.1s ease',
+          cursor: 'pointer',
+        }}
+      >
+        <Layers
+          size={11}
+          style={{ color: isActive ? '#c4a9ff' : 'rgba(237,233,255,0.2)', flexShrink: 0 }}
+        />
+        <span style={{
+          flex: 1, minWidth: 0,
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '11px',
+          fontWeight: isActive ? 600 : 400,
+          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.45)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {flashcardSet.title}
+        </span>
       </div>
     </Link>
   );

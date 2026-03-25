@@ -33,6 +33,10 @@ export async function GET(request: NextRequest, { params }: Params) {
         createdAt: true,
         updatedAt: true,
         _count: { select: { messages: true } },
+        flashcardSets: {
+          select: { id: true, title: true, createdAt: true },
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
