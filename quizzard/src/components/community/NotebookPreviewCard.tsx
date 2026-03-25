@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export interface NotebookPreviewCardProps {
@@ -11,6 +12,8 @@ export interface NotebookPreviewCardProps {
   color?: string | null;
   sectionCount: number;
   shareType: string;
+  title?: string | null;
+  description?: string | null;
   author: { id: string; username: string; avatarUrl?: string | null };
   sharedAt: string;
   onCopy?: (notebookId: string) => void;
@@ -49,12 +52,15 @@ export default function NotebookPreviewCard({
   color,
   sectionCount,
   shareType,
+  title,
+  description,
   author,
   sharedAt,
   onCopy,
   isAdmin,
   onAdminDelete,
 }: NotebookPreviewCardProps) {
+  const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const [copyBtnHovered, setCopyBtnHovered] = useState(false);
   const [copying, setCopying] = useState(false);
@@ -88,10 +94,15 @@ export default function NotebookPreviewCard({
     }
   };
 
+  const handleCardClick = () => {
+    router.push(`/community/${shareId}`);
+  };
+
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={handleCardClick}
       style={{
         position: 'relative',
         background: '#121222',
@@ -103,7 +114,7 @@ export default function NotebookPreviewCard({
           ? '0 8px 24px rgba(174,137,255,0.12)'
           : '0 2px 8px rgba(0,0,0,0.2)',
         transition: `transform 0.2s ${TRANSITION}, box-shadow 0.2s ${TRANSITION}, border-color 0.2s ${TRANSITION}`,
-        cursor: 'default',
+        cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -144,8 +155,26 @@ export default function NotebookPreviewCard({
               textOverflow: 'ellipsis',
             }}
           >
-            {name}
+            {title || name}
           </h3>
+
+          {description && (
+            <p
+              style={{
+                margin: '6px 0 0',
+                fontSize: '12px',
+                color: '#aaa8c8',
+                lineHeight: 1.4,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {description}
+            </p>
+          )}
 
           {subject && (
             <span

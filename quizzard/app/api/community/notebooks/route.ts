@@ -67,13 +67,35 @@ export async function GET(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const notebookWhere: any = {};
     if (search) {
+      // Search in both notebook name and custom publish title
+      where.OR = [
+        ...(where.OR || []),
+      ];
+      // We need a different approach: add search conditions at the top level
       notebookWhere.name = { contains: search, mode: 'insensitive' };
     }
     if (subject) {
       notebookWhere.subject = { contains: subject, mode: 'insensitive' };
     }
 
-    if (Object.keys(notebookWhere).length > 0) {
+    if (search) {
+      // Search matches notebook name OR custom share title
+      const baseOr = where.OR;
+      delete where.OR;
+      const searchConditions = {
+        OR: [
+          { notebook: { name: { contains: search, mode: 'insensitive' } } },
+          { title: { contains: search, mode: 'insensitive' } },
+        ],
+      };
+      if (subject) {
+        where.notebook = { subject: { contains: subject, mode: 'insensitive' } };
+      }
+      where.AND = [
+        ...(baseOr ? [{ OR: baseOr }] : []),
+        searchConditions,
+      ];
+    } else if (Object.keys(notebookWhere).length > 0) {
       where.notebook = notebookWhere;
     }
 
@@ -110,6 +132,8 @@ export async function GET(request: NextRequest) {
       sectionCount: s.notebook._count.sections,
       shareType: s.type,
       visibility: s.visibility,
+      title: s.title,
+      description: s.description,
       author: s.sharedBy,
       sharedAt: s.createdAt,
     }));

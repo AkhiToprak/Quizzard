@@ -88,6 +88,14 @@ export default function ShareNotebookModal({
   const [isSendingToFriends, setIsSendingToFriends] = useState(false);
   const [friendSendSuccess, setFriendSendSuccess] = useState(false);
 
+  // Publish fields state
+  const [publishTitle, setPublishTitle] = useState('');
+  const [publishDescription, setPublishDescription] = useState('');
+  const [publishImagePreviews, setPublishImagePreviews] = useState<{ name: string; dataUrl: string }[]>([]);
+  // uploadingImage state reserved for future use
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingFiles = useRef<File[]>([]);
+
   // Link state
   const [copied, setCopied] = useState(false);
 
@@ -158,6 +166,10 @@ export default function ShareNotebookModal({
       setFriendSendSuccess(false);
       setSelectedFriendIds(new Set());
       setCopied(false);
+      setPublishTitle(notebookName);
+      setPublishDescription('');
+      setPublishImagePreviews([]);
+      pendingFiles.current = [];
     }
   }, [open, fetchShares, fetchFriends]);
 
@@ -209,11 +221,29 @@ export default function ShareNotebookModal({
       const res = await fetch(`/api/notebooks/${notebookId}/share`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: shareType, visibility }),
+        body: JSON.stringify({
+          type: shareType,
+          visibility,
+          title: publishTitle.trim() || undefined,
+          description: publishDescription.trim() || undefined,
+        }),
       });
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
+          // Upload pending images to the newly created share
+          const shareId = json.data?.share?.id;
+          if (shareId && pendingFiles.current.length > 0) {
+            for (const file of pendingFiles.current) {
+              const formData = new FormData();
+              formData.append('file', file);
+              await fetch(`/api/community/notebooks/${shareId}/images`, {
+                method: 'POST',
+                body: formData,
+              });
+            }
+            pendingFiles.current = [];
+          }
           setShareSuccess(true);
           await fetchShares();
         } else {
@@ -292,6 +322,29 @@ export default function ShareNotebookModal({
       else next.add(id);
       return next;
     });
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const newFiles = Array.from(files).slice(0, 10 - pendingFiles.current.length);
+    for (const file of newFiles) {
+      if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type)) continue;
+      if (file.size > 5 * 1024 * 1024) continue;
+      pendingFiles.current.push(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPublishImagePreviews((prev) => [...prev, { name: file.name, dataUrl: reader.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input so re-selecting the same file works
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    pendingFiles.current.splice(index, 1);
+    setPublishImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleCopyLink = async () => {
@@ -428,6 +481,203 @@ export default function ShareNotebookModal({
 
   const renderCommunityTab = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Custom Title */}
+      <div>
+        <label
+          style={{
+            display: 'block',
+            fontSize: 13,
+            fontWeight: 600,
+            color: COLORS.textSecondary,
+            marginBottom: 8,
+          }}
+        >
+          Title
+        </label>
+        <input
+          type="text"
+          value={publishTitle}
+          onChange={(e) => setPublishTitle(e.target.value)}
+          placeholder={notebookName}
+          maxLength={200}
+          style={{
+            width: '100%',
+            padding: '11px 14px',
+            borderRadius: 10,
+            border: `1.5px solid ${COLORS.border}`,
+            background: COLORS.inputBg,
+            color: COLORS.textPrimary,
+            fontSize: 14,
+            fontWeight: 600,
+            outline: 'none',
+            fontFamily: 'inherit',
+            boxSizing: 'border-box',
+            transition: `border-color 0.2s ${EASING}`,
+          }}
+          onFocus={(e) => (e.target.style.borderColor = COLORS.primary)}
+          onBlur={(e) => (e.target.style.borderColor = COLORS.border)}
+        />
+      </div>
+
+      {/* Description / Blog Text */}
+      <div>
+        <label
+          style={{
+            display: 'block',
+            fontSize: 13,
+            fontWeight: 600,
+            color: COLORS.textSecondary,
+            marginBottom: 8,
+          }}
+        >
+          Description
+          <span style={{ fontWeight: 400, color: COLORS.textMuted, marginLeft: 6 }}>optional</span>
+        </label>
+        <textarea
+          value={publishDescription}
+          onChange={(e) => setPublishDescription(e.target.value)}
+          placeholder="Tell the community about this notebook..."
+          maxLength={10000}
+          rows={4}
+          style={{
+            width: '100%',
+            padding: '11px 14px',
+            borderRadius: 10,
+            border: `1.5px solid ${COLORS.border}`,
+            background: COLORS.inputBg,
+            color: COLORS.textPrimary,
+            fontSize: 13,
+            lineHeight: 1.6,
+            outline: 'none',
+            fontFamily: 'inherit',
+            boxSizing: 'border-box',
+            resize: 'vertical',
+            minHeight: 80,
+            transition: `border-color 0.2s ${EASING}`,
+          }}
+          onFocus={(e) => (e.target.style.borderColor = COLORS.primary)}
+          onBlur={(e) => (e.target.style.borderColor = COLORS.border)}
+        />
+      </div>
+
+      {/* Image Upload */}
+      <div>
+        <label
+          style={{
+            display: 'block',
+            fontSize: 13,
+            fontWeight: 600,
+            color: COLORS.textSecondary,
+            marginBottom: 8,
+          }}
+        >
+          Images
+          <span style={{ fontWeight: 400, color: COLORS.textMuted, marginLeft: 6 }}>optional, max 10</span>
+        </label>
+
+        {/* Image previews */}
+        {publishImagePreviews.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 8,
+              marginBottom: 10,
+            }}
+          >
+            {publishImagePreviews.map((img, i) => (
+              <div
+                key={i}
+                style={{
+                  position: 'relative',
+                  width: 72,
+                  height: 72,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  border: `1px solid ${COLORS.border}`,
+                }}
+              >
+                <img
+                  src={img.dataUrl}
+                  alt={img.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+                <button
+                  onClick={() => removeImage(i)}
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: 'rgba(0,0,0,0.6)',
+                    color: '#fff',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    close
+                  </span>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          multiple
+          onChange={handleImageSelect}
+          style={{ display: 'none' }}
+        />
+        {publishImagePreviews.length < 10 && (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 14px',
+              borderRadius: 10,
+              border: `1.5px dashed ${COLORS.border}`,
+              background: 'transparent',
+              color: COLORS.textMuted,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: `all 0.2s ${EASING}`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = COLORS.primary;
+              e.currentTarget.style.color = COLORS.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = COLORS.border;
+              e.currentTarget.style.color = COLORS.textMuted;
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              add_photo_alternate
+            </span>
+            Add images
+          </button>
+        )}
+      </div>
+
       <div>
         <label
           style={{

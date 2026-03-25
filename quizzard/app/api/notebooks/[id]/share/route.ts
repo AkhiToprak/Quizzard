@@ -34,11 +34,17 @@ export async function POST(
     if (notebook.userId !== userId) return forbiddenResponse('You do not own this notebook');
 
     const body = await request.json().catch(() => ({}));
-    const { type, visibility, sharedWithIds } = body as {
+    const { type, visibility, sharedWithIds, title, description } = body as {
       type?: string;
       visibility?: string;
       sharedWithIds?: string[];
+      title?: string;
+      description?: string;
     };
+
+    // Validate optional publish fields
+    const publishTitle = title?.trim().slice(0, 200) || null;
+    const publishDescription = description?.trim().slice(0, 10000) || null;
 
     if (!type || !VALID_TYPES.includes(type as (typeof VALID_TYPES)[number])) {
       return badRequestResponse('type must be "copy" or "live_view"');
@@ -169,6 +175,8 @@ export async function POST(
         sharedWithId: null,
         type,
         visibility,
+        title: publishTitle,
+        description: publishDescription,
       },
     });
 
