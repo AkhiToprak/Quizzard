@@ -336,79 +336,79 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
             </div>
           </div>
 
-          {/* Menu — visible to author and admins */}
-          {(isAuthor || isAdmin) && (
-            <div ref={menuRef} style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                onMouseEnter={() => setHoveredMenu(true)}
-                onMouseLeave={() => setHoveredMenu(false)}
+          {/* Menu — always visible, actions gated by role */}
+          <div ref={menuRef} style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              onMouseEnter={() => setHoveredMenu(true)}
+              onMouseLeave={() => setHoveredMenu(false)}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                border: 'none',
+                background: hoveredMenu || showMenu ? COLORS.elevated : 'transparent',
+                color: hoveredMenu || showMenu ? COLORS.textPrimary : COLORS.textMuted,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: `all 0.15s ${EASING}`,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                more_horiz
+              </span>
+            </button>
+
+            {showMenu && (
+              <div
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  border: 'none',
-                  background: hoveredMenu || showMenu ? COLORS.elevated : 'transparent',
-                  color: hoveredMenu || showMenu ? COLORS.textPrimary : COLORS.textMuted,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: `all 0.15s ${EASING}`,
+                  position: 'absolute',
+                  right: 0,
+                  top: '100%',
+                  marginTop: 4,
+                  minWidth: 140,
+                  background: COLORS.elevated,
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: 12,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                  padding: 4,
+                  zIndex: 10,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                  more_horiz
-                </span>
-              </button>
-
-              {showMenu && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '100%',
-                    marginTop: 4,
-                    minWidth: 140,
-                    background: COLORS.elevated,
-                    border: `1px solid ${COLORS.border}`,
-                    borderRadius: 12,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                    padding: 4,
-                    zIndex: 10,
-                  }}
-                >
-                  {/* Edit — only for author */}
-                  {isAuthor && (
-                    <button
-                      onClick={() => {
-                        setIsEditing(true);
-                        setEditContent(post.content);
-                        setShowMenu(false);
-                      }}
-                      onMouseEnter={() => setHoveredMenuItem('edit')}
-                      onMouseLeave={() => setHoveredMenuItem(null)}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '8px 12px',
-                        borderRadius: 8,
-                        border: 'none',
-                        background: hoveredMenuItem === 'edit' ? 'rgba(255,255,255,0.05)' : 'transparent',
-                        color: COLORS.textPrimary,
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        transition: `background 0.1s`,
-                        textAlign: 'left',
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>edit</span>
-                      Edit
-                    </button>
-                  )}
-                  {/* Delete — for author and admin */}
+                {/* Edit — only for author */}
+                {isAuthor && (
+                  <button
+                    onClick={() => {
+                      setIsEditing(true);
+                      setEditContent(post.content);
+                      setShowMenu(false);
+                    }}
+                    onMouseEnter={() => setHoveredMenuItem('edit')}
+                    onMouseLeave={() => setHoveredMenuItem(null)}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: hoveredMenuItem === 'edit' ? 'rgba(255,255,255,0.05)' : 'transparent',
+                      color: COLORS.textPrimary,
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      transition: `background 0.1s`,
+                      textAlign: 'left',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>edit</span>
+                    Edit
+                  </button>
+                )}
+                {/* Delete — for author and admin */}
+                {(isAuthor || isAdmin) && (
                   <button
                     onClick={() => {
                       setShowMenu(false);
@@ -435,10 +435,23 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
                     {deleting ? 'Deleting...' : isAdmin && !isAuthor ? 'Delete (Admin)' : 'Delete'}
                   </button>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+                {/* No actions available */}
+                {!isAuthor && !isAdmin && (
+                  <div
+                    style={{
+                      padding: '10px 12px',
+                      fontSize: 13,
+                      color: COLORS.textMuted,
+                      textAlign: 'center',
+                    }}
+                  >
+                    No actions available
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Content */}
