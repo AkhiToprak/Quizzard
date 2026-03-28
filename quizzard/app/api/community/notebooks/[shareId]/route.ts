@@ -5,6 +5,7 @@ import {
   successResponse,
   unauthorizedResponse,
   notFoundResponse,
+  forbiddenResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
 
@@ -52,6 +53,12 @@ export async function GET(request: NextRequest, { params }: Params) {
             sortOrder: true,
           },
         },
+        tags: {
+          include: { tag: { select: { name: true } } },
+        },
+        _count: {
+          select: { downloads: true, ratings: true, views: true },
+        },
       },
     });
 
@@ -75,6 +82,24 @@ export async function GET(request: NextRequest, { params }: Params) {
       if (!friendship) return notFoundResponse('Shared notebook not found');
     }
 
+    // Compute average rating
+    const ratingAgg = await db.notebookRating.aggregate({
+      where: { sharedNotebookId: shareId },
+      _avg: { value: true },
+    });
+
+    // Check if current user has rated or downloaded
+    const [userRating, userDownloaded] = await Promise.all([
+      db.notebookRating.findUnique({
+        where: { sharedNotebookId_userId: { sharedNotebookId: shareId, userId } },
+        select: { value: true },
+      }),
+      db.notebookDownload.findUnique({
+        where: { sharedNotebookId_userId: { sharedNotebookId: shareId, userId } },
+        select: { id: true },
+      }),
+    ]);
+
     return successResponse({
       shareId: share.id,
       notebookId: share.notebook.id,
@@ -92,6 +117,8 @@ export async function GET(request: NextRequest, { params }: Params) {
       visibility: share.visibility,
       title: share.title,
       description: share.description,
+      content: share.content,
+      coverImageUrl: share.coverImageUrl,
       images: share.images.map((img) => ({
         id: img.id,
         url: `/api/uploads/shared-images/${img.id}`,
@@ -100,7 +127,37 @@ export async function GET(request: NextRequest, { params }: Params) {
       })),
       author: share.sharedBy,
       sharedAt: share.createdAt,
+      downloadCount: share._count.downloads,
+      ratingCount: share._count.ratings,
+      averageRating: Math.round((ratingAgg._avg.value || 0) * 10) / 10,
+      viewCount: share._count.views,
+      tags: share.tags.map((t) => t.tag.name),
+      userRating: userRating?.value || null,
+      userDownloaded: !!userDownloaded,
     });
+  } catch {
+    return internalErrorResponse();
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: Params) {
+  try {
+    const userId = await getAuthUserId(request);
+    if (!userId) return unauthorizedResponse();
+
+    const { shareId } = await params;
+
+    const share = await db.sharedNotebook.findUnique({
+      where: { id: shareId },
+      select: { id: true, sharedById: true },
+    });
+
+    if (!share) return notFoundResponse('Shared notebook not found');
+    if (share.sharedById !== userId) return forbiddenResponse('You can only delete your own publications');
+
+    await db.sharedNotebook.delete({ where: { id: shareId } });
+
+    return successResponse({ deleted: true });
   } catch {
     return internalErrorResponse();
   }

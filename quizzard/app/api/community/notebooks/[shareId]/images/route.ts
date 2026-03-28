@@ -65,12 +65,23 @@ export async function POST(request: NextRequest, { params }: Params) {
       },
     });
 
+    const imageUrl = `/api/uploads/shared-images/${image.id}`;
+
+    // If this is a cover image, set it on the shared notebook
+    const isCover = formData.get('isCover');
+    if (isCover === 'true') {
+      await db.sharedNotebook.update({
+        where: { id: shareId },
+        data: { coverImageUrl: imageUrl },
+      });
+    }
+
     return createdResponse({
       id: image.id,
       fileName: image.fileName,
       fileSize: image.fileSize,
       mimeType: image.mimeType,
-      url: `/api/uploads/shared-images/${image.id}`,
+      url: imageUrl,
       sortOrder: image.sortOrder,
     });
   } catch {

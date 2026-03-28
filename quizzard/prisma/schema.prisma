@@ -48,9 +48,16 @@ model User {
   postVisibility         PostVisibility[]
   sharedByMe             SharedNotebook[]   @relation("SharedByMe")
   sharedWithMe           SharedNotebook[]   @relation("SharedWithMe")
+  notebookDownloads      NotebookDownload[]
+  notebookRatings        NotebookRating[]
+  notebookViews          NotebookView[]
+  friendActivities       FriendActivity[]
   hostedSessions         CoWorkSession[]    @relation("HostedSessions")
   coWorkJoined           CoWorkParticipant[]
   pageLocks              PageLock[]
+  lastSeenAt             DateTime?
+  notebookComments       NotebookComment[]
+  notebookCommentVotes   NotebookCommentVote[]
 
   @@map("users")
 }
@@ -439,12 +446,19 @@ model SharedNotebook {
   visibility   String   @default("public")   // "public" | "friends" | "specific"
   title        String?                       // Custom publish title (defaults to notebook name)
   description  String?  @db.Text             // Blog-like description / body text
-  createdAt    DateTime @default(now())
+  content       String?  @db.Text             // Rich text content (HTML) for the post body
+  coverImageUrl String?                       // Cover image URL
+  createdAt     DateTime @default(now())
 
   notebook     Notebook              @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   sharedBy     User                  @relation("SharedByMe", fields: [sharedById], references: [id], onDelete: Cascade)
   sharedWith   User?                 @relation("SharedWithMe", fields: [sharedWithId], references: [id], onDelete: Cascade)
   images       SharedNotebookImage[]
+  tags         SharedNotebookTag[]
+  downloads    NotebookDownload[]
+  ratings      NotebookRating[]
+  views        NotebookView[]
+  comments     NotebookComment[]
 
   @@index([notebookId])
   @@index([sharedById])
@@ -517,4 +531,120 @@ model PageLock {
 
   @@unique([sessionId, pageId])
   @@map("page_locks")
+}
+
+// ============================================================================
+// COMMUNITY METRICS & TAGS
+// ============================================================================
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique              // lowercased, trimmed, e.g. "react_hooks"
+  createdAt DateTime @default(now())
+
+  sharedNotebookTags SharedNotebookTag[]
+
+  @@index([name])
+  @@map("tags")
+}
+
+model SharedNotebookTag {
+  id               String         @id @default(cuid())
+  sharedNotebookId String
+  tagId            String
+
+  sharedNotebook   SharedNotebook @relation(fields: [sharedNotebookId], references: [id], onDelete: Cascade)
+  tag              Tag            @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([sharedNotebookId, tagId])
+  @@index([tagId])
+  @@map("shared_notebook_tags")
+}
+
+model NotebookDownload {
+  id               String         @id @default(cuid())
+  sharedNotebookId String
+  userId           String
+  createdAt        DateTime       @default(now())
+
+  sharedNotebook   SharedNotebook @relation(fields: [sharedNotebookId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sharedNotebookId, userId])
+  @@map("notebook_downloads")
+}
+
+model NotebookRating {
+  id               String         @id @default(cuid())
+  sharedNotebookId String
+  userId           String
+  value            Int            // 1-5
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  sharedNotebook   SharedNotebook @relation(fields: [sharedNotebookId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sharedNotebookId, userId])
+  @@map("notebook_ratings")
+}
+
+model NotebookView {
+  id               String         @id @default(cuid())
+  sharedNotebookId String
+  userId           String
+  createdAt        DateTime       @default(now())
+
+  sharedNotebook   SharedNotebook @relation(fields: [sharedNotebookId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sharedNotebookId, userId])
+  @@map("notebook_views")
+}
+
+model NotebookComment {
+  id               String   @id @default(cuid())
+  sharedNotebookId String
+  authorId         String
+  parentCommentId  String?
+  content          String   @db.VarChar(1000)
+  createdAt        DateTime @default(now())
+
+  sharedNotebook   SharedNotebook        @relation(fields: [sharedNotebookId], references: [id], onDelete: Cascade)
+  author           User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent           NotebookComment?      @relation("NotebookCommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies          NotebookComment[]     @relation("NotebookCommentReplies")
+  votes            NotebookCommentVote[]
+
+  @@index([sharedNotebookId, createdAt])
+  @@index([parentCommentId])
+  @@map("notebook_comments")
+}
+
+model NotebookCommentVote {
+  id        String @id @default(cuid())
+  commentId String
+  userId    String
+  value     Int              // 1 = upvote, -1 = downvote
+
+  comment   NotebookComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@map("notebook_comment_votes")
+}
+
+model FriendActivity {
+  id           String   @id @default(cuid())
+  userId       String                    // who performed the action
+  type         String                    // "downloaded" | "published" | "rated"
+  targetName   String                    // notebook/item name for display
+  targetColor  String?                   // color for UI display
+  targetId     String?                   // optional link to SharedNotebook id
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("friend_activities")
 }

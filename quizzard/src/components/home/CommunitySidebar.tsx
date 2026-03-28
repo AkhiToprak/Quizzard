@@ -2,17 +2,26 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { usePresence } from '@/hooks/usePresence';
 
 /* ─── Types ─── */
 interface FriendActivity {
   id: string;
+  userId: string;
   username: string;
   avatarUrl?: string | null;
   activity: string;
-  notebookName: string;
-  notebookColor: string;
+  targetName: string;
+  targetColor: string | null;
+  targetId: string | null;
   timeAgo: string;
   online: boolean;
+}
+
+interface TrendingTag {
+  id: string;
+  name: string;
+  viewCount: number;
 }
 
 /* ─── Constants ─── */
@@ -41,102 +50,70 @@ const AVATAR_COLORS = [
   'linear-gradient(135deg, #ffde59, #fbae4e)',
 ];
 
+const TAG_COLORS = ['#ff6b6b', '#ffde59', '#4ecdc4', '#ffb142', '#ae89ff', '#ff89ae', '#63cdff', '#48db9c'];
+
 function getAvatarGradient(id: string): string {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-/* ─── Mock friend activity ─── */
-const MOCK_FRIENDS: FriendActivity[] = [
-  {
-    id: 'fr1',
-    username: 'Alex Thompson',
-    activity: 'Downloaded',
-    notebookName: 'Stoic Ethics',
-    notebookColor: '#a689ff',
-    timeAgo: '2 mins ago',
-    online: true,
-  },
-  {
-    id: 'fr2',
-    username: 'Sarah Miller',
-    activity: 'Created',
-    notebookName: 'Web Flow Basics',
-    notebookColor: '#4ecdc4',
-    timeAgo: '1 hour ago',
-    online: true,
-  },
-  {
-    id: 'fr3',
-    username: 'James Chen',
-    activity: 'Completed',
-    notebookName: 'History Quiz',
-    notebookColor: '#ffb142',
-    timeAgo: '4 hours ago',
-    online: false,
-  },
-  {
-    id: 'fr4',
-    username: 'Elena Rossi',
-    activity: 'Updated profile bio',
-    notebookName: '',
-    notebookColor: '',
-    timeAgo: 'Yesterday',
-    online: false,
-  },
-];
-
-/* ─── Trending tags ─── */
-const TRENDING_TAGS = [
-  { label: '#MCAT_Prep', color: '#ff6b6b' },
-  { label: '#SAT_Logic', color: '#ffde59' },
-  { label: '#React_Hooks', color: '#4ecdc4' },
-  { label: '#World_History', color: '#ffb142' },
-];
+function getTagColor(index: number): string {
+  return TAG_COLORS[index % TAG_COLORS.length];
+}
 
 /* ─── Main component ─── */
 export default function CommunitySidebar() {
   const [friends, setFriends] = useState<FriendActivity[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [trendingTags, setTrendingTags] = useState<TrendingTag[]>([]);
+  const [loadingFriends, setLoadingFriends] = useState(true);
+  const [loadingTags, setLoadingTags] = useState(true);
   const [hoveredPublish, setHoveredPublish] = useState(false);
   const [hoveredFriend, setHoveredFriend] = useState<string | null>(null);
   const [hoveredTag, setHoveredTag] = useState<string | null>(null);
   const [hoveredSeeAll, setHoveredSeeAll] = useState(false);
+  const { onlineFriendIds } = usePresence();
 
-  const fetchFriends = useCallback(async () => {
+  const fetchFriendActivity = useCallback(async () => {
     try {
-      const res = await fetch('/api/friends?status=accepted');
+      const res = await fetch('/api/friends/activity?limit=4');
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data?.friends?.length) {
-          const mapped: FriendActivity[] = json.data.friends.slice(0, 4).map(
-            (f: { friendshipId?: string; id?: string; username?: string; avatarUrl?: string | null }, i: number) => ({
-              id: f.friendshipId || f.id || `friend-${i}`,
-              username: f.username || 'Unknown',
-              avatarUrl: f.avatarUrl,
-              activity: ['Downloaded', 'Created', 'Completed', 'Updated'][i % 4],
-              notebookName: ['Study Notes', 'Web Basics', 'Math Quiz', ''][i % 4],
-              notebookColor: ['#a689ff', '#4ecdc4', '#ffb142', ''][i % 4],
-              timeAgo: ['2 mins ago', '1 hour ago', '4 hours ago', 'Yesterday'][i % 4],
-              online: i < 2,
-            })
-          );
-          setFriends(mapped);
-          setLoading(false);
+        if (json.success && json.data?.activities) {
+          setFriends(json.data.activities);
+          setLoadingFriends(false);
           return;
         }
       }
     } catch {
       // fall through
     }
-    setFriends(MOCK_FRIENDS);
-    setLoading(false);
+    setFriends([]);
+    setLoadingFriends(false);
+  }, []);
+
+  const fetchTrendingTags = useCallback(async () => {
+    try {
+      const res = await fetch('/api/tags/trending?limit=4');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data?.tags) {
+          setTrendingTags(json.data.tags);
+          setLoadingTags(false);
+          return;
+        }
+      }
+    } catch {
+      // fall through
+    }
+    setTrendingTags([]);
+    setLoadingTags(false);
   }, []);
 
   useEffect(() => {
-    fetchFriends();
-  }, [fetchFriends]);
+    fetchFriendActivity();
+    fetchTrendingTags();
+  }, [fetchFriendActivity, fetchTrendingTags]);
 
   return (
     <div
@@ -159,52 +136,18 @@ export default function CommunitySidebar() {
         }}
       >
         {/* Decorative circles */}
-        <div
-          style={{
-            position: 'absolute',
-            top: -20,
-            right: -20,
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.06)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: -10,
-            left: -10,
-            width: 50,
-            height: 50,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.04)',
-          }}
-        />
+        <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+        <div style={{ position: 'absolute', bottom: -10, left: -10, width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div
-            style={{
-              fontSize: 15,
-              fontWeight: 700,
-              color: '#fff',
-              marginBottom: 6,
-            }}
-          >
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
             Share Your Notebook
           </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: 'rgba(255,255,255,0.7)',
-              lineHeight: 1.5,
-              marginBottom: 16,
-            }}
-          >
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5, marginBottom: 16 }}>
             Help the community grow and earn rewards for every download.
           </div>
           <Link
-            href="/dashboard"
+            href="/publish"
             onMouseEnter={() => setHoveredPublish(true)}
             onMouseLeave={() => setHoveredPublish(false)}
             style={{
@@ -225,15 +168,13 @@ export default function CommunitySidebar() {
               boxShadow: hoveredPublish ? '0 4px 16px rgba(255,222,89,0.3)' : 'none',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              publish
-            </span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>publish</span>
             Publish Now
           </Link>
         </div>
       </div>
 
-      {/* Friends Status */}
+      {/* Friends Activity */}
       <div
         style={{
           background: COLORS.cardBg,
@@ -242,24 +183,14 @@ export default function CommunitySidebar() {
           overflow: 'hidden',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '14px 16px 10px',
-          }}
-        >
-          <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary }}>
-            Friends Status
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary }}>Friends Activity</span>
           <Link
-            href="/dashboard"
+            href="/community"
             onMouseEnter={() => setHoveredSeeAll(true)}
             onMouseLeave={() => setHoveredSeeAll(false)}
             style={{
-              fontSize: 11,
-              fontWeight: 600,
+              fontSize: 11, fontWeight: 600,
               color: hoveredSeeAll ? COLORS.primaryLight : COLORS.textMuted,
               textDecoration: 'none',
               transition: `color 0.15s ${EASING}`,
@@ -270,54 +201,19 @@ export default function CommunitySidebar() {
         </div>
 
         <div style={{ padding: '0 10px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {loading ? (
+          {loadingFriends ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '10px 8px',
-                }}
-              >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 12,
-                    background: COLORS.elevated,
-                    animation: 'communityPulse 1.5s ease-in-out infinite',
-                  }}
-                />
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 8px' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 12, background: COLORS.elevated, animation: 'communityPulse 1.5s ease-in-out infinite' }} />
                 <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      width: 80,
-                      height: 12,
-                      borderRadius: 4,
-                      background: COLORS.elevated,
-                      marginBottom: 6,
-                      animation: 'communityPulse 1.5s ease-in-out infinite',
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: 120,
-                      height: 10,
-                      borderRadius: 4,
-                      background: COLORS.elevated,
-                      animation: 'communityPulse 1.5s ease-in-out infinite',
-                    }}
-                  />
+                  <div style={{ width: 80, height: 12, borderRadius: 4, background: COLORS.elevated, marginBottom: 6, animation: 'communityPulse 1.5s ease-in-out infinite' }} />
+                  <div style={{ width: 120, height: 10, borderRadius: 4, background: COLORS.elevated, animation: 'communityPulse 1.5s ease-in-out infinite' }} />
                 </div>
               </div>
             ))
           ) : friends.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: COLORS.textMuted, fontSize: 12 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 24, display: 'block', marginBottom: 6, opacity: 0.4 }}>
-                group
-              </span>
+              <span className="material-symbols-outlined" style={{ fontSize: 24, display: 'block', marginBottom: 6, opacity: 0.4 }}>group</span>
               No friend activity yet
             </div>
           ) : (
@@ -329,14 +225,16 @@ export default function CommunitySidebar() {
                   onMouseEnter={() => setHoveredFriend(friend.id)}
                   onMouseLeave={() => setHoveredFriend(null)}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 8px',
-                    borderRadius: 10,
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 8px', borderRadius: 10,
                     background: isHovered ? 'rgba(140,82,255,0.05)' : 'transparent',
-                    cursor: 'pointer',
+                    cursor: friend.targetId ? 'pointer' : 'default',
                     transition: `background 0.1s`,
+                  }}
+                  onClick={() => {
+                    if (friend.targetId) {
+                      window.location.href = `/community/${friend.targetId}`;
+                    }
                   }}
                 >
                   {/* Avatar with online indicator */}
@@ -348,75 +246,46 @@ export default function CommunitySidebar() {
                         style={{ width: 36, height: 36, borderRadius: 12, objectFit: 'cover' }}
                       />
                     ) : (
-                      <div
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 12,
-                          background: getAvatarGradient(friend.id),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 14,
-                          fontWeight: 700,
-                          color: '#fff',
-                        }}
-                      >
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 12,
+                        background: getAvatarGradient(friend.id),
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 14, fontWeight: 700, color: '#fff',
+                      }}>
                         {friend.username[0].toUpperCase()}
                       </div>
                     )}
-                    {/* Online dot */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: -1,
-                        right: -1,
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        background: friend.online ? COLORS.success : COLORS.textMuted,
-                        border: `2px solid ${COLORS.cardBg}`,
-                      }}
-                    />
+                    <div style={{
+                      position: 'absolute', bottom: -1, right: -1,
+                      width: 10, height: 10, borderRadius: '50%',
+                      background: (onlineFriendIds.has(friend.userId) || friend.online) ? COLORS.success : COLORS.textMuted,
+                      border: `2px solid ${COLORS.cardBg}`,
+                    }} />
                   </div>
 
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: COLORS.textPrimary,
-                        marginBottom: 2,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <div style={{
+                      fontSize: 12, fontWeight: 700, color: COLORS.textPrimary,
+                      marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
                       {friend.username}
                     </div>
                     <div style={{ fontSize: 11, color: COLORS.textMuted, lineHeight: 1.4 }}>
                       {friend.activity}{' '}
-                      {friend.notebookName && (
-                        <span style={{ color: friend.notebookColor || COLORS.primaryLight, fontWeight: 600 }}>
-                          {friend.notebookName}
+                      {friend.targetName && (
+                        <span style={{ color: friend.targetColor || COLORS.primaryLight, fontWeight: 600 }}>
+                          {friend.targetName}
                         </span>
                       )}
                     </div>
                   </div>
 
                   {/* Time badge */}
-                  <span
-                    style={{
-                      fontSize: 10,
-                      color: COLORS.textMuted,
-                      background: COLORS.elevated,
-                      padding: '3px 8px',
-                      borderRadius: 6,
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0,
-                    }}
-                  >
+                  <span style={{
+                    fontSize: 10, color: COLORS.textMuted, background: COLORS.elevated,
+                    padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0,
+                  }}>
                     {friend.timeAgo}
                   </span>
                 </div>
@@ -438,32 +307,50 @@ export default function CommunitySidebar() {
         <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary, marginBottom: 12 }}>
           Trending Tags
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {TRENDING_TAGS.map((tag) => {
-            const isHovered = hoveredTag === tag.label;
-            return (
-              <button
-                key={tag.label}
-                onMouseEnter={() => setHoveredTag(tag.label)}
-                onMouseLeave={() => setHoveredTag(null)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: isHovered ? `${tag.color}22` : `${tag.color}11`,
-                  color: tag.color,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: `background 0.15s ${EASING}, transform 0.15s ${EASING}`,
-                  transform: isHovered ? 'translateY(-1px)' : 'none',
-                }}
-              >
-                {tag.label}
-              </button>
-            );
-          })}
-        </div>
+        {loadingTags ? (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} style={{
+                width: 80, height: 28, borderRadius: 8, background: COLORS.elevated,
+                animation: 'communityPulse 1.5s ease-in-out infinite',
+              }} />
+            ))}
+          </div>
+        ) : trendingTags.length === 0 ? (
+          <div style={{ fontSize: 12, color: COLORS.textMuted, textAlign: 'center', padding: 12 }}>
+            No trending tags yet
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {trendingTags.map((tag, i) => {
+              const isHovered = hoveredTag === tag.id;
+              const color = getTagColor(i);
+              return (
+                <Link
+                  key={tag.id}
+                  href={`/community?tag=${encodeURIComponent(tag.name)}`}
+                  onMouseEnter={() => setHoveredTag(tag.id)}
+                  onMouseLeave={() => setHoveredTag(null)}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: isHovered ? `${color}22` : `${color}11`,
+                    color: color,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: `background 0.15s ${EASING}, transform 0.15s ${EASING}`,
+                    transform: isHovered ? 'translateY(-1px)' : 'none',
+                    textDecoration: 'none',
+                  }}
+                >
+                  #{tag.name}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <style>{`

@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
+    "dev:ws": "npx tsx ws-server.ts",
     "build": "next build",
     "start": "next start",
+    "start:ws": "npx tsx ws-server.ts",
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
@@ -39,6 +41,8 @@
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
@@ -53,6 +57,7 @@
     "prettier": "^3",
     "prisma": "^5.8.0",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

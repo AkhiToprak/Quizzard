@@ -34,17 +34,20 @@ export async function POST(
     if (notebook.userId !== userId) return forbiddenResponse('You do not own this notebook');
 
     const body = await request.json().catch(() => ({}));
-    const { type, visibility, sharedWithIds, title, description } = body as {
+    const { type, visibility, sharedWithIds, title, description, content, tags } = body as {
       type?: string;
       visibility?: string;
       sharedWithIds?: string[];
       title?: string;
       description?: string;
+      content?: string;
+      tags?: string[];
     };
 
     // Validate optional publish fields
     const publishTitle = title?.trim().slice(0, 200) || null;
     const publishDescription = description?.trim().slice(0, 10000) || null;
+    const publishContent = content?.trim() || null;
 
     if (!type || !VALID_TYPES.includes(type as (typeof VALID_TYPES)[number])) {
       return badRequestResponse('type must be "copy" or "live_view"');
@@ -154,6 +157,27 @@ export async function POST(
     }
 
     // Community / friends share — create a single share record
+    // Validate tags for community shares (at least 1 required, max 15)
+    const normalizedTags: string[] = [];
+    if (tags && Array.isArray(tags)) {
+      for (const raw of tags.slice(0, 15)) {
+        if (typeof raw !== 'string') continue;
+        const normalized = raw
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^a-z0-9_-]/g, '')
+          .slice(0, 30);
+        if (normalized.length > 0 && !normalizedTags.includes(normalized)) {
+          normalizedTags.push(normalized);
+        }
+      }
+    }
+
+    if (normalizedTags.length === 0) {
+      return badRequestResponse('At least one tag is required for community shares');
+    }
+
     // Check if already shared with same visibility
     const existing = await db.sharedNotebook.findFirst({
       where: {
@@ -168,19 +192,61 @@ export async function POST(
       return badRequestResponse('This notebook is already shared with this visibility');
     }
 
-    const share = await db.sharedNotebook.create({
-      data: {
-        notebookId,
-        sharedById: userId,
-        sharedWithId: null,
-        type,
-        visibility,
-        title: publishTitle,
-        description: publishDescription,
+    const share = await db.$transaction(async (tx) => {
+      // Create the shared notebook
+      const created = await tx.sharedNotebook.create({
+        data: {
+          notebookId,
+          sharedById: userId,
+          sharedWithId: null,
+          type,
+          visibility,
+          title: publishTitle,
+          description: publishDescription,
+          content: publishContent,
+        },
+      });
+
+      // Upsert tags and create join records
+      for (const tagName of normalizedTags) {
+        const tag = await tx.tag.upsert({
+          where: { name: tagName },
+          create: { name: tagName },
+          update: {},
+        });
+        await tx.sharedNotebookTag.create({
+          data: { sharedNotebookId: created.id, tagId: tag.id },
+        });
+      }
+
+      // Create friend activity
+      await tx.friendActivity.create({
+        data: {
+          userId,
+          type: 'published',
+          targetName: publishTitle || notebook.name,
+          targetColor: null,
+          targetId: created.id,
+        },
+      });
+
+      return created;
+    });
+
+    // Fetch the share with tags for the response
+    const shareWithTags = await db.sharedNotebook.findUnique({
+      where: { id: share.id },
+      include: {
+        tags: { include: { tag: { select: { id: true, name: true } } } },
       },
     });
 
-    return createdResponse({ share });
+    return createdResponse({
+      share: {
+        ...shareWithTags,
+        tags: shareWithTags?.tags.map((t) => t.tag.name) || [],
+      },
+    });
   } catch {
     return internalErrorResponse();
   }
