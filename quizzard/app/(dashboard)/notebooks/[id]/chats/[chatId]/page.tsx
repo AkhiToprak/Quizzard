@@ -2,9 +2,12 @@
 
 import { useState, useEffect, use, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers } from 'lucide-react';
+import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers, HelpCircle } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import dynamic from 'next/dynamic';
+
+const MindmapRenderer = dynamic(() => import('@/components/notebook/MindmapRenderer'), { ssr: false });
 
 interface ChatMessage {
   id: string;
@@ -129,7 +132,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       const json = await res.json();
 
       if (json.success && json.data) {
-        const { userMessage, assistantMessage, flashcardSet, usage } = json.data;
+        const { userMessage, assistantMessage, flashcardSet, quizSet, usage } = json.data;
 
         // Replace temp message with real ones
         setChat(prev => {
@@ -145,8 +148,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
           setTokenUsage({ monthlyUsed: usage.monthlyUsed, monthlyLimit: usage.monthlyLimit });
         }
 
-        // Refresh sidebar chats if flashcards were created
-        if (flashcardSet) {
+        // Refresh sidebar chats if flashcards or quizzes were created
+        if (flashcardSet || quizSet) {
           refreshChats();
         }
       } else {
@@ -354,7 +357,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
               </div>
             )}
             <div style={{
-              maxWidth: '70%',
+              maxWidth: msg.role === 'assistant' && msg.content.includes('[mindmap_start:') ? '90%' : '70%',
               padding: '12px 16px',
               borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
               background: msg.role === 'user'
@@ -856,66 +859,132 @@ function PanelSectionItem({ section, selectedPageIds, onTogglePage, depth }: {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   MessageContent — Renders message text with flashcard set links
+   MessageContent — Renders message text with flashcard/quiz links & inline mindmaps
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const FLASHCARD_MARKER_RE = /\[flashcard_set:([^\]]+)\]/g;
+const SET_MARKER_RE = /\[(flashcard_set|quiz_set):([^\]]+)\]/g;
+const MINDMAP_RE = /\[mindmap_start:([^\]]+)\]\n([\s\S]*?)\n\[mindmap_end\]/g;
 
 function MessageContent({ content, notebookId }: { content: string; notebookId: string }) {
-  // No flashcard markers — render as markdown directly
-  if (!content.includes('[flashcard_set:')) {
+  const hasSetMarkers = content.includes('[flashcard_set:') || content.includes('[quiz_set:');
+  const hasMindmap = content.includes('[mindmap_start:');
+
+  // No markers — render as markdown directly
+  if (!hasSetMarkers && !hasMindmap) {
     return <MarkdownRenderer content={content} />;
   }
 
-  // Split around flashcard markers, render text as markdown and markers as links
+  // Parse all markers (mindmaps + set links) and render in order
   const parts: React.ReactNode[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  const regex = new RegExp(FLASHCARD_MARKER_RE);
+  let remaining = content;
+  let partKey = 0;
 
-  while ((match = regex.exec(content)) !== null) {
-    if (match.index > lastIndex) {
-      const textChunk = content.slice(lastIndex, match.index);
-      parts.push(<MarkdownRenderer key={`md-${lastIndex}`} content={textChunk} />);
+  // First, extract mindmap blocks (they span multiple lines)
+  const segments: { type: 'text' | 'mindmap'; value: string; title?: string }[] = [];
+  let mindmapLastIndex = 0;
+  const mindmapRegex = new RegExp(MINDMAP_RE);
+  let mindmapMatch: RegExpExecArray | null;
+
+  while ((mindmapMatch = mindmapRegex.exec(remaining)) !== null) {
+    if (mindmapMatch.index > mindmapLastIndex) {
+      segments.push({ type: 'text', value: remaining.slice(mindmapLastIndex, mindmapMatch.index) });
     }
-
-    const setId = match[1];
-    parts.push(
-      <Link
-        key={`fc-${setId}`}
-        href={`/notebooks/${notebookId}/flashcards/${setId}`}
-        onClick={e => e.stopPropagation()}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: '6px',
-          padding: '8px 14px', margin: '6px 0',
-          borderRadius: '10px',
-          background: 'linear-gradient(135deg, rgba(140,82,255,0.2), rgba(81,112,255,0.15))',
-          border: '1px solid rgba(140,82,255,0.3)',
-          color: '#c4a9ff',
-          fontSize: '13px', fontWeight: 600,
-          textDecoration: 'none',
-          transition: 'background 0.15s ease, border-color 0.15s ease',
-        }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(135deg, rgba(140,82,255,0.3), rgba(81,112,255,0.25))';
-          (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(140,82,255,0.5)';
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(135deg, rgba(140,82,255,0.2), rgba(81,112,255,0.15))';
-          (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(140,82,255,0.3)';
-        }}
-      >
-        <Layers size={14} />
-        Open Flashcards
-      </Link>
-    );
-
-    lastIndex = match.index + match[0].length;
+    segments.push({ type: 'mindmap', value: mindmapMatch[2], title: mindmapMatch[1] });
+    mindmapLastIndex = mindmapMatch.index + mindmapMatch[0].length;
+  }
+  if (mindmapLastIndex < remaining.length) {
+    segments.push({ type: 'text', value: remaining.slice(mindmapLastIndex) });
   }
 
-  if (lastIndex < content.length) {
-    const remaining = content.slice(lastIndex);
-    parts.push(<MarkdownRenderer key={`md-${lastIndex}`} content={remaining} />);
+  // Now process each segment
+  for (const segment of segments) {
+    if (segment.type === 'mindmap') {
+      parts.push(
+        <MindmapRenderer
+          key={`mindmap-${partKey++}`}
+          title={segment.title!}
+          markdown={segment.value}
+          notebookId={notebookId}
+        />
+      );
+      continue;
+    }
+
+    // Process text segment for set markers (flashcard/quiz)
+    const text = segment.value;
+    if (!text.includes('[flashcard_set:') && !text.includes('[quiz_set:')) {
+      const trimmed = text.trim();
+      if (trimmed) {
+        parts.push(<MarkdownRenderer key={`md-${partKey++}`} content={trimmed} />);
+      }
+      continue;
+    }
+
+    let setLastIndex = 0;
+    let setMatch: RegExpExecArray | null;
+    const setRegex = new RegExp(SET_MARKER_RE);
+
+    while ((setMatch = setRegex.exec(text)) !== null) {
+      if (setMatch.index > setLastIndex) {
+        const textChunk = text.slice(setLastIndex, setMatch.index).trim();
+        if (textChunk) {
+          parts.push(<MarkdownRenderer key={`md-${partKey++}`} content={textChunk} />);
+        }
+      }
+
+      const markerType = setMatch[1];
+      const setId = setMatch[2];
+      const isQuiz = markerType === 'quiz_set';
+
+      parts.push(
+        <Link
+          key={`${markerType}-${partKey++}`}
+          href={isQuiz ? `/notebooks/${notebookId}/quizzes/${setId}` : `/notebooks/${notebookId}/flashcards/${setId}`}
+          onClick={e => e.stopPropagation()}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            padding: '8px 14px', margin: '6px 0',
+            borderRadius: '10px',
+            background: isQuiz
+              ? 'linear-gradient(135deg, rgba(81,112,255,0.2), rgba(140,82,255,0.15))'
+              : 'linear-gradient(135deg, rgba(140,82,255,0.2), rgba(81,112,255,0.15))',
+            border: `1px solid ${isQuiz ? 'rgba(81,112,255,0.3)' : 'rgba(140,82,255,0.3)'}`,
+            color: isQuiz ? '#93a8ff' : '#c4a9ff',
+            fontSize: '13px', fontWeight: 600,
+            textDecoration: 'none',
+            transition: 'background 0.15s ease, border-color 0.15s ease',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLAnchorElement).style.background = isQuiz
+              ? 'linear-gradient(135deg, rgba(81,112,255,0.3), rgba(140,82,255,0.25))'
+              : 'linear-gradient(135deg, rgba(140,82,255,0.3), rgba(81,112,255,0.25))';
+            (e.currentTarget as HTMLAnchorElement).style.borderColor = isQuiz
+              ? 'rgba(81,112,255,0.5)'
+              : 'rgba(140,82,255,0.5)';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLAnchorElement).style.background = isQuiz
+              ? 'linear-gradient(135deg, rgba(81,112,255,0.2), rgba(140,82,255,0.15))'
+              : 'linear-gradient(135deg, rgba(140,82,255,0.2), rgba(81,112,255,0.15))';
+            (e.currentTarget as HTMLAnchorElement).style.borderColor = isQuiz
+              ? 'rgba(81,112,255,0.3)'
+              : 'rgba(140,82,255,0.3)';
+          }}
+        >
+          {isQuiz ? <HelpCircle size={14} /> : <Layers size={14} />}
+          {isQuiz ? 'Open Quiz' : 'Open Flashcards'}
+        </Link>
+      );
+
+      setLastIndex = setMatch.index + setMatch[0].length;
+    }
+
+    if (setLastIndex < text.length) {
+      const tail = text.slice(setLastIndex).trim();
+      if (tail) {
+        parts.push(<MarkdownRenderer key={`md-${partKey++}`} content={tail} />);
+      }
+    }
   }
 
   return <>{parts}</>;

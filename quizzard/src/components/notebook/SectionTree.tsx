@@ -15,6 +15,12 @@ export interface FlashcardSetSummary {
   createdAt: string;
 }
 
+export interface QuizSetSummary {
+  id: string;
+  title: string;
+  createdAt: string;
+}
+
 export interface SectionNode {
   id: string;
   title: string;
@@ -23,6 +29,7 @@ export interface SectionNode {
   color: string | null;
   pages: PageSummary[];
   flashcardSets: FlashcardSetSummary[];
+  quizSets: QuizSetSummary[];
   children: SectionNode[];
 }
 
@@ -35,6 +42,7 @@ export interface SectionData {
   color: string | null;
   pages: PageSummary[];
   flashcardSets: FlashcardSetSummary[];
+  quizSets: QuizSetSummary[];
 }
 
 /** Build a tree from a flat list of sections. */

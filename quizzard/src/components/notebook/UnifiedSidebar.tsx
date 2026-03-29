@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowLeft, Plus, FolderPlus, ChevronRight, Trash2,
-  FileText, FilePlus, MessageSquare, Sparkles, Layers,
+  FileText, FilePlus, MessageSquare, Sparkles, Layers, HelpCircle,
 } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import { getSectionColor } from '@/components/notebook/SectionListItem';
@@ -201,7 +201,7 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
   const router = useRouter();
   const {
     activeSectionId, setActiveSectionId, notebookId,
-    refreshSections, activePageId, activeFlashcardSetId,
+    refreshSections, activePageId, activeFlashcardSetId, activeQuizSetId,
   } = useNotebookWorkspace();
 
   const [expanded, setExpanded] = useState(true);
@@ -427,6 +427,21 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
                 key={fc.id}
                 flashcardSet={fc}
                 isActive={isFcActive}
+                notebookId={notebookId}
+                accentColor={color}
+                depth={depth}
+              />
+            );
+          })}
+
+          {/* Quiz sets inside this section */}
+          {section.quizSets?.map(qs => {
+            const isQsActive = qs.id === activeQuizSetId;
+            return (
+              <QuizSetTreeRow
+                key={qs.id}
+                quizSet={qs}
+                isActive={isQsActive}
                 notebookId={notebookId}
                 accentColor={color}
                 depth={depth}
@@ -752,19 +767,25 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
   notebookId: string;
   onDelete: (id: string, e: React.MouseEvent) => void;
 }) {
-  const { activeFlashcardSetId } = useNotebookWorkspace();
+  const { activeFlashcardSetId, activeQuizSetId } = useNotebookWorkspace();
   const [hovered, setHovered] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const accentColor = '#8c52ff';
   const hasFlashcards = chat.flashcardSets && chat.flashcardSets.length > 0;
+  const hasQuizzes = chat.quizSets && chat.quizSets.length > 0;
+  const hasSubItems = hasFlashcards || hasQuizzes;
 
-  // Auto-expand if a flashcard set in this chat is active
+  // Auto-expand if a flashcard or quiz set in this chat is active
   useEffect(() => {
     if (activeFlashcardSetId && hasFlashcards) {
       const match = chat.flashcardSets.some(fs => fs.id === activeFlashcardSetId);
       if (match) setExpanded(true);
     }
-  }, [activeFlashcardSetId, hasFlashcards, chat.flashcardSets]);
+    if (activeQuizSetId && hasQuizzes) {
+      const match = chat.quizSets.some(qs => qs.id === activeQuizSetId);
+      if (match) setExpanded(true);
+    }
+  }, [activeFlashcardSetId, activeQuizSetId, hasFlashcards, hasQuizzes, chat.flashcardSets, chat.quizSets]);
 
   return (
     <>
@@ -782,8 +803,8 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
           cursor: 'pointer',
         }}
       >
-        {/* Expand chevron (only if has flashcard sub-items) */}
-        {hasFlashcards ? (
+        {/* Expand chevron (only if has sub-items) */}
+        {hasSubItems ? (
           <div
             onClick={e => { e.preventDefault(); e.stopPropagation(); setExpanded(v => !v); }}
             style={{ display: 'flex', flexShrink: 0, color: 'rgba(237,233,255,0.3)', width: '14px' }}
@@ -852,6 +873,19 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
           />
         );
       })}
+
+      {/* Quiz sub-items */}
+      {expanded && hasQuizzes && chat.quizSets.map(qs => {
+        const isSetActive = qs.id === activeQuizSetId;
+        return (
+          <QuizSetRow
+            key={qs.id}
+            quizSet={qs}
+            isActive={isSetActive}
+            notebookId={notebookId}
+          />
+        );
+      })}
     </>
   );
 }
@@ -900,6 +934,111 @@ function FlashcardSetRow({ flashcardSet, isActive, notebookId }: {
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {flashcardSet.title}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QuizSetRow — Sub-item under a chat for a quiz set
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function QuizSetRow({ quizSet, isActive, notebookId }: {
+  quizSet: { id: string; title: string };
+  isActive: boolean;
+  notebookId: string;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const accentColor = '#5170ff';
+
+  return (
+    <Link
+      href={`/notebooks/${notebookId}/quizzes/${quizSet.id}`}
+      style={{ textDecoration: 'none', display: 'block' }}
+    >
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '7px',
+          padding: '4px 14px 4px 52px',
+          background: isActive
+            ? `linear-gradient(135deg, ${accentColor}18 0%, rgba(140,82,255,0.10) 100%)`
+            : hovered ? 'rgba(237,233,255,0.04)' : 'transparent',
+          borderLeft: isActive ? `3px solid ${accentColor}` : '3px solid transparent',
+          transition: 'background 0.1s ease',
+          cursor: 'pointer',
+        }}
+      >
+        <HelpCircle
+          size={11}
+          style={{ color: isActive ? '#93a8ff' : 'rgba(81,112,255,0.4)', flexShrink: 0 }}
+        />
+        <span style={{
+          flex: 1, minWidth: 0,
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '11px',
+          fontWeight: isActive ? 600 : 400,
+          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.45)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {quizSet.title}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QuizSetTreeRow — A quiz set nested inside a section tree
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function QuizSetTreeRow({ quizSet, isActive, notebookId, accentColor, depth }: {
+  quizSet: { id: string; title: string };
+  isActive: boolean;
+  notebookId: string;
+  accentColor: string;
+  depth: number;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const paddingLeft = 12 + depth * 14 + 18;
+
+  return (
+    <Link
+      href={`/notebooks/${notebookId}/quizzes/${quizSet.id}`}
+      style={{ textDecoration: 'none', display: 'block' }}
+    >
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '7px',
+          paddingLeft: `${paddingLeft}px`,
+          paddingRight: '8px',
+          paddingTop: '5px',
+          paddingBottom: '5px',
+          background: isActive
+            ? `linear-gradient(135deg, ${accentColor}18 0%, rgba(81,112,255,0.10) 100%)`
+            : hovered ? 'rgba(237,233,255,0.04)' : 'transparent',
+          borderLeft: isActive ? `3px solid ${accentColor}` : '3px solid transparent',
+          transition: 'background 0.1s ease',
+          cursor: 'pointer',
+        }}
+      >
+        <HelpCircle
+          size={12}
+          style={{ color: isActive ? accentColor : 'rgba(81,112,255,0.45)', flexShrink: 0 }}
+        />
+        <span style={{
+          flex: 1, minWidth: 0,
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '12px',
+          fontWeight: isActive ? 600 : 400,
+          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {quizSet.title}
         </span>
       </div>
     </Link>

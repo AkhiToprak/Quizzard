@@ -85,6 +85,7 @@ model Notebook {
   shares          SharedNotebook[]
   coWorkSessions  CoWorkSession[]
   flashcardSets   FlashcardSet[]
+  quizSets        QuizSet[]
 
   @@index([userId])
   @@map("notebooks")
@@ -124,6 +125,7 @@ model NotebookChat {
   notebook        Notebook      @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   messages        ChatMessage[]
   flashcardSets   FlashcardSet[]
+  quizSets        QuizSet[]
 
   @@index([notebookId])
   @@map("notebook_chats")
@@ -191,6 +193,50 @@ model Flashcard {
 }
 
 // ============================================================================
+// QUIZ MODELS
+// ============================================================================
+
+model QuizSet {
+  id         String         @id @default(cuid())
+  notebookId String
+  chatId     String
+  messageId  String         // assistant message that created this set
+  title      String
+  sectionId  String?        // optional: link to a notebook section
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  notebook   Notebook       @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  chat       NotebookChat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  section    Section?       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  questions  QuizQuestion[]
+
+  @@index([notebookId])
+  @@index([chatId])
+  @@index([sectionId])
+  @@map("quiz_sets")
+}
+
+model QuizQuestion {
+  id                 String   @id @default(cuid())
+  quizSetId          String
+  question           String
+  options            String[] // Array of 4 answer choices
+  correctIndex       Int      // 0-based index of the correct answer
+  hint               String?  // Optional hint text
+  correctExplanation String?  @db.Text // Shown when answer is correct
+  wrongExplanation   String?  @db.Text // Shown when answer is wrong
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  quizSet            QuizSet  @relation(fields: [quizSetId], references: [id], onDelete: Cascade)
+
+  @@index([quizSetId])
+  @@map("quiz_questions")
+}
+
+// ============================================================================
 // SECTION & PAGE MODELS (OneNote-style notebook content)
 // ============================================================================
 
@@ -210,6 +256,7 @@ model Section {
   children      Section[]      @relation("SectionTree")
   pages         Page[]
   flashcardSets FlashcardSet[]
+  quizSets      QuizSet[]
 
   @@index([notebookId])
   @@index([parentId])

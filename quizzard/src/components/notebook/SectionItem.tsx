@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ChevronRight, Plus, Trash2, FileText, FileUp, Layers } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, FileText, FileUp, Layers, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import PageItem from '@/components/notebook/PageItem';
 import FileImportDialog from '@/components/notebook/FileImportDialog';
@@ -235,6 +235,11 @@ export default function SectionItem({ section, depth, activePageId, notebookId, 
             <FlashcardSetItem key={fc.id} fc={fc} notebookId={notebookId} />
           ))}
 
+          {/* Quiz sets */}
+          {section.quizSets?.map((qs) => (
+            <QuizSetItem key={qs.id} qs={qs} notebookId={notebookId} />
+          ))}
+
           {/* Inline create page input */}
           {isCreatingPage && (
             <div
@@ -347,6 +352,51 @@ function FlashcardSetItem({ fc, notebookId }: { fc: { id: string; title: string 
         }}
       >
         {fc.title}
+      </span>
+    </Link>
+  );
+}
+
+/** Sidebar item for a quiz set linked to a section */
+function QuizSetItem({ qs, notebookId }: { qs: { id: string; title: string }; notebookId: string }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <Link
+      href={`/notebooks/${notebookId}/quizzes/${qs.id}`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '4px 10px 4px 38px',
+        textDecoration: 'none',
+        borderRadius: '4px',
+        background: hovered ? 'rgba(81,112,255,0.06)' : 'transparent',
+        transition: 'background 0.12s ease',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <HelpCircle
+        size={14}
+        style={{
+          color: hovered ? '#5170ff' : 'rgba(81,112,255,0.45)',
+          flexShrink: 0,
+          transition: 'color 0.12s ease',
+        }}
+      />
+      <span
+        style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '13px',
+          color: hovered ? '#93a8ff' : 'rgba(237,233,255,0.55)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          transition: 'color 0.12s ease',
+        }}
+      >
+        {qs.title}
       </span>
     </Link>
   );

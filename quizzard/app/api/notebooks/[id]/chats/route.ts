@@ -37,6 +37,10 @@ export async function GET(request: NextRequest, { params }: Params) {
           select: { id: true, title: true, createdAt: true },
           orderBy: { createdAt: 'asc' },
         },
+        quizSets: {
+          select: { id: true, title: true, createdAt: true },
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 

@@ -49,6 +49,82 @@ const FLASHCARD_TOOL: Anthropic.Messages.Tool = {
   },
 };
 
+/** Tool definition for structured quiz creation */
+const QUIZ_TOOL: Anthropic.Messages.Tool = {
+  name: 'create_quiz',
+  description:
+    'Create a multiple-choice quiz. Use this tool when the user asks you to create, generate, or make a quiz, test, or multiple-choice questions from their notes or on a topic. Each question has 4 options with one correct answer.',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      title: {
+        type: 'string',
+        description: 'A short, descriptive title for the quiz (e.g. "Cell Biology Quiz")',
+      },
+      questions: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            question: {
+              type: 'string',
+              description: 'The question text',
+            },
+            options: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Exactly 4 answer choices',
+              minItems: 4,
+              maxItems: 4,
+            },
+            correctIndex: {
+              type: 'number',
+              description: 'The 0-based index of the correct answer (0-3)',
+            },
+            hint: {
+              type: 'string',
+              description: 'An optional hint to help the student',
+            },
+            correctExplanation: {
+              type: 'string',
+              description: 'Explanation shown when the student answers correctly',
+            },
+            wrongExplanation: {
+              type: 'string',
+              description: 'Explanation shown when the student answers incorrectly',
+            },
+          },
+          required: ['question', 'options', 'correctIndex'],
+        },
+        description: 'Array of quiz question objects',
+        minItems: 1,
+      },
+    },
+    required: ['title', 'questions'],
+  },
+};
+
+/** Tool definition for mindmap generation */
+const MINDMAP_TOOL: Anthropic.Messages.Tool = {
+  name: 'create_mindmap',
+  description:
+    'Create an interactive mind map. Use this tool when the user asks you to create, generate, or make a mind map, concept map, or topic overview from their notes or on a topic. The mindmap is defined as Markdown with heading hierarchy (# for root, ## for branches, ### for sub-branches, etc.).',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      title: {
+        type: 'string',
+        description: 'A short title for the mind map',
+      },
+      markdown: {
+        type: 'string',
+        description: 'The mind map content as Markdown using heading levels (# root, ## branches, ### sub-branches, #### details). Use only headings (# ## ### ####) to define the hierarchy. Keep node text concise. Example:\n# Biology\n## Cells\n### Prokaryotic\n### Eukaryotic\n## Genetics\n### DNA\n### RNA',
+      },
+    },
+    required: ['title', 'markdown'],
+  },
+};
+
 type Params = { params: Promise<{ id: string; chatId: string }> };
 
 /**
@@ -189,6 +265,10 @@ export async function POST(request: NextRequest, { params }: Params) {
       'Be concise, clear, and educational. Use markdown formatting when helpful.',
       '',
       'You have access to a `create_flashcards` tool. When the user asks you to create, generate, or make flashcards, use this tool. Create high-quality flashcards with clear questions and concise answers. For complex answers, use bullet points or numbered lists.',
+      '',
+      'You also have access to a `create_quiz` tool. When the user asks you to create, generate, or make a quiz, test, or multiple-choice questions, use this tool. Create challenging but fair questions with 4 options each. Always provide hints and explanations for both correct and incorrect answers to help students learn.',
+      '',
+      'You also have access to a `create_mindmap` tool. When the user asks you to create, generate, or make a mind map, concept map, or topic overview, use this tool. Structure the content using Markdown headings (# for root, ## for main branches, ### for sub-branches, #### for details). Keep node text concise.',
     ];
 
     if (contextParts.length > 0) {
@@ -204,7 +284,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       max_tokens: 4096,
       system: systemParts.join('\n'),
       messages: conversationMessages,
-      tools: [FLASHCARD_TOOL],
+      tools: [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL],
     });
 
     const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
@@ -212,6 +292,21 @@ export async function POST(request: NextRequest, { params }: Params) {
     // ── Extract text and tool_use blocks from response ──
     let assistantText = '';
     let flashcardToolUse: { id: string; input: { title: string; flashcards: { question: string; answer: string }[] } } | null = null;
+    let quizToolUse: {
+      id: string;
+      input: {
+        title: string;
+        questions: {
+          question: string;
+          options: string[];
+          correctIndex: number;
+          hint?: string;
+          correctExplanation?: string;
+          wrongExplanation?: string;
+        }[];
+      };
+    } | null = null;
+    let mindmapToolUse: { id: string; input: { title: string; markdown: string } } | null = null;
 
     for (const block of response.content) {
       if (block.type === 'text') {
@@ -220,6 +315,26 @@ export async function POST(request: NextRequest, { params }: Params) {
         flashcardToolUse = {
           id: block.id,
           input: block.input as { title: string; flashcards: { question: string; answer: string }[] },
+        };
+      } else if (block.type === 'tool_use' && block.name === 'create_quiz') {
+        quizToolUse = {
+          id: block.id,
+          input: block.input as {
+            title: string;
+            questions: {
+              question: string;
+              options: string[];
+              correctIndex: number;
+              hint?: string;
+              correctExplanation?: string;
+              wrongExplanation?: string;
+            }[];
+          },
+        };
+      } else if (block.type === 'tool_use' && block.name === 'create_mindmap') {
+        mindmapToolUse = {
+          id: block.id,
+          input: block.input as { title: string; markdown: string },
         };
       }
     }
@@ -318,6 +433,163 @@ export async function POST(request: NextRequest, { params }: Params) {
             createdAt: result.assistantMsg.createdAt,
           },
           flashcardSet: flashcardSetData,
+          usage: {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+            totalTokens,
+            monthlyUsed: usedTokens + totalTokens,
+            monthlyLimit: MONTHLY_TOKEN_LIMIT,
+          },
+        });
+      }
+    }
+
+    // ── If tool_use: create quiz in DB ──
+    if (quizToolUse) {
+      const { title: quizTitle, questions } = quizToolUse.input;
+
+      if (!quizTitle || !Array.isArray(questions) || questions.length === 0) {
+        assistantText = assistantText || 'I tried to create a quiz but the format was invalid. Please try again.';
+      } else {
+        const result = await db.$transaction(async (tx) => {
+          const userMsg = await tx.chatMessage.create({
+            data: {
+              notebookId,
+              userId,
+              chatId,
+              role: 'user',
+              content: message.trim(),
+              tokens: response.usage.input_tokens,
+            },
+          });
+
+          const qSet = await tx.quizSet.create({
+            data: {
+              notebookId,
+              chatId,
+              messageId: '',
+              title: quizTitle,
+              questions: {
+                create: questions.map((q, i) => ({
+                  question: q.question,
+                  options: q.options,
+                  correctIndex: q.correctIndex,
+                  hint: q.hint ?? null,
+                  correctExplanation: q.correctExplanation ?? null,
+                  wrongExplanation: q.wrongExplanation ?? null,
+                  sortOrder: i,
+                })),
+              },
+            },
+            include: { questions: true },
+          });
+
+          const markerText = assistantText
+            ? `${assistantText}\n\n[quiz_set:${qSet.id}]`
+            : `I've created a quiz "${quizTitle}" with ${questions.length} questions.\n\n[quiz_set:${qSet.id}]`;
+
+          const assistantMsg = await tx.chatMessage.create({
+            data: {
+              notebookId,
+              userId,
+              chatId,
+              role: 'assistant',
+              content: markerText,
+              tokens: response.usage.output_tokens,
+            },
+          });
+
+          await tx.quizSet.update({
+            where: { id: qSet.id },
+            data: { messageId: assistantMsg.id },
+          });
+
+          await tx.notebookChat.update({
+            where: { id: chatId },
+            data: { updatedAt: new Date() },
+          });
+
+          return { userMsg, assistantMsg, qSet };
+        });
+
+        return successResponse({
+          userMessage: {
+            id: result.userMsg.id,
+            role: result.userMsg.role,
+            content: result.userMsg.content,
+            createdAt: result.userMsg.createdAt,
+          },
+          assistantMessage: {
+            id: result.assistantMsg.id,
+            role: result.assistantMsg.role,
+            content: result.assistantMsg.content,
+            createdAt: result.assistantMsg.createdAt,
+          },
+          quizSet: {
+            id: result.qSet.id,
+            title: result.qSet.title,
+            questionCount: result.qSet.questions.length,
+          },
+          usage: {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+            totalTokens,
+            monthlyUsed: usedTokens + totalTokens,
+            monthlyLimit: MONTHLY_TOKEN_LIMIT,
+          },
+        });
+      }
+    }
+
+    // ── If tool_use: embed mindmap markdown inline in message ──
+    if (mindmapToolUse) {
+      const { title: mapTitle, markdown: mapMarkdown } = mindmapToolUse.input;
+
+      if (mapTitle && mapMarkdown) {
+        const markerText = (assistantText ? `${assistantText}\n\n` : '')
+          + `[mindmap_start:${mapTitle}]\n${mapMarkdown}\n[mindmap_end]`;
+
+        const [userMsg, assistantMsg] = await db.$transaction([
+          db.chatMessage.create({
+            data: {
+              notebookId,
+              userId,
+              chatId,
+              role: 'user',
+              content: message.trim(),
+              tokens: response.usage.input_tokens,
+            },
+          }),
+          db.chatMessage.create({
+            data: {
+              notebookId,
+              userId,
+              chatId,
+              role: 'assistant',
+              content: markerText,
+              tokens: response.usage.output_tokens,
+            },
+          }),
+        ]);
+
+        await db.notebookChat.update({
+          where: { id: chatId },
+          data: { updatedAt: new Date() },
+        });
+
+        return successResponse({
+          userMessage: {
+            id: userMsg.id,
+            role: userMsg.role,
+            content: userMsg.content,
+            createdAt: userMsg.createdAt,
+          },
+          assistantMessage: {
+            id: assistantMsg.id,
+            role: assistantMsg.role,
+            content: assistantMsg.content,
+            createdAt: assistantMsg.createdAt,
+          },
           usage: {
             inputTokens: response.usage.input_tokens,
             outputTokens: response.usage.output_tokens,
