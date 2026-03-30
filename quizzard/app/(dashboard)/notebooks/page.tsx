@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import NotebookCard, { type NotebookData } from '@/components/features/NotebookCard';
 import NotebookForm, { type FormData as NotebookFormData } from '@/components/features/NotebookForm';
+import FolderCard, { type FolderData } from '@/components/features/FolderCard';
+import FolderForm from '@/components/features/FolderForm';
+import FolderBreadcrumbs from '@/components/features/FolderBreadcrumbs';
 import { PRESETS, getPresetForSubject } from '@/lib/presets';
 
 const ALL_LABEL = 'All Subjects';
@@ -31,31 +35,75 @@ function SkeletonCard() {
   );
 }
 
-export default function NotebooksPage() {
+function NotebooksPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const currentFolderId = searchParams.get('folder') || null;
+
   const [notebooks, setNotebooks] = useState<NotebookData[]>([]);
+  const [folders, setFolders] = useState<FolderData[]>([]);
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string; name: string }>>([]);
+  const [totalNotebooks, setTotalNotebooks] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState(ALL_LABEL);
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
+
+  // Notebook form state
   const [showForm, setShowForm] = useState(false);
   const [editingNotebook, setEditingNotebook] = useState<NotebookData | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<NotebookData | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const fetchNotebooks = useCallback(async () => {
+  // Folder form state
+  const [showFolderForm, setShowFolderForm] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<FolderData | null>(null);
+  const [folderFormLoading, setFolderFormLoading] = useState(false);
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState<FolderData | null>(null);
+  const [deleteFolderLoading, setDeleteFolderLoading] = useState(false);
+
+  const fetchContents = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const res = await fetch('/api/notebooks');
-      const json = await res.json();
-      if (json.success) setNotebooks(json.data);
+      const folderParam = currentFolderId ?? 'root';
+
+      const fetches: Promise<Response>[] = [
+        fetch(`/api/notebook-folders?parentId=${folderParam}`),
+        fetch(`/api/notebooks?folderId=${folderParam}`),
+        fetch('/api/notebooks?folderId=all'),
+      ];
+
+      // Fetch breadcrumbs if inside a folder
+      if (currentFolderId) {
+        fetches.push(fetch(`/api/notebook-folders/${currentFolderId}`));
+      }
+
+      const results = await Promise.all(fetches);
+      const [foldersJson, notebooksJson, allNotebooksJson] = await Promise.all(
+        results.slice(0, 3).map((r) => r.json())
+      );
+
+      if (foldersJson.success) setFolders(foldersJson.data);
+      if (notebooksJson.success) setNotebooks(notebooksJson.data);
+      if (allNotebooksJson.success) setTotalNotebooks(allNotebooksJson.data.length);
+
+      if (currentFolderId && results[3]) {
+        const breadcrumbJson = await results[3].json();
+        if (breadcrumbJson.success) {
+          setBreadcrumbs(breadcrumbJson.data.breadcrumbs);
+        }
+      } else {
+        setBreadcrumbs([]);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentFolderId]);
 
   useEffect(() => {
-    fetchNotebooks();
-  }, [fetchNotebooks]);
+    fetchContents();
+  }, [fetchContents]);
 
   useEffect(() => {
     if (!filterOpen) return;
@@ -68,18 +116,18 @@ export default function NotebooksPage() {
     return () => document.removeEventListener('mousedown', handler);
   }, [filterOpen]);
 
+  // --- Notebook handlers ---
   const handleCreate = async (data: NotebookFormData) => {
     setFormLoading(true);
     try {
       const res = await fetch('/api/notebooks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, folderId: currentFolderId }),
       });
       const json = await res.json();
       if (json.success) {
         setShowForm(false);
-        // Scaffold sections if a preset was chosen (fire-and-forget, don't block UI)
         if (data.presetId && json.data?.id) {
           fetch(`/api/notebooks/${json.data.id}/scaffold`, {
             method: 'POST',
@@ -87,7 +135,7 @@ export default function NotebooksPage() {
             body: JSON.stringify({ presetId: data.presetId }),
           }).catch(() => {});
         }
-        await fetchNotebooks();
+        await fetchContents();
       }
     } finally {
       setFormLoading(false);
@@ -104,7 +152,7 @@ export default function NotebooksPage() {
         body: JSON.stringify(data),
       });
       const json = await res.json();
-      if (json.success) { setEditingNotebook(null); setShowForm(false); await fetchNotebooks(); }
+      if (json.success) { setEditingNotebook(null); setShowForm(false); await fetchContents(); }
     } finally {
       setFormLoading(false);
     }
@@ -116,13 +164,83 @@ export default function NotebooksPage() {
     try {
       const res = await fetch(`/api/notebooks/${deleteTarget.id}`, { method: 'DELETE' });
       const json = await res.json();
-      if (json.success) { setDeleteTarget(null); await fetchNotebooks(); }
+      if (json.success) { setDeleteTarget(null); await fetchContents(); }
     } finally {
       setDeleteLoading(false);
     }
   };
 
-  const totalDocs = notebooks.reduce((s, n) => s + (n._count.documents || 0), 0);
+  // --- Folder handlers ---
+  const handleFolderNavigate = (folderId: string | null) => {
+    if (folderId) {
+      router.push(`/notebooks?folder=${folderId}`);
+    } else {
+      router.push('/notebooks');
+    }
+  };
+
+  const handleFolderCreate = async (data: { name: string; color?: string }) => {
+    setFolderFormLoading(true);
+    try {
+      const res = await fetch('/api/notebook-folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, parentId: currentFolderId }),
+      });
+      const json = await res.json();
+      if (json.success) { setShowFolderForm(false); await fetchContents(); }
+    } finally {
+      setFolderFormLoading(false);
+    }
+  };
+
+  const handleFolderRename = async (data: { name: string; color?: string }) => {
+    if (!editingFolder) return;
+    setFolderFormLoading(true);
+    try {
+      const res = await fetch(`/api/notebook-folders/${editingFolder.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (json.success) { setEditingFolder(null); setShowFolderForm(false); await fetchContents(); }
+    } finally {
+      setFolderFormLoading(false);
+    }
+  };
+
+  const handleFolderDelete = async () => {
+    if (!deleteFolderTarget) return;
+    setDeleteFolderLoading(true);
+    try {
+      const res = await fetch(`/api/notebook-folders/${deleteFolderTarget.id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) { setDeleteFolderTarget(null); await fetchContents(); }
+    } finally {
+      setDeleteFolderLoading(false);
+    }
+  };
+
+  // --- Drag & drop: move notebook into folder ---
+  const handleNotebookDragStart = (e: React.DragEvent, notebook: NotebookData) => {
+    e.dataTransfer.setData('application/notebook-id', notebook.id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDropNotebookIntoFolder = async (notebookId: string, folder: FolderData) => {
+    try {
+      const res = await fetch(`/api/notebooks/${notebookId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folderId: folder.id }),
+      });
+      const json = await res.json();
+      if (json.success) await fetchContents();
+    } catch {
+      // silently fail
+    }
+  };
 
   const filteredNotebooks =
     activeFilter === 'All Subjects'
@@ -131,8 +249,27 @@ export default function NotebooksPage() {
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-      {/* Toolbar: filter dropdown + add button */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+      {/* Breadcrumbs */}
+      {(currentFolderId || breadcrumbs.length > 0) && (
+        <FolderBreadcrumbs
+          breadcrumbs={breadcrumbs}
+          onNavigate={handleFolderNavigate}
+          onDropNotebook={async (notebookId, targetFolderId) => {
+            try {
+              const res = await fetch(`/api/notebooks/${notebookId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ folderId: targetFolderId }),
+              });
+              const json = await res.json();
+              if (json.success) await fetchContents();
+            } catch { /* silently fail */ }
+          }}
+        />
+      )}
+
+      {/* Toolbar: filter dropdown + add buttons */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
 
         {/* Subject filter dropdown */}
         <div ref={filterRef} style={{ position: 'relative' }}>
@@ -156,7 +293,6 @@ export default function NotebooksPage() {
               whiteSpace: 'nowrap',
             }}
           >
-            {/* Color dot for active preset */}
             {activeFilter !== ALL_LABEL ? (
               <span style={{
                 width: '8px',
@@ -203,7 +339,6 @@ export default function NotebooksPage() {
                 @keyframes dropIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
               `}</style>
 
-              {/* All option */}
               <button
                 onClick={() => { setActiveFilter(ALL_LABEL); setFilterOpen(false); }}
                 style={{
@@ -232,10 +367,8 @@ export default function NotebooksPage() {
                 )}
               </button>
 
-              {/* Divider */}
               <div style={{ height: '1px', background: 'rgba(174,137,255,0.08)', margin: '4px 6px' }} />
 
-              {/* Preset options */}
               {PRESETS.map((preset) => (
                 <button
                   key={preset.id}
@@ -270,7 +403,7 @@ export default function NotebooksPage() {
           )}
         </div>
 
-        {/* Active filter badge — shows when a preset is active */}
+        {/* Active filter badge */}
         {activeFilter !== ALL_LABEL && (
           <button
             onClick={() => setActiveFilter(ALL_LABEL)}
@@ -301,34 +434,63 @@ export default function NotebooksPage() {
           </button>
         )}
 
-        {/* New Notebook button — right side */}
-        <button
-          onClick={() => { setEditingNotebook(null); setShowForm(true); }}
-          style={{
-            marginLeft: 'auto',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 24px',
-            borderRadius: '9999px',
-            border: 'none',
-            background: '#ae89ff',
-            color: '#2a0066',
-            fontSize: '14px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            boxShadow: '0 4px 16px rgba(174,137,255,0.25)',
-            transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
-          onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'; }}
-          onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
-          Add Notebook
-        </button>
+        {/* Right-side buttons */}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+          {/* New Folder button */}
+          <button
+            onClick={() => { setEditingFolder(null); setShowFolderForm(true); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 20px',
+              borderRadius: '9999px',
+              border: '1px solid rgba(174,137,255,0.25)',
+              background: 'transparent',
+              color: '#ae89ff',
+              fontSize: '14px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.08)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'; }}
+            onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>create_new_folder</span>
+            New Folder
+          </button>
+
+          {/* Add Notebook button */}
+          <button
+            onClick={() => { setEditingNotebook(null); setShowForm(true); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 24px',
+              borderRadius: '9999px',
+              border: 'none',
+              background: '#ae89ff',
+              color: '#2a0066',
+              fontSize: '14px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              boxShadow: '0 4px 16px rgba(174,137,255,0.25)',
+              transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+            onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'; }}
+            onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+            Add Notebook
+          </button>
+        </div>
       </div>
 
       {/* Loading */}
@@ -341,16 +503,85 @@ export default function NotebooksPage() {
       {/* Grid */}
       {!isLoading && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+          {/* Folders first */}
+          {folders.map((folder) => (
+            <FolderCard
+              key={folder.id}
+              folder={folder}
+              onClick={(f) => handleFolderNavigate(f.id)}
+              onRename={(f) => { setEditingFolder(f); setShowFolderForm(true); }}
+              onDelete={(f) => setDeleteFolderTarget(f)}
+              onDropNotebook={handleDropNotebookIntoFolder}
+            />
+          ))}
+
+          {/* Then notebooks */}
           {filteredNotebooks.map((nb) => (
             <NotebookCard
               key={nb.id}
               notebook={nb}
               onEdit={(n) => { setEditingNotebook(n); setShowForm(true); }}
               onDelete={(n) => setDeleteTarget(n)}
+              draggable
+              onDragStart={handleNotebookDragStart}
             />
           ))}
 
-          {/* Add card */}
+          {/* Add folder card */}
+          <div
+            onClick={() => { setEditingFolder(null); setShowFolderForm(true); }}
+            style={{
+              background: 'rgba(18,18,42,0.5)',
+              borderRadius: '12px',
+              border: '2px dashed rgba(70,69,96,0.3)',
+              minHeight: '160px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'border-color 0.3s cubic-bezier(0.22,1,0.36,1)',
+              gap: '8px',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(174,137,255,0.5)';
+              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.add-folder-icon-wrap');
+              if (icon) { icon.style.background = 'rgba(174,137,255,0.2)'; icon.style.transform = 'scale(1.1)'; }
+              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>('.add-folder-label');
+              if (label) label.style.color = '#e5e3ff';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(70,69,96,0.3)';
+              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.add-folder-icon-wrap');
+              if (icon) { icon.style.background = '#18182a'; icon.style.transform = 'scale(1)'; }
+              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>('.add-folder-label');
+              if (label) label.style.color = '#aaa8c8';
+            }}
+          >
+            <span
+              className="add-folder-icon-wrap"
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#18182a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.3s cubic-bezier(0.22,1,0.36,1), transform 0.3s cubic-bezier(0.22,1,0.36,1)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#737390' }}>create_new_folder</span>
+            </span>
+            <p className="add-folder-label" style={{ fontWeight: 700, color: '#aaa8c8', margin: '4px 0 0', transition: 'color 0.2s' }}>
+              New Folder
+            </p>
+            <p style={{ fontSize: '12px', color: '#737390', margin: 0, textAlign: 'center', padding: '0 24px' }}>
+              Group your notebooks together
+            </p>
+          </div>
+
+          {/* Add notebook card */}
           <div
             onClick={() => { setEditingNotebook(null); setShowForm(true); }}
             style={{
@@ -417,8 +648,7 @@ export default function NotebooksPage() {
           }}
         >
           {[
-            { icon: 'book_4', color: '#ae89ff', bg: 'rgba(174,137,255,0.1)', value: notebooks.length, label: 'Total Notebooks' },
-            { icon: 'article', color: '#ffedb3', bg: 'rgba(255,237,179,0.1)', value: totalDocs, label: 'Active Documents' },
+            { icon: 'book_4', color: '#ae89ff', bg: 'rgba(174,137,255,0.1)', value: totalNotebooks, label: 'Total Notebooks' },
             { icon: 'flash_on', color: '#b9c3ff', bg: 'rgba(185,195,255,0.1)', value: '—', label: 'Mastered Cards' },
           ].map(({ icon, color, bg, value, label }) => (
             <div
@@ -455,7 +685,7 @@ export default function NotebooksPage() {
         </div>
       )}
 
-      {/* Create / Edit modal */}
+      {/* Create / Edit notebook modal */}
       {showForm && (
         <NotebookForm
           notebook={editingNotebook}
@@ -465,7 +695,17 @@ export default function NotebooksPage() {
         />
       )}
 
-      {/* Delete confirmation modal */}
+      {/* Create / Rename folder modal */}
+      {showFolderForm && (
+        <FolderForm
+          folder={editingFolder}
+          onSubmit={editingFolder ? handleFolderRename : handleFolderCreate}
+          onCancel={() => { setShowFolderForm(false); setEditingFolder(null); }}
+          isLoading={folderFormLoading}
+        />
+      )}
+
+      {/* Delete notebook confirmation modal */}
       {deleteTarget && (
         <div
           style={{
@@ -547,6 +787,88 @@ export default function NotebooksPage() {
         </div>
       )}
 
+      {/* Delete folder confirmation modal */}
+      {deleteFolderTarget && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+          onClick={() => { if (!deleteFolderLoading) setDeleteFolderTarget(null); }}
+        >
+          <div
+            style={{
+              background: '#18182a',
+              borderRadius: '20px',
+              padding: '32px',
+              width: '100%',
+              maxWidth: '400px',
+              boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+              animation: 'slideUp 0.2s cubic-bezier(0.22,1,0.36,1)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <style>{`
+              @keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+            `}</style>
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'rgba(253,111,133,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: '#fd6f85', fontSize: '24px' }}>folder_delete</span>
+            </div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
+              Delete &ldquo;{deleteFolderTarget.name}&rdquo;?
+            </h3>
+            <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 28px', lineHeight: 1.6 }}>
+              This will delete the folder and all sub-folders. Notebooks inside will be moved to the root level. This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => { if (!deleteFolderLoading) setDeleteFolderTarget(null); }}
+                disabled={deleteFolderLoading}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '12px',
+                  background: '#23233c', border: 'none',
+                  fontSize: '14px', fontWeight: 600, color: '#aaa8c8',
+                  cursor: deleteFolderLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleFolderDelete}
+                disabled={deleteFolderLoading}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '12px',
+                  background: deleteFolderLoading ? 'rgba(253,111,133,0.2)' : '#fd6f85',
+                  border: 'none', fontSize: '14px', fontWeight: 700,
+                  color: deleteFolderLoading ? '#aaa8c8' : '#490013',
+                  cursor: deleteFolderLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                {deleteFolderLoading ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* FAB */}
       <button
         onClick={() => { setEditingNotebook(null); setShowForm(true); }}
@@ -582,5 +904,19 @@ export default function NotebooksPage() {
         </span>
       </button>
     </div>
+  );
+}
+
+export default function NotebooksPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+          {[0, 1, 2].map((i) => <SkeletonCard key={i} />)}
+        </div>
+      </div>
+    }>
+      <NotebooksPageContent />
+    </Suspense>
   );
 }

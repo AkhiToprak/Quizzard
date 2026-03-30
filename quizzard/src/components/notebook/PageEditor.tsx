@@ -405,6 +405,8 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         .quizzard-editor [data-toggle-level] p:last-child { margin: 0; }
         /* ── mark / highlight ── */
         .quizzard-editor mark { border-radius: 3px; padding: 1px 3px; }
+        /* ── float clearfix for wrap-mode images ── */
+        .quizzard-editor .ProseMirror::after { content: ''; display: table; clear: both; }
         /* ── placeholder ── */
         .quizzard-editor p.is-editor-empty:first-child::before {
           content: attr(data-placeholder);

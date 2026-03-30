@@ -17,6 +17,8 @@ interface NotebookCardProps {
   notebook: NotebookData;
   onEdit: (notebook: NotebookData) => void;
   onDelete: (notebook: NotebookData) => void;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent, notebook: NotebookData) => void;
 }
 
 interface AccentTheme {
@@ -92,7 +94,7 @@ function formatDate(dateStr: string) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function NotebookCard({ notebook, onEdit, onDelete }: NotebookCardProps) {
+export default function NotebookCard({ notebook, onEdit, onDelete, draggable, onDragStart }: NotebookCardProps) {
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const theme = getAccent(notebook.color);
@@ -103,6 +105,8 @@ export default function NotebookCard({ notebook, onEdit, onDelete }: NotebookCar
   return (
     <div
       style={{ position: 'relative' }}
+      draggable={draggable}
+      onDragStart={(e) => { if (onDragStart) onDragStart(e, notebook); }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
     >

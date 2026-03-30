@@ -14,8 +14,19 @@ export async function GET(request: NextRequest) {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
 
+    const folderId = request.nextUrl.searchParams.get('folderId');
+    const where: { userId: string; folderId?: string | null } = { userId };
+
+    if (folderId === 'all') {
+      // No folderId filter — return all notebooks
+    } else if (!folderId || folderId === 'root') {
+      where.folderId = null;
+    } else {
+      where.folderId = folderId;
+    }
+
     const notebooks = await db.notebook.findMany({
-      where: { userId },
+      where,
       orderBy: { updatedAt: 'desc' },
       include: {
         _count: {
@@ -48,7 +59,7 @@ export async function POST(request: NextRequest) {
     if (!userId) return unauthorizedResponse();
 
     const body = await request.json();
-    const { name, description, subject, color } = body;
+    const { name, description, subject, color, folderId } = body;
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return badRequestResponse('Notebook name is required');
@@ -66,6 +77,14 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('Color must be a valid hex color (e.g. #8c52ff)');
     }
 
+    // Validate folderId if provided
+    if (folderId) {
+      const folder = await db.notebookFolder.findFirst({
+        where: { id: folderId, userId },
+      });
+      if (!folder) return badRequestResponse('Folder not found');
+    }
+
     const notebook = await db.notebook.create({
       data: {
         userId,
@@ -73,6 +92,7 @@ export async function POST(request: NextRequest) {
         description: description?.trim() || null,
         subject: subject?.trim() || null,
         color: color || '#8c52ff',
+        folderId: folderId || null,
       },
     });
 

@@ -61,7 +61,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (!existing) return notFoundResponse('Notebook not found');
 
     const body = await request.json();
-    const { name, description, subject, color } = body;
+    const { name, description, subject, color, folderId } = body;
 
     if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
       return badRequestResponse('Notebook name cannot be empty');
@@ -79,6 +79,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
       return badRequestResponse('Color must be a valid hex color (e.g. #8c52ff)');
     }
 
+    // Validate folderId if provided
+    if (folderId !== undefined && folderId !== null) {
+      const folder = await db.notebookFolder.findFirst({
+        where: { id: folderId, userId },
+      });
+      if (!folder) return badRequestResponse('Folder not found');
+    }
+
     const updated = await db.notebook.update({
       where: { id },
       data: {
@@ -86,6 +94,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
         ...(description !== undefined && { description: description?.trim() || null }),
         ...(subject !== undefined && { subject: subject?.trim() || null }),
         ...(color !== undefined && { color }),
+        ...(folderId !== undefined && { folderId: folderId || null }),
       },
     });
 
