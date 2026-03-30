@@ -240,7 +240,7 @@ function PASSection({
         borderTop: "1px solid rgba(140,82,255,0.08)",
       }}
     >
-      <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
         {/* Problem + Agitate (centered) */}
         <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 720, margin: "0 auto 72px" }}>
           <p className="slabel reveal" style={{ marginBottom: 14 }}>{label}</p>
@@ -278,7 +278,7 @@ function PASSection({
           className="pas-grid reveal d3"
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "0.8fr 1.5fr",
             gap: 64,
             alignItems: "center",
             direction: reverse ? "rtl" : "ltr",
@@ -528,10 +528,10 @@ export default function LandingPage() {
           className="hero-grid"
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "0.8fr 1.4fr",
             gap: 64,
             alignItems: "center",
-            maxWidth: 1200,
+            maxWidth: 1360,
             margin: "0 auto",
             position: "relative",
             zIndex: 1,

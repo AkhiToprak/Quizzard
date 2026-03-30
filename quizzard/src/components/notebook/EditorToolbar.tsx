@@ -7,8 +7,10 @@ import {
   Heading1, Heading2, Heading3,
   List, ListOrdered, Quote, Code,
   Palette, Highlighter, Undo, Redo, PenTool,
-  ChevronDown, ALargeSmall,
+  ChevronDown, ALargeSmall, MessageSquareWarning, ListCollapse,
 } from 'lucide-react';
+import { CALLOUT_STYLES, type CalloutType } from '@/lib/tiptap-callout';
+import type { ToggleLevel } from '@/lib/tiptap-toggle-heading';
 import ImageUploadButton from './ImageUploadButton';
 
 /* ── font options ── */
@@ -606,6 +608,280 @@ function InlineScaleDropdown({ editor, withSelection }: { editor: Editor; withSe
   );
 }
 
+/* ── callout dropdown ── */
+const CALLOUT_TYPES: CalloutType[] = ['info', 'warning', 'success', 'tip'];
+
+function CalloutDropdown({ editor }: { editor: Editor }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isActive = editor.isActive('callout');
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        title="Insert callout"
+        style={{
+          width: '30px',
+          height: '28px',
+          borderRadius: '6px',
+          border: 'none',
+          background: isActive ? 'rgba(140,82,255,0.22)' : 'transparent',
+          color: isActive ? '#a47bff' : 'rgba(237,233,255,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 0.1s, color 0.1s',
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = 'rgba(237,233,255,0.08)';
+            e.currentTarget.style.color = 'rgba(237,233,255,0.85)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'rgba(237,233,255,0.5)';
+          }
+        }}
+      >
+        <MessageSquareWarning size={15} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 4px)',
+          left: 0,
+          background: '#131228',
+          border: '1px solid rgba(140,82,255,0.2)',
+          borderRadius: '8px',
+          padding: '4px',
+          zIndex: 100,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          minWidth: '130px',
+        }}>
+          {CALLOUT_TYPES.map((t) => {
+            const s = CALLOUT_STYLES[t];
+            return (
+              <button
+                key={t}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  editor.chain().focus().toggleCallout({ calloutType: t }).run();
+                  setOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'rgba(237,233,255,0.7)',
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span>{s.emoji}</span>
+                <span>{s.label}</span>
+                <span style={{
+                  marginLeft: 'auto',
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: s.borderColor,
+                }} />
+              </button>
+            );
+          })}
+          {isActive && (
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                editor.chain().focus().unsetCallout().run();
+                setOpen(false);
+              }}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '5px 10px',
+                borderRadius: '5px',
+                border: 'none',
+                background: 'transparent',
+                color: 'rgba(237,233,255,0.4)',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '11px',
+                cursor: 'pointer',
+                textAlign: 'left',
+                marginTop: '2px',
+                borderTop: '1px solid rgba(237,233,255,0.06)',
+                paddingTop: '6px',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              Remove callout
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── toggle heading dropdown ── */
+const TOGGLE_LEVELS: { level: ToggleLevel; label: string }[] = [
+  { level: 1, label: 'Toggle H1' },
+  { level: 2, label: 'Toggle H2' },
+  { level: 3, label: 'Toggle H3' },
+];
+
+function ToggleHeadingDropdown({ editor }: { editor: Editor }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isActive = editor.isActive('toggleHeading');
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        title="Insert toggle heading"
+        style={{
+          width: '30px',
+          height: '28px',
+          borderRadius: '6px',
+          border: 'none',
+          background: isActive ? 'rgba(140,82,255,0.22)' : 'transparent',
+          color: isActive ? '#a47bff' : 'rgba(237,233,255,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 0.1s, color 0.1s',
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = 'rgba(237,233,255,0.08)';
+            e.currentTarget.style.color = 'rgba(237,233,255,0.85)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'rgba(237,233,255,0.5)';
+          }
+        }}
+      >
+        <ListCollapse size={15} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 4px)',
+          left: 0,
+          background: '#131228',
+          border: '1px solid rgba(140,82,255,0.2)',
+          borderRadius: '8px',
+          padding: '4px',
+          zIndex: 100,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          minWidth: '130px',
+        }}>
+          {TOGGLE_LEVELS.map(({ level, label }) => (
+            <button
+              key={level}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                editor.chain().focus().toggleToggleHeading({ level }).run();
+                setOpen(false);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                width: '100%',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                border: 'none',
+                background: editor.isActive('toggleHeading', { level }) ? 'rgba(140,82,255,0.18)' : 'transparent',
+                color: editor.isActive('toggleHeading', { level }) ? '#a47bff' : 'rgba(237,233,255,0.7)',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '13px',
+                fontWeight: level <= 2 ? 700 : 600,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = editor.isActive('toggleHeading', { level }) ? 'rgba(140,82,255,0.18)' : 'transparent'; }}
+            >
+              <span>{label}</span>
+            </button>
+          ))}
+          {isActive && (
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                editor.chain().focus().unsetToggleHeading().run();
+                setOpen(false);
+              }}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '5px 10px',
+                borderRadius: '5px',
+                border: 'none',
+                background: 'transparent',
+                color: 'rgba(237,233,255,0.4)',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '11px',
+                cursor: 'pointer',
+                textAlign: 'left',
+                marginTop: '2px',
+                borderTop: '1px solid rgba(237,233,255,0.06)',
+                paddingTop: '6px',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              Remove toggle
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── toolbar row ── */
 const ROW_STYLE: React.CSSProperties = {
   display: 'flex',
@@ -690,6 +966,8 @@ export default function EditorToolbar({ editor, notebookId, pageId, onToggleDraw
         <ToolbarButton icon={ListOrdered} label="Ordered List" isActive={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
         <ToolbarButton icon={Quote} label="Blockquote" isActive={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
         <ToolbarButton icon={Code} label="Code Block" isActive={editor.isActive('codeBlock')} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
+        <CalloutDropdown editor={editor} />
+        <ToggleHeadingDropdown editor={editor} />
         <Sep />
         <ImageUploadButton editor={editor} notebookId={notebookId} pageId={pageId} />
         {onToggleDrawing && (

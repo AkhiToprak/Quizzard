@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     if (!section) return notFoundResponse('Section not found in this notebook');
 
     const body = await request.json();
-    const { title } = body;
+    const { title, pageType } = body;
 
     const maxOrder = await db.page.aggregate({
       where: { sectionId },
@@ -40,6 +40,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       data: {
         sectionId,
         title: title || 'Untitled',
+        pageType: pageType === 'canvas' ? 'canvas' : 'text',
         sortOrder,
       },
     });

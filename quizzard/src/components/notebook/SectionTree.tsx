@@ -5,6 +5,7 @@ import SectionItem from '@/components/notebook/SectionItem';
 export interface PageSummary {
   id: string;
   title: string;
+  pageType: string;
   updatedAt: string;
   sortOrder: number;
 }

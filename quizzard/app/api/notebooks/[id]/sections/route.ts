@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       orderBy: { sortOrder: 'asc' },
       include: {
         pages: {
-          select: { id: true, title: true, updatedAt: true, sortOrder: true },
+          select: { id: true, title: true, pageType: true, updatedAt: true, sortOrder: true },
           orderBy: { sortOrder: 'asc' },
         },
         flashcardSets: {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { Download, Copy, Check, Maximize2, Minimize2 } from 'lucide-react';
+import { Download, Copy, Check, Maximize2, Minimize2, FileText, Image } from 'lucide-react';
 
 interface MindmapRendererProps {
   title: string;
@@ -56,7 +56,7 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedType, setCopiedType] = useState<'image' | 'markdown' | null>(null);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -197,11 +197,60 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
     setLoaded(true);
   }, [markdown, title, expanded]);
 
+  const copyImage = useCallback(async () => {
+    if (!svgRef.current) return;
+    try {
+      const svgEl = svgRef.current;
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const viewBox = svgEl.getAttribute('viewBox')?.split(' ').map(Number) || [0, 0, 700, 360];
+      const w = viewBox[2] * 2; // 2x for retina quality
+      const h = viewBox[3] * 2;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+
+      // Dark background
+      ctx.fillStyle = '#0f0e1e';
+      ctx.fillRect(0, 0, w, h);
+
+      const img = new window.Image();
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, w, h);
+          URL.revokeObjectURL(url);
+          resolve();
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+
+      canvas.toBlob(async (pngBlob) => {
+        if (pngBlob) {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': pngBlob }),
+          ]);
+          setCopiedType('image');
+          setTimeout(() => setCopiedType(null), 2000);
+        }
+      }, 'image/png');
+    } catch {
+      // Fallback: copy markdown if image copy fails
+      await navigator.clipboard.writeText(markdown);
+      setCopiedType('markdown');
+      setTimeout(() => setCopiedType(null), 2000);
+    }
+  }, [markdown]);
+
   const copyMarkdown = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(markdown);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedType('markdown');
+      setTimeout(() => setCopiedType(null), 2000);
     } catch { /* silent */ }
   }, [markdown]);
 
@@ -357,14 +406,19 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
             tooltip={expanded ? 'Collapse' : 'Expand'}
           />
           <ToolbarButton
+            onClick={copyImage}
+            icon={copiedType === 'image' ? <Check size={12} /> : <Image size={12} />}
+            tooltip={copiedType === 'image' ? 'Copied image!' : 'Copy as image'}
+          />
+          <ToolbarButton
             onClick={copyMarkdown}
-            icon={copied ? <Check size={12} /> : <Copy size={12} />}
-            tooltip={copied ? 'Copied!' : 'Copy Markdown'}
+            icon={copiedType === 'markdown' ? <Check size={12} /> : <FileText size={12} />}
+            tooltip={copiedType === 'markdown' ? 'Copied!' : 'Copy markdown'}
           />
           <ToolbarButton
             onClick={downloadHtml}
             icon={<Download size={12} />}
-            tooltip="Download as interactive HTML"
+            tooltip="Download interactive HTML"
           />
         </div>
       </div>

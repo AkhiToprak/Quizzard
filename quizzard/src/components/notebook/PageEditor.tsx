@@ -23,6 +23,10 @@ import type { StrokeData } from './DrawingCanvas';
 import { ResizableImage } from './ResizableImage';
 import { FontSize } from '@/lib/tiptap-font-size';
 import { InlineHeading } from '@/lib/tiptap-inline-heading';
+import { Callout } from '@/lib/tiptap-callout';
+import CalloutView from './CalloutView';
+import { ToggleHeading } from '@/lib/tiptap-toggle-heading';
+import ToggleHeadingView from './ToggleHeadingView';
 import PageLockIndicator from './PageLockIndicator';
 
 interface PageData {
@@ -190,6 +194,16 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         Color,
         Highlight.configure({ multicolor: true }),
         InlineHeading,
+        Callout.extend({
+          addNodeView() {
+            return ReactNodeViewRenderer(CalloutView);
+          },
+        }),
+        ToggleHeading.extend({
+          addNodeView() {
+            return ReactNodeViewRenderer(ToggleHeadingView);
+          },
+        }),
         ResizableImage,
         Placeholder.configure({ placeholder: lockedByOther ? 'This page is being edited by someone else...' : 'Start writing...' }),
         Typography,
@@ -325,6 +339,12 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         .quizzard-editor .hljs-property { color: #b9c3ff; }
         .quizzard-editor .hljs-regexp { color: #ff9e64; }
         .quizzard-editor .hljs-meta { color: #ae89ff; }
+        /* ── callout blocks ── */
+        .quizzard-editor [data-callout-type] p { margin: 0 0 6px; }
+        .quizzard-editor [data-callout-type] p:last-child { margin: 0; }
+        /* ── toggle heading ── */
+        .quizzard-editor [data-toggle-level] p { margin: 0 0 6px; }
+        .quizzard-editor [data-toggle-level] p:last-child { margin: 0; }
         /* ── mark / highlight ── */
         .quizzard-editor mark { border-radius: 3px; padding: 1px 3px; }
         /* ── placeholder ── */

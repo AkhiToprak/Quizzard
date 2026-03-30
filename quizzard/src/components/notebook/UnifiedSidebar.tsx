@@ -6,12 +6,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowLeft, Plus, FolderPlus, ChevronRight, Trash2,
-  FileText, FilePlus, MessageSquare, Sparkles, Layers, HelpCircle,
+  FileText, FilePlus, MessageSquare, Sparkles, Layers, HelpCircle, Shapes,
 } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import { getSectionColor } from '@/components/notebook/SectionListItem';
 import type { SectionNode } from '@/components/notebook/SectionTree';
 import type { NotebookChatItem } from '@/components/notebook/NotebookWorkspaceContext';
+import PageTypeSelector from '@/components/notebook/PageTypeSelector';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    UnifiedSidebar — OneNote-style sidebar with Files + Chats
@@ -210,6 +211,8 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
   const [childDraft, setChildDraft] = useState('');
   const [isCreatingPage, setIsCreatingPage] = useState(false);
   const [pageDraft, setPageDraft] = useState('');
+  const [showPageTypeSelector, setShowPageTypeSelector] = useState(false);
+  const [pendingPageType, setPendingPageType] = useState<'text' | 'canvas'>('text');
   const childInputRef = useRef<HTMLInputElement>(null);
   const pageInputRef = useRef<HTMLInputElement>(null);
 
@@ -261,6 +264,12 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
   const handleAddPage = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setExpanded(true);
+    setShowPageTypeSelector(true);
+  }, []);
+
+  const handlePageTypeSelected = useCallback((type: 'text' | 'canvas') => {
+    setPendingPageType(type);
+    setShowPageTypeSelector(false);
     setIsCreatingPage(true);
   }, []);
 
@@ -270,17 +279,18 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
       const res = await fetch(`/api/notebooks/${notebookId}/sections/${section.id}/pages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, pageType: pendingPageType }),
       });
       const json = await res.json();
       setPageDraft('');
       setIsCreatingPage(false);
+      setPendingPageType('text');
       refreshSections();
       if (json.success && json.data?.id) {
         router.push(`/notebooks/${notebookId}/pages/${json.data.id}`);
       }
     } catch { setIsCreatingPage(false); setPageDraft(''); }
-  }, [notebookId, section.id, pageDraft, refreshSections, router]);
+  }, [notebookId, section.id, pageDraft, pendingPageType, refreshSections, router]);
 
   const handleDeletePage = useCallback(async (pageId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -527,6 +537,14 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
           ))}
         </>
       )}
+
+      {/* Page type selector modal */}
+      {showPageTypeSelector && (
+        <PageTypeSelector
+          onSelect={handlePageTypeSelected}
+          onCancel={() => setShowPageTypeSelector(false)}
+        />
+      )}
     </>
   );
 }
@@ -536,7 +554,7 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function PageTreeRow({ page, isActive, notebookId, accentColor, depth, onDelete }: {
-  page: { id: string; title: string };
+  page: { id: string; title: string; pageType?: string };
   isActive: boolean;
   notebookId: string;
   accentColor: string;
@@ -568,10 +586,17 @@ function PageTreeRow({ page, isActive, notebookId, accentColor, depth, onDelete 
           cursor: 'pointer',
         }}
       >
-        <FileText
-          size={12}
-          style={{ color: isActive ? accentColor : 'rgba(237,233,255,0.25)', flexShrink: 0 }}
-        />
+        {page.pageType === 'canvas' ? (
+          <Shapes
+            size={12}
+            style={{ color: isActive ? '#ffde59' : 'rgba(255,222,89,0.35)', flexShrink: 0 }}
+          />
+        ) : (
+          <FileText
+            size={12}
+            style={{ color: isActive ? accentColor : 'rgba(237,233,255,0.25)', flexShrink: 0 }}
+          />
+        )}
         <span style={{
           flex: 1, minWidth: 0,
           fontFamily: "'DM Sans', sans-serif",

@@ -267,7 +267,8 @@ model Page {
   id            String    @id @default(cuid())
   sectionId     String
   title         String    @default("Untitled")
-  content       Json?     // TipTap JSON document format
+  pageType      String    @default("text")   // "text" (TipTap editor) | "canvas" (infinite canvas)
+  content       Json?     // TipTap JSON document format (text pages) or canvas state JSON (canvas pages)
   textContent   String?   // Plain text mirror for AI context + search
   drawingData   Json?     // Array of stroke objects [{points, color, width}]
   sortOrder     Int       @default(0)
