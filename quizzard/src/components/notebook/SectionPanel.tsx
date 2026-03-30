@@ -54,13 +54,15 @@ export default function SectionPanel() {
         flexDirection: 'column',
         gap: '8px',
       }}>
-        <Image
-          src="/logo_trimmed.png"
-          alt="Quizzard"
-          width={120}
-          height={30}
-          style={{ objectFit: 'contain', objectPosition: 'left' }}
-        />
+        <Link href="/home">
+          <Image
+            src="/logo_trimmed.png"
+            alt="Quizzard"
+            width={120}
+            height={30}
+            style={{ objectFit: 'contain', objectPosition: 'left', cursor: 'pointer' }}
+          />
+        </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Link
             href="/notebooks"
