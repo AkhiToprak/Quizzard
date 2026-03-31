@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ActivityHeatmap from '@/components/features/ActivityHeatmap';
 import StreakDisplay from '@/components/features/StreakDisplay';
+import XPProgressBar from '@/components/features/XPProgressBar';
+import ExamCountdown from '@/components/features/ExamCountdown';
+import ExamForm from '@/components/features/ExamForm';
 
 interface RecentItem {
   id: string;
@@ -29,6 +32,27 @@ interface FlashcardSetItem {
   updatedAt: string;
   _count: { flashcards: number };
   notebook: { name: string; color: string | null };
+}
+
+interface XPData {
+  currentXP: number;
+  nextLevelXP: number;
+  level: number;
+  totalXP: number;
+}
+
+interface ExamItem {
+  id: string;
+  title: string;
+  examDate: string;
+  notebookId: string;
+  notebookName: string;
+  studyPlan?: { id: string };
+}
+
+interface NotebookOption {
+  id: string;
+  name: string;
 }
 
 interface StatCard {
@@ -80,12 +104,23 @@ export default function DashboardPage() {
   const [streakValue, setStreakValue] = useState<string>('—');
   const [streakIsActive, setStreakIsActive] = useState(false);
   const [freezesLeft, setFreezeesLeft] = useState(0);
+  const [xpData, setXPData] = useState<XPData | null>(null);
+  const [exams, setExams] = useState<ExamItem[]>([]);
+  const [notebooks, setNotebooks] = useState<NotebookOption[]>([]);
+  const [showExamForm, setShowExamForm] = useState(false);
+  const [generatingPlanId, setGeneratingPlanId] = useState<string | null>(null);
   const flashcardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch('/api/notebooks?folderId=all')
       .then((r) => r.json())
-      .then((res) => { const d = res?.data ?? res; if (Array.isArray(d)) setNotebookCount(d.length); })
+      .then((res) => {
+        const d = res?.data ?? res;
+        if (Array.isArray(d)) {
+          setNotebookCount(d.length);
+          setNotebooks(d.map((nb: { id: string; name: string }) => ({ id: nb.id, name: nb.name })));
+        }
+      })
       .catch(() => {});
 
     fetch('/api/dashboard')
@@ -115,7 +150,51 @@ export default function DashboardPage() {
         }
       })
       .catch(() => {});
+
+    fetch('/api/user/xp')
+      .then((r) => r.json())
+      .then((res) => {
+        const d = res?.data ?? res;
+        if (d?.level !== undefined) {
+          setXPData(d);
+        }
+      })
+      .catch(() => {});
+
+    fetchExams();
   }, []);
+
+  const fetchExams = () => {
+    fetch('/api/user/exams')
+      .then((r) => r.json())
+      .then((res) => {
+        const d = res?.data ?? res;
+        if (Array.isArray(d)) setExams(d);
+      })
+      .catch(() => {});
+  };
+
+  const handleCreateExam = async (data: { title: string; examDate: string; notebookId: string }) => {
+    const res = await fetch('/api/user/exams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      setShowExamForm(false);
+      fetchExams();
+    }
+  };
+
+  const handleGeneratePlan = async (examId: string) => {
+    setGeneratingPlanId(examId);
+    try {
+      await fetch(`/api/user/exams/${examId}/generate-plan`, { method: 'POST' });
+      fetchExams();
+    } finally {
+      setGeneratingPlanId(null);
+    }
+  };
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -365,6 +444,112 @@ export default function DashboardPage() {
           );
         })}
       </section>
+
+      {/* XP Progress */}
+      {xpData && (
+        <section
+          style={{
+            background: '#161630',
+            borderRadius: '20px',
+            padding: '24px',
+          }}
+        >
+          <XPProgressBar
+            currentXP={xpData.currentXP}
+            nextLevelXP={xpData.nextLevelXP}
+            level={xpData.level}
+            totalXP={xpData.totalXP}
+          />
+        </section>
+      )}
+
+      {/* Upcoming Exams */}
+      <section
+        style={{
+          background: '#161630',
+          borderRadius: '20px',
+          padding: '24px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '22px', color: '#ae89ff' }}
+            >
+              event
+            </span>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
+              Upcoming Exams
+            </h2>
+          </div>
+          <button
+            onClick={() => setShowExamForm(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              background: 'rgba(174,137,255,0.12)',
+              border: '1px solid rgba(174,137,255,0.2)',
+              borderRadius: '10px',
+              color: '#ae89ff',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.2)';
+              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.12)';
+              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+            Add Exam
+          </button>
+        </div>
+
+        {exams.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '32px 0', color: '#aaa8c8' }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '40px', display: 'block', marginBottom: '12px', opacity: 0.35 }}
+            >
+              event_note
+            </span>
+            <p style={{ fontSize: '14px', margin: '0 0 4px', color: '#aaa8c8' }}>
+              No upcoming exams.
+            </p>
+            <p style={{ fontSize: '13px', margin: 0, color: '#8888a8' }}>
+              Add one to start planning your study schedule!
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {exams.slice(0, 3).map((exam) => (
+              <ExamCountdown
+                key={exam.id}
+                exam={exam}
+                onGeneratePlan={generatingPlanId === exam.id ? undefined : handleGeneratePlan}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Exam Form Modal */}
+      {showExamForm && (
+        <ExamForm
+          notebooks={notebooks}
+          onSubmit={handleCreateExam}
+          onClose={() => setShowExamForm(false)}
+        />
+      )}
 
       {/* Activity Heatmap */}
       <section>

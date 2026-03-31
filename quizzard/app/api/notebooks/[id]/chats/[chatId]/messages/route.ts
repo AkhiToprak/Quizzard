@@ -12,6 +12,8 @@ import {
 } from '@/lib/api-response';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { recordActivity } from '@/lib/activity';
+import { awardXP } from '@/lib/xp';
+import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
 import { ALL_TOOLS, extractToolUses } from '@/lib/ai-tools';
 import { extractText } from '@/lib/fileProcessing';
 import fs from 'fs/promises';
@@ -62,6 +64,10 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // Record activity (fire-and-forget)
     recordActivity(userId, 'message').catch(() => {});
+
+    // Award XP and check achievements (fire-and-forget)
+    awardXP(userId, 'message_sent').catch(console.error);
+    checkAndUnlockAchievements(userId).catch(console.error);
 
     // Per-IP request rate limit: 20 requests per minute
     const ip = getClientIp(request);

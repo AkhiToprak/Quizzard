@@ -1,4 +1,6 @@
 import { db } from '@/lib/db';
+import { awardXP } from '@/lib/xp';
+import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
 
 function toDateString(date: Date): string {
   return date.toISOString().split('T')[0];
@@ -53,7 +55,7 @@ export async function updateStreak(userId: string) {
 
   const newLongestStreak = Math.max(streak.longestStreak, newCurrentStreak);
 
-  return db.userStreak.update({
+  const updatedStreak = await db.userStreak.update({
     where: { userId },
     data: {
       currentStreak: newCurrentStreak,
@@ -63,6 +65,22 @@ export async function updateStreak(userId: string) {
       freezesUsed: newFreezesUsed,
     },
   });
+
+  // Award XP for streak milestones (fire-and-forget)
+  if (newCurrentStreak === 7) {
+    awardXP(userId, 'streak_milestone_7').catch(console.error);
+  }
+  if (newCurrentStreak === 30) {
+    awardXP(userId, 'streak_milestone_30').catch(console.error);
+  }
+  if (newCurrentStreak === 100) {
+    awardXP(userId, 'streak_milestone_100').catch(console.error);
+  }
+  if ([7, 30, 100].includes(newCurrentStreak)) {
+    checkAndUnlockAchievements(userId).catch(console.error);
+  }
+
+  return updatedStreak;
 }
 
 export async function getStreakInfo(userId: string): Promise<{

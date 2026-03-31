@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { awardXP } from '@/lib/xp';
+import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
 import {
   successResponse,
   createdResponse,
@@ -240,6 +242,10 @@ export async function POST(
         tags: { include: { tag: { select: { id: true, name: true } } } },
       },
     });
+
+    // Award XP and check achievements (fire-and-forget)
+    awardXP(userId, 'notebook_published').catch(console.error);
+    checkAndUnlockAchievements(userId).catch(console.error);
 
     return createdResponse({
       share: {

@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import TrophyShelf from '@/components/features/TrophyShelf';
 
 interface ProfileData {
   id: string;
@@ -262,6 +263,9 @@ export default function ProfilePage() {
           </div>
         ))}
       </div>
+
+      {/* Achievements Section */}
+      <TrophyShelf />
     </div>
   );
 }

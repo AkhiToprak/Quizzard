@@ -10,6 +10,8 @@ import {
   internalErrorResponse,
 } from '@/lib/api-response';
 import { recordActivity } from '@/lib/activity';
+import { awardXP } from '@/lib/xp';
+import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
 
 type Params = { params: Promise<{ id: string; pageId: string }> };
 
@@ -48,6 +50,10 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     // Record activity (fire-and-forget)
     recordActivity(userId, 'page_edit').catch(() => {});
+
+    // Award XP and check achievements (fire-and-forget)
+    awardXP(userId, 'page_edited').catch(console.error);
+    checkAndUnlockAchievements(userId).catch(console.error);
 
     const existing = await db.page.findFirst({
       where: {

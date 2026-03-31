@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import CreateChatModal from '@/components/notebook/CreateChatModal';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import ExamCountdown from '@/components/features/ExamCountdown';
+import ExamForm from '@/components/features/ExamForm';
 
 interface DocumentItem {
   id: string;
@@ -12,6 +14,15 @@ interface DocumentItem {
   fileSize: number;
   fileType: string;
   createdAt: string;
+}
+
+interface ExamItem {
+  id: string;
+  title: string;
+  examDate: string;
+  notebookId: string;
+  notebookName: string;
+  studyPlan?: { id: string };
 }
 
 interface SectionRef {
@@ -63,6 +74,8 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
   const [summaryContent, setSummaryContent] = useState('');
   const [summaryLength, setSummaryLength] = useState<'brief' | 'detailed'>('brief');
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [notebookExams, setNotebookExams] = useState<ExamItem[]>([]);
+  const [showExamForm, setShowExamForm] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,9 +85,41 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
     if (json.success) setDocuments(json.data ?? []);
   }, [id]);
 
+  const fetchExams = useCallback(() => {
+    fetch('/api/user/exams')
+      .then((r) => r.json())
+      .then((res) => {
+        const d = res?.data ?? res;
+        if (Array.isArray(d)) {
+          setNotebookExams(d.filter((e: ExamItem) => e.notebookId === id));
+        }
+      })
+      .catch(() => {});
+  }, [id]);
+
   useEffect(() => {
     fetchDocs();
-  }, [fetchDocs]);
+    fetchExams();
+  }, [fetchDocs, fetchExams]);
+
+  const handleCreateExam = async (data: { title: string; examDate: string; notebookId: string }) => {
+    const res = await fetch('/api/user/exams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      setShowExamForm(false);
+      fetchExams();
+    }
+  };
+
+  const handleGeneratePlan = async (examId: string) => {
+    try {
+      await fetch(`/api/user/exams/${examId}/generate-plan`, { method: 'POST' });
+      fetchExams();
+    } catch { /* ignore */ }
+  };
 
   // Auto-open modal when ?new=1 is in URL (e.g. from "New chat" sidebar button)
   useEffect(() => {
@@ -590,6 +635,97 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
           )}
         </div>
       </div>
+
+      {/* ── Exams section ── */}
+      <div style={{ marginTop: '32px' }}>
+        <div style={{
+          background: 'linear-gradient(170deg, #1c1c30 0%, #1c1c38 60%)',
+          borderRadius: '22px',
+          padding: '26px',
+          border: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 24px 48px rgba(0,0,0,0.2)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#e5e3ff', margin: 0, letterSpacing: '-0.02em' }}>
+                Exams
+              </h3>
+              <span style={{
+                padding: '3px 8px', background: 'rgba(174,137,255,0.1)', color: '#ae89ff',
+                fontSize: '10px', fontWeight: 900, borderRadius: '6px', letterSpacing: '0.06em',
+                border: '1px solid rgba(174,137,255,0.15)',
+              }}>
+                {String(notebookExams.length).padStart(2, '0')} EXAMS
+              </span>
+            </div>
+            <button
+              onClick={() => setShowExamForm(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                background: 'rgba(174,137,255,0.12)',
+                border: '1px solid rgba(174,137,255,0.2)',
+                borderRadius: '10px',
+                color: '#ae89ff',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.2)';
+                (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.12)';
+                (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+              Add Exam Date
+            </button>
+          </div>
+
+          {notebookExams.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '32px 0', color: '#aaa8c8' }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '36px', display: 'block', marginBottom: '10px', opacity: 0.35 }}
+              >
+                event_note
+              </span>
+              <p style={{ fontSize: '14px', margin: '0 0 4px', color: '#aaa8c8' }}>
+                No exams linked to this notebook.
+              </p>
+              <p style={{ fontSize: '12px', margin: 0, color: '#8888a8' }}>
+                Add an exam date to get a personalized study plan.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: notebookExams.length === 1 ? '1fr' : 'repeat(2, 1fr)', gap: '16px' }}>
+              {notebookExams.map((exam) => (
+                <ExamCountdown
+                  key={exam.id}
+                  exam={exam}
+                  onGeneratePlan={handleGeneratePlan}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Exam Form Modal */}
+      {showExamForm && (
+        <ExamForm
+          notebooks={notebook ? [{ id, name: notebook.name }] : []}
+          onSubmit={handleCreateExam}
+          onClose={() => setShowExamForm(false)}
+        />
+      )}
 
       {/* Create chat modal */}
       {showCreateModal && (

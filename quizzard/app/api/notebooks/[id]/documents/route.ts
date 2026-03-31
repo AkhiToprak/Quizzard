@@ -3,6 +3,8 @@ import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { saveFile } from '@/lib/storage';
 import { extractText, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/lib/fileProcessing';
+import { awardXP } from '@/lib/xp';
+import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
 import {
   successResponse,
   createdResponse,
@@ -81,6 +83,10 @@ export async function POST(request: NextRequest, { params }: Params) {
         textContent,
       },
     });
+
+    // Award XP and check achievements (fire-and-forget)
+    awardXP(userId, 'document_uploaded').catch(console.error);
+    checkAndUnlockAchievements(userId).catch(console.error);
 
     return createdResponse(document);
   } catch {
