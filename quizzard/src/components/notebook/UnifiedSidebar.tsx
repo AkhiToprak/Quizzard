@@ -7,6 +7,7 @@ import Image from 'next/image';
 import {
   ArrowLeft, Plus, FolderPlus, ChevronRight, Trash2,
   FileText, FilePlus, MessageSquare, Sparkles, Layers, HelpCircle, Shapes, Search, SlidersHorizontal, Upload, Download,
+  CalendarDays,
 } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import { getSectionColor } from '@/components/notebook/SectionListItem';
@@ -17,6 +18,7 @@ import FlashcardSetCreator from '@/components/notebook/FlashcardSetCreator';
 import FlashcardImportDialog from '@/components/notebook/FlashcardImportDialog';
 import FlashcardSetManager from '@/components/notebook/FlashcardSetManager';
 import ExportDialog from '@/components/notebook/ExportDialog';
+import StudyPlanCreator from '@/components/notebook/StudyPlanCreator';
 import { useSearch } from '@/hooks/useSearch';
 import SearchDropdown from '@/components/search/SearchDropdown';
 
@@ -373,6 +375,9 @@ export default function UnifiedSidebar() {
           </div>
           Export
         </button>
+
+        {/* ── STUDY PLANS section ──────────────────────────────── */}
+        <StudyPlanTreeSection />
 
         {/* ── CHATS section ─────────────────────────────────────── */}
         <ChatTreeSection />
@@ -949,6 +954,175 @@ function FlashcardSetTreeRow({ flashcardSet, isActive, notebookId, accentColor, 
         </span>
       </div>
     </Link>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   StudyPlanTreeSection — Study Plans area
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function StudyPlanTreeSection() {
+  const { notebookId, studyPlans, activeStudyPlanId, refreshStudyPlans } = useNotebookWorkspace();
+  const [expanded, setExpanded] = useState(true);
+  const [showCreator, setShowCreator] = useState(false);
+
+  const handleDeletePlan = useCallback(async (planId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await fetch(`/api/notebooks/${notebookId}/study-plans/${planId}`, { method: 'DELETE' });
+      refreshStudyPlans();
+    } catch { /* silent */ }
+  }, [notebookId, refreshStudyPlans]);
+
+  const formatDateRange = (start: string, end: string) => {
+    const s = new Date(start);
+    const e = new Date(end);
+    const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${fmt(s)} – ${fmt(e)}`;
+  };
+
+  return (
+    <>
+      <div style={{ paddingBottom: '4px' }}>
+        {/* Header */}
+        <div
+          onClick={() => setExpanded(v => !v)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '0 14px 6px',
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <ChevronRight
+              size={12}
+              style={{
+                color: 'rgba(196,169,255,0.5)',
+                transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                transition: 'transform 0.12s ease',
+              }}
+            />
+            <div style={{
+              width: '16px', height: '16px', borderRadius: '4px',
+              background: 'linear-gradient(135deg, rgba(140,82,255,0.4), rgba(81,112,255,0.3))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <CalendarDays size={9} style={{ color: '#c4a9ff' }} />
+            </div>
+            <span style={{
+              fontSize: '10px', fontWeight: 700,
+              color: 'rgba(196,169,255,0.55)',
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+            }}>
+              Study Plans
+            </span>
+          </div>
+
+          <button
+            onClick={e => { e.stopPropagation(); setShowCreator(true); }}
+            title="New study plan"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '18px', height: '18px', borderRadius: '4px',
+              background: 'transparent', border: 'none',
+              color: 'rgba(196,169,255,0.35)',
+              cursor: 'pointer',
+              transition: 'color 0.12s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.8)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.35)'; }}
+          >
+            <Plus size={13} />
+          </button>
+        </div>
+
+        {expanded && (
+          <>
+            {studyPlans.length === 0 && (
+              <div style={{ padding: '12px 14px', textAlign: 'center' }}>
+                <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.2)', margin: 0, lineHeight: 1.5 }}>
+                  No study plans yet.
+                </p>
+              </div>
+            )}
+
+            {studyPlans.map(plan => {
+              const isActive = plan.id === activeStudyPlanId;
+              return (
+                <Link
+                  key={plan.id}
+                  href={`/notebooks/${notebookId}/study-plan/${plan.id}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '6px 14px 6px 28px',
+                    textDecoration: 'none',
+                    background: isActive ? 'rgba(140,82,255,0.12)' : 'transparent',
+                    borderRight: isActive ? '2px solid #8c52ff' : '2px solid transparent',
+                    transition: 'background 0.12s ease',
+                  }}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(140,82,255,0.06)'; }}
+                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: '12.5px', fontWeight: 500,
+                      color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}>
+                      {plan.title}
+                    </div>
+                    <div style={{
+                      fontSize: '10px',
+                      color: 'rgba(196,169,255,0.35)',
+                      marginTop: '1px',
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}>
+                      {formatDateRange(plan.startDate, plan.endDate)} · {plan._count.phases} phase{plan._count.phases !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                  <button
+                    onClick={e => handleDeletePlan(plan.id, e)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: '18px', height: '18px', borderRadius: '4px',
+                      background: 'transparent', border: 'none',
+                      color: 'rgba(196,169,255,0.2)',
+                      cursor: 'pointer', flexShrink: 0,
+                      opacity: 0, transition: 'opacity 0.12s ease, color 0.12s ease',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(252,165,165,0.8)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.2)'; }}
+                    className="plan-delete-btn"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                </Link>
+              );
+            })}
+          </>
+        )}
+      </div>
+
+      {showCreator && (
+        <StudyPlanCreator
+          notebookId={notebookId}
+          onCreated={(planId) => {
+            setShowCreator(false);
+            refreshStudyPlans();
+            window.location.href = `/notebooks/${notebookId}/study-plan/${planId}`;
+          }}
+          onClose={() => setShowCreator(false)}
+        />
+      )}
+
+      {/* Show delete button on hover via CSS-in-JS (inline styles don't support :hover on children) */}
+      <style>{`
+        a:hover .plan-delete-btn { opacity: 1 !important; }
+      `}</style>
+    </>
   );
 }
 

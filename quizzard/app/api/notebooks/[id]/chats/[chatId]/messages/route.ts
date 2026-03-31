@@ -157,6 +157,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       'You also have access to a `create_quiz` tool. When the user asks you to create, generate, or make a quiz, test, or multiple-choice questions, use this tool. Create challenging but fair questions with 4 options each. Always provide hints and explanations for both correct and incorrect answers to help students learn.',
       '',
       'You also have access to a `create_mindmap` tool. When the user asks you to create, generate, or make a mind map, concept map, or topic overview, use this tool. Structure the content using Markdown headings (# for root, ## for main branches, ### for sub-branches, #### for details). Keep node text concise.',
+      '',
+      'You also have access to a `create_study_plan` tool. When the user asks you to create, generate, or make a study plan, study schedule, or revision plan, use this tool. Create logical phases that distribute materials across a reasonable timeframe. Only use referenceIds from the notebook inventory provided in context.',
     ];
 
     if (contextParts.length > 0) {
@@ -178,7 +180,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
 
     // ── Extract text and tool_use blocks from response ──
-    const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse } = extractToolUses(response.content);
+    const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse, studyPlan: studyPlanToolUse } = extractToolUses(response.content);
     let assistantText = extractedText;
 
     // ── If tool_use: create flashcards in DB ──
@@ -380,6 +382,83 @@ export async function POST(request: NextRequest, { params }: Params) {
             monthlyUsed: usedTokens + totalTokens,
             monthlyLimit: MONTHLY_TOKEN_LIMIT,
           },
+        });
+      }
+    }
+
+    // ── If tool_use: create study plan in DB ──
+    if (studyPlanToolUse) {
+      const { title: planTitle, description: planDesc, phases } = studyPlanToolUse.input;
+
+      if (planTitle && Array.isArray(phases) && phases.length > 0) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let cursor = new Date(today);
+
+        const phasesWithDates = phases.map((p) => {
+          const start = new Date(cursor);
+          const end = new Date(cursor);
+          end.setDate(end.getDate() + Math.max(1, p.durationDays) - 1);
+          cursor = new Date(end);
+          cursor.setDate(cursor.getDate() + 1);
+          return { ...p, startDate: start, endDate: end };
+        });
+
+        const planEndDate = phasesWithDates[phasesWithDates.length - 1].endDate;
+
+        const result = await db.$transaction(async (tx) => {
+          const userMsg = await tx.chatMessage.create({
+            data: { notebookId, userId, chatId, role: 'user', content: message.trim(), tokens: response.usage.input_tokens },
+          });
+
+          const plan = await tx.studyPlan.create({
+            data: {
+              notebookId,
+              title: planTitle,
+              description: planDesc || null,
+              startDate: today,
+              endDate: planEndDate,
+              source: 'ai',
+            },
+          });
+
+          for (let i = 0; i < phasesWithDates.length; i++) {
+            const p = phasesWithDates[i];
+            const validMaterials = (p.materials || []).filter(m => m.referenceId && m.title);
+            await tx.studyPhase.create({
+              data: {
+                planId: plan.id,
+                title: p.title,
+                description: p.description || null,
+                sortOrder: i,
+                startDate: p.startDate,
+                endDate: p.endDate,
+                status: i === 0 ? 'active' : 'upcoming',
+                materials: validMaterials.length > 0
+                  ? { create: validMaterials.map((m, j) => ({ type: m.type, referenceId: m.referenceId, title: m.title, sortOrder: j })) }
+                  : undefined,
+              },
+            });
+          }
+
+          const markerText = assistantText
+            ? `${assistantText}\n\n[study_plan:${plan.id}]`
+            : `I've created a study plan "${planTitle}" with ${phases.length} phases.\n\n[study_plan:${plan.id}]`;
+
+          const assistantMsg = await tx.chatMessage.create({
+            data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
+          });
+
+          await tx.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+
+          return { userMsg, assistantMsg, plan };
+        });
+
+        return successResponse({
+          userMessage: { id: result.userMsg.id, role: result.userMsg.role, content: result.userMsg.content, createdAt: result.userMsg.createdAt },
+          assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
+          studyPlan: { id: result.plan.id, title: result.plan.title, phaseCount: phases.length },
+          usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
         });
       }
     }

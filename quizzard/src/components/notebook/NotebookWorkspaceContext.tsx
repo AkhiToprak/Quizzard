@@ -22,6 +22,15 @@ export interface QuizSetSummary {
   createdAt: string;
 }
 
+export interface StudyPlanSummary {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  source: string;
+  _count: { phases: number };
+}
+
 export interface NotebookChatItem {
   id: string;
   title: string;
@@ -45,9 +54,12 @@ interface WorkspaceContextValue {
   activeChatId: string | null;
   activeFlashcardSetId: string | null;
   activeQuizSetId: string | null;
+  activeStudyPlanId: string | null;
   chats: NotebookChatItem[];
+  studyPlans: StudyPlanSummary[];
   refreshChats: () => void;
   refreshSections: () => void;
+  refreshStudyPlans: () => void;
 }
 
 const NotebookWorkspaceContext = createContext<WorkspaceContextValue | null>(null);
@@ -65,6 +77,7 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
   const [sections, setSections] = useState<SectionNode[]>([]);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [chats, setChats] = useState<NotebookChatItem[]>([]);
+  const [studyPlans, setStudyPlans] = useState<StudyPlanSummary[]>([]);
 
   // Derive activePageId from URL
   const activePageId = (() => {
@@ -87,6 +100,12 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
   // Derive activeQuizSetId from URL
   const activeQuizSetId = (() => {
     const match = pathname.match(/\/notebooks\/[^/]+\/quizzes\/([^/]+)/);
+    return match?.[1] ?? null;
+  })();
+
+  // Derive activeStudyPlanId from URL
+  const activeStudyPlanId = (() => {
+    const match = pathname.match(/\/notebooks\/[^/]+\/study-plan\/([^/]+)/);
     return match?.[1] ?? null;
   })();
 
@@ -122,11 +141,22 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
     } catch { /* silent */ }
   }, [notebookId]);
 
+  const fetchStudyPlans = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/notebooks/${notebookId}/study-plans`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStudyPlans(json.data as StudyPlanSummary[]);
+      }
+    } catch { /* silent */ }
+  }, [notebookId]);
+
   useEffect(() => {
     fetchNotebook();
     fetchSections();
     fetchChats();
-  }, [fetchNotebook, fetchSections, fetchChats]);
+    fetchStudyPlans();
+  }, [fetchNotebook, fetchSections, fetchChats, fetchStudyPlans]);
 
   // Derive activeSectionId from activePageId after sections load
   useEffect(() => {
@@ -151,8 +181,11 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
       notebookId, notebook, sections, flatSections,
       activeSectionId, setActiveSectionId,
       activePageId, activeChatId, activeFlashcardSetId, activeQuizSetId,
-      chats, refreshChats: fetchChats,
+      activeStudyPlanId,
+      chats, studyPlans,
+      refreshChats: fetchChats,
       refreshSections: fetchSections,
+      refreshStudyPlans: fetchStudyPlans,
     }}>
       {children}
     </NotebookWorkspaceContext.Provider>

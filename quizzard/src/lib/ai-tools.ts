@@ -24,6 +24,17 @@ export interface MindmapToolInput {
   markdown: string;
 }
 
+export interface StudyPlanToolInput {
+  title: string;
+  description: string;
+  phases: {
+    title: string;
+    description: string;
+    durationDays: number;
+    materials: { type: 'page' | 'flashcard_set' | 'quiz_set' | 'document'; referenceId: string; title: string }[];
+  }[];
+}
+
 // ── Tool definitions ──
 
 export const FLASHCARD_TOOL: Anthropic.Messages.Tool = {
@@ -135,7 +146,73 @@ export const MINDMAP_TOOL: Anthropic.Messages.Tool = {
   },
 };
 
-export const ALL_TOOLS = [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL];
+export const STUDY_PLAN_TOOL: Anthropic.Messages.Tool = {
+  name: 'create_study_plan',
+  description:
+    'Create a structured study plan with phases and materials. Use this tool when the user asks you to create, generate, or make a study plan, study schedule, or revision plan from their notebook materials. Each phase has a title, description, duration, and a list of materials to study.',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      title: {
+        type: 'string',
+        description: 'A short, descriptive title for the study plan (e.g. "Biology Midterm Prep")',
+      },
+      description: {
+        type: 'string',
+        description: 'A brief description of the study plan goals and approach',
+      },
+      phases: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              description: 'Phase title (e.g. "Week 1: Foundations")',
+            },
+            description: {
+              type: 'string',
+              description: 'What the student should focus on in this phase',
+            },
+            durationDays: {
+              type: 'number',
+              description: 'How many days this phase should last',
+            },
+            materials: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  type: {
+                    type: 'string',
+                    enum: ['page', 'flashcard_set', 'quiz_set', 'document'],
+                    description: 'The type of study material',
+                  },
+                  referenceId: {
+                    type: 'string',
+                    description: 'The exact ID of the resource from the notebook inventory',
+                  },
+                  title: {
+                    type: 'string',
+                    description: 'The title of the resource',
+                  },
+                },
+                required: ['type', 'referenceId', 'title'],
+              },
+              description: 'Materials to study in this phase',
+            },
+          },
+          required: ['title', 'description', 'durationDays', 'materials'],
+        },
+        description: 'Sequential phases of the study plan',
+        minItems: 1,
+      },
+    },
+    required: ['title', 'description', 'phases'],
+  },
+};
+
+export const ALL_TOOLS = [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL, STUDY_PLAN_TOOL];
 
 // ── Helper to extract tool uses from Anthropic response ──
 
@@ -144,6 +221,7 @@ export function extractToolUses(content: Anthropic.Messages.ContentBlock[]) {
   let flashcard: { id: string; input: FlashcardToolInput } | null = null;
   let quiz: { id: string; input: QuizToolInput } | null = null;
   let mindmap: { id: string; input: MindmapToolInput } | null = null;
+  let studyPlan: { id: string; input: StudyPlanToolInput } | null = null;
 
   for (const block of content) {
     if (block.type === 'text') {
@@ -155,9 +233,11 @@ export function extractToolUses(content: Anthropic.Messages.ContentBlock[]) {
         quiz = { id: block.id, input: block.input as QuizToolInput };
       } else if (block.name === 'create_mindmap') {
         mindmap = { id: block.id, input: block.input as MindmapToolInput };
+      } else if (block.name === 'create_study_plan') {
+        studyPlan = { id: block.id, input: block.input as StudyPlanToolInput };
       }
     }
   }
 
-  return { text, flashcard, quiz, mindmap };
+  return { text, flashcard, quiz, mindmap, studyPlan };
 }
