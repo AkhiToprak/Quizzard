@@ -39,76 +39,9 @@ Quizzard is a full-stack study platform that combines a OneNote-style notebook e
 | Monitoring | Sentry |
 | CI | GitHub Actions |
 
-## Getting Started
+## Status
 
-### Prerequisites
-
-- Node.js 20+
-- PostgreSQL database
-- [Anthropic API key](https://console.anthropic.com/) for AI features
-
-### Setup
-
-```bash
-# Clone the repo
-git clone https://github.com/your-username/Quizzard.git
-cd Quizzard/quizzard
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your database URL, API keys, etc.
-
-# Generate Prisma client and run migrations
-npx prisma generate
-npx prisma migrate dev
-
-# Start the dev server
-npm run dev
-```
-
-The app will be available at `http://localhost:3000`.
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `NEXTAUTH_SECRET` | Yes | Random secret for session encryption |
-| `NEXTAUTH_URL` | Yes | App URL (e.g. `http://localhost:3000`) |
-| `ANTHROPIC_API_KEY` | Yes | Claude API key for AI features |
-| `AZURE_CLIENT_ID` | No | Azure app ID for OneNote import |
-| `AZURE_CLIENT_SECRET` | No | Azure app secret for OneNote import |
-| `AZURE_TENANT_ID` | No | Azure tenant (use `common` for multi-tenant) |
-| `NEXT_PUBLIC_SENTRY_DSN` | No | Sentry DSN for error monitoring |
-
-### Docker
-
-```bash
-# Development
-docker compose up
-
-# Production
-docker compose -f docker-compose.prod.yml up
-```
-
-## Project Structure
-
-```
-Quizzard/
-  brand_assets/          # Logo and style guidelines
-  .github/workflows/     # CI pipeline
-  quizzard/              # Next.js application
-    app/                 # App Router pages and API routes
-      (dashboard)/       # Authenticated app pages
-      api/               # REST API endpoints
-    prisma/              # Database schema and migrations
-    src/
-      components/        # React components
-      lib/               # Utilities (AI, XP, streaks, spaced repetition, etc.)
-```
+Quizzard is currently in active development and will be available as a hosted platform soon. This repository is public for transparency — it is **not** intended for self-hosting or cloning.
 
 ## License
 
