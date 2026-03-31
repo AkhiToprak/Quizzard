@@ -229,8 +229,11 @@ function blockToNode(tagName: string, inner: string): TipTapNode | null {
     case 'hr':
       return { type: 'horizontalRule' };
 
+    case 'table':
+      return parseHtmlTable(inner);
+
     default: {
-      // div, table, etc. — fall back to paragraph with text
+      // div, etc. — fall back to paragraph with text
       const content = parseInlineContent(inner);
       if (content.length === 0) return null;
       return { type: 'paragraph', content };
@@ -451,4 +454,115 @@ function decodeEntities(text: string): string {
     .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)))
     .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
     .replace(/&nbsp;/g, ' ');
+}
+
+/**
+ * Parse an HTML table's inner HTML into a TipTap table node.
+ */
+function parseHtmlTable(html: string): TipTapNode | null {
+  const rows: TipTapNode[] = [];
+  const trRegex = /<tr[\s>]/gi;
+  let trMatch: RegExpExecArray | null;
+
+  while ((trMatch = trRegex.exec(html)) !== null) {
+    const trClose = findMatchingClose(html, trMatch.index, 'tr');
+    const trEnd = trClose !== -1 ? trClose + '</tr>'.length : html.length;
+    const trInner = extractInner(html.slice(trMatch.index, trEnd), 'tr');
+
+    const cells: TipTapNode[] = [];
+    const cellRegex = /<(td|th)[\s>]/gi;
+    let cellMatch: RegExpExecArray | null;
+
+    while ((cellMatch = cellRegex.exec(trInner)) !== null) {
+      const cellTag = cellMatch[1].toLowerCase();
+      const cellClose = findMatchingClose(trInner, cellMatch.index, cellTag);
+      const cellEnd = cellClose !== -1 ? cellClose + `</${cellTag}>`.length : trInner.length;
+      const cellInner = extractInner(trInner.slice(cellMatch.index, cellEnd), cellTag);
+
+      const cellContent = parseInlineContent(cellInner);
+      cells.push({
+        type: cellTag === 'th' ? 'tableHeader' : 'tableCell',
+        attrs: { colspan: 1, rowspan: 1, colwidth: null },
+        content: [{ type: 'paragraph', content: cellContent.length > 0 ? cellContent : undefined }],
+      });
+
+      cellRegex.lastIndex = cellEnd;
+    }
+
+    if (cells.length > 0) {
+      rows.push({ type: 'tableRow', content: cells });
+    }
+
+    trRegex.lastIndex = trEnd;
+  }
+
+  if (rows.length === 0) return null;
+  return { type: 'table', content: rows };
+}
+
+/**
+ * Convert Excel workbook sheet data into a TipTap JSON document with tables.
+ */
+export interface SheetData {
+  name: string;
+  rows: string[][];
+}
+
+const MAX_ROWS_PER_SHEET = 500;
+
+export function xlsxToTipTapTableJSON(sheetsData: SheetData[]): TipTapDoc {
+  const content: TipTapNode[] = [];
+
+  for (const sheet of sheetsData) {
+    const rows = sheet.rows.slice(0, MAX_ROWS_PER_SHEET);
+    if (rows.length === 0) continue;
+
+    // Normalize column count — pad ragged rows
+    const maxCols = Math.max(...rows.map((r) => r.length));
+    if (maxCols === 0) continue;
+
+    // Add sheet heading if multiple sheets
+    if (sheetsData.length > 1) {
+      content.push({
+        type: 'toggleHeading',
+        attrs: { level: 2, collapsed: false, summary: sheet.name },
+        content: [{ type: 'paragraph' }],
+      });
+    }
+
+    const tableRows: TipTapNode[] = rows.map((row, rowIndex) => {
+      const cells: TipTapNode[] = [];
+      for (let c = 0; c < maxCols; c++) {
+        const cellValue = row[c] ?? '';
+        cells.push({
+          type: rowIndex === 0 ? 'tableHeader' : 'tableCell',
+          attrs: { colspan: 1, rowspan: 1, colwidth: null },
+          content: [{
+            type: 'paragraph',
+            content: cellValue ? [{ type: 'text', text: cellValue }] : undefined,
+          }],
+        });
+      }
+      return { type: 'tableRow', content: cells };
+    });
+
+    content.push({ type: 'table', content: tableRows });
+
+    // Add truncation notice
+    if (sheet.rows.length > MAX_ROWS_PER_SHEET) {
+      content.push({
+        type: 'paragraph',
+        content: [{
+          type: 'text',
+          text: `⚠ Sheet "${sheet.name}" truncated: showing ${MAX_ROWS_PER_SHEET} of ${sheet.rows.length} rows.`,
+        }],
+      });
+    }
+  }
+
+  if (content.length === 0) {
+    content.push({ type: 'paragraph' });
+  }
+
+  return { type: 'doc', content };
 }

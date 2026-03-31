@@ -1,18 +1,29 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   ChevronLeft, ChevronRight, RotateCcw, Download,
-  Pencil, Plus, Trash2, X, Check, BookPlus, ChevronDown, Loader2, BookCheck,
+  Pencil, Plus, Trash2, X, Check, BookPlus, ChevronDown, Loader2, BookCheck, Copy, ImagePlus,
 } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import SlideEditorModal, { SlideData } from './SlideEditorModal';
+
+interface FlashcardImageData {
+  id: string;
+  side: string;
+  fileName: string;
+  filePath: string;
+  mimeType: string;
+  sortOrder: number;
+}
 
 interface Flashcard {
   id: string;
   question: string;
   answer: string;
   sortOrder: number;
+  images?: FlashcardImageData[];
 }
 
 interface SectionItem {
@@ -41,6 +52,9 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const frontFileInputRef = useRef<HTMLInputElement>(null);
+  const backFileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingSide, setUploadingSide] = useState<string | null>(null);
   const { refreshSections } = useNotebookWorkspace();
 
   // Section picker state
@@ -50,8 +64,18 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(assignedSectionId ?? null);
   const [savingSection, setSavingSection] = useState(false);
   const [sectionSaved, setSectionSaved] = useState(!!assignedSectionId);
+  const [showSlideEditor, setShowSlideEditor] = useState(false);
 
   const card = cards[currentIndex];
+
+  const flashcardSlides: SlideData[] = useMemo(() => {
+    const slides: SlideData[] = [];
+    cards.forEach((c, i) => {
+      slides.push({ title: `Card ${i + 1} — Question`, content: c.question });
+      slides.push({ title: `Card ${i + 1} — Answer`, content: c.answer });
+    });
+    return slides;
+  }, [cards]);
 
   const flip = useCallback(() => setIsFlipped(v => !v), []);
   const next = useCallback(() => {
@@ -85,6 +109,19 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   }, [cards, title]);
+
+  const openSlideEditor = useCallback(() => {
+    setShowSlideEditor(true);
+  }, []);
+
+  const downloadPdf = useCallback(() => {
+    const a = document.createElement('a');
+    a.href = `/api/notebooks/${notebookId}/flashcard-sets/${setId}/export-pdf`;
+    a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}_flashcards.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, [notebookId, setId, title]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -138,28 +175,107 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
   const addCard = async () => {
     if (!newQuestion.trim() || !newAnswer.trim()) return;
     try {
-      // We'll create via a direct POST — but the API doesn't have a standalone create endpoint.
-      // For now, we'll add it optimistically and it will be part of the set.
-      // Actually we need to add a card creation endpoint or use the PATCH. Let's use a workaround:
-      // We'll call the flashcard set GET to get current state after adding via a simple approach.
-      // For MVP, let's add it client-side only and persist via individual PATCH calls.
-      // Better: let's create a minimal inline creation by using the set's API.
-
-      // Actually the cleanest approach: just reload the set after creation.
-      // But we don't have a create-card endpoint. Let me add the card optimistically for now.
-      const tempId = `temp-${Date.now()}`;
-      const newCard: Flashcard = {
-        id: tempId,
-        question: newQuestion.trim(),
-        answer: newAnswer.trim(),
-        sortOrder: cards.length,
-      };
-      setCards(prev => [...prev, newCard]);
+      const res = await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}/flashcards`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: newQuestion.trim(), answer: newAnswer.trim() }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        console.error('Failed to create flashcard:', json.message);
+        alert(json.message || 'Failed to create flashcard');
+        return;
+      }
+      const createdCard: Flashcard = json.data;
+      setCards(prev => [...prev, createdCard]);
       setCurrentIndex(cards.length); // Navigate to the new card
       setIsFlipped(false);
       setIsAdding(false);
       setNewQuestion('');
       setNewAnswer('');
+    } catch (err) {
+      console.error('Error creating flashcard:', err);
+      alert('Failed to create flashcard. Please try again.');
+    }
+  };
+
+  // ── Duplicate card ──
+  const duplicateCard = async () => {
+    const cardToDuplicate = cards[currentIndex];
+    if (!cardToDuplicate) return;
+    try {
+      const res = await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}/flashcards`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: cardToDuplicate.question, answer: cardToDuplicate.answer }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        console.error('Failed to duplicate flashcard:', json.message);
+        return;
+      }
+      const duplicated: Flashcard = json.data;
+      const newCards = [...cards];
+      newCards.splice(currentIndex + 1, 0, duplicated);
+      setCards(newCards);
+      setCurrentIndex(currentIndex + 1);
+      setIsFlipped(false);
+    } catch (err) {
+      console.error('Error duplicating flashcard:', err);
+    }
+  };
+
+  // ── Image upload ──
+  const uploadImage = async (file: File, side: 'front' | 'back', cardId: string) => {
+    setUploadingSide(side);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('side', side);
+      const res = await fetch(
+        `/api/notebooks/${notebookId}/flashcard-sets/${setId}/flashcards/${cardId}/images`,
+        { method: 'POST', body: formData }
+      );
+      const json = await res.json();
+      if (json.success) {
+        const newImage: FlashcardImageData = {
+          id: json.data.id,
+          side: json.data.side,
+          fileName: json.data.fileName,
+          filePath: '',
+          mimeType: json.data.mimeType,
+          sortOrder: json.data.sortOrder,
+        };
+        setCards(prev => prev.map(c =>
+          c.id === cardId ? { ...c, images: [...(c.images || []), newImage] } : c
+        ));
+      }
+    } catch { /* silent */ }
+    setUploadingSide(null);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back') => {
+    const file = e.target.files?.[0];
+    if (file && card) {
+      uploadImage(file, side, card.id);
+    }
+    e.target.value = '';
+  };
+
+  const deleteImage = async (cardId: string, imageId: string) => {
+    try {
+      const res = await fetch(
+        `/api/notebooks/${notebookId}/flashcard-sets/${setId}/flashcards/${cardId}/images/${imageId}`,
+        { method: 'DELETE' }
+      );
+      const json = await res.json();
+      if (json.success) {
+        setCards(prev => prev.map(c =>
+          c.id === cardId
+            ? { ...c, images: (c.images || []).filter(img => img.id !== imageId) }
+            : c
+        ));
+      }
     } catch { /* silent */ }
   };
 
@@ -293,6 +409,97 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
                 outline: 'none',
               }}
             />
+            {/* Image management */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {(['front', 'back'] as const).map(side => (
+                <div key={side}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    marginBottom: '4px',
+                  }}>
+                    <label style={{
+                      fontSize: '11px', color: 'rgba(237,233,255,0.4)',
+                      textTransform: 'uppercase', letterSpacing: '0.08em',
+                    }}>
+                      {side} images
+                    </label>
+                    <button
+                      onClick={() => side === 'front' ? frontFileInputRef.current?.click() : backFileInputRef.current?.click()}
+                      disabled={uploadingSide === side}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '4px',
+                        padding: '3px 8px', borderRadius: '6px',
+                        border: '1px solid rgba(140,82,255,0.2)',
+                        background: 'rgba(140,82,255,0.08)',
+                        color: 'rgba(237,233,255,0.5)',
+                        fontSize: '11px', cursor: 'pointer',
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                    >
+                      {uploadingSide === side ? <Loader2 size={10} className="animate-spin" /> : <ImagePlus size={10} />}
+                      Add
+                    </button>
+                  </div>
+                  {card?.images?.filter(img => img.side === side).length ? (
+                    <div style={{
+                      display: 'flex', flexWrap: 'wrap', gap: '6px',
+                    }}>
+                      {card.images.filter(img => img.side === side).map(img => (
+                        <div key={img.id} style={{ position: 'relative' }}>
+                          <img
+                            src={`/api/uploads/flashcard-images/${img.id}`}
+                            alt={img.fileName}
+                            style={{
+                              width: '56px', height: '56px',
+                              borderRadius: '6px', objectFit: 'cover',
+                              border: '1px solid rgba(140,82,255,0.15)',
+                            }}
+                          />
+                          <button
+                            onClick={() => deleteImage(card.id, img.id)}
+                            style={{
+                              position: 'absolute', top: '-4px', right: '-4px',
+                              width: '16px', height: '16px',
+                              borderRadius: '50%',
+                              border: 'none',
+                              background: '#ef4444',
+                              color: '#fff',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', padding: 0,
+                              fontSize: '10px',
+                            }}
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{
+                      fontSize: '11px', color: 'rgba(237,233,255,0.2)',
+                      padding: '4px 0',
+                    }}>
+                      No images
+                    </div>
+                  )}
+                </div>
+              ))}
+              <input
+                ref={frontFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/gif,image/webp"
+                style={{ display: 'none' }}
+                onChange={e => handleFileSelect(e, 'front')}
+              />
+              <input
+                ref={backFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/gif,image/webp"
+                style={{ display: 'none' }}
+                onChange={e => handleFileSelect(e, 'back')}
+              />
+            </div>
+
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setEditingId(null)}
@@ -354,6 +561,25 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
               }}>
                 {card && <MarkdownRenderer content={card.question} />}
               </div>
+              {card?.images?.filter(img => img.side === 'front').length ? (
+                <div style={{
+                  display: 'flex', flexWrap: 'wrap', gap: '8px',
+                  justifyContent: 'center', marginTop: '12px', maxWidth: '100%',
+                }}>
+                  {card.images.filter(img => img.side === 'front').map(img => (
+                    <img
+                      key={img.id}
+                      src={`/api/uploads/flashcard-images/${img.id}`}
+                      alt={img.fileName}
+                      style={{
+                        maxWidth: '100%', maxHeight: '150px',
+                        borderRadius: '8px', objectFit: 'contain',
+                        border: '1px solid rgba(140,82,255,0.15)',
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : null}
               <div style={{
                 position: 'absolute', bottom: '20px',
                 fontSize: '11px', color: 'rgba(196,169,255,0.3)',
@@ -384,6 +610,25 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
               }}>
                 {card && <MarkdownRenderer content={card.answer} />}
               </div>
+              {card?.images?.filter(img => img.side === 'back').length ? (
+                <div style={{
+                  display: 'flex', flexWrap: 'wrap', gap: '8px',
+                  justifyContent: 'center', marginTop: '12px', maxWidth: '100%',
+                }}>
+                  {card.images.filter(img => img.side === 'back').map(img => (
+                    <img
+                      key={img.id}
+                      src={`/api/uploads/flashcard-images/${img.id}`}
+                      alt={img.fileName}
+                      style={{
+                        maxWidth: '100%', maxHeight: '150px',
+                        borderRadius: '8px', objectFit: 'contain',
+                        border: '1px solid rgba(81,112,255,0.15)',
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
         )}
@@ -410,7 +655,10 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
         {card && editingId !== card.id && (
           <SmallButton onClick={() => startEdit(card)} icon={<Pencil size={12} />} label="Edit" />
         )}
+        <SmallButton onClick={() => duplicateCard()} icon={<Copy size={12} />} label="Duplicate" />
         <SmallButton onClick={downloadCSV} icon={<Download size={12} />} label="CSV" />
+        <SmallButton onClick={openSlideEditor} icon={<Download size={12} />} label="PPTX" />
+        <SmallButton onClick={downloadPdf} icon={<Download size={12} />} label="PDF" />
         <SmallButton onClick={() => setIsAdding(true)} icon={<Plus size={12} />} label="Add" />
         {sectionSaved ? (
           <SmallButton onClick={openSectionPicker} icon={<BookCheck size={12} />} label="In Notebook" />
@@ -569,6 +817,16 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
             </button>
           </div>
         </div>
+      )}
+
+      {/* Slide editor modal */}
+      {showSlideEditor && (
+        <SlideEditorModal
+          initialSlides={flashcardSlides}
+          presentationTitle={title}
+          onExport={() => setShowSlideEditor(false)}
+          onClose={() => setShowSlideEditor(false)}
+        />
       )}
     </div>
   );

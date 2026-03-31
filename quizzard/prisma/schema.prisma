@@ -180,18 +180,19 @@ model ChatMessage {
 // ============================================================================
 
 model FlashcardSet {
-  id         String       @id @default(cuid())
+  id         String        @id @default(cuid())
   notebookId String
-  chatId     String
-  messageId  String       // assistant message that created this set
+  chatId     String?
+  messageId  String?       // assistant message that created this set
   title      String
-  sectionId  String?      // optional: link to a notebook section for publishing
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  source     String        @default("ai") // "ai" | "manual" | "import" | "quizlet" | "anki"
+  sectionId  String?       // optional: link to a notebook section for publishing
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 
-  notebook   Notebook     @relation(fields: [notebookId], references: [id], onDelete: Cascade)
-  chat       NotebookChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  section    Section?     @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  notebook   Notebook      @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  chat       NotebookChat? @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  section    Section?      @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   flashcards Flashcard[]
 
   @@index([notebookId])
@@ -201,18 +202,36 @@ model FlashcardSet {
 }
 
 model Flashcard {
-  id             String       @id @default(cuid())
+  id             String           @id @default(cuid())
   flashcardSetId String
   question       String
-  answer         String       @db.Text
-  sortOrder      Int          @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  answer         String           @db.Text
+  sortOrder      Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
-  flashcardSet   FlashcardSet @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
+  flashcardSet   FlashcardSet     @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
+  images         FlashcardImage[]
 
   @@index([flashcardSetId])
   @@map("flashcards")
+}
+
+model FlashcardImage {
+  id          String    @id @default(cuid())
+  flashcardId String
+  side        String    // "front" | "back"
+  fileName    String
+  filePath    String
+  fileSize    Int
+  mimeType    String
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  flashcard   Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+
+  @@index([flashcardId])
+  @@map("flashcard_images")
 }
 
 // ============================================================================
@@ -222,15 +241,15 @@ model Flashcard {
 model QuizSet {
   id         String         @id @default(cuid())
   notebookId String
-  chatId     String
-  messageId  String         // assistant message that created this set
+  chatId     String?
+  messageId  String?        // assistant message that created this set
   title      String
   sectionId  String?        // optional: link to a notebook section
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
   notebook   Notebook       @relation(fields: [notebookId], references: [id], onDelete: Cascade)
-  chat       NotebookChat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chat       NotebookChat?  @relation(fields: [chatId], references: [id], onDelete: Cascade)
   section    Section?       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   questions  QuizQuestion[]
 

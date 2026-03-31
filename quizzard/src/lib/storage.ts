@@ -1,5 +1,7 @@
 import fs from 'fs/promises';
-import path from 'path';
+import path, { resolve } from 'path';
+
+const UPLOADS_ROOT = resolve(process.cwd(), 'uploads');
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -36,8 +38,12 @@ export async function saveImage(
 }
 
 export async function deleteFile(filePath: string): Promise<void> {
+  const resolvedPath = resolve(filePath);
+  if (!resolvedPath.startsWith(UPLOADS_ROOT)) {
+    throw new Error('Path traversal attempt detected');
+  }
   try {
-    await fs.unlink(filePath);
+    await fs.unlink(resolvedPath);
   } catch (err: unknown) {
     // Ignore "file not found" errors
     if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
@@ -46,11 +52,30 @@ export async function deleteFile(filePath: string): Promise<void> {
 
 /** Recursively delete a directory and all its contents (e.g. uploads/images/{pageId}) */
 export async function deleteDirectory(dirPath: string): Promise<void> {
+  const resolvedPath = resolve(dirPath);
+  if (!resolvedPath.startsWith(UPLOADS_ROOT)) {
+    throw new Error('Path traversal attempt detected');
+  }
   try {
-    await fs.rm(dirPath, { recursive: true, force: true });
+    await fs.rm(resolvedPath, { recursive: true, force: true });
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
   }
+}
+
+export async function saveFlashcardImage(
+  cardId: string,
+  filename: string,
+  buffer: Buffer
+): Promise<{ filePath: string }> {
+  const dir = path.join(process.cwd(), 'uploads', 'flashcard-images', cardId);
+  await fs.mkdir(dir, { recursive: true });
+
+  const safeName = `${Date.now()}-${sanitizeFilename(filename)}`;
+  const filePath = path.join(dir, safeName);
+  await fs.writeFile(filePath, buffer);
+
+  return { filePath };
 }
 
 /** Delete all uploaded files for a notebook (documents + page images) */

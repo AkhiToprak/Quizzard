@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   ChevronLeft, ChevronRight, RotateCcw, Download,
   Pencil, Plus, Trash2, X, Check, BookPlus, ChevronDown, Loader2, BookCheck,
@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import SlideEditorModal, { SlideData } from './SlideEditorModal';
 
 interface QuizQuestion {
   id: string;
@@ -60,8 +61,18 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(assignedSectionId ?? null);
   const [savingSection, setSavingSection] = useState(false);
   const [sectionSaved, setSectionSaved] = useState(!!assignedSectionId);
+  const [showSlideEditor, setShowSlideEditor] = useState(false);
 
   const question = questions[currentIndex];
+
+  const quizSlides: SlideData[] = useMemo(() => {
+    const LABELS = ['A', 'B', 'C', 'D'];
+    return questions.map((q, i) => ({
+      title: `Question ${i + 1}`,
+      content: `${q.question}\n\n${q.options.map((o, j) => `${LABELS[j]}. ${o}`).join('\n')}`,
+      notes: `Answer: ${LABELS[q.correctIndex]}. ${q.options[q.correctIndex]}`,
+    }));
+  }, [questions]);
   const currentAnswer = answers.get(currentIndex);
   const isAnswered = currentAnswer !== undefined;
   const isCorrect = isAnswered && currentAnswer === question?.correctIndex;
@@ -146,6 +157,19 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   }, [questions, title]);
+
+  const openSlideEditor = useCallback(() => {
+    setShowSlideEditor(true);
+  }, []);
+
+  const downloadPdf = useCallback(() => {
+    const a = document.createElement('a');
+    a.href = `/api/notebooks/${notebookId}/quiz-sets/${setId}/export-pdf`;
+    a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}_quiz.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, [notebookId, setId, title]);
 
   // ── Edit question ──
   const startEdit = (q: QuizQuestion) => {
@@ -326,6 +350,8 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
           <ActionButton onClick={reset} label="Retake Quiz" primary />
           <ActionButton onClick={startReview} label="Review Answers" />
           <ActionButton onClick={downloadJSON} label="Download JSON" />
+          <ActionButton onClick={openSlideEditor} label="Download PPTX" />
+          <ActionButton onClick={downloadPdf} label="Download PDF" />
         </div>
       </div>
     );
@@ -644,6 +670,8 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
           <SmallButton onClick={() => startEdit(question)} icon={<Pencil size={12} />} label="Edit" />
         )}
         <SmallButton onClick={downloadJSON} icon={<Download size={12} />} label="JSON" />
+        <SmallButton onClick={openSlideEditor} icon={<Download size={12} />} label="PPTX" />
+        <SmallButton onClick={downloadPdf} icon={<Download size={12} />} label="PDF" />
         {sectionSaved ? (
           <SmallButton onClick={openSectionPicker} icon={<BookCheck size={12} />} label="In Notebook" />
         ) : (
@@ -728,6 +756,16 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
             </div>
           </div>
         </div>
+      )}
+
+      {/* Slide editor modal */}
+      {showSlideEditor && (
+        <SlideEditorModal
+          initialSlides={quizSlides}
+          presentationTitle={title}
+          onExport={() => setShowSlideEditor(false)}
+          onClose={() => setShowSlideEditor(false)}
+        />
       )}
     </div>
   );

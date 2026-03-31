@@ -10,6 +10,7 @@ import {
 } from '@/lib/api-response';
 import { extractText, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/lib/fileProcessing';
 import { textToTipTapJSON, htmlToTipTapJSON } from '@/lib/contentConverter';
+import { saveImage } from '@/lib/storage';
 import mammoth from 'mammoth';
 
 type Params = { params: Promise<{ id: string; sectionId: string }> };
@@ -96,6 +97,30 @@ export async function POST(request: NextRequest, { params }: Params) {
         sourceDocId: null,
       },
     });
+
+    // Extract and save embedded images from PDF files
+    if (file.type === 'application/pdf') {
+      try {
+        const { extractPdfImages } = await import('@/lib/pdf-image-extractor');
+        const extractedImages = await extractPdfImages(buffer);
+
+        for (const img of extractedImages) {
+          const { filePath } = await saveImage(page.id, img.fileName, img.buffer);
+          await db.pageImage.create({
+            data: {
+              pageId: page.id,
+              fileName: img.fileName,
+              filePath,
+              fileSize: img.buffer.length,
+              mimeType: img.mimeType,
+            },
+          });
+        }
+      } catch (imageError) {
+        // Log but don't fail the import if image extraction fails
+        console.error('PDF image extraction error:', imageError);
+      }
+    }
 
     return createdResponse(page);
   } catch (error) {

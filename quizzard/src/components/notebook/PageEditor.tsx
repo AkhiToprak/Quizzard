@@ -15,6 +15,10 @@ import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import Placeholder from '@tiptap/extension-placeholder';
 import Typography from '@tiptap/extension-typography';
+import { Table } from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
 import FontFamily from '@tiptap/extension-font-family';
 import { Loader } from 'lucide-react';
 import EditorToolbar from './EditorToolbar';
@@ -261,6 +265,10 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         ResizableImage,
         Placeholder.configure({ placeholder: lockedByOther ? 'This page is being edited by someone else...' : 'Start writing...' }),
         Typography,
+        Table.configure({ resizable: true, handleWidth: 5, cellMinWidth: 80 }),
+        TableRow,
+        TableCell,
+        TableHeader,
       ],
       content: page?.content ? migrateHeadingsToToggle(page.content) : '',
       editorProps: {
@@ -444,6 +452,15 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
           float: left;
           height: 0;
         }
+        /* ── tables ── */
+        .quizzard-editor table { border-collapse: collapse; width: 100%; table-layout: fixed; margin: 14px 0; overflow: hidden; }
+        .quizzard-editor td, .quizzard-editor th { border: 1px solid rgba(140,82,255,0.18); padding: 8px 12px; vertical-align: top; position: relative; }
+        .quizzard-editor th { background: rgba(140,82,255,0.10); font-weight: 600; color: #c4b5fd; }
+        .quizzard-editor td { background: rgba(140,82,255,0.03); }
+        .quizzard-editor .selectedCell:after { content: ''; position: absolute; inset: 0; background: rgba(140,82,255,0.12); pointer-events: none; z-index: 2; }
+        .quizzard-editor .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: rgba(140,82,255,0.4); cursor: col-resize; z-index: 10; }
+        .quizzard-editor .resize-cursor { cursor: col-resize; }
+        .quizzard-editor td p, .quizzard-editor th p { margin: 0; }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>
 

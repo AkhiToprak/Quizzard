@@ -29,6 +29,11 @@ export async function GET(request: NextRequest, { params }: Params) {
       include: {
         flashcards: {
           orderBy: { sortOrder: 'asc' },
+          include: {
+            images: {
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
         },
       },
     });

@@ -10,12 +10,15 @@ interface FileImportDialogProps {
   onClose: () => void;
 }
 
-const ACCEPTED_EXTENSIONS = '.pdf,.docx,.txt,.md';
+const ACCEPTED_EXTENSIONS = '.pdf,.docx,.txt,.md,.pptx,.xlsx,.xls';
 const ACCEPTED_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'text/plain',
   'text/markdown',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel',
 ];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -37,7 +40,7 @@ export default function FileImportDialog({
     async (file: File) => {
       // Client-side validation
       if (!ACCEPTED_TYPES.includes(file.type)) {
-        setErrorMessage('Unsupported file type. Please use PDF, DOCX, TXT, or MD.');
+        setErrorMessage('Unsupported file type. Please use PDF, DOCX, PPTX, XLSX, TXT, or MD.');
         setUploadState('error');
         return;
       }
@@ -55,8 +58,12 @@ export default function FileImportDialog({
         const formData = new FormData();
         formData.append('file', file);
 
+        const isPptx = file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+        const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          || file.type === 'application/vnd.ms-excel';
+        const importPath = isPptx ? 'import-pptx' : isExcel ? 'import-xlsx' : 'import';
         const res = await fetch(
-          `/api/notebooks/${notebookId}/sections/${sectionId}/import`,
+          `/api/notebooks/${notebookId}/sections/${sectionId}/${importPath}`,
           { method: 'POST', body: formData }
         );
 
@@ -268,7 +275,7 @@ export default function FileImportDialog({
                     color: 'rgba(237,233,255,0.4)',
                   }}
                 >
-                  PDF, DOCX, TXT, MD — max 10MB
+                  PDF, DOCX, PPTX, XLSX, TXT, MD — max 10MB
                 </p>
               </div>
             </>

@@ -6,13 +6,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowLeft, Plus, FolderPlus, ChevronRight, Trash2,
-  FileText, FilePlus, MessageSquare, Sparkles, Layers, HelpCircle, Shapes, Search,
+  FileText, FilePlus, MessageSquare, Sparkles, Layers, HelpCircle, Shapes, Search, SlidersHorizontal, Upload, Download,
 } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import { getSectionColor } from '@/components/notebook/SectionListItem';
 import type { SectionNode } from '@/components/notebook/SectionTree';
 import type { NotebookChatItem } from '@/components/notebook/NotebookWorkspaceContext';
 import PageTypeSelector from '@/components/notebook/PageTypeSelector';
+import FlashcardSetCreator from '@/components/notebook/FlashcardSetCreator';
+import FlashcardImportDialog from '@/components/notebook/FlashcardImportDialog';
+import FlashcardSetManager from '@/components/notebook/FlashcardSetManager';
+import ExportDialog from '@/components/notebook/ExportDialog';
 import { useSearch } from '@/hooks/useSearch';
 import SearchDropdown from '@/components/search/SearchDropdown';
 
@@ -34,6 +38,12 @@ export default function UnifiedSidebar() {
   const { query: wsSearchQuery, setQuery: setWsSearchQuery, results: wsSearchResults, isLoading: wsSearchLoading, clearResults: wsClearResults } = useSearch('workspace', notebookId);
   const [wsSearchFocused, setWsSearchFocused] = useState(false);
   const isSearchActive = wsSearchQuery.length >= 2;
+
+  // Flashcard set manager modal
+  const [showSetManager, setShowSetManager] = useState(false);
+
+  // Export dialog
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   useEffect(() => {
     if (isCreatingSection && sectionInputRef.current) sectionInputRef.current.focus();
@@ -288,6 +298,82 @@ export default function UnifiedSidebar() {
           Scholar
         </Link>
 
+        {/* ── Manage Flashcard Sets button ─────────────────────── */}
+        <button
+          onClick={() => setShowSetManager(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: '7px 14px',
+            margin: '0 6px 4px',
+            borderRadius: '8px',
+            border: 'none',
+            background: 'transparent',
+            color: 'rgba(196,169,255,0.6)',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: "'Gliker', 'DM Sans', sans-serif",
+            textAlign: 'left',
+            width: 'calc(100% - 12px)',
+            transition: 'background 0.15s ease, color 0.15s ease',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.1)';
+            (e.currentTarget as HTMLButtonElement).style.color = '#c4a9ff';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+            (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.6)';
+          }}
+        >
+          <div style={{
+            width: '20px', height: '20px', borderRadius: '5px',
+            background: 'rgba(140,82,255,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <SlidersHorizontal size={11} style={{ color: '#c4a9ff' }} />
+          </div>
+          Manage Sets
+        </button>
+
+        {/* ── Export Pages button ──────────────────────────────── */}
+        <button
+          onClick={() => setShowExportDialog(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: '7px 14px',
+            margin: '0 6px 4px',
+            borderRadius: '8px',
+            border: 'none',
+            background: 'transparent',
+            color: 'rgba(196,169,255,0.6)',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: "'Gliker', 'DM Sans', sans-serif",
+            textAlign: 'left',
+            width: 'calc(100% - 12px)',
+            transition: 'background 0.15s ease, color 0.15s ease',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.1)';
+            (e.currentTarget as HTMLButtonElement).style.color = '#c4a9ff';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+            (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.6)';
+          }}
+        >
+          <div style={{
+            width: '20px', height: '20px', borderRadius: '5px',
+            background: 'rgba(140,82,255,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <Download size={11} style={{ color: '#c4a9ff' }} />
+          </div>
+          Export
+        </button>
+
         {/* ── CHATS section ─────────────────────────────────────── */}
         <ChatTreeSection />
 
@@ -295,6 +381,24 @@ export default function UnifiedSidebar() {
         </>
         )}
       </div>
+
+      {/* Flashcard Set Manager modal */}
+      {showSetManager && (
+        <FlashcardSetManager
+          notebookId={notebookId}
+          onClose={() => setShowSetManager(false)}
+          onUpdated={() => refreshSections()}
+        />
+      )}
+
+      {/* Export Dialog modal */}
+      {showExportDialog && (
+        <ExportDialog
+          notebookId={notebookId}
+          sections={sections}
+          onClose={() => setShowExportDialog(false)}
+        />
+      )}
     </aside>
   );
 }
@@ -318,6 +422,8 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
   const [pageDraft, setPageDraft] = useState('');
   const [showPageTypeSelector, setShowPageTypeSelector] = useState(false);
   const [pendingPageType, setPendingPageType] = useState<'text' | 'canvas'>('text');
+  const [showFlashcardCreator, setShowFlashcardCreator] = useState(false);
+  const [showFlashcardImport, setShowFlashcardImport] = useState(false);
   const childInputRef = useRef<HTMLInputElement>(null);
   const pageInputRef = useRef<HTMLInputElement>(null);
 
@@ -480,6 +586,36 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)'; }}
             >
               <FilePlus size={11} />
+            </button>
+            {/* New flashcard set */}
+            <button
+              onClick={e => { e.stopPropagation(); setShowFlashcardCreator(true); }}
+              title="New flashcard set"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '20px', height: '20px', borderRadius: '4px',
+                border: 'none', background: 'transparent', cursor: 'pointer',
+                color: 'rgba(237,233,255,0.3)', padding: 0, flexShrink: 0,
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#c4a9ff'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)'; }}
+            >
+              <Layers size={11} />
+            </button>
+            {/* Import flashcards */}
+            <button
+              onClick={e => { e.stopPropagation(); setShowFlashcardImport(true); }}
+              title="Import flashcards"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '20px', height: '20px', borderRadius: '4px',
+                border: 'none', background: 'transparent', cursor: 'pointer',
+                color: 'rgba(237,233,255,0.3)', padding: 0, flexShrink: 0,
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#c4a9ff'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)'; }}
+            >
+              <Upload size={11} />
             </button>
             {/* Add subsection */}
             <button
@@ -648,6 +784,34 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
         <PageTypeSelector
           onSelect={handlePageTypeSelected}
           onCancel={() => setShowPageTypeSelector(false)}
+        />
+      )}
+
+      {/* Flashcard set creator modal */}
+      {showFlashcardCreator && (
+        <FlashcardSetCreator
+          notebookId={notebookId}
+          sectionId={section.id}
+          onCreated={(setId) => {
+            setShowFlashcardCreator(false);
+            refreshSections();
+            router.push(`/notebooks/${notebookId}/flashcards/${setId}`);
+          }}
+          onClose={() => setShowFlashcardCreator(false)}
+        />
+      )}
+
+      {/* Flashcard import modal */}
+      {showFlashcardImport && (
+        <FlashcardImportDialog
+          notebookId={notebookId}
+          sectionId={section.id}
+          onImported={(setId) => {
+            setShowFlashcardImport(false);
+            refreshSections();
+            router.push(`/notebooks/${notebookId}/flashcards/${setId}`);
+          }}
+          onClose={() => setShowFlashcardImport(false)}
         />
       )}
     </>

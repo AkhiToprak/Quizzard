@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { anthropic, AI_MODEL, MONTHLY_TOKEN_LIMIT } from '@/lib/anthropic';
@@ -12,118 +11,7 @@ import {
   internalErrorResponse,
 } from '@/lib/api-response';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
-
-/** Tool definition for structured flashcard creation */
-const FLASHCARD_TOOL: Anthropic.Messages.Tool = {
-  name: 'create_flashcards',
-  description:
-    'Create a set of study flashcards. Use this tool when the user asks you to create, generate, or make flashcards from their notes or on a topic. Each flashcard has a question on the front and an answer on the back.',
-  input_schema: {
-    type: 'object' as const,
-    properties: {
-      title: {
-        type: 'string',
-        description: 'A short, descriptive title for the flashcard set (e.g. "Cell Biology Key Terms")',
-      },
-      flashcards: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            question: {
-              type: 'string',
-              description: 'The question or prompt on the front of the card',
-            },
-            answer: {
-              type: 'string',
-              description: 'The answer on the back of the card. Can use bullet points or numbered lists for complex answers.',
-            },
-          },
-          required: ['question', 'answer'],
-        },
-        description: 'Array of flashcard objects with question and answer',
-        minItems: 1,
-      },
-    },
-    required: ['title', 'flashcards'],
-  },
-};
-
-/** Tool definition for structured quiz creation */
-const QUIZ_TOOL: Anthropic.Messages.Tool = {
-  name: 'create_quiz',
-  description:
-    'Create a multiple-choice quiz. Use this tool when the user asks you to create, generate, or make a quiz, test, or multiple-choice questions from their notes or on a topic. Each question has 4 options with one correct answer.',
-  input_schema: {
-    type: 'object' as const,
-    properties: {
-      title: {
-        type: 'string',
-        description: 'A short, descriptive title for the quiz (e.g. "Cell Biology Quiz")',
-      },
-      questions: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            question: {
-              type: 'string',
-              description: 'The question text',
-            },
-            options: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'Exactly 4 answer choices',
-              minItems: 4,
-              maxItems: 4,
-            },
-            correctIndex: {
-              type: 'number',
-              description: 'The 0-based index of the correct answer (0-3)',
-            },
-            hint: {
-              type: 'string',
-              description: 'An optional hint to help the student',
-            },
-            correctExplanation: {
-              type: 'string',
-              description: 'Explanation shown when the student answers correctly',
-            },
-            wrongExplanation: {
-              type: 'string',
-              description: 'Explanation shown when the student answers incorrectly',
-            },
-          },
-          required: ['question', 'options', 'correctIndex'],
-        },
-        description: 'Array of quiz question objects',
-        minItems: 1,
-      },
-    },
-    required: ['title', 'questions'],
-  },
-};
-
-/** Tool definition for mindmap generation */
-const MINDMAP_TOOL: Anthropic.Messages.Tool = {
-  name: 'create_mindmap',
-  description:
-    'Create an interactive mind map. Use this tool when the user asks you to create, generate, or make a mind map, concept map, or topic overview from their notes or on a topic. The mindmap is defined as Markdown with heading hierarchy (# for root, ## for branches, ### for sub-branches, etc.).',
-  input_schema: {
-    type: 'object' as const,
-    properties: {
-      title: {
-        type: 'string',
-        description: 'A short title for the mind map',
-      },
-      markdown: {
-        type: 'string',
-        description: 'The mind map content as Markdown using heading levels (# root, ## branches, ### sub-branches, #### details). Use only headings (# ## ### ####) to define the hierarchy. Keep node text concise. Example:\n# Biology\n## Cells\n### Prokaryotic\n### Eukaryotic\n## Genetics\n### DNA\n### RNA',
-      },
-    },
-    required: ['title', 'markdown'],
-  },
-};
+import { ALL_TOOLS, extractToolUses } from '@/lib/ai-tools';
 
 type Params = { params: Promise<{ id: string; chatId: string }> };
 
@@ -284,60 +172,14 @@ export async function POST(request: NextRequest, { params }: Params) {
       max_tokens: 4096,
       system: systemParts.join('\n'),
       messages: conversationMessages,
-      tools: [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL],
+      tools: ALL_TOOLS,
     });
 
     const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
 
     // ── Extract text and tool_use blocks from response ──
-    let assistantText = '';
-    let flashcardToolUse: { id: string; input: { title: string; flashcards: { question: string; answer: string }[] } } | null = null;
-    let quizToolUse: {
-      id: string;
-      input: {
-        title: string;
-        questions: {
-          question: string;
-          options: string[];
-          correctIndex: number;
-          hint?: string;
-          correctExplanation?: string;
-          wrongExplanation?: string;
-        }[];
-      };
-    } | null = null;
-    let mindmapToolUse: { id: string; input: { title: string; markdown: string } } | null = null;
-
-    for (const block of response.content) {
-      if (block.type === 'text') {
-        assistantText += block.text;
-      } else if (block.type === 'tool_use' && block.name === 'create_flashcards') {
-        flashcardToolUse = {
-          id: block.id,
-          input: block.input as { title: string; flashcards: { question: string; answer: string }[] },
-        };
-      } else if (block.type === 'tool_use' && block.name === 'create_quiz') {
-        quizToolUse = {
-          id: block.id,
-          input: block.input as {
-            title: string;
-            questions: {
-              question: string;
-              options: string[];
-              correctIndex: number;
-              hint?: string;
-              correctExplanation?: string;
-              wrongExplanation?: string;
-            }[];
-          },
-        };
-      } else if (block.type === 'tool_use' && block.name === 'create_mindmap') {
-        mindmapToolUse = {
-          id: block.id,
-          input: block.input as { title: string; markdown: string },
-        };
-      }
-    }
+    const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse } = extractToolUses(response.content);
+    let assistantText = extractedText;
 
     // ── If tool_use: create flashcards in DB ──
     let flashcardSetData: { id: string; title: string; cardCount: number } | null = null;
@@ -371,6 +213,7 @@ export async function POST(request: NextRequest, { params }: Params) {
               chatId,
               messageId: '', // placeholder, updated below
               title: setTitle,
+              source: 'ai',
               flashcards: {
                 create: flashcards.map((fc, i) => ({
                   question: fc.question,

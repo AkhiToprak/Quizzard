@@ -10,6 +10,7 @@ import {
   ChevronDown, ALargeSmall, MessageSquareWarning,
   Info, AlertTriangle, CheckCircle, Lightbulb,
   MousePointer2, Eraser, Trash2, Ruler,
+  Table2, Rows3, Columns3, PanelTop, Merge, Plus, Minus,
 } from 'lucide-react';
 
 import type { EditorMode, ActiveTool, LineStyle, RulerState } from './DrawingOverlay';
@@ -23,6 +24,7 @@ const CALLOUT_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
 import { CALLOUT_STYLES, type CalloutType } from '@/lib/tiptap-callout';
 
 import ImageUploadButton from './ImageUploadButton';
+import GenerateDropdown from './GenerateDropdown';
 
 /* ── font options ── */
 const FONT_FAMILIES = [
@@ -787,6 +789,132 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
   );
 }
 
+/* ── table grid picker ── */
+function TableGridPicker({ editor }: { editor: Editor }) {
+  const [open, setOpen] = useState(false);
+  const [hoverCell, setHoverCell] = useState<{ row: number; col: number } | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const isActive = editor.isActive('table');
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const GRID = 6;
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        title="Insert table"
+        style={{
+          width: '30px',
+          height: '28px',
+          borderRadius: '6px',
+          border: 'none',
+          background: isActive ? 'rgba(140,82,255,0.22)' : 'transparent',
+          color: isActive ? '#a47bff' : 'rgba(237,233,255,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 0.1s, color 0.1s',
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = 'rgba(237,233,255,0.08)';
+            e.currentTarget.style.color = 'rgba(237,233,255,0.85)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'rgba(237,233,255,0.5)';
+          }
+        }}
+      >
+        <Table2 size={15} />
+      </button>
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: '#131228',
+            border: '1px solid rgba(140,82,255,0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          }}
+          onMouseLeave={() => setHoverCell(null)}
+        >
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${GRID}, 20px)`, gap: '2px' }}>
+            {Array.from({ length: GRID * GRID }, (_, i) => {
+              const row = Math.floor(i / GRID) + 1;
+              const col = (i % GRID) + 1;
+              const highlighted = hoverCell ? row <= hoverCell.row && col <= hoverCell.col : false;
+              return (
+                <div
+                  key={i}
+                  onMouseEnter={() => setHoverCell({ row, col })}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    editor.chain().focus().insertTable({ rows: row, cols: col, withHeaderRow: true }).run();
+                    setOpen(false);
+                    setHoverCell(null);
+                  }}
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '3px',
+                    border: `1px solid ${highlighted ? 'rgba(140,82,255,0.5)' : 'rgba(140,82,255,0.15)'}`,
+                    background: highlighted ? 'rgba(140,82,255,0.25)' : 'rgba(140,82,255,0.04)',
+                    cursor: 'pointer',
+                    transition: 'background 0.05s, border-color 0.05s',
+                  }}
+                />
+              );
+            })}
+          </div>
+          <div style={{
+            textAlign: 'center',
+            marginTop: '4px',
+            fontSize: '11px',
+            color: 'rgba(237,233,255,0.5)',
+            fontFamily: "'DM Sans', sans-serif",
+          }}>
+            {hoverCell ? `${hoverCell.col} × ${hoverCell.row}` : 'Select size'}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── table context buttons ── */
+function TableContextButtons({ editor }: { editor: Editor }) {
+  if (!editor.isActive('table')) return null;
+
+  return (
+    <>
+      <Sep />
+      <ToolbarButton icon={PanelTop} label="Toggle header row" isActive={false} onClick={() => editor.chain().focus().toggleHeaderRow().run()} />
+      <ToolbarButton icon={Rows3} label="Add row after" isActive={false} onClick={() => editor.chain().focus().addRowAfter().run()} />
+      <ToolbarButton icon={Columns3} label="Add column after" isActive={false} onClick={() => editor.chain().focus().addColumnAfter().run()} />
+      <ToolbarButton icon={Merge} label="Merge/split cells" isActive={false} onClick={() => editor.chain().focus().mergeOrSplit().run()} />
+      <ToolbarButton icon={Trash2} label="Delete table" isActive={false} onClick={() => editor.chain().focus().deleteTable().run()} />
+    </>
+  );
+}
+
 /* ── toolbar row ── */
 const ROW_STYLE: React.CSSProperties = {
   display: 'flex',
@@ -1002,9 +1130,12 @@ export default function EditorToolbar({
         <ToolbarButton icon={Quote} label="Blockquote" isActive={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
         <ToolbarButton icon={Code} label="Code Block" isActive={editor.isActive('codeBlock')} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
         <CalloutDropdown editor={editor} />
+        <TableGridPicker editor={editor} />
+        <TableContextButtons editor={editor} />
 
         <Sep />
         <ImageUploadButton editor={editor} notebookId={notebookId} pageId={pageId} />
+        <GenerateDropdown notebookId={notebookId} pageId={pageId} />
         <Sep />
         {/* Cursor / Pen mode toggle */}
         <ToolbarButton icon={MousePointer2} label="Cursor mode" isActive={editorMode === 'cursor'} onClick={() => onModeChange('cursor')} />
