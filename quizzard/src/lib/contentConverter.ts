@@ -28,6 +28,54 @@ export interface TipTapDoc {
 }
 
 /**
+ * Extract plain text from a TipTap JSON document.
+ * Recursively walks the node tree and collects all text content.
+ * Returns null if the document is empty or invalid.
+ */
+export function tiptapJsonToPlainText(doc: unknown): string | null {
+  if (!doc || typeof doc !== 'object') return null;
+  const d = doc as Record<string, unknown>;
+  if (d.type !== 'doc' || !Array.isArray(d.content)) return null;
+
+  const parts: string[] = [];
+
+  function walk(nodes: unknown[]): void {
+    for (const node of nodes) {
+      if (!node || typeof node !== 'object') continue;
+      const n = node as Record<string, unknown>;
+
+      // Text node
+      if (n.type === 'text' && typeof n.text === 'string') {
+        parts.push(n.text);
+        continue;
+      }
+
+      // toggleHeading stores visible text in attrs.summary
+      if (n.type === 'toggleHeading' && n.attrs && typeof (n.attrs as Record<string, unknown>).summary === 'string') {
+        parts.push((n.attrs as Record<string, unknown>).summary as string);
+        parts.push('\n');
+      }
+
+      // Recurse into children
+      if (Array.isArray(n.content)) {
+        walk(n.content);
+      }
+
+      // Add newline after block-level nodes
+      const blockTypes = ['paragraph', 'heading', 'toggleHeading', 'blockquote', 'listItem', 'codeBlock', 'callout', 'tableRow'];
+      if (typeof n.type === 'string' && blockTypes.includes(n.type)) {
+        parts.push('\n');
+      }
+    }
+  }
+
+  walk(d.content as unknown[]);
+
+  const result = parts.join('').replace(/\n{3,}/g, '\n\n').trim();
+  return result || null;
+}
+
+/**
  * Convert plain text to TipTap JSON document format.
  * Splits on double newlines to create paragraphs.
  */

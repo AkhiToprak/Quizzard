@@ -70,6 +70,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
+  const [contextWarning, setContextWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -132,7 +133,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       const json = await res.json();
 
       if (json.success && json.data) {
-        const { userMessage, assistantMessage, flashcardSet, quizSet, usage } = json.data;
+        const { userMessage, assistantMessage, flashcardSet, quizSet, usage, contextStatus } = json.data;
 
         // Replace temp message with real ones
         setChat(prev => {
@@ -146,6 +147,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
 
         if (usage) {
           setTokenUsage({ monthlyUsed: usage.monthlyUsed, monthlyLimit: usage.monthlyLimit });
+        }
+
+        // Show warning if some context sources couldn't be read
+        if (contextStatus && Array.isArray(contextStatus.skipped) && contextStatus.skipped.length > 0) {
+          const names = contextStatus.skipped.map((s: { name: string }) => s.name).join(', ');
+          setContextWarning(`${contextStatus.skipped.length} Quelle(n) konnten nicht gelesen werden: ${names}`);
+          setTimeout(() => setContextWarning(null), 10_000);
+        } else {
+          setContextWarning(null);
         }
 
         // Refresh sidebar chats if flashcards or quizzes were created
@@ -321,6 +331,32 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
           )}
         </button>
       </div>
+
+      {/* Context warning banner */}
+      {contextWarning && (
+        <div style={{
+          padding: '10px 28px',
+          background: 'rgba(255, 180, 50, 0.1)',
+          borderBottom: '1px solid rgba(255, 180, 50, 0.2)',
+          display: 'flex', alignItems: 'center', gap: '8px',
+          fontSize: '12px', color: 'rgba(255, 210, 120, 0.9)',
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'rgba(255, 180, 50, 0.8)' }}>
+            warning
+          </span>
+          {contextWarning}
+          <button
+            onClick={() => setContextWarning(null)}
+            style={{
+              marginLeft: 'auto', background: 'none', border: 'none',
+              color: 'rgba(255, 210, 120, 0.6)', cursor: 'pointer', padding: '2px',
+              fontFamily: 'inherit',
+            }}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Chat messages area */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '32px 28px', display: 'flex', flexDirection: 'column', gap: '16px' }}>

@@ -17,6 +17,7 @@ import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
 import { ALL_TOOLS, extractToolUses } from '@/lib/ai-tools';
 import { extractText } from '@/lib/fileProcessing';
 import { readFile } from '@/lib/storage';
+import { tiptapJsonToPlainText } from '@/lib/contentConverter';
 
 type Params = { params: Promise<{ id: string; chatId: string }> };
 
@@ -118,15 +119,29 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // ── Build context from selected pages & documents ──
     const contextParts: string[] = [];
+    const skippedSources: { type: 'page' | 'document'; name: string; reason: string }[] = [];
 
     if (chat.contextPageIds.length > 0) {
       const pages = await db.page.findMany({
         where: { id: { in: chat.contextPageIds } },
-        select: { title: true, textContent: true },
+        select: { id: true, title: true, textContent: true, content: true, pageType: true },
       });
       for (const page of pages) {
-        if (page.textContent) {
-          contextParts.push(`[Page: ${page.title}]\n${page.textContent}`);
+        let text = page.textContent;
+
+        // Fallback: extract plain text from TipTap JSON content
+        if (!text && page.content) {
+          text = tiptapJsonToPlainText(page.content);
+          if (text) {
+            // Persist so we don't re-extract next time
+            db.page.update({ where: { id: page.id }, data: { textContent: text } }).catch(() => {});
+          }
+        }
+
+        if (text) {
+          contextParts.push(`[Page: ${page.title}]\n${text}`);
+        } else {
+          skippedSources.push({ type: 'page', name: page.title, reason: page.pageType === 'canvas' ? 'canvas_page' : 'no_text' });
         }
       }
     }
@@ -158,9 +173,17 @@ export async function POST(request: NextRequest, { params }: Params) {
 
         if (text) {
           contextParts.push(`[Document: ${doc.fileName}]\n${text}`);
+        } else {
+          skippedSources.push({ type: 'document', name: doc.fileName, reason: 'extraction_failed' });
         }
       }
     }
+
+    const contextStatus = {
+      loaded: contextParts.length,
+      skipped: skippedSources,
+      total: contextParts.length + skippedSources.length,
+    };
 
     // ── Load conversation history ──
     const history = await db.chatMessage.findMany({
@@ -316,6 +339,7 @@ export async function POST(request: NextRequest, { params }: Params) {
             monthlyUsed: usedTokens + totalTokens,
             monthlyLimit: MONTHLY_TOKEN_LIMIT,
           },
+          contextStatus,
         });
       }
     }
@@ -413,6 +437,7 @@ export async function POST(request: NextRequest, { params }: Params) {
             monthlyUsed: usedTokens + totalTokens,
             monthlyLimit: MONTHLY_TOKEN_LIMIT,
           },
+          contextStatus,
         });
       }
     }
@@ -490,6 +515,7 @@ export async function POST(request: NextRequest, { params }: Params) {
           assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
           studyPlan: { id: result.plan.id, title: result.plan.title, phaseCount: phases.length },
           usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
+          contextStatus,
         });
       }
     }
@@ -550,6 +576,7 @@ export async function POST(request: NextRequest, { params }: Params) {
             monthlyUsed: usedTokens + totalTokens,
             monthlyLimit: MONTHLY_TOKEN_LIMIT,
           },
+          contextStatus,
         });
       }
     }
@@ -604,6 +631,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         monthlyUsed: usedTokens + totalTokens,
         monthlyLimit: MONTHLY_TOKEN_LIMIT,
       },
+      contextStatus,
     });
   } catch (error: unknown) {
     console.error('[AI Chat] Error:', error);
