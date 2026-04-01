@@ -194,17 +194,18 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
       const res = await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}/study-session`);
       const data = await res.json();
       const dueCards = data?.data ?? data;
-      if (Array.isArray(dueCards) && dueCards.length > 0) {
-        setStudyCards(dueCards);
-        setStudyIndex(0);
-        setStudyFlipped(false);
-        setStudyResults(null);
-        studyCorrectRef.current = 0;
-        repeatCardsRef.current = new Set();
-        setSwipeOffset(0);
-        setSwipingDirection(null);
-        setStudyMode(true);
-      }
+      const cardsToStudy: StudyFlashcard[] = (Array.isArray(dueCards) && dueCards.length > 0)
+        ? dueCards
+        : cards.map(c => ({ ...c, easeFactor: 2.5, interval: 0, repetitions: 0, nextReviewAt: null }));
+      setStudyCards(cardsToStudy);
+      setStudyIndex(0);
+      setStudyFlipped(false);
+      setStudyResults(null);
+      studyCorrectRef.current = 0;
+      repeatCardsRef.current = new Set();
+      setSwipeOffset(0);
+      setSwipingDirection(null);
+      setStudyMode(true);
     } finally {
       setLoadingStudy(false);
     }
@@ -1066,7 +1067,7 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
         <SmallButton
           onClick={startStudyMode}
           icon={loadingStudy ? <Loader2 size={12} className="animate-spin" /> : <Brain size={12} />}
-          label={dueCount !== null ? `Study (${dueCount})` : 'Study'}
+          label={dueCount !== null && dueCount > 0 ? `Study (${dueCount} due)` : 'Study'}
         />
         {card && (
           <SmallButton onClick={() => deleteCard(card.id)} icon={<Trash2 size={12} />} label="Delete Card" danger />
