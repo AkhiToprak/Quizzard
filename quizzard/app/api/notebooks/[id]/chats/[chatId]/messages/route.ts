@@ -16,7 +16,7 @@ import { awardXP } from '@/lib/xp';
 import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
 import { ALL_TOOLS, extractToolUses } from '@/lib/ai-tools';
 import { extractText } from '@/lib/fileProcessing';
-import fs from 'fs/promises';
+import { readFile } from '@/lib/storage';
 
 type Params = { params: Promise<{ id: string; chatId: string }> };
 
@@ -142,8 +142,8 @@ export async function POST(request: NextRequest, { params }: Params) {
         // Lazy re-extraction: if textContent is missing, try to extract from the stored file
         if (!text && doc.filePath) {
           try {
-            const buffer = await fs.readFile(doc.filePath);
-            text = await extractText(Buffer.from(buffer), doc.fileType);
+            const buffer = await readFile(doc.filePath);
+            text = await extractText(buffer, doc.fileType);
             if (text) {
               // Persist so we don't re-extract next time
               await db.document.update({
