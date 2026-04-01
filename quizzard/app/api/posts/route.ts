@@ -1,8 +1,7 @@
-import fs from 'fs/promises';
-import path from 'path';
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { savePublicFile } from '@/lib/storage';
 import {
   successResponse,
   createdResponse,
@@ -16,7 +15,6 @@ const MAX_IMAGES = 4;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB per image
 const MAX_POLL_OPTIONS = 4;
 const MIN_POLL_OPTIONS = 2;
-const POSTS_DIR = path.join(process.cwd(), 'public', 'uploads', 'posts');
 
 const VALID_VISIBILITIES = ['public', 'friends', 'specific'] as const;
 
@@ -164,8 +162,6 @@ export async function POST(request: NextRequest) {
     // Validate and save images
     const savedImages: { url: string; sortOrder: number }[] = [];
     if (imageFiles.length > 0) {
-      await fs.mkdir(POSTS_DIR, { recursive: true });
-
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         if (file.size > MAX_IMAGE_SIZE) {
@@ -177,8 +173,8 @@ export async function POST(request: NextRequest) {
           return badRequestResponse(`Image ${i + 1} is not a valid image (PNG, JPEG, or WebP)`);
         }
         const fileName = `${userId}-${Date.now()}-${i}.${ext}`;
-        await fs.writeFile(path.join(POSTS_DIR, fileName), buffer);
-        savedImages.push({ url: `/uploads/posts/${fileName}`, sortOrder: i });
+        const { publicUrl } = await savePublicFile('posts', fileName, buffer);
+        savedImages.push({ url: publicUrl, sortOrder: i });
       }
     }
 

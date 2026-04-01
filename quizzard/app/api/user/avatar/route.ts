@@ -1,8 +1,7 @@
-import fs from 'fs/promises';
-import path from 'path';
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { savePublicFile } from '@/lib/storage';
 import {
   successResponse,
   badRequestResponse,
@@ -11,7 +10,6 @@ import {
 } from '@/lib/api-response';
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-const AVATARS_DIR = path.join(process.cwd(), 'public', 'uploads', 'avatars');
 
 // Magic byte signatures for allowed image types
 const MAGIC_BYTES: { ext: string; bytes: number[] }[] = [
@@ -49,21 +47,15 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('Invalid file type. Allowed: PNG, JPEG, WebP');
     }
 
-    await fs.mkdir(AVATARS_DIR, { recursive: true });
-
     const fileName = `${userId}.${ext}`;
-    const filePath = path.join(AVATARS_DIR, fileName);
-
-    await fs.writeFile(filePath, buffer);
-
-    const avatarUrl = `/uploads/avatars/${fileName}`;
+    const { publicUrl } = await savePublicFile('avatars', fileName, buffer);
 
     await db.user.update({
       where: { id: userId },
-      data: { avatarUrl },
+      data: { avatarUrl: publicUrl },
     });
 
-    return successResponse({ avatarUrl });
+    return successResponse({ avatarUrl: publicUrl });
   } catch {
     return internalErrorResponse();
   }

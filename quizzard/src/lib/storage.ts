@@ -1,7 +1,4 @@
-import fs from 'fs/promises';
-import path, { resolve } from 'path';
-
-const UPLOADS_ROOT = resolve(process.cwd(), 'uploads');
+import { supabase, BUCKET_PRIVATE, BUCKET_PUBLIC } from '@/lib/supabase';
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -12,14 +9,15 @@ export async function saveFile(
   filename: string,
   buffer: Buffer
 ): Promise<{ filePath: string }> {
-  const dir = path.join(process.cwd(), 'uploads', notebookId);
-  await fs.mkdir(dir, { recursive: true });
-
   const safeName = `${Date.now()}-${sanitizeFilename(filename)}`;
-  const filePath = path.join(dir, safeName);
-  await fs.writeFile(filePath, buffer);
+  const storagePath = `documents/${notebookId}/${safeName}`;
 
-  return { filePath };
+  const { error } = await supabase.storage
+    .from(BUCKET_PRIVATE)
+    .upload(storagePath, buffer, { upsert: false });
+
+  if (error) throw new Error(`Failed to upload file: ${error.message}`);
+  return { filePath: storagePath };
 }
 
 export async function saveImage(
@@ -27,40 +25,15 @@ export async function saveImage(
   filename: string,
   buffer: Buffer
 ): Promise<{ filePath: string }> {
-  const dir = path.join(process.cwd(), 'uploads', 'images', pageId);
-  await fs.mkdir(dir, { recursive: true });
-
   const safeName = `${Date.now()}-${sanitizeFilename(filename)}`;
-  const filePath = path.join(dir, safeName);
-  await fs.writeFile(filePath, buffer);
+  const storagePath = `images/${pageId}/${safeName}`;
 
-  return { filePath };
-}
+  const { error } = await supabase.storage
+    .from(BUCKET_PRIVATE)
+    .upload(storagePath, buffer, { upsert: false });
 
-export async function deleteFile(filePath: string): Promise<void> {
-  const resolvedPath = resolve(filePath);
-  if (!resolvedPath.startsWith(UPLOADS_ROOT)) {
-    throw new Error('Path traversal attempt detected');
-  }
-  try {
-    await fs.unlink(resolvedPath);
-  } catch (err: unknown) {
-    // Ignore "file not found" errors
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
-  }
-}
-
-/** Recursively delete a directory and all its contents (e.g. uploads/images/{pageId}) */
-export async function deleteDirectory(dirPath: string): Promise<void> {
-  const resolvedPath = resolve(dirPath);
-  if (!resolvedPath.startsWith(UPLOADS_ROOT)) {
-    throw new Error('Path traversal attempt detected');
-  }
-  try {
-    await fs.rm(resolvedPath, { recursive: true, force: true });
-  } catch (err: unknown) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
-  }
+  if (error) throw new Error(`Failed to upload image: ${error.message}`);
+  return { filePath: storagePath };
 }
 
 export async function saveFlashcardImage(
@@ -68,31 +41,73 @@ export async function saveFlashcardImage(
   filename: string,
   buffer: Buffer
 ): Promise<{ filePath: string }> {
-  const dir = path.join(process.cwd(), 'uploads', 'flashcard-images', cardId);
-  await fs.mkdir(dir, { recursive: true });
-
   const safeName = `${Date.now()}-${sanitizeFilename(filename)}`;
-  const filePath = path.join(dir, safeName);
-  await fs.writeFile(filePath, buffer);
+  const storagePath = `flashcard-images/${cardId}/${safeName}`;
 
-  return { filePath };
+  const { error } = await supabase.storage
+    .from(BUCKET_PRIVATE)
+    .upload(storagePath, buffer, { upsert: false });
+
+  if (error) throw new Error(`Failed to upload flashcard image: ${error.message}`);
+  return { filePath: storagePath };
 }
 
-/** Delete all uploaded files for a notebook (documents + page images) */
-export async function deleteNotebookFiles(notebookId: string, pageIds: string[]): Promise<void> {
-  // Delete document uploads directory
-  const docDir = path.join(process.cwd(), 'uploads', notebookId);
-  await deleteDirectory(docDir);
+export async function savePublicFile(
+  folder: string,
+  filename: string,
+  buffer: Buffer
+): Promise<{ filePath: string; publicUrl: string }> {
+  const safeName = sanitizeFilename(filename);
+  const storagePath = `${folder}/${safeName}`;
 
-  // Delete image directories for each page
-  for (const pageId of pageIds) {
-    const imgDir = path.join(process.cwd(), 'uploads', 'images', pageId);
-    await deleteDirectory(imgDir);
+  const { error } = await supabase.storage
+    .from(BUCKET_PUBLIC)
+    .upload(storagePath, buffer, { upsert: true });
+
+  if (error) throw new Error(`Failed to upload public file: ${error.message}`);
+
+  const { data } = supabase.storage
+    .from(BUCKET_PUBLIC)
+    .getPublicUrl(storagePath);
+
+  return { filePath: storagePath, publicUrl: data.publicUrl };
+}
+
+export async function readFile(filePath: string): Promise<Buffer> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET_PRIVATE)
+    .download(filePath);
+
+  if (error || !data) throw new Error(`Failed to download file: ${error?.message}`);
+  return Buffer.from(await data.arrayBuffer());
+}
+
+export async function deleteFile(filePath: string): Promise<void> {
+  const { error } = await supabase.storage
+    .from(BUCKET_PRIVATE)
+    .remove([filePath]);
+
+  if (error) console.error(`Failed to delete file: ${error.message}`);
+}
+
+export async function deleteDirectory(dirPath: string): Promise<void> {
+  const { data: files } = await supabase.storage
+    .from(BUCKET_PRIVATE)
+    .list(dirPath);
+
+  if (files && files.length > 0) {
+    const paths = files.map((f) => `${dirPath}/${f.name}`);
+    await supabase.storage.from(BUCKET_PRIVATE).remove(paths);
   }
 }
 
-/** Delete all uploaded images for a page */
+export async function deleteNotebookFiles(notebookId: string, pageIds: string[]): Promise<void> {
+  await deleteDirectory(`documents/${notebookId}`);
+  for (const pageId of pageIds) {
+    await deleteDirectory(`images/${pageId}`);
+  }
+}
+
 export async function deletePageImages(pageId: string): Promise<void> {
-  const imgDir = path.join(process.cwd(), 'uploads', 'images', pageId);
-  await deleteDirectory(imgDir);
+  await deleteDirectory(`images/${pageId}`);
 }

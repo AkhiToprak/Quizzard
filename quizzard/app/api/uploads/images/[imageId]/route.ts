@@ -1,11 +1,8 @@
-import fs from 'fs/promises';
-import path from 'path';
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { readFile } from '@/lib/storage';
 import { unauthorizedResponse, notFoundResponse, internalErrorResponse } from '@/lib/api-response';
-
-const UPLOADS_DIR = path.resolve(process.cwd(), 'uploads');
 
 type Params = { params: Promise<{ imageId: string }> };
 
@@ -29,16 +26,9 @@ export async function GET(request: NextRequest, { params }: Params) {
 
     if (!image) return notFoundResponse('Image not found');
 
-    // Defense-in-depth: ensure resolved path stays within uploads directory
-    const resolvedPath = path.normalize(path.resolve(image.filePath));
-    const relative = path.relative(UPLOADS_DIR, resolvedPath);
-    if (relative.startsWith('..') || path.isAbsolute(relative)) {
-      return notFoundResponse('Image not found');
-    }
+    const buffer = await readFile(image.filePath);
 
-    const buffer = await fs.readFile(resolvedPath);
-
-    return new Response(buffer, {
+    return new Response(new Uint8Array(buffer), {
       headers: {
         'Content-Type': image.mimeType,
         'Cache-Control': 'public, max-age=31536000',
