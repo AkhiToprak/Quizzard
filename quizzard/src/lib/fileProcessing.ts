@@ -1,5 +1,18 @@
 import mammoth from 'mammoth';
 
+// Polyfill DOMMatrix, Path2D, ImageData for serverless environments (Vercel Lambda)
+// where @napi-rs/canvas native binaries are unavailable. pdfjs-dist requires these
+// globals but only uses them for rendering — text extraction works without them.
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const stub = class { constructor(..._args: any[]) {} } as any;
+  globalThis.DOMMatrix = stub;
+  globalThis.DOMPoint = globalThis.DOMPoint ?? stub;
+  globalThis.DOMRect = globalThis.DOMRect ?? stub;
+  globalThis.Path2D = globalThis.Path2D ?? stub;
+  globalThis.ImageData = globalThis.ImageData ?? stub;
+}
+
 export const ALLOWED_MIME_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
