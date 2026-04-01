@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   ChevronLeft, ChevronRight, RotateCcw, Download,
   Pencil, Plus, Trash2, X, Check, BookPlus, ChevronDown, Loader2, BookCheck, Copy, ImagePlus,
-  Brain,
+  Brain, ArrowLeft, ArrowRight,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
@@ -85,6 +85,10 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
   const [loadingStudy, setLoadingStudy] = useState(false);
   const [dueCount, setDueCount] = useState<number | null>(null);
   const studyCorrectRef = useRef(0);
+  const repeatCardsRef = useRef<Set<string>>(new Set());
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swipingDirection, setSwipingDirection] = useState<'left' | 'right' | null>(null);
+  const touchStartXRef = useRef(0);
 
   const card = cards[currentIndex];
 
@@ -158,13 +162,19 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
     const handler = (e: KeyboardEvent) => {
       // Don't capture keys when editing
       if (editingId || isAdding) return;
+      if (studyMode) {
+        if (e.code === 'Space' && !studyFlipped) { e.preventDefault(); setStudyFlipped(true); }
+        else if (e.code === 'ArrowLeft' && studyFlipped) { e.preventDefault(); rateCard(0); }
+        else if (e.code === 'ArrowRight' && studyFlipped) { e.preventDefault(); rateCard(4); }
+        return;
+      }
       if (e.code === 'Space') { e.preventDefault(); flip(); }
       else if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
       else if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [flip, prev, next, editingId, isAdding]);
+  }, [flip, prev, next, editingId, isAdding, studyMode, studyFlipped]);
 
   // ── Fetch due cards count ──
   useEffect(() => {
@@ -190,6 +200,9 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
         setStudyFlipped(false);
         setStudyResults(null);
         studyCorrectRef.current = 0;
+        repeatCardsRef.current = new Set();
+        setSwipeOffset(0);
+        setSwipingDirection(null);
         setStudyMode(true);
       }
     } finally {
@@ -205,13 +218,55 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
       body: JSON.stringify({ flashcardId: card.id, quality }),
     }).catch(() => {});
 
-    if (quality >= 3) studyCorrectRef.current++;
+    if (quality >= 3) {
+      studyCorrectRef.current++;
+    } else {
+      repeatCardsRef.current.add(card.id);
+    }
+
+    setSwipeOffset(0);
+    setSwipingDirection(null);
 
     if (studyIndex < studyCards.length - 1) {
       setStudyIndex(i => i + 1);
       setStudyFlipped(false);
     } else {
       setStudyResults({ correct: studyCorrectRef.current, total: studyCards.length });
+    }
+  };
+
+  const restartStudyWith = (cardsToStudy: StudyFlashcard[]) => {
+    setStudyCards(cardsToStudy);
+    setStudyIndex(0);
+    setStudyFlipped(false);
+    setStudyResults(null);
+    studyCorrectRef.current = 0;
+    repeatCardsRef.current = new Set();
+    setSwipeOffset(0);
+    setSwipingDirection(null);
+  };
+
+  // Swipe gesture handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!studyFlipped) return;
+    const delta = e.touches[0].clientX - touchStartXRef.current;
+    setSwipeOffset(delta);
+    setSwipingDirection(delta > 0 ? 'right' : delta < 0 ? 'left' : null);
+  };
+
+  const handleTouchEnd = () => {
+    if (!studyFlipped) { setSwipeOffset(0); setSwipingDirection(null); return; }
+    if (swipeOffset > 50) {
+      rateCard(4); // Known
+    } else if (swipeOffset < -50) {
+      rateCard(0); // Repeat
+    } else {
+      setSwipeOffset(0);
+      setSwipingDirection(null);
     }
   };
 
@@ -222,6 +277,9 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
     setStudyFlipped(false);
     setStudyResults(null);
     studyCorrectRef.current = 0;
+    repeatCardsRef.current = new Set();
+    setSwipeOffset(0);
+    setSwipingDirection(null);
     // Re-fetch due count
     fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}/study-session`)
       .then(r => r.json())
@@ -488,17 +546,57 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
                 <div style={{ fontSize: '11px', color: 'rgba(196,169,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Accuracy</div>
               </div>
             </div>
-            <button
-              onClick={exitStudyMode}
-              style={{
-                padding: '12px 32px', borderRadius: '12px',
-                background: 'linear-gradient(135deg, #8c52ff, #5170ff)',
-                border: 'none', color: '#fff', fontSize: '14px', fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              Done
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+              {repeatCardsRef.current.size > 0 && (
+                <button
+                  onClick={() => {
+                    const missed = studyCards.filter(c => repeatCardsRef.current.has(c.id));
+                    restartStudyWith(missed);
+                  }}
+                  style={{
+                    padding: '12px 24px', borderRadius: '12px',
+                    background: 'rgba(252,165,165,0.12)', border: '1px solid rgba(252,165,165,0.3)',
+                    color: '#fca5a5', fontSize: '14px', fontWeight: 600,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  }}
+                >
+                  <RotateCcw size={15} /> Repeat missed cards ({repeatCardsRef.current.size})
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  const allAsStudy: StudyFlashcard[] = cards.map(c => ({
+                    ...c,
+                    easeFactor: 2.5,
+                    interval: 0,
+                    repetitions: 0,
+                    nextReviewAt: null,
+                  }));
+                  restartStudyWith(allAsStudy);
+                }}
+                style={{
+                  padding: '12px 24px', borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #8c52ff, #5170ff)',
+                  border: 'none', color: '#fff', fontSize: '14px', fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                }}
+              >
+                <RotateCcw size={15} /> Repeat entire set
+              </button>
+              <button
+                onClick={exitStudyMode}
+                style={{
+                  padding: '12px 24px', borderRadius: '12px',
+                  background: 'transparent', border: '1px solid rgba(140,82,255,0.2)',
+                  color: 'rgba(237,233,255,0.6)', fontSize: '14px', fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       );
@@ -555,23 +653,36 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
         {studyCard && (
           <div
             onClick={() => !studyFlipped && setStudyFlipped(true)}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             style={{
               width: '100%', maxWidth: '360px', minHeight: '400px',
               borderRadius: '16px', padding: '32px 24px',
-              background: studyFlipped
+              background: swipingDirection === 'right'
+                ? 'linear-gradient(135deg, rgba(74,222,128,0.15), #1a1833)'
+                : swipingDirection === 'left'
+                ? 'linear-gradient(135deg, rgba(252,165,165,0.15), #1a1833)'
+                : studyFlipped
                 ? 'linear-gradient(135deg, #1a1040, #0f1535)'
                 : 'linear-gradient(135deg, #1a1833, #141230)',
-              border: `1px solid ${studyFlipped ? 'rgba(81,112,255,0.3)' : 'rgba(140,82,255,0.2)'}`,
+              border: `1px solid ${
+                swipingDirection === 'right' ? 'rgba(74,222,128,0.4)'
+                : swipingDirection === 'left' ? 'rgba(252,165,165,0.4)'
+                : studyFlipped ? 'rgba(81,112,255,0.3)' : 'rgba(140,82,255,0.2)'
+              }`,
               cursor: studyFlipped ? 'default' : 'pointer',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               textAlign: 'center', marginBottom: '20px',
+              transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
+              transition: swipingDirection ? 'none' : 'transform 0.3s ease',
             }}
           >
             <div style={{
               fontSize: '10px', color: 'rgba(237,233,255,0.3)', textTransform: 'uppercase',
               letterSpacing: '0.1em', marginBottom: '16px',
             }}>
-              {studyFlipped ? 'Answer' : 'Question — tap to reveal'}
+              {studyFlipped ? 'Answer — swipe or use buttons' : 'Question — tap to reveal'}
             </div>
             <div style={{
               fontSize: '16px', lineHeight: 1.6, color: '#ede9ff',
@@ -585,30 +696,38 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
         {/* Rating buttons — show only after flipping */}
         {studyFlipped && (
           <div style={{
-            display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center',
+            display: 'flex', gap: '16px', justifyContent: 'center',
           }}>
-            {[
-              { quality: 0, label: 'Again', color: '#fca5a5', bg: 'rgba(252,165,165,0.1)', border: 'rgba(252,165,165,0.25)' },
-              { quality: 3, label: 'Hard', color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)' },
-              { quality: 4, label: 'Good', color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)' },
-              { quality: 5, label: 'Easy', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)' },
-            ].map(({ quality, label, color, bg, border }) => (
-              <button
-                key={quality}
-                onClick={() => rateCard(quality)}
-                style={{
-                  padding: '10px 20px', borderRadius: '10px',
-                  background: bg, border: `1px solid ${border}`,
-                  color, fontSize: '13px', fontWeight: 600,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                  transition: 'opacity 0.15s ease',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.8'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
-              >
-                {label}
-              </button>
-            ))}
+            <button
+              onClick={() => rateCard(0)}
+              style={{
+                padding: '14px 28px', borderRadius: '12px',
+                background: 'rgba(252,165,165,0.1)', border: '1px solid rgba(252,165,165,0.25)',
+                color: '#fca5a5', fontSize: '14px', fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: '8px',
+                transition: 'opacity 0.15s ease',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.8'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
+            >
+              <ArrowLeft size={16} /> Repeat
+            </button>
+            <button
+              onClick={() => rateCard(4)}
+              style={{
+                padding: '14px 28px', borderRadius: '12px',
+                background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)',
+                color: '#4ade80', fontSize: '14px', fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: '8px',
+                transition: 'opacity 0.15s ease',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.8'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
+            >
+              Known <ArrowRight size={16} />
+            </button>
           </div>
         )}
       </div>
