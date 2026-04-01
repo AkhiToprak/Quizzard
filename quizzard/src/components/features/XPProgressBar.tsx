@@ -9,7 +9,7 @@ interface XPProgressBarProps {
   totalXP: number;
 }
 
-export default function XPProgressBar({ currentXP, nextLevelXP, level, totalXP }: XPProgressBarProps) {
+export default function XPProgressBar({ currentXP = 0, nextLevelXP = 0, level = 1, totalXP = 0 }: XPProgressBarProps) {
   const progress = nextLevelXP > 0 ? Math.min(100, Math.round((currentXP / nextLevelXP) * 100)) : 0;
   const xpNeeded = Math.max(0, nextLevelXP - currentXP);
 

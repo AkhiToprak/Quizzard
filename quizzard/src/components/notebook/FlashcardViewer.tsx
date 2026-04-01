@@ -6,6 +6,7 @@ import {
   Pencil, Plus, Trash2, X, Check, BookPlus, ChevronDown, Loader2, BookCheck, Copy, ImagePlus,
   Brain,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import SlideEditorModal, { SlideData } from './SlideEditorModal';
@@ -63,7 +64,8 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
   const frontFileInputRef = useRef<HTMLInputElement>(null);
   const backFileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingSide, setUploadingSide] = useState<string | null>(null);
-  const { refreshSections } = useNotebookWorkspace();
+  const router = useRouter();
+  const { refreshSections, refreshChats } = useNotebookWorkspace();
 
   // Section picker state
   const [showSectionPicker, setShowSectionPicker] = useState(false);
@@ -140,6 +142,16 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
     a.click();
     document.body.removeChild(a);
   }, [notebookId, setId, title]);
+
+  const deleteSet = useCallback(async () => {
+    if (!window.confirm('Delete this entire flashcard set? This cannot be undone.')) return;
+    try {
+      await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}`, { method: 'DELETE' });
+      refreshSections();
+      refreshChats();
+      router.push(`/notebooks/${notebookId}`);
+    } catch { /* silent */ }
+  }, [notebookId, setId, refreshSections, refreshChats, router]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -938,8 +950,9 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
           label={dueCount !== null ? `Study (${dueCount})` : 'Study'}
         />
         {card && (
-          <SmallButton onClick={() => deleteCard(card.id)} icon={<Trash2 size={12} />} label="Delete" danger />
+          <SmallButton onClick={() => deleteCard(card.id)} icon={<Trash2 size={12} />} label="Delete Card" danger />
         )}
+        <SmallButton onClick={deleteSet} icon={<Trash2 size={12} />} label="Delete Set" danger />
       </div>
 
       {/* Section picker modal */}

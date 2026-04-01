@@ -14,6 +14,7 @@ interface Exam {
 interface ExamCountdownProps {
   exam: Exam;
   onGeneratePlan?: (examId: string) => void;
+  onDelete?: (examId: string) => void;
 }
 
 function getDaysRemaining(examDate: string): number {
@@ -32,7 +33,7 @@ function getUrgencyColor(days: number): string {
   return '#4ade80';
 }
 
-export default function ExamCountdown({ exam, onGeneratePlan }: ExamCountdownProps) {
+export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCountdownProps) {
   const days = getDaysRemaining(exam.examDate);
   const urgencyColor = getUrgencyColor(days);
   const isPast = days < 0;
@@ -57,19 +58,51 @@ export default function ExamCountdown({ exam, onGeneratePlan }: ExamCountdownPro
         (e.currentTarget as HTMLDivElement).style.background = '#161630';
       }}
     >
-      {/* Top row: title + notebook */}
+      {/* Top row: title + notebook + delete */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <h4 style={{
-          fontSize: '15px',
-          fontWeight: 700,
-          color: '#e5e3ff',
-          margin: 0,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {exam.title}
-        </h4>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h4 style={{
+            fontSize: '15px',
+            fontWeight: 700,
+            color: '#e5e3ff',
+            margin: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: 1,
+          }}>
+            {exam.title}
+          </h4>
+          {onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`Delete exam "${exam.title}"? This cannot be undone.`)) {
+                  onDelete(exam.id);
+                }
+              }}
+              title="Delete exam"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '24px', height: '24px', borderRadius: '6px',
+                border: 'none', background: 'transparent',
+                color: 'rgba(237,233,255,0.25)', cursor: 'pointer',
+                flexShrink: 0, padding: 0,
+                transition: 'color 0.15s ease, background 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.color = '#f87171';
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(248,113,113,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.25)';
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+            </button>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span
             className="material-symbols-outlined"

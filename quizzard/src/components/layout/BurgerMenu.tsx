@@ -140,9 +140,9 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
               style={{
                 width: 64,
                 height: 64,
-                borderRadius: 18,
+                borderRadius: '50%',
                 objectFit: 'cover',
-                border: `2px solid ${COLORS.border}`,
+                border: '2px solid rgba(174,137,255,0.3)',
               }}
             />
           ) : (
@@ -150,7 +150,7 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
               style={{
                 width: 64,
                 height: 64,
-                borderRadius: 18,
+                borderRadius: '50%',
                 background: getAvatarGradient(user?.id || ''),
                 display: 'flex',
                 alignItems: 'center',
@@ -158,7 +158,7 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
                 fontSize: 24,
                 fontWeight: 700,
                 color: '#fff',
-                border: `2px solid ${COLORS.border}`,
+                border: '2px solid rgba(174,137,255,0.3)',
               }}
             >
               {(user?.username || user?.name || '?')[0].toUpperCase()}

@@ -186,6 +186,13 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDeleteExam = async (examId: string) => {
+    try {
+      const res = await fetch(`/api/user/exams/${examId}`, { method: 'DELETE' });
+      if (res.ok) fetchExams();
+    } catch { /* silent */ }
+  };
+
   const handleGeneratePlan = async (examId: string) => {
     setGeneratingPlanId(examId);
     try {
@@ -536,6 +543,7 @@ export default function DashboardPage() {
                 key={exam.id}
                 exam={exam}
                 onGeneratePlan={generatingPlanId === exam.id ? undefined : handleGeneratePlan}
+                onDelete={handleDeleteExam}
               />
             ))}
           </div>

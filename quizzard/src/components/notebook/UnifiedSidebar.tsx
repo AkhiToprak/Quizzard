@@ -569,6 +569,26 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
     } catch { /* silent */ }
   }, [notebookId, activePageId, router, refreshSections]);
 
+  const handleDeleteFlashcardSet = useCallback(async (setId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}`, { method: 'DELETE' });
+      refreshSections();
+      if (activeFlashcardSetId === setId) router.push(`/notebooks/${notebookId}`);
+    } catch { /* silent */ }
+  }, [notebookId, activeFlashcardSetId, router, refreshSections]);
+
+  const handleDeleteQuizSet = useCallback(async (setId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await fetch(`/api/notebooks/${notebookId}/quiz-sets/${setId}`, { method: 'DELETE' });
+      refreshSections();
+      if (activeQuizSetId === setId) router.push(`/notebooks/${notebookId}`);
+    } catch { /* silent */ }
+  }, [notebookId, activeQuizSetId, router, refreshSections]);
+
   const paddingLeft = 12 + depth * 14;
 
   return (
@@ -737,6 +757,7 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
                 notebookId={notebookId}
                 accentColor={color}
                 depth={depth}
+                onDelete={handleDeleteFlashcardSet}
               />
             );
           })}
@@ -752,6 +773,7 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
                 notebookId={notebookId}
                 accentColor={color}
                 depth={depth}
+                onDelete={handleDeleteQuizSet}
               />
             );
           })}
@@ -957,12 +979,13 @@ function PageTreeRow({ page, isActive, notebookId, accentColor, depth, onDelete 
    FlashcardSetTreeRow — A flashcard set nested inside a section tree
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function FlashcardSetTreeRow({ flashcardSet, isActive, notebookId, accentColor, depth }: {
+function FlashcardSetTreeRow({ flashcardSet, isActive, notebookId, accentColor, depth, onDelete }: {
   flashcardSet: { id: string; title: string };
   isActive: boolean;
   notebookId: string;
   accentColor: string;
   depth: number;
+  onDelete?: (setId: string, e: React.MouseEvent) => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const paddingLeft = 12 + depth * 14 + 18;
@@ -1003,6 +1026,23 @@ function FlashcardSetTreeRow({ flashcardSet, isActive, notebookId, accentColor, 
         }}>
           {flashcardSet.title}
         </span>
+        {hovered && onDelete && (
+          <button
+            onClick={(e) => onDelete(flashcardSet.id, e)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '18px', height: '18px', borderRadius: '4px',
+              background: 'transparent', border: 'none',
+              color: 'rgba(196,169,255,0.2)',
+              cursor: 'pointer', flexShrink: 0, padding: 0,
+              transition: 'color 0.12s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(252,165,165,0.8)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.2)'; }}
+          >
+            <Trash2 size={11} />
+          </button>
+        )}
       </div>
     </Link>
   );
@@ -1286,9 +1326,32 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
   notebookId: string;
   onDelete: (id: string, e: React.MouseEvent) => void;
 }) {
-  const { activeFlashcardSetId, activeQuizSetId } = useNotebookWorkspace();
+  const router = useRouter();
+  const { activeFlashcardSetId, activeQuizSetId, refreshSections, refreshChats } = useNotebookWorkspace();
   const [hovered, setHovered] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  const handleDeleteFlashcardSet = useCallback(async (setId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}`, { method: 'DELETE' });
+      refreshSections();
+      refreshChats();
+      if (activeFlashcardSetId === setId) router.push(`/notebooks/${notebookId}`);
+    } catch { /* silent */ }
+  }, [notebookId, activeFlashcardSetId, router, refreshSections, refreshChats]);
+
+  const handleDeleteQuizSet = useCallback(async (setId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await fetch(`/api/notebooks/${notebookId}/quiz-sets/${setId}`, { method: 'DELETE' });
+      refreshSections();
+      refreshChats();
+      if (activeQuizSetId === setId) router.push(`/notebooks/${notebookId}`);
+    } catch { /* silent */ }
+  }, [notebookId, activeQuizSetId, router, refreshSections, refreshChats]);
   const accentColor = '#8c52ff';
   const hasFlashcards = chat.flashcardSets && chat.flashcardSets.length > 0;
   const hasQuizzes = chat.quizSets && chat.quizSets.length > 0;
@@ -1389,6 +1452,7 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
             flashcardSet={fs}
             isActive={isSetActive}
             notebookId={notebookId}
+            onDelete={handleDeleteFlashcardSet}
           />
         );
       })}
@@ -1402,6 +1466,7 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
             quizSet={qs}
             isActive={isSetActive}
             notebookId={notebookId}
+            onDelete={handleDeleteQuizSet}
           />
         );
       })}
@@ -1413,10 +1478,11 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
    FlashcardSetRow — Sub-item under a chat for a flashcard set
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function FlashcardSetRow({ flashcardSet, isActive, notebookId }: {
+function FlashcardSetRow({ flashcardSet, isActive, notebookId, onDelete }: {
   flashcardSet: { id: string; title: string };
   isActive: boolean;
   notebookId: string;
+  onDelete?: (setId: string, e: React.MouseEvent) => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const accentColor = '#8c52ff';
@@ -1454,6 +1520,23 @@ function FlashcardSetRow({ flashcardSet, isActive, notebookId }: {
         }}>
           {flashcardSet.title}
         </span>
+        {hovered && onDelete && (
+          <button
+            onClick={(e) => onDelete(flashcardSet.id, e)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '16px', height: '16px', borderRadius: '3px',
+              background: 'transparent', border: 'none',
+              color: 'rgba(237,233,255,0.25)',
+              cursor: 'pointer', flexShrink: 0, padding: 0,
+              transition: 'color 0.12s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.25)'; }}
+          >
+            <Trash2 size={10} />
+          </button>
+        )}
       </div>
     </Link>
   );
@@ -1463,10 +1546,11 @@ function FlashcardSetRow({ flashcardSet, isActive, notebookId }: {
    QuizSetRow — Sub-item under a chat for a quiz set
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function QuizSetRow({ quizSet, isActive, notebookId }: {
+function QuizSetRow({ quizSet, isActive, notebookId, onDelete }: {
   quizSet: { id: string; title: string };
   isActive: boolean;
   notebookId: string;
+  onDelete?: (setId: string, e: React.MouseEvent) => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const accentColor = '#5170ff';
@@ -1504,6 +1588,23 @@ function QuizSetRow({ quizSet, isActive, notebookId }: {
         }}>
           {quizSet.title}
         </span>
+        {hovered && onDelete && (
+          <button
+            onClick={(e) => onDelete(quizSet.id, e)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '16px', height: '16px', borderRadius: '3px',
+              background: 'transparent', border: 'none',
+              color: 'rgba(237,233,255,0.25)',
+              cursor: 'pointer', flexShrink: 0, padding: 0,
+              transition: 'color 0.12s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.25)'; }}
+          >
+            <Trash2 size={10} />
+          </button>
+        )}
       </div>
     </Link>
   );
@@ -1513,12 +1614,13 @@ function QuizSetRow({ quizSet, isActive, notebookId }: {
    QuizSetTreeRow — A quiz set nested inside a section tree
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function QuizSetTreeRow({ quizSet, isActive, notebookId, accentColor, depth }: {
+function QuizSetTreeRow({ quizSet, isActive, notebookId, accentColor, depth, onDelete }: {
   quizSet: { id: string; title: string };
   isActive: boolean;
   notebookId: string;
   accentColor: string;
   depth: number;
+  onDelete?: (setId: string, e: React.MouseEvent) => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const paddingLeft = 12 + depth * 14 + 18;
@@ -1559,6 +1661,23 @@ function QuizSetTreeRow({ quizSet, isActive, notebookId, accentColor, depth }: {
         }}>
           {quizSet.title}
         </span>
+        {hovered && onDelete && (
+          <button
+            onClick={(e) => onDelete(quizSet.id, e)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '18px', height: '18px', borderRadius: '4px',
+              background: 'transparent', border: 'none',
+              color: 'rgba(196,169,255,0.2)',
+              cursor: 'pointer', flexShrink: 0, padding: 0,
+              transition: 'color 0.12s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(252,165,165,0.8)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.2)'; }}
+          >
+            <Trash2 size={11} />
+          </button>
+        )}
       </div>
     </Link>
   );

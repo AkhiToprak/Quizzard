@@ -6,6 +6,7 @@ import {
   Pencil, Plus, Trash2, X, Check, BookPlus, ChevronDown, Loader2, BookCheck,
   Lightbulb, CheckCircle2, XCircle, Clock, History, TrendingUp,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import SlideEditorModal, { SlideData } from './SlideEditorModal';
@@ -52,7 +53,8 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
   const [editCorrectExplanation, setEditCorrectExplanation] = useState('');
   const [editWrongExplanation, setEditWrongExplanation] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
-  const { refreshSections } = useNotebookWorkspace();
+  const router = useRouter();
+  const { refreshSections, refreshChats } = useNotebookWorkspace();
 
   // Section picker state
   const [showSectionPicker, setShowSectionPicker] = useState(false);
@@ -223,6 +225,16 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
     a.click();
     document.body.removeChild(a);
   }, [notebookId, setId, title]);
+
+  const deleteSet = useCallback(async () => {
+    if (!window.confirm('Delete this entire quiz set? This cannot be undone.')) return;
+    try {
+      await fetch(`/api/notebooks/${notebookId}/quiz-sets/${setId}`, { method: 'DELETE' });
+      refreshSections();
+      refreshChats();
+      router.push(`/notebooks/${notebookId}`);
+    } catch { /* silent */ }
+  }, [notebookId, setId, refreshSections, refreshChats, router]);
 
   // ── Edit question ──
   const startEdit = (q: QuizQuestion) => {
@@ -776,8 +788,9 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
           <SmallButton onClick={openSectionPicker} icon={<BookPlus size={12} />} label="Add to Notebook" />
         )}
         {question && mode !== 'review' && (
-          <SmallButton onClick={() => deleteQuestion(question.id)} icon={<Trash2 size={12} />} label="Delete" danger />
+          <SmallButton onClick={() => deleteQuestion(question.id)} icon={<Trash2 size={12} />} label="Delete Question" danger />
         )}
+        <SmallButton onClick={deleteSet} icon={<Trash2 size={12} />} label="Delete Set" danger />
       </div>
 
       {/* Section picker modal */}

@@ -1,13 +1,21 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['pdf-parse'],
 };
 
-export default withSentryConfig(nextConfig, {
-  silent: true,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-});
+let config: NextConfig = nextConfig;
+
+try {
+  const { withSentryConfig } = require("@sentry/nextjs");
+  config = withSentryConfig(nextConfig, {
+    silent: true,
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+  });
+} catch {
+  // @sentry/nextjs not available — skip Sentry integration
+}
+
+export default config;

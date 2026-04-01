@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Quizzard Dev",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "quizzard_dev",
+      "Username": "quizzard",
+      "SSLMode": "prefer"
+    }
+  }
+}
