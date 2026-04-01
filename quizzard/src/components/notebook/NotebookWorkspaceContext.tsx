@@ -60,6 +60,7 @@ interface WorkspaceContextValue {
   refreshChats: () => void;
   refreshSections: () => void;
   refreshStudyPlans: () => void;
+  isScholarView: boolean;
 }
 
 const NotebookWorkspaceContext = createContext<WorkspaceContextValue | null>(null);
@@ -186,6 +187,7 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
       refreshChats: fetchChats,
       refreshSections: fetchSections,
       refreshStudyPlans: fetchStudyPlans,
+      isScholarView: activeChatId !== null,
     }}>
       {children}
     </NotebookWorkspaceContext.Provider>
