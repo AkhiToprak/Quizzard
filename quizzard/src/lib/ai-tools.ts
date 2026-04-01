@@ -24,6 +24,21 @@ export interface MindmapToolInput {
   markdown: string;
 }
 
+export interface PresentationToolInput {
+  title: string;
+  themeColor: string;
+  slides: {
+    slideType: 'title' | 'content' | 'section_divider' | 'two_column' | 'conclusion';
+    title: string;
+    subtitle?: string;
+    bullets?: string[];
+    leftColumn?: { heading?: string; bullets: string[] };
+    rightColumn?: { heading?: string; bullets: string[] };
+    graphicDescription?: string;
+    notes?: string;
+  }[];
+}
+
 export interface StudyPlanToolInput {
   title: string;
   description: string;
@@ -212,7 +227,82 @@ export const STUDY_PLAN_TOOL: Anthropic.Messages.Tool = {
   },
 };
 
-export const ALL_TOOLS = [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL, STUDY_PLAN_TOOL];
+export const PRESENTATION_TOOL: Anthropic.Messages.Tool = {
+  name: 'create_presentation',
+  description:
+    'Create a visually rich presentation / PowerPoint deck. Use this tool when the user asks you to create, generate, or make a presentation, slides, PowerPoint, PPT, or deck from their notes or on a topic. Produce well-structured slides with varied types, fitting colors, and descriptions of graphics/diagrams where appropriate.',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      title: {
+        type: 'string',
+        description: 'The presentation title',
+      },
+      themeColor: {
+        type: 'string',
+        description: 'A hex color (without #) that fits the topic, used as the accent color throughout the deck. E.g. "2E75B6" for science, "2D8653" for biology, "C0392B" for history.',
+      },
+      slides: {
+        type: 'array',
+        description: 'Array of slides. Use varied slideTypes for visual interest. Aim for 8-15 slides.',
+        items: {
+          type: 'object',
+          properties: {
+            slideType: {
+              type: 'string',
+              enum: ['title', 'content', 'section_divider', 'two_column', 'conclusion'],
+              description: 'title: opening slide with title+subtitle. content: main slide with action title and bullets. section_divider: dark background with section name. two_column: side-by-side content. conclusion: dark background with key takeaways.',
+            },
+            title: {
+              type: 'string',
+              description: 'For content slides, use an ACTION TITLE — a complete sentence stating the takeaway (e.g. "Early interventions reduce dropout rates by 40%"), NOT a topic label.',
+            },
+            subtitle: {
+              type: 'string',
+              description: 'Subtitle text (used on title and section_divider slides)',
+            },
+            bullets: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Bullet points for content/conclusion slides. 3-5 bullets, max ~15 words each.',
+            },
+            leftColumn: {
+              type: 'object',
+              properties: {
+                heading: { type: 'string', description: 'Column heading' },
+                bullets: { type: 'array', items: { type: 'string' }, description: 'Column bullet points' },
+              },
+              required: ['bullets'],
+              description: 'Left column content (for two_column slides)',
+            },
+            rightColumn: {
+              type: 'object',
+              properties: {
+                heading: { type: 'string', description: 'Column heading' },
+                bullets: { type: 'array', items: { type: 'string' }, description: 'Column bullet points' },
+              },
+              required: ['bullets'],
+              description: 'Right column content (for two_column slides)',
+            },
+            graphicDescription: {
+              type: 'string',
+              description: 'Description of a visual element for this slide (e.g. "Bar chart showing growth from 2020-2024", "Diagram of cell mitosis stages"). Will be rendered as a labeled placeholder.',
+            },
+            notes: {
+              type: 'string',
+              description: 'Speaker notes for this slide',
+            },
+          },
+          required: ['slideType', 'title'],
+        },
+        minItems: 3,
+      },
+    },
+    required: ['title', 'themeColor', 'slides'],
+  },
+};
+
+export const ALL_TOOLS = [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL, STUDY_PLAN_TOOL, PRESENTATION_TOOL];
 
 // ── Helper to extract tool uses from Anthropic response ──
 
@@ -222,6 +312,7 @@ export function extractToolUses(content: Anthropic.Messages.ContentBlock[]) {
   let quiz: { id: string; input: QuizToolInput } | null = null;
   let mindmap: { id: string; input: MindmapToolInput } | null = null;
   let studyPlan: { id: string; input: StudyPlanToolInput } | null = null;
+  let presentation: { id: string; input: PresentationToolInput } | null = null;
 
   for (const block of content) {
     if (block.type === 'text') {
@@ -235,9 +326,11 @@ export function extractToolUses(content: Anthropic.Messages.ContentBlock[]) {
         mindmap = { id: block.id, input: block.input as MindmapToolInput };
       } else if (block.name === 'create_study_plan') {
         studyPlan = { id: block.id, input: block.input as StudyPlanToolInput };
+      } else if (block.name === 'create_presentation') {
+        presentation = { id: block.id, input: block.input as PresentationToolInput };
       }
     }
   }
 
-  return { text, flashcard, quiz, mindmap, studyPlan };
+  return { text, flashcard, quiz, mindmap, studyPlan, presentation };
 }

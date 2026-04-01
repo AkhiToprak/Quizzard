@@ -10,15 +10,54 @@ export interface SlideData {
   notes?: string;
 }
 
+export interface PresentationSlideData {
+  slideType: 'title' | 'content' | 'section_divider' | 'two_column' | 'conclusion';
+  title: string;
+  subtitle?: string;
+  bullets?: string[];
+  leftColumn?: { heading?: string; bullets: string[] };
+  rightColumn?: { heading?: string; bullets: string[] };
+  graphicDescription?: string;
+  notes?: string;
+}
+
 interface SlideEditorModalProps {
   initialSlides: SlideData[];
   presentationTitle: string;
   onExport: (slides: SlideData[]) => void;
   onClose: () => void;
+  /** Rich presentation data for AI-generated decks */
+  presentationSlides?: PresentationSlideData[];
+  themeColor?: string;
 }
 
-export default function SlideEditorModal({ initialSlides, presentationTitle, onExport, onClose }: SlideEditorModalProps) {
-  const [slides, setSlides] = useState<SlideData[]>(initialSlides);
+/** Convert rich presentation slides to simple SlideData for editing */
+function presentationToSlideData(ps: PresentationSlideData[]): SlideData[] {
+  return ps.map(s => {
+    const parts: string[] = [];
+    if (s.subtitle) parts.push(s.subtitle);
+    if (s.bullets) parts.push(s.bullets.map(b => `• ${b}`).join('\n'));
+    if (s.leftColumn) {
+      if (s.leftColumn.heading) parts.push(`[Left: ${s.leftColumn.heading}]`);
+      parts.push(s.leftColumn.bullets.map(b => `• ${b}`).join('\n'));
+    }
+    if (s.rightColumn) {
+      if (s.rightColumn.heading) parts.push(`[Right: ${s.rightColumn.heading}]`);
+      parts.push(s.rightColumn.bullets.map(b => `• ${b}`).join('\n'));
+    }
+    if (s.graphicDescription) parts.push(`[Graphic: ${s.graphicDescription}]`);
+    return {
+      title: `[${s.slideType}] ${s.title}`,
+      content: parts.join('\n\n'),
+      notes: s.notes,
+    };
+  });
+}
+
+export default function SlideEditorModal({ initialSlides, presentationTitle, onExport, onClose, presentationSlides, themeColor }: SlideEditorModalProps) {
+  const [slides, setSlides] = useState<SlideData[]>(
+    presentationSlides ? presentationToSlideData(presentationSlides) : initialSlides
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [exporting, setExporting] = useState(false);
 
@@ -63,10 +102,13 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
   const handleExport = useCallback(async () => {
     setExporting(true);
     try {
+      const exportBody = presentationSlides
+        ? { title: presentationTitle, presentationSlides, themeColor }
+        : { title: presentationTitle, slides };
       const res = await fetch('/api/export/pptx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: presentationTitle, slides }),
+        body: JSON.stringify(exportBody),
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => null);

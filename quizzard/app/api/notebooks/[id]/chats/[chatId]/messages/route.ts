@@ -213,6 +213,14 @@ export async function POST(request: NextRequest, { params }: Params) {
       'You also have access to a `create_mindmap` tool. When the user asks you to create, generate, or make a mind map, concept map, or topic overview, use this tool. Structure the content using Markdown headings (# for root, ## for main branches, ### for sub-branches, #### for details). Keep node text concise.',
       '',
       'You also have access to a `create_study_plan` tool. When the user asks you to create, generate, or make a study plan, study schedule, or revision plan, use this tool. Create logical phases that distribute materials across a reasonable timeframe. Only use referenceIds from the notebook inventory provided in context.',
+      '',
+      'You also have access to a `create_presentation` tool. When the user asks you to create, generate, or make a presentation, slides, PowerPoint, PPT, or deck, use this tool. Follow these rules:',
+      '- Every content slide MUST have an ACTION TITLE: a complete sentence stating the takeaway, NOT a topic label. Example: "Early interventions reduce dropout rates by 40%" instead of "Results".',
+      '- Use varied slide types: start with a title slide, use section_dividers to organize, two_column for comparisons, and end with a conclusion.',
+      '- Pick a themeColor hex that fits the subject (e.g. blue for science, green for biology, red for history).',
+      '- Add graphicDescription on slides where a visual would help (charts, diagrams, illustrations). Be specific about what the graphic shows.',
+      '- Keep bullets concise: 3-5 per slide, max ~15 words each.',
+      '- Aim for 8-15 slides total. Add speaker notes with extra detail.',
     ];
 
     if (contextParts.length > 0) {
@@ -234,7 +242,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
 
     // ── Extract text and tool_use blocks from response ──
-    const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse, studyPlan: studyPlanToolUse } = extractToolUses(response.content);
+    const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse, studyPlan: studyPlanToolUse, presentation: presentationToolUse } = extractToolUses(response.content);
     let assistantText = extractedText;
 
     // ── If tool_use: create flashcards in DB ──
@@ -527,6 +535,68 @@ export async function POST(request: NextRequest, { params }: Params) {
       if (mapTitle && mapMarkdown) {
         const markerText = (assistantText ? `${assistantText}\n\n` : '')
           + `[mindmap_start:${mapTitle}]\n${mapMarkdown}\n[mindmap_end]`;
+
+        const [userMsg, assistantMsg] = await db.$transaction([
+          db.chatMessage.create({
+            data: {
+              notebookId,
+              userId,
+              chatId,
+              role: 'user',
+              content: message.trim(),
+              tokens: response.usage.input_tokens,
+            },
+          }),
+          db.chatMessage.create({
+            data: {
+              notebookId,
+              userId,
+              chatId,
+              role: 'assistant',
+              content: markerText,
+              tokens: response.usage.output_tokens,
+            },
+          }),
+        ]);
+
+        await db.notebookChat.update({
+          where: { id: chatId },
+          data: { updatedAt: new Date() },
+        });
+
+        return successResponse({
+          userMessage: {
+            id: userMsg.id,
+            role: userMsg.role,
+            content: userMsg.content,
+            createdAt: userMsg.createdAt,
+          },
+          assistantMessage: {
+            id: assistantMsg.id,
+            role: assistantMsg.role,
+            content: assistantMsg.content,
+            createdAt: assistantMsg.createdAt,
+          },
+          usage: {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+            totalTokens,
+            monthlyUsed: usedTokens + totalTokens,
+            monthlyLimit: MONTHLY_TOKEN_LIMIT,
+          },
+          contextStatus,
+        });
+      }
+    }
+
+    // ── If tool_use: embed presentation slides inline in message ──
+    if (presentationToolUse) {
+      const { title: presTitle, themeColor, slides: presSlides } = presentationToolUse.input;
+
+      if (presTitle && Array.isArray(presSlides) && presSlides.length > 0) {
+        const presJson = JSON.stringify({ themeColor, slides: presSlides });
+        const markerText = (assistantText ? `${assistantText}\n\n` : '')
+          + `[presentation_start:${presTitle}]\n${presJson}\n[presentation_end]`;
 
         const [userMsg, assistantMsg] = await db.$transaction([
           db.chatMessage.create({

@@ -2,12 +2,13 @@
 
 import { useState, useEffect, use, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers, HelpCircle } from 'lucide-react';
+import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers, HelpCircle, Presentation } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import dynamic from 'next/dynamic';
 
 const MindmapRenderer = dynamic(() => import('@/components/notebook/MindmapRenderer'), { ssr: false });
+const SlideEditorModal = dynamic(() => import('@/components/notebook/SlideEditorModal'), { ssr: false });
 
 interface ChatMessage {
   id: string;
@@ -408,7 +409,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
               </div>
             )}
             <div style={{
-              maxWidth: msg.role === 'assistant' && msg.content.includes('[mindmap_start:') ? '90%' : '70%',
+              maxWidth: msg.role === 'assistant' && (msg.content.includes('[mindmap_start:') || msg.content.includes('[presentation_start:')) ? '90%' : '70%',
               padding: '12px 16px',
               borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
               background: msg.role === 'user'
@@ -915,36 +916,87 @@ function PanelSectionItem({ section, selectedPageIds, onTogglePage, depth }: {
 
 const SET_MARKER_RE = /\[(flashcard_set|quiz_set):([^\]]+)\]/g;
 const MINDMAP_RE = /\[mindmap_start:([^\]]+)\]\n([\s\S]*?)\n\[mindmap_end\]/g;
+const PRESENTATION_RE = /\[presentation_start:([^\]]+)\]\n([\s\S]*?)\n\[presentation_end\]/g;
+
+function PresentationButton({ title, jsonData }: { title: string; jsonData: string }) {
+  const [showModal, setShowModal] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  let parsed: { themeColor?: string; slides?: unknown[] } | null = null;
+  try { parsed = JSON.parse(jsonData); } catch { /* invalid JSON */ }
+
+  if (!parsed || !parsed.slides) return null;
+
+  return (
+    <>
+      <button
+        onClick={() => setShowModal(true)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          padding: '8px 14px', margin: '6px 0',
+          borderRadius: '10px',
+          background: hovered
+            ? 'linear-gradient(135deg, rgba(255,140,50,0.3), rgba(140,82,255,0.25))'
+            : 'linear-gradient(135deg, rgba(255,140,50,0.2), rgba(140,82,255,0.15))',
+          border: `1px solid ${hovered ? 'rgba(255,140,50,0.5)' : 'rgba(255,140,50,0.3)'}`,
+          color: '#ffb380',
+          fontSize: '13px', fontWeight: 600,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          transition: 'background 0.15s ease, border-color 0.15s ease',
+        }}
+      >
+        <Presentation size={14} />
+        View Powerpoint — {title}
+      </button>
+      {showModal && (
+        <SlideEditorModal
+          initialSlides={[]}
+          presentationTitle={title}
+          presentationSlides={parsed.slides as import('@/components/notebook/SlideEditorModal').PresentationSlideData[]}
+          themeColor={parsed.themeColor}
+          onExport={() => setShowModal(false)}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+    </>
+  );
+}
 
 function MessageContent({ content, notebookId }: { content: string; notebookId: string }) {
   const hasSetMarkers = content.includes('[flashcard_set:') || content.includes('[quiz_set:');
   const hasMindmap = content.includes('[mindmap_start:');
+  const hasPresentation = content.includes('[presentation_start:');
 
   // No markers — render as markdown directly
-  if (!hasSetMarkers && !hasMindmap) {
+  if (!hasSetMarkers && !hasMindmap && !hasPresentation) {
     return <MarkdownRenderer content={content} />;
   }
 
-  // Parse all markers (mindmaps + set links) and render in order
+  // Parse all markers (mindmaps + presentations + set links) and render in order
   const parts: React.ReactNode[] = [];
   let remaining = content;
   let partKey = 0;
 
-  // First, extract mindmap blocks (they span multiple lines)
-  const segments: { type: 'text' | 'mindmap'; value: string; title?: string }[] = [];
-  let mindmapLastIndex = 0;
-  const mindmapRegex = new RegExp(MINDMAP_RE);
-  let mindmapMatch: RegExpExecArray | null;
+  // First, extract multi-line blocks (mindmaps and presentations)
+  const segments: { type: 'text' | 'mindmap' | 'presentation'; value: string; title?: string }[] = [];
+  const MULTILINE_RE = /\[(mindmap_start|presentation_start):([^\]]+)\]\n([\s\S]*?)\n\[(mindmap_end|presentation_end)\]/g;
+  let multiLastIndex = 0;
+  const multiRegex = new RegExp(MULTILINE_RE);
+  let multiMatch: RegExpExecArray | null;
 
-  while ((mindmapMatch = mindmapRegex.exec(remaining)) !== null) {
-    if (mindmapMatch.index > mindmapLastIndex) {
-      segments.push({ type: 'text', value: remaining.slice(mindmapLastIndex, mindmapMatch.index) });
+  while ((multiMatch = multiRegex.exec(remaining)) !== null) {
+    if (multiMatch.index > multiLastIndex) {
+      segments.push({ type: 'text', value: remaining.slice(multiLastIndex, multiMatch.index) });
     }
-    segments.push({ type: 'mindmap', value: mindmapMatch[2], title: mindmapMatch[1] });
-    mindmapLastIndex = mindmapMatch.index + mindmapMatch[0].length;
+    const blockType = multiMatch[1] === 'mindmap_start' ? 'mindmap' : 'presentation';
+    segments.push({ type: blockType, value: multiMatch[3], title: multiMatch[2] });
+    multiLastIndex = multiMatch.index + multiMatch[0].length;
   }
-  if (mindmapLastIndex < remaining.length) {
-    segments.push({ type: 'text', value: remaining.slice(mindmapLastIndex) });
+  if (multiLastIndex < remaining.length) {
+    segments.push({ type: 'text', value: remaining.slice(multiLastIndex) });
   }
 
   // Now process each segment
@@ -956,6 +1008,17 @@ function MessageContent({ content, notebookId }: { content: string; notebookId: 
           title={segment.title!}
           markdown={segment.value}
           notebookId={notebookId}
+        />
+      );
+      continue;
+    }
+
+    if (segment.type === 'presentation') {
+      parts.push(
+        <PresentationButton
+          key={`pres-${partKey++}`}
+          title={segment.title!}
+          jsonData={segment.value}
         />
       );
       continue;
