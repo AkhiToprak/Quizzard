@@ -1051,14 +1051,26 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
 
       {/* Action buttons */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        {card && editingId !== card.id && (
-          <SmallButton onClick={() => startEdit(card)} icon={<Pencil size={12} />} label="Edit" />
-        )}
-        <SmallButton onClick={() => duplicateCard()} icon={<Copy size={12} />} label="Duplicate" />
-        <SmallButton onClick={downloadCSV} icon={<Download size={12} />} label="CSV" />
-        <SmallButton onClick={openSlideEditor} icon={<Download size={12} />} label="PPTX" />
-        <SmallButton onClick={downloadPdf} icon={<Download size={12} />} label="PDF" />
-        <SmallButton onClick={() => setIsAdding(true)} icon={<Plus size={12} />} label="Add" />
+        <DropdownButton
+          icon={<Pencil size={12} />}
+          label="Edit"
+          items={[
+            { onClick: () => card && startEdit(card), icon: <Pencil size={12} />, label: 'Edit Card', hidden: !card || editingId === card?.id },
+            { onClick: () => duplicateCard(), icon: <Copy size={12} />, label: 'Duplicate' },
+            { onClick: () => setIsAdding(true), icon: <Plus size={12} />, label: 'Add Card' },
+            { onClick: () => card && deleteCard(card.id), icon: <Trash2 size={12} />, label: 'Delete Card', danger: true, hidden: !card },
+            { onClick: deleteSet, icon: <Trash2 size={12} />, label: 'Delete Set', danger: true },
+          ]}
+        />
+        <DropdownButton
+          icon={<Download size={12} />}
+          label="Download"
+          items={[
+            { onClick: downloadCSV, icon: <Download size={12} />, label: 'CSV' },
+            { onClick: openSlideEditor, icon: <Download size={12} />, label: 'PPTX' },
+            { onClick: downloadPdf, icon: <Download size={12} />, label: 'PDF' },
+          ]}
+        />
         {sectionSaved ? (
           <SmallButton onClick={openSectionPicker} icon={<BookCheck size={12} />} label="In Notebook" />
         ) : (
@@ -1069,10 +1081,6 @@ export default function FlashcardViewer({ notebookId, setId, title, initialCards
           icon={loadingStudy ? <Loader2 size={12} className="animate-spin" /> : <Brain size={12} />}
           label={dueCount !== null && dueCount > 0 ? `Study (${dueCount} due)` : 'Study'}
         />
-        {card && (
-          <SmallButton onClick={() => deleteCard(card.id)} icon={<Trash2 size={12} />} label="Delete Card" danger />
-        )}
-        <SmallButton onClick={deleteSet} icon={<Trash2 size={12} />} label="Delete Set" danger />
       </div>
 
       {/* Section picker modal */}
@@ -1357,6 +1365,94 @@ function SmallButton({ onClick, icon, label, danger }: {
         fontSize: '12px', cursor: 'pointer',
         fontFamily: 'inherit',
         transition: 'background 0.12s ease, color 0.12s ease',
+      }}
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+/** Dropdown button with menu */
+function DropdownButton({ icon, label, items }: {
+  icon: React.ReactNode;
+  label: string;
+  items: { onClick: () => void; icon: React.ReactNode; label: string; danger?: boolean; hidden?: boolean }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const visibleItems = items.filter(i => !i.hidden);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '5px',
+          padding: '6px 12px', borderRadius: '8px',
+          border: `1px solid rgba(140,82,255,${open ? '0.3' : '0.15'})`,
+          background: open ? 'rgba(140,82,255,0.15)' : hovered ? 'rgba(140,82,255,0.1)' : 'transparent',
+          color: open || hovered ? '#c4a9ff' : 'rgba(237,233,255,0.4)',
+          fontSize: '12px', cursor: 'pointer',
+          fontFamily: 'inherit',
+          transition: 'background 0.12s ease, color 0.12s ease',
+        }}
+      >
+        {icon} {label} <ChevronDown size={10} style={{
+          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.15s ease',
+        }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+          marginBottom: '6px', minWidth: '140px',
+          background: 'rgba(22,10,46,0.95)', backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(140,82,255,0.2)', borderRadius: '10px',
+          padding: '4px', zIndex: 50,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+        }}>
+          {visibleItems.map((item, i) => (
+            <DropdownItem key={i} {...item} onClose={() => setOpen(false)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DropdownItem({ onClick, icon, label, danger, onClose }: {
+  onClick: () => void; icon: React.ReactNode; label: string; danger?: boolean; onClose: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={() => { onClick(); onClose(); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '6px', width: '100%',
+        padding: '7px 10px', borderRadius: '7px', border: 'none',
+        background: hovered
+          ? (danger ? 'rgba(252,165,165,0.1)' : 'rgba(140,82,255,0.12)')
+          : 'transparent',
+        color: danger
+          ? (hovered ? '#fca5a5' : 'rgba(252,165,165,0.6)')
+          : (hovered ? '#c4a9ff' : 'rgba(237,233,255,0.5)'),
+        fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+        transition: 'background 0.1s ease, color 0.1s ease',
       }}
     >
       {icon} {label}
