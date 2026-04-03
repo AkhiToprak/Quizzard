@@ -13,13 +13,31 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 5 registrations per IP per hour
+    // Rate limit: 5 registration attempts per IP per hour (in-memory, resets on restart)
     const ip = getClientIp(request);
     const rl = rateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
     if (!rl.success) {
       return NextResponse.json(
         { success: false, error: 'Too many registration attempts. Please try again later.' },
         { status: 429 }
+      );
+    }
+
+    // Hard limit: max 3 accounts per IP address within the last 12 months
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+
+    const ipRegistrationCount = await db.ipRegistration.count({
+      where: {
+        ip,
+        createdAt: { gte: twelveMonthsAgo },
+      },
+    });
+
+    if (ipRegistrationCount >= 3) {
+      return NextResponse.json(
+        { success: false, error: 'Maximum number of accounts reached for this network. Please try again later.' },
+        { status: 403 }
       );
     }
 
@@ -62,9 +80,14 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = await db.user.create({
-      data: { email: String(email), name: name ? String(name).slice(0, 100) : null, password: hashedPassword, username },
-    });
+    const [user] = await db.$transaction([
+      db.user.create({
+        data: { email: String(email), name: name ? String(name).slice(0, 100) : null, password: hashedPassword, username },
+      }),
+      db.ipRegistration.create({
+        data: { ip },
+      }),
+    ]);
 
     return createdResponse(
       { id: user.id, email: user.email, name: user.name, username: user.username },

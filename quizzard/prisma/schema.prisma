@@ -1039,3 +1039,19 @@ model UsageRecord {
   @@index([userId, month])
   @@map("usage_records")
 }
+
+// ============================================================================
+// ABUSE PREVENTION
+// ============================================================================
+
+/// Tracks every account registration by IP address.
+/// Records persist even when the associated account is deleted.
+/// Used to enforce a max-accounts-per-IP limit (resets after 12 months).
+model IpRegistration {
+  id        String   @id @default(cuid())
+  ip        String   // Client IP at registration time
+  createdAt DateTime @default(now())
+
+  @@index([ip, createdAt])
+  @@map("ip_registrations")
+}
