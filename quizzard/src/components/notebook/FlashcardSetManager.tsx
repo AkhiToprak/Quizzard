@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Loader2, Check, ChevronDown, Layers, CreditCard } from 'lucide-react';
+import { X, Loader2, Check, ChevronDown, Layers, CreditCard, FileUp } from 'lucide-react';
+import FlashcardImportDialog from '@/components/notebook/FlashcardImportDialog';
 
 interface FlashcardSet {
   id: string;
@@ -19,13 +20,14 @@ interface FlashcardCard {
 
 interface FlashcardSetManagerProps {
   notebookId: string;
+  sectionId?: string;
   onClose: () => void;
   onUpdated: () => void;
 }
 
 type Mode = 'browse' | 'merge' | 'split';
 
-export default function FlashcardSetManager({ notebookId, onClose, onUpdated }: FlashcardSetManagerProps) {
+export default function FlashcardSetManager({ notebookId, sectionId, onClose, onUpdated }: FlashcardSetManagerProps) {
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [selectedSetIds, setSelectedSetIds] = useState<Set<string>>(new Set());
   const [expandedSetId, setExpandedSetId] = useState<string | null>(null);
@@ -40,6 +42,7 @@ export default function FlashcardSetManager({ notebookId, onClose, onUpdated }: 
   const [showSplitDialog, setShowSplitDialog] = useState(false);
   const [operating, setOperating] = useState(false);
   const [error, setError] = useState('');
+  const [showImport, setShowImport] = useState(false);
 
   // Fetch all flashcard sets
   const fetchSets = useCallback(async () => {
@@ -257,10 +260,13 @@ export default function FlashcardSetManager({ notebookId, onClose, onUpdated }: 
           gap: '4px',
           padding: '12px 20px 8px',
           flexShrink: 0,
+          alignItems: 'center',
         }}>
           {(['browse', 'merge', 'split'] as Mode[]).map(m => (
             <ModeTab key={m} label={m.charAt(0).toUpperCase() + m.slice(1)} active={mode === m} onClick={() => switchMode(m)} />
           ))}
+          <div style={{ flex: 1 }} />
+          <ImportButton onClick={() => setShowImport(true)} />
         </div>
 
         {/* Body */}
@@ -487,7 +493,51 @@ export default function FlashcardSetManager({ notebookId, onClose, onUpdated }: 
 
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
+
+      {/* Import dialog */}
+      {showImport && (
+        <FlashcardImportDialog
+          notebookId={notebookId}
+          sectionId={sectionId}
+          onImported={() => {
+            setShowImport(false);
+            fetchSets();
+            onUpdated();
+          }}
+          onClose={() => setShowImport(false)}
+        />
+      )}
     </div>
+  );
+}
+
+/* ── Import Button ── */
+function ImportButton({ onClick }: { onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '5px',
+        padding: '6px 12px',
+        borderRadius: '8px',
+        border: '1px solid rgba(140,82,255,0.25)',
+        background: hovered ? 'rgba(140,82,255,0.15)' : 'rgba(140,82,255,0.08)',
+        color: hovered ? '#c4a9ff' : 'rgba(237,233,255,0.55)',
+        fontSize: '12px',
+        fontWeight: 600,
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        transition: 'background 0.12s ease, color 0.12s ease, border-color 0.12s ease',
+      }}
+    >
+      <FileUp size={13} />
+      Import
+    </button>
   );
 }
 
