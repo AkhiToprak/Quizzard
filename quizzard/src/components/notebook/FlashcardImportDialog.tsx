@@ -10,14 +10,20 @@ interface FlashcardImportDialogProps {
   onClose: () => void;
 }
 
-type Tab = 'csv' | 'quizlet' | 'anki';
+type Tab = 'csv' | 'paste' | 'anki';
 type UploadState = 'idle' | 'uploading' | 'success' | 'error';
+type TermSepOption = 'tab' | 'comma' | 'semicolon' | 'colon' | 'custom';
+type CardSepOption = 'newline' | 'double-newline' | 'semicolon' | 'custom';
 
 const TABS: { key: Tab; label: string; icon: typeof FileSpreadsheet }[] = [
   { key: 'csv', label: 'CSV / Excel', icon: FileSpreadsheet },
-  { key: 'quizlet', label: 'Quizlet', icon: ClipboardPaste },
+  { key: 'paste', label: 'Paste Text', icon: ClipboardPaste },
   { key: 'anki', label: 'Anki', icon: Archive },
 ];
+
+function truncate(s: string, max: number): string {
+  return s.length > max ? s.slice(0, max) + '...' : s;
+}
 
 export default function FlashcardImportDialog({
   notebookId,
@@ -35,11 +41,14 @@ export default function FlashcardImportDialog({
   const [title, setTitle] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Quizlet paste state
+  // Paste text state
   const [pasteText, setPasteText] = useState('');
-  const [quizletTitle, setQuizletTitle] = useState('');
-  const [termSep, setTermSep] = useState<'tab' | 'comma' | 'semicolon'>('tab');
-  const [quizletSubmitting, setQuizletSubmitting] = useState(false);
+  const [pasteTitle, setPasteTitle] = useState('');
+  const [termSep, setTermSep] = useState<TermSepOption>('tab');
+  const [cardSep, setCardSep] = useState<CardSepOption>('newline');
+  const [customTermSep, setCustomTermSep] = useState('');
+  const [customCardSep, setCustomCardSep] = useState('');
+  const [pasteSubmitting, setPasteSubmitting] = useState(false);
 
   const resetUpload = useCallback(() => {
     setUploadState('idle');
@@ -147,32 +156,47 @@ export default function FlashcardImportDialog({
     }
   }, [uploadState]);
 
-  // --- Quizlet paste parsing ---
+  // --- Paste text parsing ---
 
-  const sepChar = useMemo(() => {
-    if (termSep === 'tab') return '\t';
-    if (termSep === 'comma') return ',';
-    return ';';
-  }, [termSep]);
+  const termSepChar = useMemo(() => {
+    switch (termSep) {
+      case 'tab': return '\t';
+      case 'comma': return ',';
+      case 'semicolon': return ';';
+      case 'colon': return ':';
+      case 'custom': return customTermSep || '\t';
+    }
+  }, [termSep, customTermSep]);
+
+  const cardSepRegex = useMemo(() => {
+    switch (cardSep) {
+      case 'newline': return /\n/;
+      case 'double-newline': return /\n\s*\n/;
+      case 'semicolon': return /;/;
+      case 'custom': return customCardSep
+        ? new RegExp(customCardSep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        : /\n/;
+    }
+  }, [cardSep, customCardSep]);
 
   const parsedCards = useMemo(() => {
     if (!pasteText.trim()) return [];
-    const lines = pasteText.split('\n').filter((l) => l.trim());
-    return lines
-      .map((line) => {
-        const parts = line.split(sepChar);
+    const blocks = pasteText.split(cardSepRegex).filter((b) => b.trim());
+    return blocks
+      .map((block) => {
+        const parts = block.split(termSepChar);
         if (parts.length < 2) return null;
         const question = parts[0].trim();
-        const answer = parts.slice(1).join(sepChar).trim();
+        const answer = parts.slice(1).join(termSepChar).trim();
         if (!question || !answer) return null;
         return { question, answer };
       })
       .filter(Boolean) as { question: string; answer: string }[];
-  }, [pasteText, sepChar]);
+  }, [pasteText, termSepChar, cardSepRegex]);
 
-  const handleQuizletImport = useCallback(async () => {
-    if (parsedCards.length === 0 || !quizletTitle.trim()) return;
-    setQuizletSubmitting(true);
+  const handlePasteImport = useCallback(async () => {
+    if (parsedCards.length === 0 || !pasteTitle.trim()) return;
+    setPasteSubmitting(true);
     setErrorMessage('');
 
     try {
@@ -180,9 +204,9 @@ export default function FlashcardImportDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: quizletTitle.trim(),
+          title: pasteTitle.trim(),
           sectionId,
-          source: 'quizlet',
+          source: 'paste',
           cards: parsedCards,
         }),
       });
@@ -195,9 +219,9 @@ export default function FlashcardImportDialog({
       onImported(json.data.id);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Import failed');
-      setQuizletSubmitting(false);
+      setPasteSubmitting(false);
     }
-  }, [notebookId, sectionId, quizletTitle, parsedCards, onImported]);
+  }, [notebookId, sectionId, pasteTitle, parsedCards, onImported]);
 
   const handleOverlayClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -229,6 +253,26 @@ export default function FlashcardImportDialog({
     display: 'block',
     marginBottom: '6px',
   };
+
+  const sepButtonStyle = (isActive: boolean): React.CSSProperties => ({
+    flex: 1,
+    padding: '6px 8px',
+    borderRadius: '6px',
+    border: isActive
+      ? '1px solid rgba(140,82,255,0.5)'
+      : '1px solid rgba(140,82,255,0.15)',
+    background: isActive ? 'rgba(140,82,255,0.15)' : 'rgba(140,82,255,0.04)',
+    color: isActive ? '#c4a9ff' : 'rgba(237,233,255,0.5)',
+    fontSize: '11px',
+    fontWeight: 600,
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+    transition: 'background 0.12s ease, border-color 0.12s ease',
+  });
+
+  // Placeholder text for textarea
+  const termSepDisplay = termSepChar === '\t' ? '\\t' : termSepChar;
+  const cardSepDisplay = cardSep === 'newline' ? '\\n' : cardSep === 'double-newline' ? '\\n\\n' : cardSep === 'semicolon' ? ';' : (customCardSep || '\\n');
 
   return (
     <div
@@ -510,66 +554,96 @@ export default function FlashcardImportDialog({
             </>
           )}
 
-          {/* Quizlet tab — paste text */}
-          {activeTab === 'quizlet' && (
+          {/* Paste Text tab */}
+          {activeTab === 'paste' && (
             <>
               {/* Title */}
               <div>
                 <label style={labelStyle}>Set Title</label>
                 <input
                   type="text"
-                  value={quizletTitle}
-                  onChange={(e) => setQuizletTitle(e.target.value)}
+                  value={pasteTitle}
+                  onChange={(e) => setPasteTitle(e.target.value)}
                   placeholder="e.g. Biology Chapter 3"
                   style={inputStyle}
                 />
               </div>
 
-              {/* Separator */}
-              <div>
-                <label style={labelStyle}>Between term and definition</label>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  {(
-                    [
-                      ['tab', 'Tab'],
-                      ['comma', 'Comma'],
-                      ['semicolon', 'Semicolon'],
-                    ] as const
-                  ).map(([val, label]) => (
-                    <button
-                      key={val}
-                      onClick={() => setTermSep(val)}
-                      style={{
-                        flex: 1,
-                        padding: '6px 8px',
-                        borderRadius: '6px',
-                        border:
-                          termSep === val
-                            ? '1px solid rgba(140,82,255,0.5)'
-                            : '1px solid rgba(140,82,255,0.15)',
-                        background:
-                          termSep === val ? 'rgba(140,82,255,0.15)' : 'rgba(140,82,255,0.04)',
-                        color: termSep === val ? '#c4a9ff' : 'rgba(237,233,255,0.5)',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        fontFamily: 'inherit',
-                        cursor: 'pointer',
-                        transition: 'background 0.12s ease, border-color 0.12s ease',
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
+              {/* Separator selectors */}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {/* Term separator */}
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Between question & answer</label>
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    {(
+                      [
+                        ['tab', 'Tab'],
+                        ['comma', ','],
+                        ['semicolon', ';'],
+                        ['colon', ':'],
+                        ['custom', 'Custom'],
+                      ] as const
+                    ).map(([val, label]) => (
+                      <button
+                        key={val}
+                        onClick={() => setTermSep(val)}
+                        style={sepButtonStyle(termSep === val)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {termSep === 'custom' && (
+                    <input
+                      type="text"
+                      value={customTermSep}
+                      onChange={(e) => setCustomTermSep(e.target.value)}
+                      placeholder="e.g. | or ->"
+                      style={{ ...inputStyle, marginTop: '6px', fontSize: '12px', padding: '6px 10px' }}
+                    />
+                  )}
+                </div>
+
+                {/* Card separator */}
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Between cards</label>
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    {(
+                      [
+                        ['newline', 'New line'],
+                        ['double-newline', 'Empty line'],
+                        ['semicolon', ';'],
+                        ['custom', 'Custom'],
+                      ] as const
+                    ).map(([val, label]) => (
+                      <button
+                        key={val}
+                        onClick={() => setCardSep(val)}
+                        style={sepButtonStyle(cardSep === val)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {cardSep === 'custom' && (
+                    <input
+                      type="text"
+                      value={customCardSep}
+                      onChange={(e) => setCustomCardSep(e.target.value)}
+                      placeholder="e.g. || or ---"
+                      style={{ ...inputStyle, marginTop: '6px', fontSize: '12px', padding: '6px 10px' }}
+                    />
+                  )}
                 </div>
               </div>
 
               {/* Paste area */}
               <div>
-                <label style={labelStyle}>Paste exported text</label>
+                <label style={labelStyle}>Paste your flashcards</label>
                 <textarea
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  placeholder={`term${sepChar === '\t' ? '\\t' : sepChar}definition\nterm${sepChar === '\t' ? '\\t' : sepChar}definition`}
+                  placeholder={`question${termSepDisplay}answer${cardSepDisplay}question${termSepDisplay}answer`}
                   rows={8}
                   style={{
                     ...inputStyle,
@@ -592,6 +666,58 @@ export default function FlashcardImportDialog({
                 >
                   Found {parsedCards.length} card{parsedCards.length !== 1 ? 's' : ''}
                 </p>
+              )}
+
+              {/* Card preview */}
+              {parsedCards.length > 0 && (
+                <div
+                  style={{
+                    maxHeight: '160px',
+                    overflowY: 'auto',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(140,82,255,0.15)',
+                    background: 'rgba(140,82,255,0.04)',
+                  }}
+                >
+                  {parsedCards.slice(0, 5).map((card, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: 'flex',
+                        gap: '8px',
+                        padding: '8px 12px',
+                        borderBottom:
+                          i < Math.min(parsedCards.length, 5) - 1
+                            ? '1px solid rgba(140,82,255,0.1)'
+                            : 'none',
+                        fontSize: '12px',
+                        color: '#ede9ff',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span style={{ flex: 1, opacity: 0.8 }}>
+                        {truncate(card.question, 40)}
+                      </span>
+                      <span style={{ color: 'rgba(237,233,255,0.3)', flexShrink: 0 }}>
+                        →
+                      </span>
+                      <span style={{ flex: 1, opacity: 0.6 }}>
+                        {truncate(card.answer, 40)}
+                      </span>
+                    </div>
+                  ))}
+                  {parsedCards.length > 5 && (
+                    <div
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: '11px',
+                        color: 'rgba(237,233,255,0.35)',
+                      }}
+                    >
+                      ...and {parsedCards.length - 5} more
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Error */}
@@ -630,10 +756,10 @@ export default function FlashcardImportDialog({
             Cancel
           </button>
 
-          {activeTab === 'quizlet' && (
+          {activeTab === 'paste' && (
             <button
-              onClick={handleQuizletImport}
-              disabled={parsedCards.length === 0 || !quizletTitle.trim() || quizletSubmitting}
+              onClick={handlePasteImport}
+              disabled={parsedCards.length === 0 || !pasteTitle.trim() || pasteSubmitting}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -642,29 +768,29 @@ export default function FlashcardImportDialog({
                 borderRadius: '8px',
                 border: 'none',
                 background:
-                  parsedCards.length > 0 && quizletTitle.trim() && !quizletSubmitting
+                  parsedCards.length > 0 && pasteTitle.trim() && !pasteSubmitting
                     ? 'linear-gradient(135deg, #8c52ff, #5170ff)'
                     : 'rgba(140,82,255,0.2)',
                 color:
-                  parsedCards.length > 0 && quizletTitle.trim() && !quizletSubmitting
+                  parsedCards.length > 0 && pasteTitle.trim() && !pasteSubmitting
                     ? '#fff'
                     : 'rgba(237,233,255,0.3)',
                 fontSize: '13px',
                 cursor:
-                  parsedCards.length > 0 && quizletTitle.trim() && !quizletSubmitting
+                  parsedCards.length > 0 && pasteTitle.trim() && !pasteSubmitting
                     ? 'pointer'
                     : 'not-allowed',
                 fontFamily: 'inherit',
                 fontWeight: 600,
               }}
             >
-              {quizletSubmitting && (
+              {pasteSubmitting && (
                 <Loader2
                   size={14}
                   style={{ animation: 'flashcard-import-spin 1s linear infinite' }}
                 />
               )}
-              {quizletSubmitting ? 'Importing...' : `Import ${parsedCards.length} Cards`}
+              {pasteSubmitting ? 'Importing...' : `Import ${parsedCards.length} Cards`}
             </button>
           )}
         </div>
