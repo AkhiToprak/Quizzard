@@ -19,6 +19,7 @@ import { ALL_TOOLS, extractToolUses } from '@/lib/ai-tools';
 import { extractText } from '@/lib/fileProcessing';
 import { readFile } from '@/lib/storage';
 import { tiptapJsonToPlainText } from '@/lib/contentConverter';
+import { searchYouTubeVideos } from '@/lib/youtube';
 
 type Params = { params: Promise<{ id: string; chatId: string }> };
 
@@ -222,6 +223,11 @@ export async function POST(request: NextRequest, { params }: Params) {
       '- Add graphicDescription on slides where a visual would help (charts, diagrams, illustrations). Be specific about what the graphic shows.',
       '- Keep bullets concise: 3-5 per slide, max ~15 words each.',
       '- Aim for 8-15 slides total. Add speaker notes with extra detail.',
+      '',
+      'You also have access to a `recommend_videos` tool. Use this tool when:',
+      '- The user explicitly asks for a video, tutorial, or visual explanation.',
+      '- You are explaining a complex visual or procedural topic that would benefit from video (e.g. lab techniques, geometric proofs, historical events, programming tutorials). In this case, call the tool autonomously alongside your text explanation.',
+      'Do NOT recommend videos for every question — only when a video would genuinely add value beyond your text explanation. Generate a specific, educational search query.',
     ];
 
     if (contextParts.length > 0) {
@@ -252,7 +258,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
 
     // ── Extract text and tool_use blocks from response ──
-    const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse, studyPlan: studyPlanToolUse, presentation: presentationToolUse } = extractToolUses(response.content);
+    const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse, studyPlan: studyPlanToolUse, presentation: presentationToolUse, youtubeVideos: youtubeVideosToolUse } = extractToolUses(response.content);
     let assistantText = extractedText;
 
     // Increment scholar_chat usage after successful AI response
@@ -685,6 +691,44 @@ export async function POST(request: NextRequest, { params }: Params) {
           },
           contextStatus,
         });
+      }
+    }
+
+    // ── If tool_use: recommend YouTube videos ──
+    if (youtubeVideosToolUse) {
+      const { search_query, max_results } = youtubeVideosToolUse.input;
+
+      if (search_query) {
+        try {
+          const videos = await searchYouTubeVideos(search_query, max_results ?? 3);
+
+          if (videos.length > 0) {
+            const videosJson = JSON.stringify(videos);
+            const markerText = (assistantText ? `${assistantText}\n\n` : '')
+              + `[youtube_videos_start:${search_query}]\n${videosJson}\n[youtube_videos_end]`;
+
+            const [userMsg, assistantMsg] = await db.$transaction([
+              db.chatMessage.create({
+                data: { notebookId, userId, chatId, role: 'user', content: message.trim(), tokens: response.usage.input_tokens },
+              }),
+              db.chatMessage.create({
+                data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
+              }),
+            ]);
+
+            await db.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+
+            return successResponse({
+              userMessage: { id: userMsg.id, role: userMsg.role, content: userMsg.content, createdAt: userMsg.createdAt },
+              assistantMessage: { id: assistantMsg.id, role: assistantMsg.role, content: assistantMsg.content, createdAt: assistantMsg.createdAt },
+              usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
+              contextStatus,
+            });
+          }
+        } catch (err) {
+          console.error('[AI Chat] YouTube search failed:', err);
+          // Fall through to text-only response
+        }
       }
     }
 

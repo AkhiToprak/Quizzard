@@ -1,5 +1,58 @@
 import { YoutubeTranscript } from 'youtube-transcript';
 
+// ── YouTube video search (Data API v3) ──
+
+export interface YouTubeVideoResult {
+  videoId: string;
+  title: string;
+  channelTitle: string;
+  thumbnailUrl: string;
+  publishedAt: string;
+}
+
+export async function searchYouTubeVideos(
+  query: string,
+  maxResults: number = 3
+): Promise<YouTubeVideoResult[]> {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) {
+    throw new Error('YOUTUBE_API_KEY is not configured');
+  }
+
+  const params = new URLSearchParams({
+    part: 'snippet',
+    q: query,
+    type: 'video',
+    maxResults: String(Math.min(Math.max(maxResults, 1), 5)),
+    relevanceLanguage: 'en',
+    safeSearch: 'strict',
+    videoEmbeddable: 'true',
+    key: apiKey,
+  });
+
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/search?${params}`
+  );
+  if (!res.ok) {
+    throw new Error(`YouTube API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+
+  return (data.items || []).map((item: Record<string, unknown>) => {
+    const id = item.id as Record<string, string>;
+    const snippet = item.snippet as Record<string, unknown>;
+    const thumbnails = snippet.thumbnails as Record<string, Record<string, string>> | undefined;
+    return {
+      videoId: id.videoId,
+      title: snippet.title as string,
+      channelTitle: snippet.channelTitle as string,
+      thumbnailUrl: thumbnails?.medium?.url || thumbnails?.default?.url || '',
+      publishedAt: snippet.publishedAt as string,
+    };
+  });
+}
+
 /**
  * Extract a YouTube video ID from various URL formats.
  * Supports: youtube.com/watch?v=, youtu.be/, youtube.com/embed/, youtube.com/shorts/

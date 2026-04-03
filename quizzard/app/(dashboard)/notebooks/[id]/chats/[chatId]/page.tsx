@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, use, useRef, useCallback } from 'react';
+import { useState, useEffect, use, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers, HelpCircle, Presentation } from 'lucide-react';
+import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers, HelpCircle, Presentation, Youtube } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import dynamic from 'next/dynamic';
@@ -879,6 +879,7 @@ function PanelSectionItem({ section, selectedPageIds, onTogglePage, depth }: {
 const SET_MARKER_RE = /\[(flashcard_set|quiz_set):([^\]]+)\]/g;
 const MINDMAP_RE = /\[mindmap_start:([^\]]+)\]\n([\s\S]*?)\n\[mindmap_end\]/g;
 const PRESENTATION_RE = /\[presentation_start:([^\]]+)\]\n([\s\S]*?)\n\[presentation_end\]/g;
+const YOUTUBE_VIDEOS_RE = /\[youtube_videos_start:([^\]]+)\]\n([\s\S]*?)\n\[youtube_videos_end\]/g;
 
 function PresentationButton({ title, jsonData }: { title: string; jsonData: string }) {
   const [showModal, setShowModal] = useState(false);
@@ -927,24 +928,86 @@ function PresentationButton({ title, jsonData }: { title: string; jsonData: stri
   );
 }
 
+function YouTubeVideoCards({ jsonData }: { jsonData: string }) {
+  const videos: { videoId: string; title: string; channelTitle: string; thumbnailUrl: string }[] = useMemo(() => {
+    try { return JSON.parse(jsonData); } catch { return []; }
+  }, [jsonData]);
+
+  if (videos.length === 0) return null;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '8px 0' }}>
+      <div style={{ fontSize: '12px', color: 'rgba(237,233,255,0.45)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <Youtube size={13} style={{ color: '#ff4444' }} />
+        Recommended videos
+      </div>
+      {videos.map((video) => (
+        <a
+          key={video.videoId}
+          href={`https://www.youtube.com/watch?v=${video.videoId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex', gap: '12px', alignItems: 'center',
+            padding: '10px 12px', borderRadius: '10px',
+            background: 'rgba(255,0,0,0.06)',
+            border: '1px solid rgba(255,60,60,0.15)',
+            textDecoration: 'none', color: 'inherit',
+            transition: 'background 0.15s ease, border-color 0.15s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(255,0,0,0.12)';
+            e.currentTarget.style.borderColor = 'rgba(255,60,60,0.3)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(255,0,0,0.06)';
+            e.currentTarget.style.borderColor = 'rgba(255,60,60,0.15)';
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={video.thumbnailUrl}
+            alt=""
+            style={{ width: '120px', height: '68px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }}
+          />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{
+              fontSize: '13px', fontWeight: 600, color: '#ede9ff', lineHeight: 1.3,
+              overflow: 'hidden', textOverflow: 'ellipsis',
+              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
+            }}>
+              {video.title}
+            </div>
+            <div style={{ fontSize: '11px', color: 'rgba(237,233,255,0.45)', marginTop: '4px' }}>
+              {video.channelTitle}
+            </div>
+          </div>
+          <Youtube size={20} style={{ color: '#ff4444', flexShrink: 0 }} />
+        </a>
+      ))}
+    </div>
+  );
+}
+
 function MessageContent({ content, notebookId }: { content: string; notebookId: string }) {
   const hasSetMarkers = content.includes('[flashcard_set:') || content.includes('[quiz_set:');
   const hasMindmap = content.includes('[mindmap_start:');
   const hasPresentation = content.includes('[presentation_start:');
+  const hasYouTubeVideos = content.includes('[youtube_videos_start:');
 
   // No markers — render as markdown directly
-  if (!hasSetMarkers && !hasMindmap && !hasPresentation) {
+  if (!hasSetMarkers && !hasMindmap && !hasPresentation && !hasYouTubeVideos) {
     return <MarkdownRenderer content={content} />;
   }
 
-  // Parse all markers (mindmaps + presentations + set links) and render in order
+  // Parse all markers (mindmaps + presentations + youtube videos + set links) and render in order
   const parts: React.ReactNode[] = [];
   let remaining = content;
   let partKey = 0;
 
-  // First, extract multi-line blocks (mindmaps and presentations)
-  const segments: { type: 'text' | 'mindmap' | 'presentation'; value: string; title?: string }[] = [];
-  const MULTILINE_RE = /\[(mindmap_start|presentation_start):([^\]]+)\]\n([\s\S]*?)\n\[(mindmap_end|presentation_end)\]/g;
+  // First, extract multi-line blocks (mindmaps, presentations, and youtube videos)
+  const segments: { type: 'text' | 'mindmap' | 'presentation' | 'youtube_videos'; value: string; title?: string }[] = [];
+  const MULTILINE_RE = /\[(mindmap_start|presentation_start|youtube_videos_start):([^\]]+)\]\n([\s\S]*?)\n\[(mindmap_end|presentation_end|youtube_videos_end)\]/g;
   let multiLastIndex = 0;
   const multiRegex = new RegExp(MULTILINE_RE);
   let multiMatch: RegExpExecArray | null;
@@ -953,7 +1016,9 @@ function MessageContent({ content, notebookId }: { content: string; notebookId: 
     if (multiMatch.index > multiLastIndex) {
       segments.push({ type: 'text', value: remaining.slice(multiLastIndex, multiMatch.index) });
     }
-    const blockType = multiMatch[1] === 'mindmap_start' ? 'mindmap' : 'presentation';
+    const blockType = multiMatch[1] === 'mindmap_start' ? 'mindmap'
+      : multiMatch[1] === 'presentation_start' ? 'presentation'
+      : 'youtube_videos';
     segments.push({ type: blockType, value: multiMatch[3], title: multiMatch[2] });
     multiLastIndex = multiMatch.index + multiMatch[0].length;
   }
@@ -980,6 +1045,16 @@ function MessageContent({ content, notebookId }: { content: string; notebookId: 
         <PresentationButton
           key={`pres-${partKey++}`}
           title={segment.title!}
+          jsonData={segment.value}
+        />
+      );
+      continue;
+    }
+
+    if (segment.type === 'youtube_videos') {
+      parts.push(
+        <YouTubeVideoCards
+          key={`yt-${partKey++}`}
           jsonData={segment.value}
         />
       );

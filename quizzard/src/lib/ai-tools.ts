@@ -39,6 +39,11 @@ export interface PresentationToolInput {
   }[];
 }
 
+export interface YouTubeVideosToolInput {
+  search_query: string;
+  max_results?: number;
+}
+
 export interface StudyPlanToolInput {
   title: string;
   description: string;
@@ -302,7 +307,28 @@ export const PRESENTATION_TOOL: Anthropic.Messages.Tool = {
   },
 };
 
-export const ALL_TOOLS = [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL, STUDY_PLAN_TOOL, PRESENTATION_TOOL];
+export const YOUTUBE_VIDEOS_TOOL: Anthropic.Messages.Tool = {
+  name: 'recommend_videos',
+  description:
+    'Recommend relevant YouTube videos for a topic. Use this tool when the user explicitly asks for video recommendations, tutorials, or visual explanations. You may also use it autonomously when a complex topic would benefit from a video explanation (e.g. visual processes, step-by-step procedures, or concepts that are easier to understand through demonstration). Do NOT use this for every question — only when a video would genuinely add value beyond your text explanation.',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      search_query: {
+        type: 'string',
+        description:
+          'A focused search query for YouTube (e.g. "mitosis cell division explained", "integration by parts calculus tutorial"). Make it specific and educational.',
+      },
+      max_results: {
+        type: 'number',
+        description: 'Number of videos to recommend (1-5). Default is 3.',
+      },
+    },
+    required: ['search_query'],
+  },
+};
+
+export const ALL_TOOLS = [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL, STUDY_PLAN_TOOL, PRESENTATION_TOOL, YOUTUBE_VIDEOS_TOOL];
 
 // ── Helper to extract tool uses from Anthropic response ──
 
@@ -313,6 +339,7 @@ export function extractToolUses(content: Anthropic.Messages.ContentBlock[]) {
   let mindmap: { id: string; input: MindmapToolInput } | null = null;
   let studyPlan: { id: string; input: StudyPlanToolInput } | null = null;
   let presentation: { id: string; input: PresentationToolInput } | null = null;
+  let youtubeVideos: { id: string; input: YouTubeVideosToolInput } | null = null;
 
   for (const block of content) {
     if (block.type === 'text') {
@@ -328,9 +355,11 @@ export function extractToolUses(content: Anthropic.Messages.ContentBlock[]) {
         studyPlan = { id: block.id, input: block.input as StudyPlanToolInput };
       } else if (block.name === 'create_presentation') {
         presentation = { id: block.id, input: block.input as PresentationToolInput };
+      } else if (block.name === 'recommend_videos') {
+        youtubeVideos = { id: block.id, input: block.input as YouTubeVideosToolInput };
       }
     }
   }
 
-  return { text, flashcard, quiz, mindmap, studyPlan, presentation };
+  return { text, flashcard, quiz, mindmap, studyPlan, presentation, youtubeVideos };
 }
