@@ -393,7 +393,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Sign up link */}
+      {/* Waitlist link */}
       <p
         style={{
           marginTop: "32px",
@@ -404,10 +404,10 @@ export default function LoginPage() {
       >
         Don&apos;t have an account?{" "}
         <Link
-          href="/auth/register"
+          href="/"
           style={{ color: "#ffde59", fontWeight: 900, textDecoration: "none" }}
         >
-          Sign Up
+          Join the Waitlist
         </Link>
       </p>
 

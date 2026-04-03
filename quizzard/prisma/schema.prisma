@@ -1055,3 +1055,15 @@ model IpRegistration {
   @@index([ip, createdAt])
   @@map("ip_registrations")
 }
+
+// ============================================================================
+// WAITLIST
+// ============================================================================
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("waitlist")
+}
