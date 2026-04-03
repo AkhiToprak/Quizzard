@@ -14,12 +14,16 @@ export default function ToggleHeadingView({ node, updateAttributes }: NodeViewPr
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
 
-  // Measure content height for animation
+  // Track content height via ResizeObserver so it updates when images load, etc.
   useEffect(() => {
-    if (contentRef.current) {
-      setContentHeight(contentRef.current.scrollHeight);
-    }
-  });
+    const el = contentRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setContentHeight(el.scrollHeight);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const toggleCollapsed = useCallback(() => {
     // Measure before toggling so animation works
