@@ -8,7 +8,7 @@ function getInitials(name?: string | null): string {
   return name.split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2);
 }
 
-type Section = 'account' | 'notifications' | 'goals' | 'privacy' | 'admin';
+type Section = 'account' | 'notifications' | 'goals' | 'subscription' | 'privacy' | 'admin';
 
 interface AdminUser {
   id: string;
@@ -74,6 +74,79 @@ export default function SettingsPage() {
   const [goalInput, setGoalInput] = useState<string>('10');
   const [goalStatus, setGoalStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
   const [goalLoading, setGoalLoading] = useState(false);
+
+  // Subscription state
+  const [subTier, setSubTier] = useState<string>('FREE');
+  const [subPendingTier, setSubPendingTier] = useState<string | null>(null);
+  const [subPeriodEnd, setSubPeriodEnd] = useState<string | null>(null);
+  const [subLoading, setSubLoading] = useState(false);
+  const [subStatus, setSubStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
+  const [subConfirmAction, setSubConfirmAction] = useState<{ action: 'cancel' | 'change'; newTier?: string } | null>(null);
+
+  const tierNames: Record<string, string> = { FREE: 'Free', PLUS: 'Plus', PRO: 'Pro' };
+  const tierPrices: Record<string, number> = { FREE: 0, PLUS: 5, PRO: 10 };
+  const tierColors: Record<string, string> = { FREE: '#aaa8c8', PLUS: '#c084fc', PRO: '#fbbf24' };
+
+  const fetchSubscription = useCallback(() => {
+    fetch('/api/user/subscription')
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.data) {
+          setSubTier(res.data.tier);
+          setSubPendingTier(res.data.pendingTier);
+          setSubPeriodEnd(res.data.subscriptionPeriodEnd);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchSubscription();
+  }, [fetchSubscription]);
+
+  const handleSubAction = async (action: 'cancel' | 'change', newTier?: string) => {
+    setSubLoading(true);
+    setSubStatus(null);
+    setSubConfirmAction(null);
+    try {
+      const res = await fetch('/api/user/subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, newTier }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setSubTier(json.data.tier);
+        setSubPendingTier(json.data.pendingTier);
+        setSubPeriodEnd(json.data.subscriptionPeriodEnd);
+        setSubStatus({ type: 'success', msg: json.message });
+        await updateSession();
+      } else {
+        setSubStatus({ type: 'error', msg: json.error || 'Something went wrong.' });
+      }
+    } catch {
+      setSubStatus({ type: 'error', msg: 'Network error. Try again.' });
+    }
+    setSubLoading(false);
+  };
+
+  const handleUndoPending = async () => {
+    setSubLoading(true);
+    setSubStatus(null);
+    try {
+      const res = await fetch('/api/user/subscription', { method: 'DELETE' });
+      const json = await res.json();
+      if (res.ok) {
+        setSubPendingTier(json.data.pendingTier);
+        setSubStatus({ type: 'success', msg: json.message });
+      } else {
+        setSubStatus({ type: 'error', msg: json.error || 'Something went wrong.' });
+      }
+    } catch {
+      setSubStatus({ type: 'error', msg: 'Network error. Try again.' });
+    }
+    setSubLoading(false);
+  };
 
   useEffect(() => {
     fetch('/api/user/settings')
@@ -408,6 +481,7 @@ export default function SettingsPage() {
     { section: 'account', icon: 'person', label: 'Account Details' },
     { section: 'notifications', icon: 'notifications_active', label: 'Notifications' },
     { section: 'goals', icon: 'track_changes', label: 'Study Goals' },
+    { section: 'subscription', icon: 'credit_card', label: 'Subscription' },
     { section: 'privacy', icon: 'lock', label: 'Privacy & Security' },
     ...(isAdmin ? [{ section: 'admin' as Section, icon: 'admin_panel_settings', label: 'User Management' }] : []),
   ];
@@ -960,6 +1034,364 @@ export default function SettingsPage() {
               </button>
             </form>
           </section>
+
+          {/* Subscription Management */}
+          <section
+            style={{
+              background: '#1c1c38',
+              borderRadius: '32px',
+              padding: '32px',
+              display: activeSection === 'subscription' ? 'flex' : 'none',
+              flexDirection: 'column',
+              gap: '32px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div
+                style={{
+                  width: '48px', height: '48px', borderRadius: '16px',
+                  background: 'rgba(192,132,252,0.2)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ color: '#c084fc', fontSize: '24px' }}>credit_card</span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>Subscription</h3>
+                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>Manage your plan and billing.</p>
+              </div>
+            </div>
+
+            {/* Current plan card */}
+            <div
+              style={{
+                background: '#161630',
+                borderRadius: '20px',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ fontSize: '13px', color: '#aaa8c8', margin: '0 0 4px', fontWeight: 600 }}>Current Plan</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 800, color: tierColors[subTier] || '#e5e3ff' }}>
+                      {tierNames[subTier] || subTier}
+                    </span>
+                    {subTier !== 'FREE' && (
+                      <span style={{ fontSize: '15px', color: '#aaa8c8', fontWeight: 600 }}>
+                        CHF {tierPrices[subTier]}/mo
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {subTier !== 'FREE' && (
+                  <div
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '9999px',
+                      background: 'rgba(74,222,128,0.15)',
+                      color: '#4ade80',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    Active
+                  </div>
+                )}
+              </div>
+
+              {subPeriodEnd && subTier !== 'FREE' && (
+                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
+                  Current period ends on{' '}
+                  <span style={{ color: '#e5e3ff', fontWeight: 600 }}>
+                    {new Date(subPeriodEnd).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </span>
+                </p>
+              )}
+
+              {/* Pending change banner */}
+              {subPendingTier && (
+                <div
+                  style={{
+                    padding: '14px 18px',
+                    borderRadius: '14px',
+                    background: subPendingTier === 'FREE' ? 'rgba(253,111,133,0.1)' : 'rgba(174,137,255,0.1)',
+                    border: `1px solid ${subPendingTier === 'FREE' ? 'rgba(253,111,133,0.25)' : 'rgba(174,137,255,0.25)'}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#e5e3ff', margin: '0 0 2px' }}>
+                      {subPendingTier === 'FREE' ? 'Cancellation scheduled' : `Switching to ${tierNames[subPendingTier]}`}
+                    </p>
+                    <p style={{ fontSize: '12px', color: '#aaa8c8', margin: 0 }}>
+                      {subPendingTier === 'FREE'
+                        ? 'Your plan will revert to Free at the end of your billing period.'
+                        : `Your plan will change to ${tierNames[subPendingTier]} (CHF ${tierPrices[subPendingTier]}/mo) at the end of your billing period.`}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleUndoPending}
+                    disabled={subLoading}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      background: 'rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      color: '#e5e3ff',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: subLoading ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      whiteSpace: 'nowrap',
+                      opacity: subLoading ? 0.5 : 1,
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => { if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.12)'; }}
+                    onMouseLeave={(e) => { if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                  >
+                    Undo
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Plan options */}
+            {!subPendingTier && (
+              <div>
+                <p style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 16px' }}>
+                  {subTier === 'FREE' ? 'Upgrade your plan' : 'Change plan'}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                  {(['FREE', 'PLUS', 'PRO'] as const).map((tier) => {
+                    const isCurrent = tier === subTier;
+                    const color = tierColors[tier];
+                    return (
+                      <div
+                        key={tier}
+                        style={{
+                          background: isCurrent ? 'rgba(174,137,255,0.08)' : '#161630',
+                          borderRadius: '16px',
+                          padding: '20px',
+                          border: isCurrent ? '1px solid rgba(174,137,255,0.3)' : '1px solid rgba(70,69,96,0.2)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px',
+                          transition: 'border-color 0.2s',
+                        }}
+                      >
+                        <div>
+                          <p style={{ fontSize: '17px', fontWeight: 700, color, margin: '0 0 4px' }}>
+                            {tierNames[tier]}
+                          </p>
+                          <p style={{ fontSize: '22px', fontWeight: 800, color: '#e5e3ff', margin: 0 }}>
+                            {tierPrices[tier] === 0 ? 'Free' : `CHF ${tierPrices[tier]}`}
+                            {tierPrices[tier] > 0 && (
+                              <span style={{ fontSize: '13px', fontWeight: 500, color: '#aaa8c8' }}>/mo</span>
+                            )}
+                          </p>
+                        </div>
+                        {isCurrent ? (
+                          <div
+                            style={{
+                              padding: '10px',
+                              borderRadius: '12px',
+                              background: 'rgba(174,137,255,0.15)',
+                              color: '#ae89ff',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              textAlign: 'center',
+                            }}
+                          >
+                            Current plan
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              if (tier === 'FREE') {
+                                setSubConfirmAction({ action: 'cancel' });
+                              } else {
+                                setSubConfirmAction({ action: 'change', newTier: tier });
+                              }
+                            }}
+                            disabled={subLoading}
+                            style={{
+                              padding: '10px',
+                              borderRadius: '12px',
+                              background: tier === 'FREE' ? 'rgba(253,111,133,0.12)' : 'rgba(174,137,255,0.15)',
+                              color: tier === 'FREE' ? '#fd6f85' : '#ae89ff',
+                              border: 'none',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              cursor: subLoading ? 'not-allowed' : 'pointer',
+                              fontFamily: 'inherit',
+                              transition: 'background 0.15s',
+                              opacity: subLoading ? 0.5 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background =
+                                tier === 'FREE' ? 'rgba(253,111,133,0.2)' : 'rgba(174,137,255,0.25)';
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background =
+                                tier === 'FREE' ? 'rgba(253,111,133,0.12)' : 'rgba(174,137,255,0.15)';
+                            }}
+                          >
+                            {tier === 'FREE'
+                              ? 'Cancel subscription'
+                              : (tierPrices[tier] > tierPrices[subTier] ? 'Upgrade' : 'Downgrade')}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {subStatus && (
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  background: subStatus.type === 'error' ? 'rgba(253,111,133,0.12)' : 'rgba(174,137,255,0.12)',
+                  color: subStatus.type === 'error' ? '#fd6f85' : '#ae89ff',
+                  fontSize: '14px',
+                }}
+              >
+                {subStatus.msg}
+              </div>
+            )}
+
+            {/* Info note */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '12px',
+                padding: '16px',
+                borderRadius: '14px',
+                background: 'rgba(174,137,255,0.06)',
+                border: '1px solid rgba(174,137,255,0.1)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: '#ae89ff', fontSize: '20px', flexShrink: 0, marginTop: '1px' }}>info</span>
+              <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0, lineHeight: 1.6 }}>
+                Plan changes and cancellations take effect at the end of your current billing period (30 days after payment).
+                You will keep access to your current plan&apos;s features until then.
+              </p>
+            </div>
+          </section>
+
+          {/* Subscription confirm modal */}
+          {subConfirmAction && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(0,0,0,0.7)',
+                backdropFilter: 'blur(8px)',
+              }}
+              onClick={(e) => { if (e.target === e.currentTarget && !subLoading) setSubConfirmAction(null); }}
+            >
+              <div
+                style={{
+                  background: '#1c1c38',
+                  borderRadius: '24px',
+                  padding: '32px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '20px',
+                  maxWidth: '400px',
+                  width: '90%',
+                  border: `1px solid ${subConfirmAction.action === 'cancel' ? 'rgba(253,111,133,0.3)' : 'rgba(174,137,255,0.3)'}`,
+                }}
+              >
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: subConfirmAction.action === 'cancel' ? 'rgba(253,111,133,0.15)' : 'rgba(174,137,255,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <span className="material-symbols-outlined" style={{
+                    color: subConfirmAction.action === 'cancel' ? '#fd6f85' : '#ae89ff',
+                    fontSize: '28px',
+                  }}>
+                    {subConfirmAction.action === 'cancel' ? 'cancel' : 'swap_horiz'}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0, textAlign: 'center' }}>
+                  {subConfirmAction.action === 'cancel'
+                    ? 'Cancel your subscription?'
+                    : `Switch to ${tierNames[subConfirmAction.newTier!]}?`}
+                </h3>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, margin: 0, textAlign: 'center' }}>
+                  {subConfirmAction.action === 'cancel'
+                    ? 'Your plan will revert to Free at the end of your current billing period. You\'ll keep access to your current features until then.'
+                    : `Your plan will change from ${tierNames[subTier]} to ${tierNames[subConfirmAction.newTier!]} (CHF ${tierPrices[subConfirmAction.newTier!]}/mo) at the end of your current billing period.`}
+                </p>
+                <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '4px' }}>
+                  <button
+                    disabled={subLoading}
+                    onClick={() => setSubConfirmAction(null)}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: 'rgba(255,255,255,0.08)',
+                      color: '#ffffff',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: '14px',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      cursor: subLoading ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      opacity: subLoading ? 0.5 : 1,
+                      transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
+                    }}
+                  >
+                    Keep current plan
+                  </button>
+                  <button
+                    disabled={subLoading}
+                    onClick={() => handleSubAction(subConfirmAction.action, subConfirmAction.newTier)}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: subConfirmAction.action === 'cancel' ? '#c8475d' : '#ae89ff',
+                      color: subConfirmAction.action === 'cancel' ? '#ffffff' : '#2a0066',
+                      border: 'none',
+                      borderRadius: '14px',
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      cursor: subLoading ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      opacity: subLoading ? 0.7 : 1,
+                      transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
+                    }}
+                  >
+                    {subLoading
+                      ? 'Processing…'
+                      : subConfirmAction.action === 'cancel'
+                        ? 'Yes, cancel'
+                        : 'Confirm change'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Admin: User Management */}
           {isAdmin && (
