@@ -24,21 +24,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Hard limit: max 3 accounts per IP address within the last 12 months
-    const twelveMonthsAgo = new Date();
-    twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+    const whitelistedIps = (process.env.IP_WHITELIST ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!whitelistedIps.includes(ip)) {
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
 
-    const ipRegistrationCount = await db.ipRegistration.count({
-      where: {
-        ip,
-        createdAt: { gte: twelveMonthsAgo },
-      },
-    });
+      const ipRegistrationCount = await db.ipRegistration.count({
+        where: {
+          ip,
+          createdAt: { gte: twelveMonthsAgo },
+        },
+      });
 
-    if (ipRegistrationCount >= 3) {
-      return NextResponse.json(
-        { success: false, error: 'Maximum number of accounts reached for this network. Please try again later.' },
-        { status: 403 }
-      );
+      if (ipRegistrationCount >= 3) {
+        return NextResponse.json(
+          { success: false, error: 'Maximum number of accounts reached for this network. Please try again later.' },
+          { status: 403 }
+        );
+      }
     }
 
     const body = await request.json();
