@@ -15,7 +15,6 @@ import type { SectionNode } from '@/components/notebook/SectionTree';
 import type { NotebookChatItem } from '@/components/notebook/NotebookWorkspaceContext';
 import PageTypeSelector from '@/components/notebook/PageTypeSelector';
 import FlashcardSetCreator from '@/components/notebook/FlashcardSetCreator';
-import FlashcardImportDialog from '@/components/notebook/FlashcardImportDialog';
 import FlashcardSetManager from '@/components/notebook/FlashcardSetManager';
 import ExportDialog from '@/components/notebook/ExportDialog';
 import ImportNotebookDialog from '@/components/notebook/ImportNotebookDialog';
@@ -496,7 +495,6 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
   const [showPageTypeSelector, setShowPageTypeSelector] = useState(false);
   const [pendingPageType, setPendingPageType] = useState<'text' | 'canvas'>('text');
   const [showFlashcardCreator, setShowFlashcardCreator] = useState(false);
-  const [showFlashcardImport, setShowFlashcardImport] = useState(false);
   const childInputRef = useRef<HTMLInputElement>(null);
   const pageInputRef = useRef<HTMLInputElement>(null);
 
@@ -695,21 +693,6 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
             >
               <Layers size={11} />
             </button>
-            {/* Import flashcards */}
-            <button
-              onClick={e => { e.stopPropagation(); setShowFlashcardImport(true); }}
-              title="Import flashcards"
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: '20px', height: '20px', borderRadius: '4px',
-                border: 'none', background: 'transparent', cursor: 'pointer',
-                color: 'rgba(237,233,255,0.3)', padding: 0, flexShrink: 0,
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#c4a9ff'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)'; }}
-            >
-              <Upload size={11} />
-            </button>
             {/* Add subsection */}
             <button
               onClick={handleAddSubsection}
@@ -896,19 +879,6 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
         />
       )}
 
-      {/* Flashcard import modal */}
-      {showFlashcardImport && (
-        <FlashcardImportDialog
-          notebookId={notebookId}
-          sectionId={section.id}
-          onImported={(setId) => {
-            setShowFlashcardImport(false);
-            refreshSections();
-            router.push(`/notebooks/${notebookId}/flashcards/${setId}`);
-          }}
-          onClose={() => setShowFlashcardImport(false)}
-        />
-      )}
     </>
   );
 }
