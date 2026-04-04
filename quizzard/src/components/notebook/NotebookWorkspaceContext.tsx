@@ -61,6 +61,7 @@ interface WorkspaceContextValue {
   refreshSections: () => void;
   refreshStudyPlans: () => void;
   isScholarView: boolean;
+  sectionsLoaded: boolean;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
 }
@@ -79,6 +80,7 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
   const [flatSections, setFlatSections] = useState<SectionData[]>([]);
   const [sections, setSections] = useState<SectionNode[]>([]);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [sectionsLoaded, setSectionsLoaded] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [chats, setChats] = useState<NotebookChatItem[]>([]);
   const [studyPlans, setStudyPlans] = useState<StudyPlanSummary[]>([]);
@@ -131,8 +133,9 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
         const flat = json.data as SectionData[];
         setFlatSections(flat);
         setSections(buildSectionTree(flat));
+        setSectionsLoaded(true);
       }
-    } catch { /* silent */ }
+    } catch { setSectionsLoaded(true); /* silent */ }
   }, [notebookId]);
 
   const fetchChats = useCallback(async () => {
@@ -182,7 +185,7 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
 
   return (
     <NotebookWorkspaceContext.Provider value={{
-      notebookId, notebook, sections, flatSections,
+      notebookId, notebook, sections, flatSections, sectionsLoaded,
       activeSectionId, setActiveSectionId,
       activePageId, activeChatId, activeFlashcardSetId, activeQuizSetId,
       activeStudyPlanId,

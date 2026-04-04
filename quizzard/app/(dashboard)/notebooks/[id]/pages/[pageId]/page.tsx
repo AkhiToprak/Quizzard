@@ -30,6 +30,10 @@ export default function PageEditorPage({
       .catch(() => setPageType('text'));
   }, [notebookId, pageId]);
 
+  useEffect(() => {
+    try { localStorage.setItem(`notebook-${notebookId}-lastPage`, pageId); } catch {}
+  }, [notebookId, pageId]);
+
   if (!pageType) {
     return (
       <div style={{
