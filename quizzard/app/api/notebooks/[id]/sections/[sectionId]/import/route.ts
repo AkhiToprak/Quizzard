@@ -104,9 +104,10 @@ export async function POST(request: NextRequest, { params }: Params) {
         const { extractPdfImages } = await import('@/lib/pdf-image-extractor');
         const extractedImages = await extractPdfImages(buffer);
 
+        const imageNodes = [];
         for (const img of extractedImages) {
           const { filePath } = await saveImage(page.id, img.fileName, img.buffer);
-          await db.pageImage.create({
+          const pageImage = await db.pageImage.create({
             data: {
               pageId: page.id,
               fileName: img.fileName,
@@ -114,6 +115,23 @@ export async function POST(request: NextRequest, { params }: Params) {
               fileSize: img.buffer.length,
               mimeType: img.mimeType,
             },
+          });
+          imageNodes.push({
+            type: 'resizableImage',
+            attrs: { src: `/api/uploads/images/${pageImage.id}`, alt: img.fileName, width: null },
+          });
+        }
+
+        // Embed extracted images into the TipTap content
+        if (imageNodes.length > 0) {
+          const existingContent = (page.content as { type: string; content?: unknown[] }) ?? { type: 'doc', content: [] };
+          const updatedContent = {
+            ...existingContent,
+            content: [...(existingContent.content ?? []), ...imageNodes],
+          };
+          await db.page.update({
+            where: { id: page.id },
+            data: { content: updatedContent },
           });
         }
       } catch (imageError) {

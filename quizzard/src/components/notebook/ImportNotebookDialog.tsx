@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Loader2, ChevronRight, ChevronDown, Check, FileText, Upload } from 'lucide-react';
 
 interface ImportNotebookDialogProps {
@@ -90,7 +90,7 @@ export default function ImportNotebookDialog({ notebookId, onImported, onClose }
           {activeTab === 'onenote' && (
             <OneNoteTab notebookId={notebookId} onImported={onImported} />
           )}
-          {activeTab === 'goodnotes' && <GoodNotesTab />}
+          {activeTab === 'goodnotes' && <GoodNotesTab notebookId={notebookId} onImported={onImported} />}
           {activeTab === 'applenotes' && <AppleNotesTab />}
         </div>
       </div>
@@ -494,7 +494,57 @@ function OneNoteTab({ notebookId, onImported }: { notebookId: string; onImported
 // GoodNotes Tab
 // ═══════════════════════════════════════════════════════════════════
 
-function GoodNotesTab() {
+function GoodNotesTab({ notebookId, onImported }: { notebookId: string; onImported: () => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handlePdfUpload = useCallback(async (file: File) => {
+    if (file.type !== 'application/pdf') {
+      setErrorMessage('Please select a PDF file.');
+      setUploadState('error');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMessage('File exceeds the 10MB size limit.');
+      setUploadState('error');
+      return;
+    }
+
+    setUploadState('uploading');
+    setErrorMessage('');
+
+    try {
+      // Create a new section for the GoodNotes import
+      const sectionRes = await fetch(`/api/notebooks/${notebookId}/sections`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: file.name.replace(/\.pdf$/i, '') }),
+      });
+      if (!sectionRes.ok) throw new Error('Failed to create section');
+      const sectionJson = await sectionRes.json();
+      const sectionId = sectionJson.data.id;
+
+      // Import the PDF into the new section
+      const formData = new FormData();
+      formData.append('file', file);
+      const importRes = await fetch(
+        `/api/notebooks/${notebookId}/sections/${sectionId}/import`,
+        { method: 'POST', body: formData }
+      );
+      if (!importRes.ok) {
+        const body = await importRes.json().catch(() => null);
+        throw new Error(body?.error || `Upload failed (${importRes.status})`);
+      }
+
+      setUploadState('success');
+      setTimeout(() => onImported(), 600);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Upload failed');
+      setUploadState('error');
+    }
+  }, [notebookId, onImported]);
+
   return (
     <div style={{ padding: '8px 0' }}>
       <div style={{
@@ -535,8 +585,49 @@ function GoodNotesTab() {
         'Tap the share icon (⬆) or go to File → Export',
         'Choose "PDF" as the export format',
         'Save or AirDrop the PDF to your computer',
-        'In Quizzard, open any section and click the Upload (↑) button to import the PDF as a page',
       ]} />
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handlePdfUpload(file);
+        }}
+      />
+
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploadState === 'uploading' || uploadState === 'success'}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          width: '100%', marginTop: '16px', padding: '12px',
+          borderRadius: '10px', border: 'none', cursor: 'pointer',
+          fontFamily: 'inherit', fontSize: '14px', fontWeight: 600,
+          background: uploadState === 'success'
+            ? 'rgba(74,222,128,0.15)'
+            : 'linear-gradient(135deg, rgba(140,82,255,0.8), rgba(81,112,255,0.7))',
+          color: uploadState === 'success' ? '#4ade80' : '#fff',
+          opacity: uploadState === 'uploading' ? 0.6 : 1,
+          transition: 'opacity 0.15s ease',
+        }}
+      >
+        {uploadState === 'uploading' ? (
+          <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Importing PDF...</>
+        ) : uploadState === 'success' ? (
+          <><Check size={16} /> Imported!</>
+        ) : (
+          <><Upload size={16} /> Import PDF from GoodNotes</>
+        )}
+      </button>
+
+      {uploadState === 'error' && errorMessage && (
+        <p style={{ fontSize: '12px', color: '#fd6f85', margin: '8px 0 0', textAlign: 'center' }}>
+          {errorMessage}
+        </p>
+      )}
     </div>
   );
 }
