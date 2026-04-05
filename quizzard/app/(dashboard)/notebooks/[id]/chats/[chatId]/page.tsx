@@ -595,7 +595,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                 <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ae89ff', fontVariationSettings: "'FILL' 1" }}>
                   cloud_upload
                 </span>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ede9ff' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f0edff' }}>
                   Feed the Scholar
                 </h3>
               </div>
@@ -629,7 +629,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                 display: 'flex', alignItems: 'center', gap: '8px',
               }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#ae89ff', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                <span style={{ fontSize: '12px', color: '#ae89ff', fontWeight: 600 }}>
+                <span style={{ fontSize: '13px', color: '#c4a9ff', fontWeight: 600 }}>
                   {totalContext} source{totalContext !== 1 ? 's' : ''} selected as context
                 </span>
               </div>
@@ -649,10 +649,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                     style={{
                       flex: 1, padding: '7px 12px', borderRadius: '7px', border: 'none',
                       cursor: 'pointer', fontFamily: "var(--font-chat)",
-                      fontSize: '12px', fontWeight: 600,
+                      fontSize: '13px', fontWeight: 600,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                       background: feedTab === tab ? 'rgba(140,82,255,0.2)' : 'transparent',
-                      color: feedTab === tab ? '#c4a9ff' : 'rgba(185,195,255,0.5)',
+                      color: feedTab === tab ? '#d4c0ff' : 'rgba(200,210,255,0.6)',
                       transition: 'background 0.12s, color 0.12s',
                     }}
                   >
@@ -673,7 +673,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                 }}>
                   {sectionTree.length === 0 ? (
                     <div style={{ padding: '32px', textAlign: 'center' }}>
-                      <p style={{ fontSize: '13px', color: 'rgba(185,195,255,0.6)', margin: 0 }}>
+                      <p style={{ fontSize: '14px', color: 'rgba(200,210,255,0.65)', margin: 0 }}>
                         No sections yet. Add pages to your notebook first.
                       </p>
                     </div>
@@ -735,18 +735,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                       }
                     </div>
                     <div>
-                      <p style={{ margin: '0 0 1px', fontSize: '13px', fontWeight: 700, color: '#e5e3ff' }}>
+                      <p style={{ margin: '0 0 1px', fontSize: '14px', fontWeight: 700, color: '#f0edff' }}>
                         {isUploading ? 'Uploading…' : 'Drop or click to upload'}
                       </p>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#8888a8' }}>PDF · DOCX · TXT · MD</p>
-                      {uploadError && <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#fd6f85' }}>{uploadError}</p>}
+                      <p style={{ margin: 0, fontSize: '12px', color: '#a0a0c0' }}>PDF · DOCX · TXT · MD</p>
+                      {uploadError && <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#fd6f85' }}>{uploadError}</p>}
                     </div>
                   </div>
 
                   {/* Doc list */}
                   {documents.length > 0 && (
                     <div style={{ flex: 1, overflowY: 'auto', background: 'rgba(255,255,255,0.025)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ padding: '8px 12px 4px', fontSize: '10px', fontWeight: 600, color: 'rgba(185,195,255,0.5)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
+                      <div style={{ padding: '8px 12px 4px', fontSize: '11px', fontWeight: 600, color: 'rgba(200,210,255,0.6)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
                         Vault documents
                       </div>
                       {documents.map(doc => {
@@ -777,10 +777,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                             }}>
                               {isSelected && <Check size={10} style={{ color: '#fff' }} />}
                             </div>
-                            <span style={{ fontSize: '12px', color: 'rgba(237,233,255,0.7)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: '13px', color: 'rgba(237,233,255,0.85)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {doc.fileName}
                             </span>
-                            <span style={{ fontSize: '10px', color: '#8888a8', flexShrink: 0 }}>
+                            <span style={{ fontSize: '11px', color: '#a0a0c0', flexShrink: 0 }}>
                               {formatBytes(doc.fileSize)}
                             </span>
                           </div>
@@ -802,7 +802,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                   background: isSavingContext
                     ? 'rgba(140,82,255,0.4)'
                     : 'linear-gradient(135deg, #8c52ff, #5170ff)',
-                  color: '#fff', fontSize: '13px', fontWeight: 700,
+                  color: '#fff', fontSize: '14px', fontWeight: 700,
                   cursor: isSavingContext ? 'not-allowed' : 'pointer',
                   fontFamily: "var(--font-chat)",
                   boxShadow: isSavingContext ? 'none' : '0 4px 16px rgba(140,82,255,0.3)',
@@ -850,14 +850,14 @@ function PanelSectionItem({ section, selectedPageIds, onTogglePage, depth }: {
           cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}
       >
-        <span style={{ color: 'rgba(185,195,255,0.6)', display: 'flex' }}>
-          {open ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+        <span style={{ color: 'rgba(200,210,255,0.7)', display: 'flex' }}>
+          {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
         </span>
-        <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(185,195,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em', flex: 1 }}>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(210,215,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.05em', flex: 1 }}>
           {section.title}
         </span>
         {section.pages.length > 0 && (
-          <span style={{ fontSize: '10px', color: 'rgba(185,195,255,0.38)' }}>
+          <span style={{ fontSize: '11px', color: 'rgba(200,210,255,0.5)' }}>
             {section.pages.filter(p => selectedPageIds.has(p.id)).length}/{section.pages.length}
           </span>
         )}
@@ -889,7 +889,7 @@ function PanelSectionItem({ section, selectedPageIds, onTogglePage, depth }: {
                 }}>
                   {isSelected && <Check size={9} style={{ color: '#fff' }} />}
                 </div>
-                <span style={{ fontSize: '12px', color: isSelected ? '#ede9ff' : 'rgba(237,233,255,0.6)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '13px', color: isSelected ? '#f0edff' : 'rgba(237,233,255,0.75)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {page.title}
                 </span>
               </div>
@@ -906,7 +906,7 @@ function PanelSectionItem({ section, selectedPageIds, onTogglePage, depth }: {
           ))}
           {section.pages.length === 0 && !section.children?.length && (
             <div style={{ padding: `6px 12px 6px ${24 + depth * 14}px` }}>
-              <span style={{ fontSize: '11px', color: 'rgba(185,195,255,0.32)' }}>No pages</span>
+              <span style={{ fontSize: '12px', color: 'rgba(200,210,255,0.45)' }}>No pages</span>
             </div>
           )}
         </>

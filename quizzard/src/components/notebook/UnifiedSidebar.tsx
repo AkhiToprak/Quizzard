@@ -216,7 +216,7 @@ export default function UnifiedSidebar() {
             padding: '0 14px 6px',
           }}>
             <span style={{
-              fontSize: '11px', fontWeight: 700, color: 'rgba(237,233,255,0.35)',
+              fontSize: '12px', fontWeight: 700, color: 'rgba(237,233,255,0.5)',
               letterSpacing: '0.1em', textTransform: 'uppercase',
             }}>
               Sections
@@ -279,7 +279,7 @@ export default function UnifiedSidebar() {
 
           {sections.length === 0 && !isCreatingSection && (
             <div style={{ padding: '16px 14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.2)', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.4)', margin: 0, lineHeight: 1.5 }}>
                 No sections yet.
               </p>
             </div>
@@ -653,7 +653,7 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
           fontFamily: 'inherit',
           fontSize: depth === 0 ? '14px' : '13px',
           fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.65)',
+          color: isActive ? '#f0edff' : 'rgba(237,233,255,0.78)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           minWidth: 0,
         }}>
@@ -934,9 +934,9 @@ function PageTreeRow({ page, isActive, notebookId, accentColor, depth, onDelete 
         <span style={{
           flex: 1, minWidth: 0,
           fontFamily: 'inherit',
-          fontSize: '12px',
+          fontSize: '13px',
           fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
+          color: isActive ? '#f0edff' : 'rgba(237,233,255,0.72)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {page.title}
@@ -1008,7 +1008,7 @@ function FlashcardSetTreeRow({ flashcardSet, isActive, notebookId, accentColor, 
           fontFamily: 'inherit',
           fontSize: '12px',
           fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
+          color: isActive ? '#f0edff' : 'rgba(237,233,255,0.72)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {flashcardSet.title}
@@ -1090,8 +1090,8 @@ function StudyPlanTreeSection() {
               <CalendarDays size={9} style={{ color: '#c4a9ff' }} />
             </div>
             <span style={{
-              fontSize: '10px', fontWeight: 700,
-              color: 'rgba(196,169,255,0.55)',
+              fontSize: '11px', fontWeight: 700,
+              color: 'rgba(196,169,255,0.65)',
               letterSpacing: '0.1em', textTransform: 'uppercase',
             }}>
               Study Plans
@@ -1120,7 +1120,7 @@ function StudyPlanTreeSection() {
           <>
             {studyPlans.length === 0 && (
               <div style={{ padding: '12px 14px', textAlign: 'center' }}>
-                <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.2)', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.4)', margin: 0, lineHeight: 1.5 }}>
                   No study plans yet.
                 </p>
               </div>
@@ -1145,16 +1145,16 @@ function StudyPlanTreeSection() {
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: '12.5px', fontWeight: 500,
-                      color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
+                      fontSize: '13px', fontWeight: 500,
+                      color: isActive ? '#f0edff' : 'rgba(237,233,255,0.72)',
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       fontFamily: 'inherit',
                     }}>
                       {plan.title}
                     </div>
                     <div style={{
-                      fontSize: '10px',
-                      color: 'rgba(196,169,255,0.35)',
+                      fontSize: '11px',
+                      color: 'rgba(196,169,255,0.48)',
                       marginTop: '1px',
                       fontFamily: 'inherit',
                     }}>
@@ -1252,8 +1252,8 @@ function ChatTreeSection() {
             <Sparkles size={9} style={{ color: '#c4a9ff' }} />
           </div>
           <span style={{
-            fontSize: '10px', fontWeight: 700,
-            color: 'rgba(196,169,255,0.55)',
+            fontSize: '11px', fontWeight: 700,
+            color: 'rgba(196,169,255,0.65)',
             letterSpacing: '0.1em', textTransform: 'uppercase',
           }}>
             Scholar Chats
@@ -1282,7 +1282,7 @@ function ChatTreeSection() {
         <>
           {chats.length === 0 && (
             <div style={{ padding: '12px 14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.2)', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.4)', margin: 0, lineHeight: 1.5 }}>
                 No chats yet.
               </p>
             </div>
@@ -1406,7 +1406,7 @@ function ChatTreeRow({ chat, isActive, notebookId, onDelete }: {
             fontFamily: 'inherit',
             fontSize: '12px',
             fontWeight: isActive ? 600 : 400,
-            color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
+            color: isActive ? '#f0edff' : 'rgba(237,233,255,0.72)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {chat.title}
@@ -1495,14 +1495,14 @@ function FlashcardSetRow({ flashcardSet, isActive, notebookId, onDelete }: {
       >
         <Layers
           size={11}
-          style={{ color: isActive ? '#c4a9ff' : 'rgba(237,233,255,0.2)', flexShrink: 0 }}
+          style={{ color: isActive ? '#c4a9ff' : 'rgba(237,233,255,0.3)', flexShrink: 0 }}
         />
         <span style={{
           flex: 1, minWidth: 0,
           fontFamily: 'inherit',
-          fontSize: '11px',
+          fontSize: '12px',
           fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.45)',
+          color: isActive ? '#f0edff' : 'rgba(237,233,255,0.62)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {flashcardSet.title}
@@ -1563,14 +1563,14 @@ function QuizSetRow({ quizSet, isActive, notebookId, onDelete }: {
       >
         <HelpCircle
           size={11}
-          style={{ color: isActive ? '#93a8ff' : 'rgba(81,112,255,0.4)', flexShrink: 0 }}
+          style={{ color: isActive ? '#93a8ff' : 'rgba(81,112,255,0.45)', flexShrink: 0 }}
         />
         <span style={{
           flex: 1, minWidth: 0,
           fontFamily: 'inherit',
-          fontSize: '11px',
+          fontSize: '12px',
           fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.45)',
+          color: isActive ? '#f0edff' : 'rgba(237,233,255,0.62)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {quizSet.title}
@@ -1643,7 +1643,7 @@ function QuizSetTreeRow({ quizSet, isActive, notebookId, accentColor, depth, onD
           fontFamily: 'inherit',
           fontSize: '12px',
           fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.55)',
+          color: isActive ? '#f0edff' : 'rgba(237,233,255,0.72)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {quizSet.title}
