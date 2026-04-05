@@ -311,7 +311,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
             background: 'rgba(140,82,255,0.1)',
             color: '#c4a9ff', fontSize: '12px', fontWeight: 700,
             cursor: 'pointer', flexShrink: 0,
-            fontFamily: "var(--font-sans)",
+            fontFamily: "var(--font-chat)",
             transition: 'background 0.15s, border-color 0.15s',
           }}
           onMouseEnter={e => {
@@ -356,7 +356,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
             style={{
               marginLeft: 'auto', background: 'none', border: 'none',
               color: 'rgba(255, 210, 120, 0.6)', cursor: 'pointer', padding: '2px',
-              fontFamily: "var(--font-sans)",
+              fontFamily: "var(--font-chat)",
             }}
           >
             <X size={14} />
@@ -382,7 +382,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
               </span>
             </div>
             <div>
-              <p style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: 700, color: '#ede9ff', fontFamily: '"Shrikhand", serif', fontStyle: 'italic' }}>
+              <p style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: 700, color: '#ede9ff', fontFamily: 'var(--font-chat)', fontStyle: 'normal' }}>
                 Scholar is ready
               </p>
               <p style={{ margin: 0, fontSize: '13px', color: 'rgba(185,195,255,0.6)', maxWidth: '360px', lineHeight: 1.7 }}>
@@ -519,7 +519,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
             style={{
               flex: 1, background: 'transparent', border: 'none', outline: 'none',
               color: '#ede9ff', fontSize: '14px', lineHeight: 1.6,
-              fontFamily: "var(--font-sans)",
+              fontFamily: "var(--font-chat)",
               resize: 'none', minHeight: '22px', maxHeight: '160px',
               opacity: isSending ? 0.5 : 1,
             }}
@@ -648,7 +648,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                     onClick={() => setFeedTab(tab)}
                     style={{
                       flex: 1, padding: '7px 12px', borderRadius: '7px', border: 'none',
-                      cursor: 'pointer', fontFamily: "var(--font-sans)",
+                      cursor: 'pointer', fontFamily: "var(--font-chat)",
                       fontSize: '12px', fontWeight: 600,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                       background: feedTab === tab ? 'rgba(140,82,255,0.2)' : 'transparent',
@@ -804,7 +804,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                     : 'linear-gradient(135deg, #8c52ff, #5170ff)',
                   color: '#fff', fontSize: '13px', fontWeight: 700,
                   cursor: isSavingContext ? 'not-allowed' : 'pointer',
-                  fontFamily: "var(--font-sans)",
+                  fontFamily: "var(--font-chat)",
                   boxShadow: isSavingContext ? 'none' : '0 4px 16px rgba(140,82,255,0.3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
                   transition: 'opacity 0.15s',
@@ -950,7 +950,7 @@ function PresentationButton({ title, jsonData }: { title: string; jsonData: stri
           color: '#ffb380',
           fontSize: '13px', fontWeight: 600,
           cursor: 'pointer',
-          fontFamily: "var(--font-sans)",
+          fontFamily: "var(--font-chat)",
           transition: 'background 0.15s ease, border-color 0.15s ease',
         }}
       >
