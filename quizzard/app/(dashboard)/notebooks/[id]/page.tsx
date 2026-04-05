@@ -58,6 +58,7 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
   // Redirect to last-opened page or first page
   useEffect(() => {
     if (!sectionsLoaded) return;
+    if (searchParams.get('new') === '1') return; // don't redirect when opening create-chat modal
 
     const allPages = flatSections.flatMap(s => s.pages);
     if (allPages.length === 0) return; // render empty state below
@@ -80,7 +81,7 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
         return;
       }
     }
-  }, [flatSections, sectionsLoaded, id, router]);
+  }, [flatSections, sectionsLoaded, id, router, searchParams]);
 
   const handleCreateExam = async (data: { title: string; examDate: string; notebookId: string }) => {
     const res = await fetch('/api/user/exams', {
