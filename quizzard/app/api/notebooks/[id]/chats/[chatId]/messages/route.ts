@@ -210,7 +210,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       '',
       'You have access to a `create_flashcards` tool. When the user asks you to create, generate, or make flashcards, use this tool. Create high-quality flashcards with clear questions and concise answers. For complex answers, use bullet points or numbered lists.',
       '',
-      'You also have access to a `create_quiz` tool. When the user asks you to create, generate, or make a quiz, test, or multiple-choice questions, use this tool. Create challenging but fair questions with 4 options each. Always provide hints and explanations for both correct and incorrect answers to help students learn.',
+      'You also have access to a `create_quiz` tool. When the user asks you to create, generate, or make a quiz, test, or multiple-choice questions, use this tool. Create challenging but fair questions with 4 options each. IMPORTANT: Distribute the correct answer evenly across positions 0, 1, 2, and 3 (A, B, C, D) — do NOT favor any single position. Make ALL four options similar in length and level of detail — the correct answer must NOT be noticeably longer or more specific than distractors. Distractors must be plausible and sound like real answers, not obviously wrong. Always provide hints and explanations for both correct and incorrect answers to help students learn.',
       '',
       'You also have access to a `create_mindmap` tool. When the user asks you to create, generate, or make a mind map, concept map, or topic overview, use this tool. Structure the content using Markdown headings (# for root, ## for main branches, ### for sub-branches, #### for details). Keep node text concise.',
       '',
@@ -386,6 +386,16 @@ export async function POST(request: NextRequest, { params }: Params) {
     // ── If tool_use: create quiz in DB ──
     if (quizToolUse) {
       const { title: quizTitle, questions } = quizToolUse.input;
+
+      // Fisher-Yates shuffle to randomize answer positions
+      for (const q of questions) {
+        const correctAnswer = q.options[q.correctIndex];
+        for (let i = q.options.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [q.options[i], q.options[j]] = [q.options[j], q.options[i]];
+        }
+        q.correctIndex = q.options.indexOf(correctAnswer);
+      }
 
       if (!quizTitle || !Array.isArray(questions) || questions.length === 0) {
         assistantText = assistantText || 'I tried to create a quiz but the format was invalid. Please try again.';

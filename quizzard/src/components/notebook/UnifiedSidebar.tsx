@@ -116,7 +116,7 @@ export default function UnifiedSidebar() {
           </Link>
           <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: accentColor, flexShrink: 0 }} />
           <span style={{
-            fontSize: '13px', fontWeight: 600, color: '#ede9ff',
+            fontSize: '14px', fontWeight: 600, color: '#ede9ff',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             flex: 1, minWidth: 0,
           }}>
@@ -216,7 +216,7 @@ export default function UnifiedSidebar() {
             padding: '0 14px 6px',
           }}>
             <span style={{
-              fontSize: '10px', fontWeight: 700, color: 'rgba(237,233,255,0.35)',
+              fontSize: '11px', fontWeight: 700, color: 'rgba(237,233,255,0.35)',
               letterSpacing: '0.1em', textTransform: 'uppercase',
             }}>
               Sections
@@ -303,7 +303,7 @@ export default function UnifiedSidebar() {
             borderRadius: '8px',
             textDecoration: 'none',
             color: '#c4a9ff',
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: 600,
             transition: 'background 0.15s ease',
           }}
@@ -331,7 +331,7 @@ export default function UnifiedSidebar() {
             border: 'none',
             background: 'transparent',
             color: 'rgba(196,169,255,0.6)',
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: 600,
             cursor: 'pointer',
             fontFamily: 'inherit',
@@ -369,7 +369,7 @@ export default function UnifiedSidebar() {
             border: 'none',
             background: 'transparent',
             color: 'rgba(196,169,255,0.6)',
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: 600,
             cursor: 'pointer',
             fontFamily: 'inherit',
@@ -407,7 +407,7 @@ export default function UnifiedSidebar() {
             border: 'none',
             background: 'transparent',
             color: 'rgba(196,169,255,0.6)',
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: 600,
             cursor: 'pointer',
             fontFamily: 'inherit',
@@ -651,7 +651,7 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
         <span style={{
           flex: 1,
           fontFamily: 'inherit',
-          fontSize: depth === 0 ? '13px' : '12px',
+          fontSize: depth === 0 ? '14px' : '13px',
           fontWeight: isActive ? 600 : 400,
           color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.65)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',

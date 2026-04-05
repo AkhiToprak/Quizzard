@@ -33,10 +33,10 @@ const bubbleComponents: Components = {
     <h1 style={{
       fontFamily: '"Shrikhand", serif',
       fontStyle: 'italic',
-      fontSize: '1.35em',
+      fontSize: '2em',
       fontWeight: 700,
       color: '#ede9ff',
-      margin: '0.75em 0 0.4em',
+      margin: '1em 0 0.5em',
       lineHeight: 1.2,
       letterSpacing: '-0.01em',
     }}>{children}</h1>
@@ -45,10 +45,10 @@ const bubbleComponents: Components = {
     <h2 style={{
       fontFamily: '"Shrikhand", serif',
       fontStyle: 'italic',
-      fontSize: '1.15em',
+      fontSize: '1.55em',
       fontWeight: 700,
       color: '#e0d8ff',
-      margin: '0.75em 0 0.35em',
+      margin: '0.9em 0 0.4em',
       lineHeight: 1.25,
       letterSpacing: '-0.01em',
       paddingBottom: '0.25em',
@@ -57,19 +57,19 @@ const bubbleComponents: Components = {
   ),
   h3: ({ children }) => (
     <h3 style={{
-      fontSize: '1em',
+      fontSize: '1.25em',
       fontWeight: 700,
       color: '#c4a9ff',
-      margin: '0.65em 0 0.3em',
+      margin: '0.75em 0 0.35em',
       lineHeight: 1.3,
     }}>{children}</h3>
   ),
   h4: ({ children }) => (
     <h4 style={{
-      fontSize: '0.9em',
+      fontSize: '1.1em',
       fontWeight: 700,
       color: '#ae89ff',
-      margin: '0.5em 0 0.25em',
+      margin: '0.6em 0 0.3em',
       textTransform: 'uppercase',
       letterSpacing: '0.06em',
     }}>{children}</h4>

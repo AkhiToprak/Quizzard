@@ -138,6 +138,7 @@ body {
   background: var(--background);
   color: var(--on-surface);
   font-family: var(--font-sans);
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

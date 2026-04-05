@@ -584,7 +584,7 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
             marginBottom: '16px',
             boxShadow: '0 8px 32px rgba(140,82,255,0.1), 0 2px 8px rgba(0,0,0,0.3)',
           }}>
-            <div style={{ fontSize: '16px', color: '#ede9ff', lineHeight: 1.6 }}>
+            <div style={{ fontSize: '18px', color: '#ede9ff', lineHeight: 1.6 }}>
               <MarkdownRenderer content={question.question} />
             </div>
           </div>
@@ -648,7 +648,7 @@ export default function QuizViewer({ notebookId, setId, title, initialQuestions,
                     {showResult && isCorrectOption ? <CheckCircle2 size={14} /> :
                       showResult && (isSelected || reviewSelected) ? <XCircle size={14} /> : letter}
                   </span>
-                  <span style={{ fontSize: '14px', color: textColor, flex: 1, lineHeight: 1.5 }}>
+                  <span style={{ fontSize: '16px', color: textColor, flex: 1, lineHeight: 1.5 }}>
                     {option}
                   </span>
                 </button>
