@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import TagInput from '@/components/publish/TagInput';
+import { useDirectUpload } from '@/hooks/useDirectUpload';
 
 const PublishRichEditor = lazy(() => import('@/components/publish/PublishRichEditor'));
 
@@ -43,6 +44,7 @@ const STEPS = [
 
 export default function PublishPage() {
   const router = useRouter();
+  const { upload: directUpload } = useDirectUpload();
   const [step, setStep] = useState(0);
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [loadingNotebooks, setLoadingNotebooks] = useState(true);
@@ -156,12 +158,11 @@ export default function PublishPage() {
 
       // 2. Upload cover image if any
       if (shareId && coverImage) {
-        const formData = new FormData();
-        formData.append('file', coverImage.file);
-        formData.append('isCover', 'true');
+        const { storagePath } = await directUpload(coverImage.file, 'shared-image', { shareId });
         await fetch(`/api/community/notebooks/${shareId}/images`, {
           method: 'POST',
-          body: formData,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ storagePath, fileName: coverImage.file.name, isCover: true }),
         });
       }
 

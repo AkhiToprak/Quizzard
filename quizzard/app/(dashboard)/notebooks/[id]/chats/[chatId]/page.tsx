@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, use, useRef, useCallback, useMemo } from 'react';
+import { useDirectUpload } from '@/hooks/useDirectUpload';
 import Link from 'next/link';
 import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers, HelpCircle, Presentation, Youtube, Square } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
@@ -52,6 +53,7 @@ function formatBytes(bytes: number) {
 export default function ChatPage({ params }: { params: Promise<{ id: string; chatId: string }> }) {
   const { id: notebookId, chatId } = use(params);
   const { notebook, flatSections, refreshChats } = useNotebookWorkspace();
+  const { upload: directUpload } = useDirectUpload();
 
   const [chat, setChat] = useState<ChatData | null>(null);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -194,16 +196,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       setUploadError('Unsupported file type. Allowed: PDF, DOCX, TXT, MD');
       return;
     }
-    if (file.size > 50 * 1024 * 1024) {
-      setUploadError('File too large. Maximum size is 50MB');
-      return;
-    }
     setUploadError(null);
     setIsUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch(`/api/notebooks/${notebookId}/documents`, { method: 'POST', body: fd });
+      const { storagePath } = await directUpload(file, 'document', { notebookId });
+      const res = await fetch(`/api/notebooks/${notebookId}/documents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storagePath, fileName: file.name, fileType: file.type }),
+      });
       const json = await res.json();
       if (json.success && json.data?.id) {
         await fetchDocs();
