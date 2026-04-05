@@ -124,14 +124,16 @@ export async function POST(request: NextRequest, { params }: Params) {
 
         // Embed extracted images into the TipTap content
         if (imageNodes.length > 0) {
-          const existingContent = (page.content as { type: string; content?: unknown[] }) ?? { type: 'doc', content: [] };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const existingContent = (page.content as any) ?? { type: 'doc', content: [] };
           const updatedContent = {
             ...existingContent,
             content: [...(existingContent.content ?? []), ...imageNodes],
           };
           await db.page.update({
             where: { id: page.id },
-            data: { content: updatedContent },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data: { content: updatedContent as any },
           });
         }
       } catch (imageError) {
