@@ -118,6 +118,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     if (message.length > 10_000) {
       return badRequestResponse('Message is too long (max 10,000 characters)');
     }
+    const userMessage = message.trim();
 
     // ── Build context from selected pages & documents ──
     const contextParts: string[] = [];
@@ -200,7 +201,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     }));
 
     // Add the new user message
-    conversationMessages.push({ role: 'user', content: message.trim() });
+    conversationMessages.push({ role: 'user', content: userMessage });
 
     // ── Build system prompt ──
     const systemParts = [
@@ -246,554 +247,354 @@ export async function POST(request: NextRequest, { params }: Params) {
       );
     }
 
-    // ── Call Anthropic API (with tools) ──
-    const response = await anthropic.messages.create({
+    // ── SSE helpers ──
+    const encoder = new TextEncoder();
+    const sseEvent = (event: string, data: unknown) =>
+      encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+
+    // Capture narrowed values for use in closures
+    const narrowedUserId = userId as string;
+    const narrowedNotebookId = notebookId;
+    const narrowedChatId = chatId;
+
+    // Helper to save messages + optional tool artifacts and return done payload
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async function saveAndBuildDone(assistantContent: string, inputTokens: number, outputTokens: number, extras: Record<string, any> = {}) {
+      const totalTokens = inputTokens + outputTokens;
+
+      const [userMsg, assistantMsg] = await db.$transaction([
+        db.chatMessage.create({
+          data: { notebookId: narrowedNotebookId, userId: narrowedUserId, chatId: narrowedChatId, role: 'user', content: userMessage, tokens: inputTokens },
+        }),
+        db.chatMessage.create({
+          data: { notebookId: narrowedNotebookId, userId: narrowedUserId, chatId: narrowedChatId, role: 'assistant', content: assistantContent, tokens: outputTokens },
+        }),
+      ]);
+
+      await db.notebookChat.update({ where: { id: narrowedChatId }, data: { updatedAt: new Date() } });
+
+      return {
+        userMessage: { id: userMsg.id, role: userMsg.role, content: userMsg.content, createdAt: userMsg.createdAt },
+        assistantMessage: { id: assistantMsg.id, role: assistantMsg.role, content: assistantMsg.content, createdAt: assistantMsg.createdAt },
+        ...extras,
+        usage: { inputTokens, outputTokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
+        contextStatus,
+      };
+    }
+
+    // ── Call Anthropic API (streaming) ──
+    const abortController = new AbortController();
+    const onAbort = () => abortController.abort();
+    request.signal.addEventListener('abort', onAbort);
+
+    const stream = anthropic.messages.stream({
       model: AI_MODEL,
       max_tokens: 4096,
       system: systemParts.join('\n'),
       messages: conversationMessages,
       tools: ALL_TOOLS,
-    });
+    }, { signal: abortController.signal });
 
-    const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
+    return new Response(
+      new ReadableStream({
+        async start(controller) {
+          let fullText = '';
+          let aborted = false;
 
-    // ── Extract text and tool_use blocks from response ──
-    const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse, studyPlan: studyPlanToolUse, presentation: presentationToolUse, youtubeVideos: youtubeVideosToolUse } = extractToolUses(response.content);
-    let assistantText = extractedText;
-
-    // Increment scholar_chat usage after successful AI response
-    await incrementUsage(userId, 'scholar_chat');
-
-    // ── If tool_use: create flashcards in DB ──
-    let flashcardSetData: { id: string; title: string; cardCount: number } | null = null;
-
-    if (flashcardToolUse) {
-      const { title: setTitle, flashcards } = flashcardToolUse.input;
-
-      // Validate
-      if (!setTitle || !Array.isArray(flashcards) || flashcards.length === 0) {
-        // Fallback: treat as text-only response
-        assistantText = assistantText || 'I tried to create flashcards but the format was invalid. Please try again.';
-      } else {
-        // Check ai_flashcards usage limit before persisting
-        const fcUsage = await checkUsageLimit(userId, 'ai_flashcards');
-        if (!fcUsage.allowed) {
-          return NextResponse.json(
-            { error: 'Monthly flashcard generation limit reached. Upgrade your plan for more.', limitReached: true },
-            { status: 429 }
-          );
-        }
-
-        // Create flashcard set + cards in a transaction, along with messages
-        const result = await db.$transaction(async (tx) => {
-          // Save user message
-          const userMsg = await tx.chatMessage.create({
-            data: {
-              notebookId,
-              userId,
-              chatId,
-              role: 'user',
-              content: message.trim(),
-              tokens: response.usage.input_tokens,
-            },
+          // Stream text deltas to client
+          stream.on('text', (delta) => {
+            fullText += delta;
+            controller.enqueue(sseEvent('text', { delta }));
           });
 
-          // Create flashcard set
-          const fSet = await tx.flashcardSet.create({
-            data: {
-              notebookId,
-              chatId,
-              messageId: '', // placeholder, updated below
-              title: setTitle,
-              source: 'ai',
-              flashcards: {
-                create: flashcards.map((fc, i) => ({
-                  question: fc.question,
-                  answer: fc.answer,
-                  sortOrder: i,
-                })),
-              },
-            },
-            include: { flashcards: true },
-          });
+          try {
+            const response = await stream.finalMessage();
 
-          // Build assistant content with marker
-          const markerText = assistantText
-            ? `${assistantText}\n\n[flashcard_set:${fSet.id}]`
-            : `I've created a flashcard set "${setTitle}" with ${flashcards.length} cards.\n\n[flashcard_set:${fSet.id}]`;
+            // Increment scholar_chat usage after successful AI response
+            await incrementUsage(userId, 'scholar_chat');
 
-          // Save assistant message
-          const assistantMsg = await tx.chatMessage.create({
-            data: {
-              notebookId,
-              userId,
-              chatId,
-              role: 'assistant',
-              content: markerText,
-              tokens: response.usage.output_tokens,
-            },
-          });
+            const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
 
-          // Update flashcard set with message ID
-          await tx.flashcardSet.update({
-            where: { id: fSet.id },
-            data: { messageId: assistantMsg.id },
-          });
+            // ── Extract tool_use blocks from response ──
+            const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse, studyPlan: studyPlanToolUse, presentation: presentationToolUse, youtubeVideos: youtubeVideosToolUse } = extractToolUses(response.content);
+            let assistantText = extractedText;
 
-          await tx.notebookChat.update({
-            where: { id: chatId },
-            data: { updatedAt: new Date() },
-          });
+            // ── If tool_use: create flashcards in DB ──
+            if (flashcardToolUse) {
+              const { title: setTitle, flashcards } = flashcardToolUse.input;
 
-          return { userMsg, assistantMsg, fSet };
-        });
+              if (!setTitle || !Array.isArray(flashcards) || flashcards.length === 0) {
+                assistantText = assistantText || 'I tried to create flashcards but the format was invalid. Please try again.';
+              } else {
+                const fcUsage = await checkUsageLimit(userId, 'ai_flashcards');
+                if (!fcUsage.allowed) {
+                  controller.enqueue(sseEvent('error', { error: 'Monthly flashcard generation limit reached. Upgrade your plan for more.' }));
+                  controller.close();
+                  return;
+                }
 
-        flashcardSetData = {
-          id: result.fSet.id,
-          title: result.fSet.title,
-          cardCount: result.fSet.flashcards.length,
-        };
+                const result = await db.$transaction(async (tx) => {
+                  const userMsg = await tx.chatMessage.create({
+                    data: { notebookId, userId, chatId, role: 'user', content: userMessage, tokens: response.usage.input_tokens },
+                  });
+                  const fSet = await tx.flashcardSet.create({
+                    data: {
+                      notebookId, chatId, messageId: '', title: setTitle, source: 'ai',
+                      flashcards: { create: flashcards.map((fc, i) => ({ question: fc.question, answer: fc.answer, sortOrder: i })) },
+                    },
+                    include: { flashcards: true },
+                  });
+                  const markerText = assistantText
+                    ? `${assistantText}\n\n[flashcard_set:${fSet.id}]`
+                    : `I've created a flashcard set "${setTitle}" with ${flashcards.length} cards.\n\n[flashcard_set:${fSet.id}]`;
+                  const assistantMsg = await tx.chatMessage.create({
+                    data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
+                  });
+                  await tx.flashcardSet.update({ where: { id: fSet.id }, data: { messageId: assistantMsg.id } });
+                  await tx.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+                  return { userMsg, assistantMsg, fSet };
+                });
 
-        // Increment ai_flashcards usage after successful creation
-        await incrementUsage(userId, 'ai_flashcards');
+                await incrementUsage(userId, 'ai_flashcards');
 
-        return successResponse({
-          userMessage: {
-            id: result.userMsg.id,
-            role: result.userMsg.role,
-            content: result.userMsg.content,
-            createdAt: result.userMsg.createdAt,
-          },
-          assistantMessage: {
-            id: result.assistantMsg.id,
-            role: result.assistantMsg.role,
-            content: result.assistantMsg.content,
-            createdAt: result.assistantMsg.createdAt,
-          },
-          flashcardSet: flashcardSetData,
-          usage: {
-            inputTokens: response.usage.input_tokens,
-            outputTokens: response.usage.output_tokens,
-            totalTokens,
-            monthlyUsed: usedTokens + totalTokens,
-            monthlyLimit: MONTHLY_TOKEN_LIMIT,
-          },
-          contextStatus,
-        });
-      }
-    }
+                controller.enqueue(sseEvent('done', {
+                  userMessage: { id: result.userMsg.id, role: result.userMsg.role, content: result.userMsg.content, createdAt: result.userMsg.createdAt },
+                  assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
+                  flashcardSet: { id: result.fSet.id, title: result.fSet.title, cardCount: result.fSet.flashcards.length },
+                  usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
+                  contextStatus,
+                }));
+                controller.close();
+                return;
+              }
+            }
 
-    // ── If tool_use: create quiz in DB ──
-    if (quizToolUse) {
-      const { title: quizTitle, questions } = quizToolUse.input;
+            // ── If tool_use: create quiz in DB ──
+            if (quizToolUse) {
+              const { title: quizTitle, questions } = quizToolUse.input;
 
-      // Fisher-Yates shuffle to randomize answer positions
-      for (const q of questions) {
-        const correctAnswer = q.options[q.correctIndex];
-        for (let i = q.options.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [q.options[i], q.options[j]] = [q.options[j], q.options[i]];
-        }
-        q.correctIndex = q.options.indexOf(correctAnswer);
-      }
+              // Fisher-Yates shuffle to randomize answer positions
+              for (const q of questions) {
+                const correctAnswer = q.options[q.correctIndex];
+                for (let i = q.options.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [q.options[i], q.options[j]] = [q.options[j], q.options[i]];
+                }
+                q.correctIndex = q.options.indexOf(correctAnswer);
+              }
 
-      if (!quizTitle || !Array.isArray(questions) || questions.length === 0) {
-        assistantText = assistantText || 'I tried to create a quiz but the format was invalid. Please try again.';
-      } else {
-        const result = await db.$transaction(async (tx) => {
-          const userMsg = await tx.chatMessage.create({
-            data: {
-              notebookId,
-              userId,
-              chatId,
-              role: 'user',
-              content: message.trim(),
-              tokens: response.usage.input_tokens,
-            },
-          });
+              if (!quizTitle || !Array.isArray(questions) || questions.length === 0) {
+                assistantText = assistantText || 'I tried to create a quiz but the format was invalid. Please try again.';
+              } else {
+                const result = await db.$transaction(async (tx) => {
+                  const userMsg = await tx.chatMessage.create({
+                    data: { notebookId, userId, chatId, role: 'user', content: userMessage, tokens: response.usage.input_tokens },
+                  });
+                  const qSet = await tx.quizSet.create({
+                    data: {
+                      notebookId, chatId, messageId: '', title: quizTitle,
+                      questions: {
+                        create: questions.map((q, i) => ({
+                          question: q.question, options: q.options, correctIndex: q.correctIndex,
+                          hint: q.hint ?? null, correctExplanation: q.correctExplanation ?? null, wrongExplanation: q.wrongExplanation ?? null, sortOrder: i,
+                        })),
+                      },
+                    },
+                    include: { questions: true },
+                  });
+                  const markerText = assistantText
+                    ? `${assistantText}\n\n[quiz_set:${qSet.id}]`
+                    : `I've created a quiz "${quizTitle}" with ${questions.length} questions.\n\n[quiz_set:${qSet.id}]`;
+                  const assistantMsg = await tx.chatMessage.create({
+                    data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
+                  });
+                  await tx.quizSet.update({ where: { id: qSet.id }, data: { messageId: assistantMsg.id } });
+                  await tx.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+                  return { userMsg, assistantMsg, qSet };
+                });
 
-          const qSet = await tx.quizSet.create({
-            data: {
-              notebookId,
-              chatId,
-              messageId: '',
-              title: quizTitle,
-              questions: {
-                create: questions.map((q, i) => ({
-                  question: q.question,
-                  options: q.options,
-                  correctIndex: q.correctIndex,
-                  hint: q.hint ?? null,
-                  correctExplanation: q.correctExplanation ?? null,
-                  wrongExplanation: q.wrongExplanation ?? null,
-                  sortOrder: i,
-                })),
-              },
-            },
-            include: { questions: true },
-          });
+                controller.enqueue(sseEvent('done', {
+                  userMessage: { id: result.userMsg.id, role: result.userMsg.role, content: result.userMsg.content, createdAt: result.userMsg.createdAt },
+                  assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
+                  quizSet: { id: result.qSet.id, title: result.qSet.title, questionCount: result.qSet.questions.length },
+                  usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
+                  contextStatus,
+                }));
+                controller.close();
+                return;
+              }
+            }
 
-          const markerText = assistantText
-            ? `${assistantText}\n\n[quiz_set:${qSet.id}]`
-            : `I've created a quiz "${quizTitle}" with ${questions.length} questions.\n\n[quiz_set:${qSet.id}]`;
+            // ── If tool_use: create study plan in DB ──
+            if (studyPlanToolUse) {
+              const { title: planTitle, description: planDesc, phases } = studyPlanToolUse.input;
 
-          const assistantMsg = await tx.chatMessage.create({
-            data: {
-              notebookId,
-              userId,
-              chatId,
-              role: 'assistant',
-              content: markerText,
-              tokens: response.usage.output_tokens,
-            },
-          });
+              if (planTitle && Array.isArray(phases) && phases.length > 0) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                let cursor = new Date(today);
 
-          await tx.quizSet.update({
-            where: { id: qSet.id },
-            data: { messageId: assistantMsg.id },
-          });
+                const phasesWithDates = phases.map((p) => {
+                  const start = new Date(cursor);
+                  const end = new Date(cursor);
+                  end.setDate(end.getDate() + Math.max(1, p.durationDays) - 1);
+                  cursor = new Date(end);
+                  cursor.setDate(cursor.getDate() + 1);
+                  return { ...p, startDate: start, endDate: end };
+                });
 
-          await tx.notebookChat.update({
-            where: { id: chatId },
-            data: { updatedAt: new Date() },
-          });
+                const planEndDate = phasesWithDates[phasesWithDates.length - 1].endDate;
 
-          return { userMsg, assistantMsg, qSet };
-        });
+                const result = await db.$transaction(async (tx) => {
+                  const userMsg = await tx.chatMessage.create({
+                    data: { notebookId, userId, chatId, role: 'user', content: userMessage, tokens: response.usage.input_tokens },
+                  });
+                  const plan = await tx.studyPlan.create({
+                    data: { notebookId, title: planTitle, description: planDesc || null, startDate: today, endDate: planEndDate, source: 'ai' },
+                  });
+                  for (let i = 0; i < phasesWithDates.length; i++) {
+                    const p = phasesWithDates[i];
+                    const validMaterials = (p.materials || []).filter(m => m.referenceId && m.title);
+                    await tx.studyPhase.create({
+                      data: {
+                        planId: plan.id, title: p.title, description: p.description || null, sortOrder: i,
+                        startDate: p.startDate, endDate: p.endDate, status: i === 0 ? 'active' : 'upcoming',
+                        materials: validMaterials.length > 0
+                          ? { create: validMaterials.map((m, j) => ({ type: m.type, referenceId: m.referenceId, title: m.title, sortOrder: j })) }
+                          : undefined,
+                      },
+                    });
+                  }
+                  const markerText = assistantText
+                    ? `${assistantText}\n\n[study_plan:${plan.id}]`
+                    : `I've created a study plan "${planTitle}" with ${phases.length} phases.\n\n[study_plan:${plan.id}]`;
+                  const assistantMsg = await tx.chatMessage.create({
+                    data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
+                  });
+                  await tx.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+                  return { userMsg, assistantMsg, plan };
+                });
 
-        return successResponse({
-          userMessage: {
-            id: result.userMsg.id,
-            role: result.userMsg.role,
-            content: result.userMsg.content,
-            createdAt: result.userMsg.createdAt,
-          },
-          assistantMessage: {
-            id: result.assistantMsg.id,
-            role: result.assistantMsg.role,
-            content: result.assistantMsg.content,
-            createdAt: result.assistantMsg.createdAt,
-          },
-          quizSet: {
-            id: result.qSet.id,
-            title: result.qSet.title,
-            questionCount: result.qSet.questions.length,
-          },
-          usage: {
-            inputTokens: response.usage.input_tokens,
-            outputTokens: response.usage.output_tokens,
-            totalTokens,
-            monthlyUsed: usedTokens + totalTokens,
-            monthlyLimit: MONTHLY_TOKEN_LIMIT,
-          },
-          contextStatus,
-        });
-      }
-    }
+                controller.enqueue(sseEvent('done', {
+                  userMessage: { id: result.userMsg.id, role: result.userMsg.role, content: result.userMsg.content, createdAt: result.userMsg.createdAt },
+                  assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
+                  studyPlan: { id: result.plan.id, title: result.plan.title, phaseCount: phases.length },
+                  usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
+                  contextStatus,
+                }));
+                controller.close();
+                return;
+              }
+            }
 
-    // ── If tool_use: create study plan in DB ──
-    if (studyPlanToolUse) {
-      const { title: planTitle, description: planDesc, phases } = studyPlanToolUse.input;
+            // ── If tool_use: embed mindmap markdown inline in message ──
+            if (mindmapToolUse) {
+              const { title: mapTitle, markdown: mapMarkdown } = mindmapToolUse.input;
+              if (mapTitle && mapMarkdown) {
+                const markerText = (assistantText ? `${assistantText}\n\n` : '')
+                  + `[mindmap_start:${mapTitle}]\n${mapMarkdown}\n[mindmap_end]`;
+                const done = await saveAndBuildDone(markerText, response.usage.input_tokens, response.usage.output_tokens);
+                controller.enqueue(sseEvent('done', done));
+                controller.close();
+                return;
+              }
+            }
 
-      if (planTitle && Array.isArray(phases) && phases.length > 0) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        let cursor = new Date(today);
+            // ── If tool_use: embed presentation slides inline in message ──
+            if (presentationToolUse) {
+              const { title: presTitle, themeColor, slides: presSlides } = presentationToolUse.input;
+              if (presTitle && Array.isArray(presSlides) && presSlides.length > 0) {
+                const pptxUsage = await checkUsageLimit(userId, 'ai_pptx');
+                if (!pptxUsage.allowed) {
+                  controller.enqueue(sseEvent('error', { error: 'Monthly presentation generation limit reached. Upgrade your plan for more.' }));
+                  controller.close();
+                  return;
+                }
+                const presJson = JSON.stringify({ themeColor, slides: presSlides });
+                const markerText = (assistantText ? `${assistantText}\n\n` : '')
+                  + `[presentation_start:${presTitle}]\n${presJson}\n[presentation_end]`;
+                const done = await saveAndBuildDone(markerText, response.usage.input_tokens, response.usage.output_tokens);
+                await incrementUsage(userId, 'ai_pptx');
+                controller.enqueue(sseEvent('done', done));
+                controller.close();
+                return;
+              }
+            }
 
-        const phasesWithDates = phases.map((p) => {
-          const start = new Date(cursor);
-          const end = new Date(cursor);
-          end.setDate(end.getDate() + Math.max(1, p.durationDays) - 1);
-          cursor = new Date(end);
-          cursor.setDate(cursor.getDate() + 1);
-          return { ...p, startDate: start, endDate: end };
-        });
+            // ── If tool_use: recommend YouTube videos ──
+            if (youtubeVideosToolUse) {
+              const { search_query, max_results } = youtubeVideosToolUse.input;
+              if (search_query) {
+                try {
+                  const videos = await searchYouTubeVideos(search_query, max_results ?? 3);
+                  if (videos.length > 0) {
+                    const videosJson = JSON.stringify(videos);
+                    const markerText = (assistantText ? `${assistantText}\n\n` : '')
+                      + `[youtube_videos_start:${search_query}]\n${videosJson}\n[youtube_videos_end]`;
+                    const done = await saveAndBuildDone(markerText, response.usage.input_tokens, response.usage.output_tokens);
+                    controller.enqueue(sseEvent('done', done));
+                    controller.close();
+                    return;
+                  }
+                } catch (err) {
+                  console.error('[AI Chat] YouTube search failed:', err);
+                  // Fall through to text-only response
+                }
+              }
+            }
 
-        const planEndDate = phasesWithDates[phasesWithDates.length - 1].endDate;
+            // ── Standard text-only response path ──
+            const done = await saveAndBuildDone(assistantText, response.usage.input_tokens, response.usage.output_tokens);
+            controller.enqueue(sseEvent('done', done));
+            controller.close();
+          } catch (error: unknown) {
+            // Handle abort (user clicked stop)
+            if (abortController.signal.aborted || request.signal.aborted) {
+              aborted = true;
+              try {
+                const partialText = fullText || '[generation stopped]';
+                const done = await saveAndBuildDone(partialText, 0, 0);
+                controller.enqueue(sseEvent('done', done));
+              } catch {
+                controller.enqueue(sseEvent('error', { error: 'Failed to save partial response' }));
+              }
+              controller.close();
+              return;
+            }
 
-        const result = await db.$transaction(async (tx) => {
-          const userMsg = await tx.chatMessage.create({
-            data: { notebookId, userId, chatId, role: 'user', content: message.trim(), tokens: response.usage.input_tokens },
-          });
+            console.error('[AI Chat] Streaming error:', error);
 
-          const plan = await tx.studyPlan.create({
-            data: {
-              notebookId,
-              title: planTitle,
-              description: planDesc || null,
-              startDate: today,
-              endDate: planEndDate,
-              source: 'ai',
-            },
-          });
+            // Surface Anthropic API errors
+            let errorMsg = 'AI service error';
+            if (error && typeof error === 'object' && 'status' in error) {
+              const apiError = error as { status: number; error?: { message?: string } };
+              const msg = apiError.error?.message ?? 'AI service error';
+              if (apiError.status === 400 && msg.includes('credit balance')) {
+                errorMsg = 'AI service billing issue. Please check your Anthropic API credits.';
+              } else if (apiError.status === 401) {
+                errorMsg = 'Invalid Anthropic API key. Please check your configuration.';
+              } else if (apiError.status === 429) {
+                errorMsg = 'AI service rate limit reached. Please wait a moment and try again.';
+              } else if (apiError.status === 529 || apiError.status === 503) {
+                errorMsg = 'AI service is temporarily overloaded. Please try again in a moment.';
+              }
+            }
 
-          for (let i = 0; i < phasesWithDates.length; i++) {
-            const p = phasesWithDates[i];
-            const validMaterials = (p.materials || []).filter(m => m.referenceId && m.title);
-            await tx.studyPhase.create({
-              data: {
-                planId: plan.id,
-                title: p.title,
-                description: p.description || null,
-                sortOrder: i,
-                startDate: p.startDate,
-                endDate: p.endDate,
-                status: i === 0 ? 'active' : 'upcoming',
-                materials: validMaterials.length > 0
-                  ? { create: validMaterials.map((m, j) => ({ type: m.type, referenceId: m.referenceId, title: m.title, sortOrder: j })) }
-                  : undefined,
-              },
-            });
+            controller.enqueue(sseEvent('error', { error: errorMsg }));
+            controller.close();
+          } finally {
+            request.signal.removeEventListener('abort', onAbort);
           }
-
-          const markerText = assistantText
-            ? `${assistantText}\n\n[study_plan:${plan.id}]`
-            : `I've created a study plan "${planTitle}" with ${phases.length} phases.\n\n[study_plan:${plan.id}]`;
-
-          const assistantMsg = await tx.chatMessage.create({
-            data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
-          });
-
-          await tx.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
-
-          return { userMsg, assistantMsg, plan };
-        });
-
-        return successResponse({
-          userMessage: { id: result.userMsg.id, role: result.userMsg.role, content: result.userMsg.content, createdAt: result.userMsg.createdAt },
-          assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
-          studyPlan: { id: result.plan.id, title: result.plan.title, phaseCount: phases.length },
-          usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
-          contextStatus,
-        });
-      }
-    }
-
-    // ── If tool_use: embed mindmap markdown inline in message ──
-    if (mindmapToolUse) {
-      const { title: mapTitle, markdown: mapMarkdown } = mindmapToolUse.input;
-
-      if (mapTitle && mapMarkdown) {
-        const markerText = (assistantText ? `${assistantText}\n\n` : '')
-          + `[mindmap_start:${mapTitle}]\n${mapMarkdown}\n[mindmap_end]`;
-
-        const [userMsg, assistantMsg] = await db.$transaction([
-          db.chatMessage.create({
-            data: {
-              notebookId,
-              userId,
-              chatId,
-              role: 'user',
-              content: message.trim(),
-              tokens: response.usage.input_tokens,
-            },
-          }),
-          db.chatMessage.create({
-            data: {
-              notebookId,
-              userId,
-              chatId,
-              role: 'assistant',
-              content: markerText,
-              tokens: response.usage.output_tokens,
-            },
-          }),
-        ]);
-
-        await db.notebookChat.update({
-          where: { id: chatId },
-          data: { updatedAt: new Date() },
-        });
-
-        return successResponse({
-          userMessage: {
-            id: userMsg.id,
-            role: userMsg.role,
-            content: userMsg.content,
-            createdAt: userMsg.createdAt,
-          },
-          assistantMessage: {
-            id: assistantMsg.id,
-            role: assistantMsg.role,
-            content: assistantMsg.content,
-            createdAt: assistantMsg.createdAt,
-          },
-          usage: {
-            inputTokens: response.usage.input_tokens,
-            outputTokens: response.usage.output_tokens,
-            totalTokens,
-            monthlyUsed: usedTokens + totalTokens,
-            monthlyLimit: MONTHLY_TOKEN_LIMIT,
-          },
-          contextStatus,
-        });
-      }
-    }
-
-    // ── If tool_use: embed presentation slides inline in message ──
-    if (presentationToolUse) {
-      const { title: presTitle, themeColor, slides: presSlides } = presentationToolUse.input;
-
-      if (presTitle && Array.isArray(presSlides) && presSlides.length > 0) {
-        // Check ai_pptx usage limit before persisting
-        const pptxUsage = await checkUsageLimit(userId, 'ai_pptx');
-        if (!pptxUsage.allowed) {
-          return NextResponse.json(
-            { error: 'Monthly presentation generation limit reached. Upgrade your plan for more.', limitReached: true },
-            { status: 429 }
-          );
-        }
-
-        const presJson = JSON.stringify({ themeColor, slides: presSlides });
-        const markerText = (assistantText ? `${assistantText}\n\n` : '')
-          + `[presentation_start:${presTitle}]\n${presJson}\n[presentation_end]`;
-
-        const [userMsg, assistantMsg] = await db.$transaction([
-          db.chatMessage.create({
-            data: {
-              notebookId,
-              userId,
-              chatId,
-              role: 'user',
-              content: message.trim(),
-              tokens: response.usage.input_tokens,
-            },
-          }),
-          db.chatMessage.create({
-            data: {
-              notebookId,
-              userId,
-              chatId,
-              role: 'assistant',
-              content: markerText,
-              tokens: response.usage.output_tokens,
-            },
-          }),
-        ]);
-
-        await db.notebookChat.update({
-          where: { id: chatId },
-          data: { updatedAt: new Date() },
-        });
-
-        // Increment ai_pptx usage after successful creation
-        await incrementUsage(userId, 'ai_pptx');
-
-        return successResponse({
-          userMessage: {
-            id: userMsg.id,
-            role: userMsg.role,
-            content: userMsg.content,
-            createdAt: userMsg.createdAt,
-          },
-          assistantMessage: {
-            id: assistantMsg.id,
-            role: assistantMsg.role,
-            content: assistantMsg.content,
-            createdAt: assistantMsg.createdAt,
-          },
-          usage: {
-            inputTokens: response.usage.input_tokens,
-            outputTokens: response.usage.output_tokens,
-            totalTokens,
-            monthlyUsed: usedTokens + totalTokens,
-            monthlyLimit: MONTHLY_TOKEN_LIMIT,
-          },
-          contextStatus,
-        });
-      }
-    }
-
-    // ── If tool_use: recommend YouTube videos ──
-    if (youtubeVideosToolUse) {
-      const { search_query, max_results } = youtubeVideosToolUse.input;
-
-      if (search_query) {
-        try {
-          const videos = await searchYouTubeVideos(search_query, max_results ?? 3);
-
-          if (videos.length > 0) {
-            const videosJson = JSON.stringify(videos);
-            const markerText = (assistantText ? `${assistantText}\n\n` : '')
-              + `[youtube_videos_start:${search_query}]\n${videosJson}\n[youtube_videos_end]`;
-
-            const [userMsg, assistantMsg] = await db.$transaction([
-              db.chatMessage.create({
-                data: { notebookId, userId, chatId, role: 'user', content: message.trim(), tokens: response.usage.input_tokens },
-              }),
-              db.chatMessage.create({
-                data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
-              }),
-            ]);
-
-            await db.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
-
-            return successResponse({
-              userMessage: { id: userMsg.id, role: userMsg.role, content: userMsg.content, createdAt: userMsg.createdAt },
-              assistantMessage: { id: assistantMsg.id, role: assistantMsg.role, content: assistantMsg.content, createdAt: assistantMsg.createdAt },
-              usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
-              contextStatus,
-            });
-          }
-        } catch (err) {
-          console.error('[AI Chat] YouTube search failed:', err);
-          // Fall through to text-only response
-        }
-      }
-    }
-
-    // ── Standard text-only response path ──
-    const [userMsg, assistantMsg] = await db.$transaction([
-      db.chatMessage.create({
-        data: {
-          notebookId,
-          userId,
-          chatId,
-          role: 'user',
-          content: message.trim(),
-          tokens: response.usage.input_tokens,
         },
       }),
-      db.chatMessage.create({
-        data: {
-          notebookId,
-          userId,
-          chatId,
-          role: 'assistant',
-          content: assistantText,
-          tokens: response.usage.output_tokens,
+      {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
         },
-      }),
-    ]);
-
-    // Touch chat updatedAt
-    await db.notebookChat.update({
-      where: { id: chatId },
-      data: { updatedAt: new Date() },
-    });
-
-    return successResponse({
-      userMessage: {
-        id: userMsg.id,
-        role: userMsg.role,
-        content: userMsg.content,
-        createdAt: userMsg.createdAt,
-      },
-      assistantMessage: {
-        id: assistantMsg.id,
-        role: assistantMsg.role,
-        content: assistantMsg.content,
-        createdAt: assistantMsg.createdAt,
-      },
-      usage: {
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-        totalTokens,
-        monthlyUsed: usedTokens + totalTokens,
-        monthlyLimit: MONTHLY_TOKEN_LIMIT,
-      },
-      contextStatus,
-    });
+      }
+    );
   } catch (error: unknown) {
     console.error('[AI Chat] Error:', error);
 

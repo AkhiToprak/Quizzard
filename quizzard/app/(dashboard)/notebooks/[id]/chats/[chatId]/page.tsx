@@ -2,9 +2,10 @@
 
 import { useState, useEffect, use, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers, HelpCircle, Presentation, Youtube } from 'lucide-react';
+import { X, Upload, BookOpen, Check, ChevronDown, ChevronRight, Loader2, Plus, Layers, HelpCircle, Presentation, Youtube, Square } from 'lucide-react';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import { useStreamingChat } from '@/hooks/useStreamingChat';
 import dynamic from 'next/dynamic';
 
 const MindmapRenderer = dynamic(() => import('@/components/notebook/MindmapRenderer'), { ssr: false });
@@ -63,9 +64,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSavingContext, setIsSavingContext] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [contextWarning, setContextWarning] = useState<string | null>(null);
+
+  const { streamingText, status: streamStatus, send: streamSend, abort: streamAbort, error: streamError } = useStreamingChat({ notebookId, chatId });
+  const isSending = streamStatus === 'streaming';
+  const displayError = sendError || streamError;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -92,17 +96,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
     fetchDocs();
   }, [fetchChat, fetchDocs]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change or streaming text updates
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chat?.messages]);
+  }, [chat?.messages, streamingText]);
 
   const handleSendMessage = async () => {
     const text = inputValue.trim();
     if (!text || isSending) return;
 
     setSendError(null);
-    setIsSending(true);
 
     // Optimistically add user message
     const tempUserMsg: ChatMessage = {
@@ -120,15 +123,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
     }
 
     try {
-      const res = await fetch(`/api/notebooks/${notebookId}/chats/${chatId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
-      });
-      const json = await res.json();
+      const donePayload = await streamSend(text);
 
-      if (json.success && json.data) {
-        const { userMessage, assistantMessage, flashcardSet, quizSet, usage, contextStatus } = json.data;
+      if (donePayload) {
+        const { userMessage, assistantMessage, flashcardSet, quizSet, contextStatus } = donePayload;
 
         // Replace temp message with real ones
         setChat(prev => {
@@ -154,15 +152,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
           refreshChats();
         }
       } else {
-        // Remove optimistic message on error
+        // Stream was aborted or returned null (error already set by hook)
         setChat(prev => prev ? { ...prev, messages: prev.messages.filter(m => m.id !== tempUserMsg.id) } : prev);
-        setSendError(json.error ?? 'Failed to send message');
       }
     } catch {
       setChat(prev => prev ? { ...prev, messages: prev.messages.filter(m => m.id !== tempUserMsg.id) } : prev);
       setSendError('Network error. Please try again.');
     } finally {
-      setIsSending(false);
       textareaRef.current?.focus();
     }
   };
@@ -418,11 +414,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
           </div>
         ))}
 
-        {/* Typing indicator */}
+        {/* Streaming assistant message or typing indicator */}
         {isSending && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <div style={{
-              width: '28px', height: '28px', borderRadius: '8px', flexShrink: 0,
+              width: '28px', height: '28px', borderRadius: '8px', flexShrink: 0, marginTop: '2px',
               background: 'linear-gradient(135deg, rgba(140,82,255,0.3), rgba(81,112,255,0.2))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
@@ -430,15 +426,30 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                 auto_fix_high
               </span>
             </div>
-            <div style={{
-              padding: '12px 16px', borderRadius: '16px 16px 16px 4px',
-              background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)',
-              display: 'flex', gap: '4px', alignItems: 'center',
-            }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ae89ff', animation: 'dotPulse 1.4s ease-in-out infinite', animationDelay: '0s' }} />
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ae89ff', animation: 'dotPulse 1.4s ease-in-out infinite', animationDelay: '0.2s' }} />
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ae89ff', animation: 'dotPulse 1.4s ease-in-out infinite', animationDelay: '0.4s' }} />
-            </div>
+            {streamingText ? (
+              <div style={{
+                maxWidth: '70%',
+                padding: '12px 16px',
+                borderRadius: '16px 16px 16px 4px',
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: '#ede9ff',
+                fontSize: '14px',
+                lineHeight: 1.65,
+              }}>
+                <MarkdownRenderer content={streamingText} />
+              </div>
+            ) : (
+              <div style={{
+                padding: '12px 16px', borderRadius: '16px 16px 16px 4px',
+                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)',
+                display: 'flex', gap: '4px', alignItems: 'center',
+              }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ae89ff', animation: 'dotPulse 1.4s ease-in-out infinite', animationDelay: '0s' }} />
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ae89ff', animation: 'dotPulse 1.4s ease-in-out infinite', animationDelay: '0.2s' }} />
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ae89ff', animation: 'dotPulse 1.4s ease-in-out infinite', animationDelay: '0.4s' }} />
+              </div>
+            )}
           </div>
         )}
 
@@ -446,19 +457,52 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       </div>
 
       {/* Error banner */}
-      {sendError && (
+      {displayError && (
         <div style={{
           margin: '0 28px', padding: '10px 14px', borderRadius: '10px',
           background: 'rgba(253,111,133,0.08)', border: '1px solid rgba(253,111,133,0.25)',
           fontSize: '12px', color: '#fd6f85', fontWeight: 500,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span>{sendError}</span>
+          <span>{displayError}</span>
           <button
             onClick={() => setSendError(null)}
             style={{ background: 'none', border: 'none', color: '#fd6f85', cursor: 'pointer', padding: '2px', display: 'flex' }}
           >
             <X size={12} />
+          </button>
+        </div>
+      )}
+
+      {/* Stop generating button */}
+      {isSending && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 28px 0' }}>
+          <button
+            onClick={streamAbort}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: 'rgba(140,82,255,0.15)',
+              color: '#c4a9ff',
+              border: '1px solid rgba(140,82,255,0.25)',
+              fontSize: '13px',
+              fontWeight: 500,
+              padding: '8px 16px',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontFamily: "var(--font-sans)",
+              transition: 'background 0.15s, border-color 0.15s',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.25)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(140,82,255,0.4)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.15)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(140,82,255,0.25)';
+            }}
+          >
+            <Square size={12} fill="#c4a9ff" />
+            Stop generating
           </button>
         </div>
       )}
