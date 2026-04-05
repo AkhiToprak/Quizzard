@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useRef, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import CreateChatModal from '@/components/notebook/CreateChatModal';
@@ -33,6 +33,7 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [notebookExams, setNotebookExams] = useState<ExamItem[]>([]);
   const [showExamForm, setShowExamForm] = useState(false);
+  const skipRedirectRef = useRef(false);
 
   // Fetch exams
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
   // Auto-open modal when ?new=1 is in URL (e.g. from "New chat" sidebar button)
   useEffect(() => {
     if (searchParams.get('new') === '1') {
+      skipRedirectRef.current = true;
       setShowCreateModal(true);
       router.replace(`/notebooks/${id}`);
     }
@@ -58,7 +60,7 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
   // Redirect to last-opened page or first page
   useEffect(() => {
     if (!sectionsLoaded) return;
-    if (searchParams.get('new') === '1') return; // don't redirect when opening create-chat modal
+    if (skipRedirectRef.current) return; // don't redirect when create-chat modal is open
 
     const allPages = flatSections.flatMap(s => s.pages);
     if (allPages.length === 0) return; // render empty state below
