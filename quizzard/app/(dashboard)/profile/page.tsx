@@ -73,6 +73,7 @@ const LABEL_STYLE: React.CSSProperties = {
 };
 
 const DETAIL_ITEMS: { key: keyof ProfileData; label: string; icon: string }[] = [
+  { key: 'bio', label: 'Description', icon: 'description' },
   { key: 'age', label: 'Age', icon: 'person' },
   { key: 'location', label: 'Location', icon: 'location_on' },
   { key: 'school', label: 'School', icon: 'school' },
@@ -233,13 +234,6 @@ export default function ProfilePage() {
         <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 12px' }}>
           @{profile.username}
         </p>
-
-        {/* Bio */}
-        {profile.bio && (
-          <p style={{ fontSize: '14px', color: '#b9c3ff', margin: '0 0 16px', lineHeight: 1.6, maxWidth: '480px' }}>
-            {profile.bio}
-          </p>
-        )}
 
         {/* Member Since */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#aaa8c8', fontSize: '13px' }}>
