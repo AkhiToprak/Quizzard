@@ -9,6 +9,7 @@ import StreakDisplay from '@/components/features/StreakDisplay';
 import XPProgressBar from '@/components/features/XPProgressBar';
 import ExamCountdown from '@/components/features/ExamCountdown';
 import ExamForm from '@/components/features/ExamForm';
+import DashboardAchievements from '@/components/features/DashboardAchievements';
 
 interface RecentItem {
   id: string;
@@ -473,6 +474,11 @@ export default function DashboardPage() {
       {/* Activity Heatmap */}
       <section>
         <ActivityHeatmap />
+      </section>
+
+      {/* Achievements */}
+      <section>
+        <DashboardAchievements />
       </section>
 
       {/* Upcoming Exams */}

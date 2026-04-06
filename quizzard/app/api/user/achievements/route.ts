@@ -70,6 +70,11 @@ export async function GET(request: NextRequest) {
       locked,
       total: ACHIEVEMENTS.length,
       unlockedCount: unlocked.length,
+      progress: locked.map((item) => ({
+        badge: item.badge,
+        current: item.progress.current,
+        target: item.progress.target,
+      })),
     });
   } catch {
     return internalErrorResponse();
