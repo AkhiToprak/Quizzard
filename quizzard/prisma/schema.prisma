@@ -87,6 +87,7 @@ model User {
   level                  Int                @default(1)
   exams                  Exam[]
   usageRecords           UsageRecord[]
+  adminAuditLogs         AdminAuditLog[] @relation("AdminAuditLogs")
 
   @@map("users")
 }
@@ -1074,4 +1075,22 @@ model Waitlist {
   createdAt DateTime @default(now())
 
   @@map("waitlist")
+}
+
+// --- Admin Audit Logging ---
+
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String   // e.g. "user.ban", "post.delete"
+  targetId  String   // ID of the affected resource
+  details   String?  @db.Text // Optional JSON details
+  createdAt DateTime @default(now())
+
+  admin     User     @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
 }

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import DOMPurify from 'isomorphic-dompurify';
 
 const COLORS = {
   pageBg: '#0d0d1a',
@@ -1047,7 +1048,7 @@ export default function CommunityNotebookDetailPage() {
         {notebook.content && (
           <div
             className="rich-content"
-            dangerouslySetInnerHTML={{ __html: notebook.content }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(notebook.content) }}
             style={{
               fontSize: 15,
               lineHeight: 1.7,

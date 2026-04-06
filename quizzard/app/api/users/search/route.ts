@@ -5,13 +5,19 @@ import {
   successResponse,
   badRequestResponse,
   unauthorizedResponse,
+  tooManyRequestsResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { rateLimit, rateLimitKey } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
+
+    // Rate limit: 30 searches per minute per user
+    const rl = await rateLimit(rateLimitKey('user:search', request, userId), 30, 60 * 1000);
+    if (!rl.success) return tooManyRequestsResponse('Too many search requests.', rl.retryAfterMs);
 
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q')?.trim();

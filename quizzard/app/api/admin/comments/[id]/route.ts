@@ -8,6 +8,7 @@ import {
   notFoundResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { logAdminAction } from '@/lib/admin-audit';
 
 // DELETE — delete a comment (admin or comment author)
 export async function DELETE(
@@ -28,11 +29,16 @@ export async function DELETE(
     if (!comment) return notFoundResponse('Comment not found');
 
     // Allow admin or comment author
-    if (!adminId && comment.authorId !== userId) {
+    const isAdmin = !!adminId;
+    if (!isAdmin && comment.authorId !== userId) {
       return forbiddenResponse('You can only delete your own comments');
     }
 
     await db.postComment.delete({ where: { id: commentId } });
+
+    if (isAdmin && comment.authorId !== userId) {
+      await logAdminAction(adminId!, 'comment.delete', commentId, { authorId: comment.authorId });
+    }
 
     return successResponse({ deleted: true, commentId });
   } catch {

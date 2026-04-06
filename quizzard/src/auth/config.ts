@@ -66,12 +66,9 @@ export const authOptions: NextAuthOptions = {
         if (!user || !passwordMatch) {
           // Track failed attempts for existing users only
           if (user) {
-            const updated = await db.$executeRawUnsafe<number>(
-              `UPDATE users SET "failedLoginAttempts" = "failedLoginAttempts" + 1 WHERE id = $1 RETURNING "failedLoginAttempts"`,
-              user.id
-            );
+            await db.$executeRaw`UPDATE users SET "failedLoginAttempts" = "failedLoginAttempts" + 1 WHERE id = ${user.id}`;
 
-            // Re-read to get the new count (executeRawUnsafe returns affected rows count)
+            // Re-read to get the new count
             const freshUser = await db.user.findUnique({
               where: { id: user.id },
               select: { failedLoginAttempts: true },

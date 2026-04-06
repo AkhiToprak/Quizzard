@@ -8,6 +8,7 @@ import {
   notFoundResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { logAdminAction } from '@/lib/admin-audit';
 
 // PATCH — ban/unban a user, or update role (admin only)
 export async function PATCH(
@@ -50,6 +51,7 @@ export async function PATCH(
             banReason: reason?.trim().slice(0, 500) || null,
           },
         });
+        await logAdminAction(adminId, 'user.ban', targetId, { reason: reason?.trim().slice(0, 500) || null });
         return successResponse({ banned: true, userId: targetId });
       }
 
@@ -61,6 +63,7 @@ export async function PATCH(
             banReason: null,
           },
         });
+        await logAdminAction(adminId, 'user.unban', targetId);
         return successResponse({ banned: false, userId: targetId });
       }
 
@@ -101,6 +104,8 @@ export async function DELETE(
 
     // Cascade delete handles all related records
     await db.user.delete({ where: { id: targetId } });
+
+    await logAdminAction(adminId, 'user.delete', targetId, { username: target.username });
 
     return successResponse({
       deleted: true,

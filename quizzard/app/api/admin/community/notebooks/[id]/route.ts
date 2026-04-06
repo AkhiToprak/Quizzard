@@ -7,6 +7,7 @@ import {
   notFoundResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { logAdminAction } from '@/lib/admin-audit';
 
 // DELETE — admin remove a shared notebook from the community
 export async function DELETE(
@@ -27,6 +28,8 @@ export async function DELETE(
 
     // Only remove the share record, not the original notebook
     await db.sharedNotebook.delete({ where: { id: shareId } });
+
+    await logAdminAction(adminId, 'community_notebook.delete', shareId, { notebookId: share.notebookId });
 
     return successResponse({ deleted: true, shareId });
   } catch {

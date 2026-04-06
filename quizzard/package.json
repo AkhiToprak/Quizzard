@@ -44,6 +44,7 @@
     "clsx": "^2.1.1",
     "hast-util-to-html": "^9.0.5",
     "highlight.js": "^11.11.1",
+    "isomorphic-dompurify": "^3.7.1",
     "jszip": "^3.10.1",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.577.0",

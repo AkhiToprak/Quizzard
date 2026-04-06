@@ -7,13 +7,19 @@ import {
   unauthorizedResponse,
   notFoundResponse,
   successResponse,
+  tooManyRequestsResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { rateLimit, rateLimitKey } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
+
+    // Rate limit: 20 friend requests per 10 minutes per user
+    const rl = await rateLimit(rateLimitKey('friend:request', request, userId), 20, 10 * 60 * 1000);
+    if (!rl.success) return tooManyRequestsResponse('Too many friend requests. Please slow down.', rl.retryAfterMs);
 
     const body = await request.json().catch(() => ({}));
     const { username, userId: targetUserId } = body as {

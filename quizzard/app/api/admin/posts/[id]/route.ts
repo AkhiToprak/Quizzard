@@ -7,6 +7,7 @@ import {
   notFoundResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { logAdminAction } from '@/lib/admin-audit';
 
 // DELETE — admin delete any post
 export async function DELETE(
@@ -26,6 +27,8 @@ export async function DELETE(
     if (!post) return notFoundResponse('Post not found');
 
     await db.post.delete({ where: { id: postId } });
+
+    await logAdminAction(adminId, 'post.delete', postId, { authorId: post.authorId });
 
     return successResponse({ deleted: true, postId });
   } catch {

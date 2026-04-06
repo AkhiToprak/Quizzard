@@ -65,7 +65,13 @@ export async function GET(request: NextRequest, { params }: Params) {
     if (!share) return notFoundResponse('Shared notebook not found');
 
     // Check visibility — user must have access
+    // Direct share (specific recipient): only sender and recipient can access
     if (share.sharedWithId && share.sharedWithId !== userId && share.sharedById !== userId) {
+      return notFoundResponse('Shared notebook not found');
+    }
+
+    // Specific visibility without sharedWithId should not exist; deny if it does
+    if (share.visibility === 'specific' && !share.sharedWithId && share.sharedById !== userId) {
       return notFoundResponse('Shared notebook not found');
     }
 

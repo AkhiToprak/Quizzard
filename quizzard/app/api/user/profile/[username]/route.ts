@@ -3,15 +3,25 @@ import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
   successResponse,
+  unauthorizedResponse,
+  tooManyRequestsResponse,
   notFoundResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { rateLimit, rateLimitKey } from '@/lib/rate-limit';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ username: string }> }
 ) {
   try {
+    const viewerId = await getAuthUserId(request);
+    if (!viewerId) return unauthorizedResponse();
+
+    // Rate limit: 30 profile views per minute per user
+    const rl = await rateLimit(rateLimitKey('profile:view', request, viewerId), 30, 60 * 1000);
+    if (!rl.success) return tooManyRequestsResponse('Too many requests.', rl.retryAfterMs);
+
     const { username } = await params;
 
     const user = await db.user.findUnique({
@@ -34,12 +44,10 @@ export async function GET(
 
     if (!user) return notFoundResponse('User not found');
 
-    // Determine friendship status if viewer is authenticated
-    let friendshipStatus: string | null = null;
-    const viewerId = await getAuthUserId(request);
     const isOwnProfile = viewerId === user.id;
+    let friendshipStatus: string | null = null;
 
-    if (viewerId && !isOwnProfile) {
+    if (!isOwnProfile) {
       const friendship = await db.friendship.findFirst({
         where: {
           OR: [

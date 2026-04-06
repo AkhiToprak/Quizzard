@@ -8,8 +8,10 @@ import {
   createdResponse,
   badRequestResponse,
   unauthorizedResponse,
+  tooManyRequestsResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { rateLimit, rateLimitKey } from '@/lib/rate-limit';
 
 const MAX_CONTENT_LENGTH = 2000;
 const MAX_IMAGES = 4;
@@ -36,6 +38,10 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
+
+    // Rate limit: 10 posts per 10 minutes per user
+    const rl = await rateLimit(rateLimitKey('post:create', request, userId), 10, 10 * 60 * 1000);
+    if (!rl.success) return tooManyRequestsResponse('Too many posts. Please slow down.', rl.retryAfterMs);
 
     const body = await request.json();
     const { content, visibility: rawVisibility, imagePaths, poll, notebookRef, specificFriendIds } = body;
