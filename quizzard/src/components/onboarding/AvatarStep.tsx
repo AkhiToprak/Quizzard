@@ -134,8 +134,7 @@ export default function AvatarStep({
           ) : (
             <span
               style={{
-                fontFamily: '"Shrikhand", serif',
-                fontStyle: 'italic',
+                fontFamily: 'var(--font-brand)',
                 fontSize: '48px',
                 color: '#fff',
                 lineHeight: 1,

@@ -46,8 +46,7 @@ export default function Header() {
       {/* Page title */}
       <h1
         style={{
-          fontFamily: '"Shrikhand", serif',
-          fontStyle: 'italic',
+          fontFamily: 'var(--font-brand)',
           fontSize: '24px',
           fontWeight: '400',
           color: '#ae89ff',

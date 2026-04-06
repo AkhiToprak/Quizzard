@@ -246,8 +246,7 @@ export default function ProfilePage() {
             </div>
             <h3
               style={{
-                fontFamily: '"Shrikhand", serif',
-                fontStyle: 'italic',
+                fontFamily: 'var(--font-brand)',
                 fontSize: '28px',
                 fontWeight: 400,
                 color: '#e5e3ff',

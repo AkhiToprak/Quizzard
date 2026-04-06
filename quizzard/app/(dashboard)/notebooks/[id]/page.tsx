@@ -169,8 +169,7 @@ export default function NotebookDetailPage({ params }: { params: Promise<{ id: s
 
             {/* Notebook name */}
             <h2 style={{
-              fontFamily: '"Shrikhand", serif',
-              fontStyle: 'italic',
+              fontFamily: 'var(--font-brand)',
               fontSize: '52px',
               fontWeight: 400,
               color: '#e5e3ff',

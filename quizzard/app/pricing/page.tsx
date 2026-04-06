@@ -26,7 +26,7 @@ export default function PricingPage() {
     <main style={{ background: '#09081a', color: '#ede9ff', minHeight: '100vh', overflowX: 'hidden' }}>
       {/* ── GLOBAL STYLES ── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Shrikhand&family=Gliker:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Gliker:wght@400;500;600;700&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -141,7 +141,7 @@ export default function PricingPage() {
         </p>
         <h1
           style={{
-            fontFamily: "'Shrikhand', cursive",
+            fontFamily: 'var(--font-brand)',
             fontSize: 'clamp(36px, 5vw, 64px)',
             letterSpacing: '-0.02em',
             lineHeight: 1.08,

@@ -133,8 +133,7 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
         ) : (
           <>
             <span style={{
-              fontFamily: '"Shrikhand", serif',
-              fontStyle: 'italic',
+              fontFamily: 'var(--font-brand)',
               fontSize: '36px',
               fontWeight: 400,
               color: urgencyColor,

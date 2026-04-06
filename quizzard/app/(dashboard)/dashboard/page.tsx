@@ -346,7 +346,7 @@ export default function DashboardPage() {
                   </span>
                 )}
               </div>
-              <h3 style={{ fontFamily: '"Shrikhand", serif', fontStyle: 'italic', fontSize: '30px', fontWeight: 400, color: '#e5e3ff', margin: '0 0 4px', lineHeight: 1 }}>
+              <h3 style={{ fontFamily: 'var(--font-brand)', fontSize: '30px', fontWeight: 400, color: '#e5e3ff', margin: '0 0 4px', lineHeight: 1 }}>
                 {value}
               </h3>
               <p style={{ fontSize: '15px', fontWeight: 500, color: '#aaa8c8', margin: 0 }}>{label}</p>
@@ -720,8 +720,7 @@ export default function DashboardPage() {
               </span>
               <h2
                 style={{
-                  fontFamily: '"Shrikhand", serif',
-                  fontStyle: 'italic',
+                  fontFamily: 'var(--font-brand)',
                   fontSize: '30px',
                   fontWeight: 400,
                   margin: '0 0 16px',

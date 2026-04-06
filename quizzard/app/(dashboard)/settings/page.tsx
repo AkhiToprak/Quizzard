@@ -503,8 +503,7 @@ export default function SettingsPage() {
       <header style={{ marginBottom: '48px' }}>
         <h2
           style={{
-            fontFamily: '"Shrikhand", serif',
-            fontStyle: 'italic',
+            fontFamily: 'var(--font-brand)',
             fontSize: '48px',
             fontWeight: 400,
             color: '#ae89ff',

@@ -117,7 +117,7 @@
   /* Fonts */
   --font-display:  var(--font-epilogue), "Epilogue", serif;
   --font-sans:     var(--font-jakarta), "Plus Jakarta Sans", sans-serif;
-  --font-brand:    var(--font-shrikhand), "Shrikhand", serif;
+  --font-brand:    var(--font-oswald), "Oswald", sans-serif;
   --font-chat:     var(--font-oswald), "Oswald", sans-serif;
 
   /* Border radius */
@@ -167,8 +167,6 @@ body {
 
 .font-display     { font-family: var(--font-display); }
 .font-brand       { font-family: var(--font-brand); }
-.shrikhand        { font-family: "Shrikhand", serif; font-style: normal; }
-.shrikhand-italic { font-family: "Shrikhand", serif; font-style: italic; }
 
 /* ─── Glass panel ─────────────────────────────────────────────────────── */
 

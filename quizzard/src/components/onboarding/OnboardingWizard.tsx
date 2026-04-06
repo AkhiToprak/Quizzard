@@ -215,8 +215,7 @@ export default function OnboardingWizard() {
         </div>
         <h1
           style={{
-            fontFamily: '"Shrikhand", serif',
-            fontStyle: 'italic',
+            fontFamily: 'var(--font-brand)',
             fontSize: '44px',
             fontWeight: 400,
             color: '#ae89ff',
