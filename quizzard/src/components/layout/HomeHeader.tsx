@@ -71,7 +71,7 @@ export default function HomeHeader() {
   }, [avatarMenuOpen]);
 
   const AVATAR_MENU_ITEMS = [
-    { key: 'profile', label: 'Profile', icon: 'person', href: '/settings' },
+    { key: 'profile', label: 'Profile', icon: 'person', href: '/profile' },
     { key: 'settings', label: 'Settings', icon: 'settings', href: '/settings' },
   ];
 
