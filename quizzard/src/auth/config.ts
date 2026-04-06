@@ -1,7 +1,12 @@
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { db } from '@/lib/db';
+import { sendAccountLockedEmail } from '@/lib/email';
+
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -35,19 +40,74 @@ export const authOptions: NextAuthOptions = {
             tier: true,
             banned: true,
             banReason: true,
+            failedLoginAttempts: true,
+            lockedAt: true,
+            unlockTokenExpiry: true,
           },
         });
+
+        // Check if account is locked (before password check, but after user lookup)
+        if (user?.lockedAt) {
+          const tokenExpiry = user.unlockTokenExpiry?.getTime() ?? 0;
+          if (tokenExpiry > Date.now()) {
+            // Lock is still active
+            throw new Error('Account locked due to too many failed attempts. Check your email for an unlock link.');
+          }
+          // Lock has expired — auto-clear and let login proceed
+          await db.user.update({
+            where: { id: user.id },
+            data: { failedLoginAttempts: 0, lockedAt: null, unlockToken: null, unlockTokenExpiry: null },
+          });
+        }
 
         // Always run bcrypt to prevent timing-based user enumeration
         const passwordMatch = await bcrypt.compare(
           credentials.password,
           user?.password ?? '$2a$12$invalidhashplaceholdervalue1234'
         );
-        if (!user || !passwordMatch) return null;
+
+        if (!user || !passwordMatch) {
+          // Track failed attempts for existing users only
+          if (user) {
+            const updated = await db.$executeRawUnsafe<number>(
+              `UPDATE users SET "failedLoginAttempts" = "failedLoginAttempts" + 1 WHERE id = $1 RETURNING "failedLoginAttempts"`,
+              user.id
+            );
+
+            // Re-read to get the new count (executeRawUnsafe returns affected rows count)
+            const freshUser = await db.user.findUnique({
+              where: { id: user.id },
+              select: { failedLoginAttempts: true },
+            });
+
+            if (freshUser && freshUser.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+              const token = crypto.randomUUID();
+              await db.user.update({
+                where: { id: user.id },
+                data: {
+                  lockedAt: new Date(),
+                  unlockToken: token,
+                  unlockTokenExpiry: new Date(Date.now() + LOCKOUT_DURATION_MS),
+                },
+              });
+              // Fire-and-forget email
+              sendAccountLockedEmail(user.email, token).catch(console.error);
+            }
+          }
+          return null;
+        }
 
         // Block banned users from logging in
         if (user.banned) {
           throw new Error(user.banReason ? `Account banned: ${user.banReason}` : 'Your account has been banned.');
+        }
+
+        // Successful login — reset failed attempt counter
+        if (user.failedLoginAttempts > 0) {
+          await db.user.update({
+            where: { id: user.id },
+            data: { failedLoginAttempts: 0, lockedAt: null, unlockToken: null, unlockTokenExpiry: null },
+          });
         }
 
         return {

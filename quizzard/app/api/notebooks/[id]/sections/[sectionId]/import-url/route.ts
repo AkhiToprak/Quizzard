@@ -22,7 +22,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // Rate limit: 10 requests per minute per IP
     const ip = getClientIp(request);
-    const rl = rateLimit(`url-import:${ip}`, 10, 60_000);
+    const rl = await rateLimit(`url-import:${ip}`, 10, 60_000);
     if (!rl.success) {
       return tooManyRequestsResponse('Too many URL import requests. Please try again later.', rl.retryAfterMs);
     }

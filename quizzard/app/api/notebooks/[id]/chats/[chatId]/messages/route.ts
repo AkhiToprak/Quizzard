@@ -74,7 +74,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // Per-IP request rate limit: 20 requests per minute
     const ip = getClientIp(request);
-    const reqLimit = rateLimit(`ai-chat:${ip}`, 20, 60_000);
+    const reqLimit = await rateLimit(`ai-chat:${ip}`, 20, 60_000);
     if (!reqLimit.success) {
       return tooManyRequestsResponse('Too many requests. Please slow down.', reqLimit.retryAfterMs);
     }

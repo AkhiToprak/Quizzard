@@ -27,7 +27,11 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        if (result.error.includes("Account locked")) {
+          setError("Your account has been locked due to too many failed login attempts. Please check your email for an unlock link.");
+        } else {
+          setError("Invalid email or password");
+        }
       } else if (result?.ok) {
         router.push("/home");
       }

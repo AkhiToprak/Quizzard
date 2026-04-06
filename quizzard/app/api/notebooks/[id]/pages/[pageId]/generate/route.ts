@@ -22,7 +22,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // Rate limit: 10 req/min
     const ip = getClientIp(request);
-    const reqLimit = rateLimit(`generate:${ip}`, 10, 60_000);
+    const reqLimit = await rateLimit(`generate:${ip}`, 10, 60_000);
     if (!reqLimit.success) {
       return tooManyRequestsResponse('Too many requests. Please slow down.', reqLimit.retryAfterMs);
     }

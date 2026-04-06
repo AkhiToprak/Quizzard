@@ -8,7 +8,7 @@ const handler = NextAuth(authOptions);
 // Wrap POST to add rate limiting on login attempts
 async function rateLimitedPost(req: NextRequest, ctx: unknown) {
   const ip = getClientIp(req);
-  const rl = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000); // 10 attempts per 15 minutes
+  const rl = await rateLimit(`login:${ip}`, 5, 15 * 60 * 1000); // 5 attempts per 15 minutes
   if (!rl.success) {
     return NextResponse.json(
       { error: 'Too many login attempts. Please try again later.' },
