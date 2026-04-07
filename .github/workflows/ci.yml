@@ -47,5 +47,6 @@ jobs:
           NEXTAUTH_URL: "http://localhost:3000"
           NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321"
           SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpLXRlc3QiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNjAwMDAwMDAwLCJleHAiOjE5MDAwMDAwMDB9.ci-test-key"
-          UPSTASH_REDIS_URL: "redis://localhost:6379"
-          UPSTASH_REDIS_TOKEN: "ci-test-token"
+          UPSTASH_REDIS_REST_URL: "https://fake-redis.upstash.io"
+          UPSTASH_REDIS_REST_TOKEN: "ci-test-token"
+          STRIPE_SECRET_KEY: "sk_test_fake_ci_key"
