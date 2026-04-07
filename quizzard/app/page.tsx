@@ -480,8 +480,8 @@ export default function LandingPage() {
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
           padding: "0 40px", height: 64,
           display: "flex", alignItems: "center",
-          background: scrolled ? "rgba(9,8,26,0.88)" : "transparent",
-          backdropFilter: scrolled ? "blur(24px)" : "none",
+          background: scrolled ? "rgba(9,8,26,0.88)" : "rgba(9,8,26,0.55)",
+          backdropFilter: scrolled ? "blur(24px)" : "blur(12px)",
           borderBottom: scrolled ? "1px solid rgba(140,82,255,0.12)" : "1px solid transparent",
           transition: "background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease",
         }}
