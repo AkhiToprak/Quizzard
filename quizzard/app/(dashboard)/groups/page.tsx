@@ -149,7 +149,18 @@ export default function GroupsPage() {
       const res = await fetch('/api/groups');
       if (!res.ok) throw new Error('Failed to fetch groups');
       const data = await res.json();
-      setGroups(data.data ?? data);
+      const raw = data.data?.groups ?? data.data ?? [];
+      setGroups(
+        Array.isArray(raw)
+          ? raw.map((g: Record<string, unknown>) => ({
+              ...g,
+              _count: (g as { _count?: unknown })._count ?? {
+                members: g.memberCount ?? 0,
+                notebooks: g.notebookCount ?? 0,
+              },
+            }))
+          : []
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
