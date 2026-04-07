@@ -37,11 +37,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { targetNotebookId } = body as { targetNotebookId?: string };
+    const { targetNotebookId, targetFolderId } = body as { targetNotebookId?: string; targetFolderId?: string };
 
     switch (shared.contentType) {
       case 'notebook': {
-        return await saveNotebook(userId, shared.contentId, shared.title);
+        return await saveNotebook(userId, shared.contentId, shared.title, targetFolderId);
       }
       case 'flashcard_set': {
         return await saveFlashcardSet(userId, shared.contentId, shared.title, targetNotebookId);
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 }
 
-async function saveNotebook(userId: string, sourceNotebookId: string, title: string) {
+async function saveNotebook(userId: string, sourceNotebookId: string, title: string, targetFolderId?: string) {
   const source = await db.notebook.findUnique({
     where: { id: sourceNotebookId },
     include: {
@@ -68,6 +68,12 @@ async function saveNotebook(userId: string, sourceNotebookId: string, title: str
     },
   });
   if (!source) return notFoundResponse('Source notebook not found');
+
+  // Verify folder ownership if provided
+  if (targetFolderId) {
+    const folder = await db.notebookFolder.findFirst({ where: { id: targetFolderId, userId } });
+    if (!folder) return notFoundResponse('Folder not found');
+  }
 
   const result = await db.$transaction(async (tx) => {
     // Clone the notebook
@@ -78,6 +84,7 @@ async function saveNotebook(userId: string, sourceNotebookId: string, title: str
         description: source.description,
         subject: source.subject,
         color: source.color,
+        folderId: targetFolderId || null,
       },
     });
 
