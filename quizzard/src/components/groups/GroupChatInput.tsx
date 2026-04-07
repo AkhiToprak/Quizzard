@@ -17,9 +17,10 @@ const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 interface Props {
   onSend: (content: string) => Promise<void>;
   sending: boolean;
+  onShareClick?: () => void;
 }
 
-export default function GroupChatInput({ onSend, sending }: Props) {
+export default function GroupChatInput({ onSend, sending, onShareClick }: Props) {
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [sendHover, setSendHover] = useState(false);
@@ -56,12 +57,15 @@ export default function GroupChatInput({ onSend, sending }: Props) {
       borderTop: `1px solid ${COLORS.border}1a`,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: 1200, margin: '0 auto' }}>
-        <button style={{
-          width: 36, height: 36, borderRadius: '50%', border: 'none',
-          background: 'transparent', color: COLORS.textMuted, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          transition: `color 0.2s ${EASING}`,
-        }}>
+        <button
+          onClick={onShareClick}
+          style={{
+            width: 36, height: 36, borderRadius: '50%', border: 'none',
+            background: 'transparent', color: COLORS.textMuted, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            transition: `color 0.2s ${EASING}`,
+          }}
+        >
           <span className="material-symbols-outlined" style={{ fontSize: 24 }}>add_circle</span>
         </button>
 

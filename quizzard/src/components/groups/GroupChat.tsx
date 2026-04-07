@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useGroupChat } from '@/hooks/useGroupChat';
 import GroupChatMessage from './GroupChatMessage';
 import GroupChatInput from './GroupChatInput';
+import ShareContentModal from './ShareContentModal';
 
 const COLORS = {
   pageBg: '#111126',
@@ -20,6 +21,7 @@ const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
 interface Props {
   groupId: string;
+  groupName: string;
   currentUserId: string;
 }
 
@@ -39,8 +41,9 @@ function LoadingSkeleton() {
   );
 }
 
-export default function GroupChat({ groupId, currentUserId }: Props) {
+export default function GroupChat({ groupId, groupName, currentUserId }: Props) {
   const { messages, loading, sending, hasMore, loadMore, sendMessage } = useGroupChat(groupId);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const wasAtBottomRef = useRef(true);
 
@@ -114,7 +117,15 @@ export default function GroupChat({ groupId, currentUserId }: Props) {
       </div>
 
       {/* Input */}
-      <GroupChatInput onSend={(content) => sendMessage(content)} sending={sending} />
+      <GroupChatInput onSend={(content) => sendMessage(content)} sending={sending} onShareClick={() => setShareModalOpen(true)} />
+
+      <ShareContentModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        groupId={groupId}
+        groupName={groupName}
+        onShared={() => setShareModalOpen(false)}
+      />
 
       <style>{`
         .groups-skeleton {

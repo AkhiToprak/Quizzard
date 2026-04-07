@@ -228,7 +228,7 @@ export default function GroupDetailView({ groupId }: Props) {
       {/* Tab content */}
       <div style={{ flex: 1, minHeight: 0, overflow: activeTab === 'chat' ? 'hidden' : 'auto' }} className="custom-scrollbar">
         {activeTab === 'chat' && (
-          <GroupChat groupId={groupId} currentUserId={currentUserId} />
+          <GroupChat groupId={groupId} groupName={group?.name || ''} currentUserId={currentUserId} />
         )}
         {activeTab === 'shared' && (
           <GroupSharedContent groupId={groupId} groupName={group?.name || ''} currentUserId={currentUserId} userRole={userRole} />
