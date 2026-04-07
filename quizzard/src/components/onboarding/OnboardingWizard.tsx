@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -51,6 +51,7 @@ export default function OnboardingWizard() {
   const [loading, setLoading] = useState(false);
   const [stepErrors, setStepErrors] = useState<Record<number, string>>({});
   const [showPayment, setShowPayment] = useState(false);
+  const paymentHandledRef = useRef(false);
 
   const setStepError = (s: number, msg: string) =>
     setStepErrors((prev) => ({ ...prev, [s]: msg }));
@@ -58,21 +59,47 @@ export default function OnboardingWizard() {
   const clearStepError = (s: number) =>
     setStepErrors((prev) => ({ ...prev, [s]: '' }));
 
-  // Handle return from Stripe Embedded Checkout (edge case: user navigated away and back)
+  // Handle return from Stripe Embedded Checkout (redirect-based flow)
   useEffect(() => {
     const paymentSuccess = searchParams.get('payment_success');
     const sessionId = searchParams.get('session_id');
-    if (paymentSuccess === 'true' && sessionId) {
-      fetch(`/api/stripe/checkout/status?session_id=${sessionId}`)
-        .then((r) => r.json())
-        .then(async (data) => {
-          if (data.data?.status === 'complete') {
-            await updateSession();
-            setStep(3);
-          }
-        })
-        .catch(() => {});
+
+    if (paymentSuccess !== 'true' || !sessionId || paymentHandledRef.current) {
+      return;
     }
+
+    // Mark as handled immediately to prevent re-entry from dependency changes
+    paymentHandledRef.current = true;
+
+    // Clear URL params so this effect cannot re-trigger on remount
+    const url = new URL(window.location.href);
+    url.searchParams.delete('payment_success');
+    url.searchParams.delete('session_id');
+    window.history.replaceState({}, '', url.pathname + url.search);
+
+    (async () => {
+      try {
+        const statusRes = await fetch(`/api/stripe/checkout/status?session_id=${sessionId}`);
+        const statusData = await statusRes.json();
+
+        if (statusData.data?.status !== 'complete') return;
+
+        // Poll for webhook to update tier in DB before refreshing session
+        let attempts = 0;
+        while (attempts < 5) {
+          await new Promise((r) => setTimeout(r, 1000));
+          const subRes = await fetch('/api/user/subscription');
+          const subData = await subRes.json();
+          if (subData.data?.tier !== 'FREE') break;
+          attempts++;
+        }
+
+        await updateSession();
+        setStep(3);
+      } catch {
+        paymentHandledRef.current = false;
+      }
+    })();
   }, [searchParams, updateSession]);
 
   const handleFieldChange = (field: string, value: string | boolean) => {

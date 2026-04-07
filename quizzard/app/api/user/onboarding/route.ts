@@ -55,11 +55,6 @@ export async function PUT(request: NextRequest) {
 
     const weekStart = getCurrentWeekStart();
 
-    const fullUser = await db.user.findUnique({
-      where: { id: userId },
-      select: { email: true, tier: true },
-    });
-
     await db.$transaction(async (tx) => {
       // Delete existing goals for this week to avoid duplicates
       await tx.studyGoal.deleteMany({
@@ -84,6 +79,27 @@ export async function PUT(request: NextRequest) {
         data: { onboardingComplete: true },
       });
     });
+
+    // Read user AFTER transaction for freshest tier.
+    // If tier is still FREE, the Stripe webhook may still be in-flight — poll briefly.
+    let fullUser = await db.user.findUnique({
+      where: { id: userId },
+      select: { email: true, tier: true },
+    });
+
+    if (fullUser && fullUser.tier === 'FREE') {
+      for (let i = 0; i < 3; i++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const fresh = await db.user.findUnique({
+          where: { id: userId },
+          select: { email: true, tier: true },
+        });
+        if (fresh && fresh.tier !== 'FREE') {
+          fullUser = fresh;
+          break;
+        }
+      }
+    }
 
     // Fire-and-forget signup notification
     if (fullUser?.email) {
