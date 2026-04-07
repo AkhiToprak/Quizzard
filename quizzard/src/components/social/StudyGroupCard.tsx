@@ -7,6 +7,7 @@ interface StudyGroupCardProps {
     id: string;
     name: string;
     description: string | null;
+    avatarUrl?: string | null;
     _count: { members: number; notebooks: number };
   };
   onClick?: () => void;
@@ -47,18 +48,31 @@ export default function StudyGroupCard({ group, onClick }: StudyGroupCardProps) 
         minHeight: 140,
       }}
     >
-      <div
-        style={{
-          fontSize: 17,
-          fontWeight: 700,
-          color: COLORS.textPrimary,
-          letterSpacing: '-0.01em',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {group.name}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {group.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={group.avatarUrl}
+            alt=""
+            style={{ width: 40, height: 40, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+          />
+        ) : (
+          <div style={{
+            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+            background: `linear-gradient(135deg, ${COLORS.primary}, #8348f6)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, fontWeight: 700, color: '#fff',
+          }}>
+            {group.name[0]?.toUpperCase() || '?'}
+          </div>
+        )}
+        <div style={{
+          fontSize: 17, fontWeight: 700, color: COLORS.textPrimary,
+          letterSpacing: '-0.01em', overflow: 'hidden',
+          textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0,
+        }}>
+          {group.name}
+        </div>
       </div>
 
       {group.description && (
