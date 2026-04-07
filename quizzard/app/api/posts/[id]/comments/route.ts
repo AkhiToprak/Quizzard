@@ -18,12 +18,25 @@ interface CommentRow {
   content: string;
   createdAt: Date;
   parentCommentId: string | null;
-  author: { id: string; name: string | null; username: string; avatarUrl: string | null };
+  author: { id: string; username: string; avatarUrl: string | null };
   _count?: { replies: number };
   replies?: CommentRow[];
+  [key: string]: unknown;
 }
 
-function formatComment(c: CommentRow, voteScoreMap: Map<string, number>, userVoteMap: Map<string, number>) {
+interface FormattedComment {
+  id: string;
+  content: string;
+  createdAt: Date;
+  parentCommentId: string | null;
+  author: { id: string; username: string; avatarUrl: string | null };
+  voteScore: number;
+  userVote: number;
+  replyCount: number;
+  replies: FormattedComment[];
+}
+
+function formatComment(c: CommentRow, voteScoreMap: Map<string, number>, userVoteMap: Map<string, number>): FormattedComment {
   return {
     id: c.id,
     content: c.content,
