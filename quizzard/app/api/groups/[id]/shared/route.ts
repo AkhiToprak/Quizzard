@@ -191,6 +191,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         type: 'content_share',
         content: title,
         metadata: {
+          sharedId: shared.id,
           contentType,
           contentId,
           contentTitle: title,

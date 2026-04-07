@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 const COLORS = {
   pageBg: '#111126',
@@ -31,6 +31,7 @@ interface ChatMessageData {
 
 interface Props {
   message: ChatMessageData;
+  groupId: string;
   isOwn: boolean;
 }
 
@@ -78,7 +79,9 @@ function ContentTypeIcon({ type }: { type: string }) {
   return <span className="material-symbols-outlined" style={{ fontSize: 24, color: COLORS.primary }}>{icons[type] || 'attachment'}</span>;
 }
 
-export default function GroupChatMessage({ message, isOwn }: Props) {
+export default function GroupChatMessage({ message, groupId, isOwn }: Props) {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   // System message
   if (message.type === 'system') {
     return (
@@ -96,7 +99,45 @@ export default function GroupChatMessage({ message, isOwn }: Props) {
 
   // Content share message
   if (message.type === 'content_share' && message.metadata) {
-    const meta = message.metadata as { contentType?: string; contentTitle?: string; fileName?: string; fileSize?: number };
+    const meta = message.metadata as {
+      sharedId?: string;
+      contentType?: string;
+      contentTitle?: string;
+      fileName?: string;
+      fileSize?: number;
+      description?: string;
+      cardCount?: number;
+      questionCount?: number;
+    };
+
+    const handleSave = async () => {
+      if (saving || saved || !meta.sharedId) return;
+      setSaving(true);
+      try {
+        const res = await fetch(`/api/groups/${groupId}/shared/${meta.sharedId}/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        if (res.ok) setSaved(true);
+      } catch { /* ignore */ }
+      setSaving(false);
+    };
+
+    const subtextParts: string[] = [];
+    if (meta.contentType === 'document' && meta.fileSize) {
+      subtextParts.push(`${(meta.fileSize / 1024 / 1024).toFixed(1)} MB`);
+    }
+    if (meta.contentType === 'flashcard_set' && meta.cardCount) {
+      subtextParts.push(`${meta.cardCount} flashcards`);
+    }
+    if (meta.contentType === 'quiz_set' && meta.questionCount) {
+      subtextParts.push(`${meta.questionCount} questions`);
+    }
+    if (meta.description) {
+      subtextParts.push(meta.description);
+    }
+
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexDirection: isOwn ? 'row-reverse' : 'row', maxWidth: '70%', marginLeft: isOwn ? 'auto' : 0, marginRight: isOwn ? 0 : 'auto' }}>
         {message.sender && <Avatar user={message.sender} size={40} />}
@@ -109,15 +150,41 @@ export default function GroupChatMessage({ message, isOwn }: Props) {
             background: COLORS.elevated, border: `1px solid ${COLORS.border}33`,
             padding: 16, borderRadius: 16, maxWidth: 340,
           }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: meta.sharedId ? 12 : 0 }}>
               <div style={{ width: 48, height: 48, background: `${COLORS.primary}1a`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <ContentTypeIcon type={meta.contentType || ''} />
               </div>
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <h4 style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary, lineHeight: 1.3 }}>{meta.contentTitle || meta.fileName || 'Shared content'}</h4>
-                {meta.fileSize && <p style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 4 }}>{(meta.fileSize / 1024 / 1024).toFixed(1)} MB</p>}
+                {subtextParts.length > 0 && (
+                  <p style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 4 }}>{subtextParts.join(' · ')}</p>
+                )}
               </div>
             </div>
+            {meta.sharedId && (
+              <button
+                onClick={handleSave}
+                disabled={saving || saved}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  width: '100%', padding: '8px 0', borderRadius: 10,
+                  border: saved ? 'none' : `1px solid ${COLORS.border}`,
+                  background: saved ? `${COLORS.primary}1a` : 'transparent',
+                  color: saved ? COLORS.primary : COLORS.textSecondary,
+                  fontSize: 12, fontWeight: 600,
+                  cursor: saving || saved ? 'default' : 'pointer',
+                  fontFamily: 'inherit',
+                  transition: `background 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1), border-color 0.2s cubic-bezier(0.22,1,0.36,1)`,
+                }}
+                onMouseEnter={(e) => { if (!saving && !saved) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
+                onMouseLeave={(e) => { if (!saving && !saved) { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.textSecondary; } }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                  {saved ? 'check_circle' : 'library_add'}
+                </span>
+                {saved ? 'Saved to Library' : saving ? 'Saving...' : 'Save to Library'}
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -38,6 +38,7 @@ interface SharedItem {
 
 interface Props {
   item: SharedItem;
+  groupId: string;
   canDelete: boolean;
   onDelete: (id: string) => void;
 }
@@ -67,8 +68,10 @@ function getSubtext(item: SharedItem): string {
   }
 }
 
-export default function GroupSharedContentCard({ item, canDelete, onDelete }: Props) {
+export default function GroupSharedContentCard({ item, groupId, canDelete, onDelete }: Props) {
   const [hovered, setHovered] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const iconInfo = CONTENT_ICONS[item.contentType] || { icon: 'attachment', color: COLORS.textMuted };
 
   return (
@@ -111,6 +114,42 @@ export default function GroupSharedContentCard({ item, canDelete, onDelete }: Pr
       {/* Title + description */}
       <h4 style={{ fontSize: 16, fontWeight: 700, color: COLORS.textPrimary, marginBottom: 4, lineHeight: 1.3 }}>{item.title}</h4>
       <p style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 16 }}>{getSubtext(item)}</p>
+
+      {/* Save to Library */}
+      <button
+        onClick={async (e) => {
+          e.stopPropagation();
+          if (saving || saved) return;
+          setSaving(true);
+          try {
+            const res = await fetch(`/api/groups/${groupId}/shared/${item.id}/save`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({}),
+            });
+            if (res.ok) setSaved(true);
+          } catch { /* ignore */ }
+          setSaving(false);
+        }}
+        disabled={saving || saved}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          width: '100%', padding: '8px 0', borderRadius: 10,
+          border: saved ? 'none' : `1px solid ${COLORS.border}`,
+          background: saved ? `${COLORS.primary}1a` : 'transparent',
+          color: saved ? COLORS.primary : COLORS.textSecondary,
+          fontSize: 12, fontWeight: 600, cursor: saving || saved ? 'default' : 'pointer',
+          fontFamily: 'inherit', marginBottom: 12,
+          transition: `background 0.2s ${EASING}, color 0.2s ${EASING}, border-color 0.2s ${EASING}`,
+        }}
+        onMouseEnter={(e) => { if (!saving && !saved) { (e.currentTarget).style.borderColor = COLORS.primary; (e.currentTarget).style.color = COLORS.primary; } }}
+        onMouseLeave={(e) => { if (!saving && !saved) { (e.currentTarget).style.borderColor = COLORS.border; (e.currentTarget).style.color = COLORS.textSecondary; } }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+          {saved ? 'check_circle' : 'library_add'}
+        </span>
+        {saved ? 'Saved to Library' : saving ? 'Saving...' : 'Save to Library'}
+      </button>
 
       {/* Sharer */}
       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>

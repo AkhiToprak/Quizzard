@@ -111,6 +111,7 @@ export default function GroupChat({ groupId, groupName, currentUserId }: Props) 
           <GroupChatMessage
             key={msg.id}
             message={msg}
+            groupId={groupId}
             isOwn={msg.senderId === currentUserId}
           />
         ))}

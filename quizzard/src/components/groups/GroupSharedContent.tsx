@@ -149,6 +149,7 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
             <GroupSharedContentCard
               key={item.id}
               item={item}
+              groupId={groupId}
               canDelete={item.sharedBy.id === currentUserId || userRole === 'owner' || userRole === 'admin'}
               onDelete={handleDelete}
             />

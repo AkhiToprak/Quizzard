@@ -36,6 +36,8 @@ const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 const TABS = [
   { key: 'notebook', label: 'Notebooks', icon: 'menu_book' },
   { key: 'flashcard_set', label: 'Flashcards', icon: 'style' },
+  { key: 'quiz_set', label: 'Quizzes', icon: 'quiz' },
+  { key: 'document', label: 'Files', icon: 'description' },
 ] as const;
 
 export default function ShareContentModal({
@@ -86,6 +88,30 @@ export default function ShareContentModal({
             ? `${s.notebook.name}${s._count?.flashcards != null ? ` · ${s._count.flashcards} cards` : ''}`
             : s._count?.flashcards != null ? `${s._count.flashcards} cards` : null,
           contentType: 'flashcard_set',
+        }));
+      } else if (type === 'quiz_set') {
+        const res = await fetch('/api/quiz-sets');
+        if (!res.ok) throw new Error('Failed to load quiz sets');
+        const json = await res.json();
+        const sets = json.data || [];
+        mapped = sets.map((s: { id: string; title: string; _count?: { questions: number }; notebook?: { name: string } }) => ({
+          id: s.id,
+          title: s.title,
+          subtitle: s.notebook?.name
+            ? `${s.notebook.name}${s._count?.questions != null ? ` · ${s._count.questions} questions` : ''}`
+            : s._count?.questions != null ? `${s._count.questions} questions` : null,
+          contentType: 'quiz_set',
+        }));
+      } else if (type === 'document') {
+        const res = await fetch('/api/documents');
+        if (!res.ok) throw new Error('Failed to load files');
+        const json = await res.json();
+        const docs = json.data || [];
+        mapped = docs.map((d: { id: string; fileName: string; fileSize: number; fileType: string; notebook?: { name: string } }) => ({
+          id: d.id,
+          title: d.fileName,
+          subtitle: `${(d.fileSize / 1024 / 1024).toFixed(1)} MB · ${d.fileType}${d.notebook?.name ? ` · ${d.notebook.name}` : ''}`,
+          contentType: 'document',
         }));
       }
 
@@ -321,7 +347,7 @@ export default function ShareContentModal({
                   {search ? 'search_off' : 'folder_open'}
                 </span>
                 <p style={{ fontSize: 13, margin: 0 }}>
-                  {search ? 'No items match your search' : `No ${activeTab === 'notebook' ? 'notebooks' : 'flashcard sets'} yet`}
+                  {search ? 'No items match your search' : 'Nothing to share yet'}
                 </p>
               </div>
             ) : (
@@ -329,7 +355,8 @@ export default function ShareContentModal({
                 const isSharing = sharing === item.id;
                 const isSuccess = successId === item.id;
                 const isHovered = hoveredItem === item.id;
-                const icon = item.contentType === 'notebook' ? 'menu_book' : 'style';
+                const iconMap: Record<string, string> = { notebook: 'menu_book', flashcard_set: 'style', quiz_set: 'quiz', document: 'description' };
+                const icon = iconMap[item.contentType] || 'attachment';
 
                 return (
                   <div

@@ -102,21 +102,6 @@ export default function StudyGroupCard({ group, onClick }: StudyGroupCardProps) 
           </span>
           {group._count.members}
         </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            fontSize: 12,
-            color: COLORS.textMuted,
-            fontWeight: 500,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-            auto_stories
-          </span>
-          {group._count.notebooks}
-        </div>
       </div>
     </div>
   );
