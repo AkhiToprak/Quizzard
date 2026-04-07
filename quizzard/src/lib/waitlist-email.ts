@@ -6,12 +6,14 @@ function getResend() {
   return _resend;
 }
 
-const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+function getFromAddress() {
+  return process.env.RESEND_FROM_EMAIL || 'Quizzard <noreply@quizzard.site>';
+}
 
-export function sendWaitlistConfirmation(email: string) {
-  getResend().emails
-    .send({
-      from: FROM_ADDRESS,
+export async function sendWaitlistConfirmation(email: string) {
+  try {
+    await getResend().emails.send({
+      from: getFromAddress(),
       to: email,
       subject: 'Welcome to the Quizzard Waitlist!',
       html: `
@@ -27,10 +29,10 @@ export function sendWaitlistConfirmation(email: string) {
           </p>
         </div>
       `,
-    })
-    .catch((err) => {
-      console.error('Failed to send waitlist confirmation email:', err);
     });
+  } catch (err) {
+    console.error('Failed to send waitlist confirmation email:', err);
+  }
 }
 
 const BATCH_SIZE = 100;
@@ -42,7 +44,7 @@ export async function sendLaunchAnnouncement(emails: string[]) {
     try {
       await getResend().batch.send(
         batch.map((to) => ({
-          from: FROM_ADDRESS,
+          from: getFromAddress(),
           to,
           subject: 'Quizzard Has Launched!',
           html: `

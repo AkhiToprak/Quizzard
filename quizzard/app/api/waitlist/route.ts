@@ -31,8 +31,7 @@ export async function POST(request: Request) {
       throw err;
     }
 
-    // Fire-and-forget confirmation email
-    sendWaitlistConfirmation(trimmed);
+    await sendWaitlistConfirmation(trimmed);
 
     return createdResponse({ email: trimmed }, 'Successfully joined the waitlist!');
   } catch (error) {
