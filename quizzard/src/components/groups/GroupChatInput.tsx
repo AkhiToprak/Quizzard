@@ -3,8 +3,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 
 const COLORS = {
-  elevated: '#232342',
-  inputBg: '#2a2a4c',
+  elevated: '#131328',
+  inputBg: '#1c1c38',
   primary: '#ae89ff',
   textPrimary: '#e5e3ff',
   textMuted: '#8888a8',

@@ -7,6 +7,8 @@ import HomeHeader from '@/components/layout/HomeHeader';
 
 /** Matches /notebooks/<uuid-or-id> and anything nested below it */
 const NOTEBOOK_WORKSPACE_RE = /^\/notebooks\/[^/]+/;
+/** Matches /groups/<id> detail pages */
+const GROUP_DETAIL_RE = /^\/groups\/[^/]+/;
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,7 +22,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [status, session, router]);
   const isNotebookWorkspace = NOTEBOOK_WORKSPACE_RE.test(pathname);
-  const isFullHeight = isNotebookWorkspace;
+  const isGroupDetail = GROUP_DETAIL_RE.test(pathname);
+  const isFullHeight = isNotebookWorkspace || isGroupDetail;
 
   return (
     <div
@@ -32,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         background: '#111126',
       }}
     >
-      {!isNotebookWorkspace && <HomeHeader />}
+      {!isNotebookWorkspace && !isGroupDetail && <HomeHeader />}
       <main
         style={{
           flex: 1,

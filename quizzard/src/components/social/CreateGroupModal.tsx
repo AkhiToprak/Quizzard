@@ -1,11 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 interface CreateGroupModalProps {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
+}
+
+interface Friend {
+  id: string;
+  username: string;
+  name: string | null;
+  avatarUrl: string | null;
 }
 
 const COLORS = {
@@ -14,9 +21,11 @@ const COLORS = {
   inputBg: '#2a2a4c',
   primary: '#ae89ff',
   deepPurple: '#884efb',
+  deepPurple2: '#8348f6',
   textPrimary: '#e5e3ff',
   textSecondary: '#aaa8c8',
   textMuted: '#8888a8',
+  success: '#4ade80',
   error: '#fd6f85',
   border: '#555578',
 } as const;
@@ -31,6 +40,14 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
   const [hoveredClose, setHoveredClose] = useState(false);
   const [hoveredSubmit, setHoveredSubmit] = useState(false);
 
+  // Invite step state
+  const [step, setStep] = useState<'create' | 'invite'>('create');
+  const [createdGroupId, setCreatedGroupId] = useState<string | null>(null);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendSearch, setFriendSearch] = useState('');
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
+
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -42,8 +59,50 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
       setDescription('');
       setError(null);
       setLoading(false);
+      setStep('create');
+      setCreatedGroupId(null);
+      setFriends([]);
+      setFriendSearch('');
+      setInvitedIds(new Set());
     }
   }, [open]);
+
+  // Fetch friends when entering invite step
+  useEffect(() => {
+    if (step !== 'invite') return;
+    setFriendsLoading(true);
+    (async () => {
+      try {
+        const res = await fetch('/api/friends');
+        if (res.ok) {
+          const json = await res.json();
+          setFriends((json.data || []).map((f: { id: string; username: string; name?: string | null; avatarUrl?: string | null }) => ({
+            id: f.id, username: f.username, name: f.name || null, avatarUrl: f.avatarUrl || null,
+          })));
+        }
+      } catch { /* ignore */ }
+      setFriendsLoading(false);
+    })();
+  }, [step]);
+
+  const handleInvite = useCallback(async (friendId: string) => {
+    if (!createdGroupId) return;
+    try {
+      const res = await fetch(`/api/groups/${createdGroupId}/invitations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: friendId }),
+      });
+      if (res.ok) {
+        setInvitedIds((prev) => new Set(prev).add(friendId));
+      }
+    } catch { /* ignore */ }
+  }, [createdGroupId]);
+
+  const handleFinish = () => {
+    onCreated();
+    onClose();
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -77,8 +136,11 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
         throw new Error(data?.error || 'Failed to create group');
       }
 
+      const result = await res.json().catch(() => null);
+      const groupId = result?.data?.id;
+      setCreatedGroupId(groupId || null);
       onCreated();
-      onClose();
+      setStep('invite');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -183,10 +245,10 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
                 letterSpacing: '-0.01em',
               }}
             >
-              Create Study Group
+              {step === 'create' ? 'Create Study Group' : 'Invite Members'}
             </h2>
             <button
-              onClick={onClose}
+              onClick={step === 'invite' ? handleFinish : onClose}
               onMouseEnter={() => setHoveredClose(true)}
               onMouseLeave={() => setHoveredClose(false)}
               aria-label="Close"
@@ -209,7 +271,8 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
             </button>
           </div>
 
-          {/* Form */}
+          {step === 'create' ? (
+          /* Create Form */
           <form
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
@@ -304,6 +367,114 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
               {loading ? 'Creating...' : 'Create Group'}
             </button>
           </form>
+          ) : (
+          /* Invite Step */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ fontSize: 13, color: COLORS.textSecondary, margin: 0 }}>
+              Invite friends to <span style={{ color: COLORS.textPrimary, fontWeight: 600 }}>{name}</span>
+            </p>
+
+            <input
+              value={friendSearch}
+              onChange={(e) => setFriendSearch(e.target.value)}
+              placeholder="Search friends..."
+              style={{
+                width: '100%', padding: '12px 16px',
+                background: COLORS.inputBg, border: `1px solid ${COLORS.border}`,
+                borderRadius: 12, color: COLORS.textPrimary,
+                fontSize: 14, fontFamily: 'inherit', outline: 'none',
+                boxSizing: 'border-box' as const,
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.primary; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border; }}
+            />
+
+            <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }} className="custom-scrollbar">
+              {friendsLoading ? (
+                <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: 24, fontSize: 14 }}>Loading friends...</p>
+              ) : friends.filter((f) => {
+                if (!friendSearch) return true;
+                const s = friendSearch.toLowerCase();
+                return f.username.toLowerCase().includes(s) || (f.name || '').toLowerCase().includes(s);
+              }).length === 0 ? (
+                <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: 24, fontSize: 14 }}>
+                  {friendSearch ? 'No friends match your search' : 'No friends to invite yet'}
+                </p>
+              ) : (
+                friends.filter((f) => {
+                  if (!friendSearch) return true;
+                  const s = friendSearch.toLowerCase();
+                  return f.username.toLowerCase().includes(s) || (f.name || '').toLowerCase().includes(s);
+                }).map((friend) => {
+                  const isInvited = invitedIds.has(friend.id);
+                  return (
+                    <div key={friend.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 12px', borderRadius: 12,
+                      background: COLORS.elevated,
+                    }}>
+                      {friend.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={friend.avatarUrl} alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{
+                          width: 32, height: 32, borderRadius: 8,
+                          background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 13, fontWeight: 700, color: '#fff',
+                        }}>
+                          {(friend.name?.[0] || friend.username[0] || '?').toUpperCase()}
+                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary, margin: 0 }}>{friend.name || friend.username}</p>
+                        <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>@{friend.username}</p>
+                      </div>
+                      {isInvited ? (
+                        <span style={{ fontSize: 12, color: COLORS.success, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+                          Invited
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleInvite(friend.id)}
+                          style={{
+                            padding: '5px 14px', borderRadius: 8, border: 'none',
+                            background: `${COLORS.primary}33`, color: COLORS.primary,
+                            fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                            transition: `background 0.2s ${EASING}`,
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.primary; e.currentTarget.style.color = '#fff'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = `${COLORS.primary}33`; e.currentTarget.style.color = COLORS.primary; }}
+                        >
+                          Invite
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <button
+              onClick={handleFinish}
+              style={{
+                background: COLORS.primary,
+                color: '#1a0040',
+                fontSize: 14,
+                fontWeight: 700,
+                borderRadius: 12,
+                padding: '14px 24px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: `background 0.2s ${EASING}, transform 0.15s ${EASING}`,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {invitedIds.size > 0 ? 'Done' : 'Skip'}
+            </button>
+          </div>
+          )}
         </div>
       </div>
     </>

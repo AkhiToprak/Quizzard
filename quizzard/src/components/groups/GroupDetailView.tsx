@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import GroupChat from './GroupChat';
 import GroupSharedContent from './GroupSharedContent';
 import GroupMemberList from './GroupMemberList';
@@ -58,6 +59,7 @@ interface Props {
 }
 
 export default function GroupDetailView({ groupId }: Props) {
+  const router = useRouter();
   const { data: session } = useSession();
   const [group, setGroup] = useState<GroupData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,6 +116,21 @@ export default function GroupDetailView({ groupId }: Props) {
         backdropFilter: 'blur(20px)',
         flexShrink: 0,
       }}>
+        <button
+          onClick={() => router.push('/groups')}
+          style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: 'transparent', border: 'none',
+            color: COLORS.textMuted, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            transition: `color 0.2s ${EASING}`,
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = COLORS.textPrimary)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = COLORS.textMuted)}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 24 }}>arrow_back</span>
+        </button>
         {group.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={group.avatarUrl} alt="" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover' }} />
