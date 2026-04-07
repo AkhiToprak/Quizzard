@@ -134,12 +134,12 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
     };
   }, []);
 
-  const handleSendRequest = async (username: string) => {
+  const handleSendRequest = async (userId: string) => {
     try {
       const res = await fetch('/api/friends/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ userId }),
       });
 
       if (!res.ok) {
@@ -148,7 +148,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
 
       setResults((prev) =>
         prev.map((user) =>
-          user.username === username ? { ...user, friendshipStatus: 'pending_sent' as const } : user
+          user.id === userId ? { ...user, friendshipStatus: 'pending_sent' as const } : user
         )
       );
     } catch (err) {
@@ -156,12 +156,12 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
     }
   };
 
-  const handleAcceptRequest = async (username: string) => {
+  const handleAcceptRequest = async (userId: string) => {
     try {
       const res = await fetch('/api/friends/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ userId }),
       });
 
       if (!res.ok) {
@@ -170,7 +170,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
 
       setResults((prev) =>
         prev.map((user) =>
-          user.username === username ? { ...user, friendshipStatus: 'accepted' as const } : user
+          user.id === userId ? { ...user, friendshipStatus: 'accepted' as const } : user
         )
       );
     } catch (err) {
@@ -262,7 +262,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleSendRequest(user.username);
+              handleSendRequest(user.id);
             }}
             onMouseEnter={() => setHoveredButtons((p) => ({ ...p, [user.id]: true }))}
             onMouseLeave={() => setHoveredButtons((p) => ({ ...p, [user.id]: false }))}
@@ -304,7 +304,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleAcceptRequest(user.username);
+              handleAcceptRequest(user.id);
             }}
             onMouseEnter={() => setHoveredButtons((p) => ({ ...p, [user.id]: true }))}
             onMouseLeave={() => setHoveredButtons((p) => ({ ...p, [user.id]: false }))}

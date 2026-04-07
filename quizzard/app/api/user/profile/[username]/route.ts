@@ -24,8 +24,8 @@ export async function GET(
 
     const { username } = await params;
 
-    const user = await db.user.findUnique({
-      where: { username },
+    const user = await db.user.findFirst({
+      where: { username: { equals: username, mode: 'insensitive' } },
       select: {
         id: true,
         username: true,
@@ -46,6 +46,7 @@ export async function GET(
 
     const isOwnProfile = viewerId === user.id;
     let friendshipStatus: string | null = null;
+    let friendshipId: string | null = null;
 
     if (!isOwnProfile) {
       const friendship = await db.friendship.findFirst({
@@ -55,16 +56,18 @@ export async function GET(
             { requesterId: user.id, addresseeId: viewerId },
           ],
         },
-        select: { status: true, requesterId: true },
+        select: { id: true, status: true, requesterId: true },
       });
 
       if (!friendship) {
         friendshipStatus = 'none';
       } else if (friendship.status === 'accepted') {
         friendshipStatus = 'accepted';
+        friendshipId = friendship.id;
       } else if (friendship.status === 'pending') {
         friendshipStatus =
           friendship.requesterId === viewerId ? 'pending_sent' : 'pending_received';
+        friendshipId = friendship.id;
       } else if (friendship.status === 'declined') {
         friendshipStatus = 'none';
       }
@@ -82,12 +85,14 @@ export async function GET(
         createdAt: user.createdAt,
         profilePrivate: true,
         friendshipStatus,
+        friendshipId,
       });
     }
 
     return successResponse({
       ...user,
       friendshipStatus,
+      friendshipId,
     });
   } catch {
     return internalErrorResponse();

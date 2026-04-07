@@ -20,6 +20,7 @@ interface PublicProfileData {
   hideAchievements?: boolean;
   createdAt: string;
   friendshipStatus: string | null;
+  friendshipId: string | null;
 }
 
 function getInitials(name?: string | null): string {
@@ -57,7 +58,9 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [friendshipStatus, setFriendshipStatus] = useState<string | null>(null);
+  const [friendshipId, setFriendshipId] = useState<string | null>(null);
   const [sendingRequest, setSendingRequest] = useState(false);
+  const [friendError, setFriendError] = useState<string | null>(null);
 
   const isOwnProfile = session?.user?.username === username;
 
@@ -76,6 +79,7 @@ export default function PublicProfilePage() {
         if (d?.id) {
           setProfile(d);
           setFriendshipStatus(d.friendshipStatus ?? null);
+          setFriendshipId(d.friendshipId ?? null);
         } else {
           setNotFound(true);
         }
@@ -147,18 +151,37 @@ export default function PublicProfilePage() {
   const handleFriendRequest = async () => {
     if (!profile || sendingRequest) return;
     setSendingRequest(true);
+    setFriendError(null);
     try {
-      const res = await fetch('/api/friends/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: profile.username }),
-      });
-      if (!res.ok) return;
+      let res: Response;
+
+      if (friendshipStatus === 'pending_received' && friendshipId) {
+        // Use the direct PUT path (same as FriendsList) for reliable accept
+        res = await fetch(`/api/friends/request/${friendshipId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'accept' }),
+        });
+      } else {
+        // Send new request (or auto-accept via POST)
+        res = await fetch('/api/friends/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: profile.username }),
+        });
+      }
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        throw new Error(errJson?.error || 'Request failed');
+      }
+
       const json = await res.json();
       const newStatus = json?.data?.friendship?.status === 'accepted' ? 'accepted' : 'pending_sent';
       setFriendshipStatus(newStatus);
-    } catch {
-      /* ignore */
+      setFriendshipId(json?.data?.friendship?.id ?? friendshipId);
+    } catch (err) {
+      setFriendError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setSendingRequest(false);
     }
@@ -419,6 +442,12 @@ export default function PublicProfilePage() {
                 return null;
             }
           })()}
+
+        {friendError && (
+          <p style={{ fontSize: '13px', color: '#fd6f85', marginTop: '8px', margin: '8px 0 0' }}>
+            {friendError}
+          </p>
+        )}
       </div>
 
       {/* Private Profile Notice */}

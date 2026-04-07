@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
           where: { id: targetUserId },
           select: { id: true, username: true, avatarUrl: true, name: true },
         })
-      : await db.user.findUnique({
-          where: { username: String(username).toLowerCase() },
+      : await db.user.findFirst({
+          where: { username: { equals: String(username), mode: 'insensitive' } },
           select: { id: true, username: true, avatarUrl: true, name: true },
         });
 
