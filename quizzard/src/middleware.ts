@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
 
   // Auth pages (login/register) handling
   if (pathname.startsWith('/auth/register')) {
-    if (!token) return withSecurityHeaders(NextResponse.redirect(new URL('/', request.url))); // Not logged in — block registration, send to waitlist
+    if (!token) return withSecurityHeaders(NextResponse.next()); // Allow unauthenticated registration (temporarily re-enabled)
     if (token.onboardingComplete) {
       // Completed onboarding — block re-registration
       return withSecurityHeaders(NextResponse.redirect(new URL('/home', request.url)));

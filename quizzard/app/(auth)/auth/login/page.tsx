@@ -409,10 +409,10 @@ export default function LoginPage() {
       >
         Don&apos;t have an account?{" "}
         <Link
-          href="/"
+          href="/auth/register"
           style={{ color: "#ffde59", fontWeight: 900, textDecoration: "none" }}
         >
-          Join the Waitlist
+          Sign Up
         </Link>
       </p>
 
