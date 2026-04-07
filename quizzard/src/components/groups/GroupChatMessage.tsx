@@ -162,14 +162,15 @@ export default function GroupChatMessage({ message, groupId, isOwn }: Props) {
           </div>
           <div style={{
             background: COLORS.elevated, border: `1px solid ${COLORS.border}33`,
-            padding: 16, borderRadius: 16, maxWidth: 340,
+            padding: 16, borderRadius: 16, minWidth: 240, maxWidth: 340,
+            boxSizing: 'border-box',
           }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 12 }}>
-              <div style={{ width: 48, height: 48, background: `${COLORS.primary}1a`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+              <div style={{ width: 44, height: 44, background: `${COLORS.primary}1a`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <ContentTypeIcon type={meta.contentType || ''} />
               </div>
-              <div style={{ minWidth: 0 }}>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary, lineHeight: 1.3 }}>{meta.contentTitle || meta.fileName || 'Shared content'}</h4>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary, lineHeight: 1.3, wordBreak: 'break-word' }}>{meta.contentTitle || meta.fileName || 'Shared content'}</h4>
                 {subtextParts.length > 0 && (
                   <p style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 4 }}>{subtextParts.join(' · ')}</p>
                 )}
