@@ -26,10 +26,13 @@ declare module '@tiptap/core' {
 }
 
 /* Maps level → CSS properties matching the Neon Scholar Design System */
-const LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string; letterSpacing: string; lineHeight: string }> = {
+const LEVEL_STYLES: Record<
+  number,
+  { fontSize: string; fontWeight: string; letterSpacing: string; lineHeight: string }
+> = {
   1: { fontSize: '30px', fontWeight: '700', letterSpacing: '-0.03em', lineHeight: '1.2' },
   2: { fontSize: '22px', fontWeight: '700', letterSpacing: '-0.02em', lineHeight: '1.3' },
-  3: { fontSize: '18px', fontWeight: '600', letterSpacing: '0em',     lineHeight: '1.4' },
+  3: { fontSize: '18px', fontWeight: '600', letterSpacing: '0em', lineHeight: '1.4' },
 };
 
 export const InlineHeading = Mark.create<InlineHeadingOptions>({

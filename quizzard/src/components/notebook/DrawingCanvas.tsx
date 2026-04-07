@@ -264,11 +264,7 @@ export default function DrawingCanvas({ drawingData, onSave, onClose }: DrawingC
         }}
       >
         {/* Pen tool indicator */}
-        <button
-          onClick={() => setIsErasing(false)}
-          style={toolButtonStyle(!isErasing)}
-          title="Pen"
-        >
+        <button onClick={() => setIsErasing(false)} style={toolButtonStyle(!isErasing)} title="Pen">
           <PenTool size={16} />
         </button>
 

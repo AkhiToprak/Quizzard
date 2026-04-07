@@ -54,9 +54,7 @@ export async function checkExamReminders(userId: string): Promise<number> {
   let createdCount = 0;
 
   for (const exam of exams) {
-    const daysUntilExam = Math.ceil(
-      (exam.examDate.getTime() - now.getTime()) / 86400000
-    );
+    const daysUntilExam = Math.ceil((exam.examDate.getTime() - now.getTime()) / 86400000);
 
     for (const threshold of REMINDER_THRESHOLDS) {
       // Only create reminders when the exam is within the threshold window

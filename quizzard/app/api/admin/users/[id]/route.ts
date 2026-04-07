@@ -11,10 +11,7 @@ import {
 import { logAdminAction } from '@/lib/admin-audit';
 
 // PATCH — ban/unban a user, or update role (admin only)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const adminId = await getAdminUserId(request);
     if (!adminId) return forbiddenResponse('Admin access required');
@@ -51,7 +48,9 @@ export async function PATCH(
             banReason: reason?.trim().slice(0, 500) || null,
           },
         });
-        await logAdminAction(adminId, 'user.ban', targetId, { reason: reason?.trim().slice(0, 500) || null });
+        await logAdminAction(adminId, 'user.ban', targetId, {
+          reason: reason?.trim().slice(0, 500) || null,
+        });
         return successResponse({ banned: true, userId: targetId });
       }
 

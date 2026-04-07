@@ -89,7 +89,9 @@ export const authOptions: NextAuthOptions = {
 
         // Block banned users from logging in
         if (user.banned) {
-          throw new Error(user.banReason ? `Account banned: ${user.banReason}` : 'Your account has been banned.');
+          throw new Error(
+            user.banReason ? `Account banned: ${user.banReason}` : 'Your account has been banned.'
+          );
         }
 
         // Successful login — reset failed attempt counter
@@ -116,7 +118,13 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, trigger }) {
       if (user) {
-        const u = user as typeof user & { username?: string; avatarUrl?: string; onboardingComplete?: boolean; role?: string; tier?: string };
+        const u = user as typeof user & {
+          username?: string;
+          avatarUrl?: string;
+          onboardingComplete?: boolean;
+          role?: string;
+          tier?: string;
+        };
         token.id = user.id;
         token.username = u.username;
         token.avatarUrl = u.avatarUrl;
@@ -128,7 +136,13 @@ export const authOptions: NextAuthOptions = {
       if (trigger === 'update' && token.id) {
         const freshUser = await db.user.findUnique({
           where: { id: token.id as string },
-          select: { onboardingComplete: true, username: true, avatarUrl: true, role: true, tier: true },
+          select: {
+            onboardingComplete: true,
+            username: true,
+            avatarUrl: true,
+            role: true,
+            tier: true,
+          },
         });
         if (freshUser) {
           token.onboardingComplete = freshUser.onboardingComplete;

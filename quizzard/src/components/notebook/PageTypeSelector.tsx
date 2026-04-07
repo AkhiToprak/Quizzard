@@ -154,9 +154,7 @@ export default function PageTypeSelector({ onSelect, onCancel }: PageTypeSelecto
               <Shapes size={24} />
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
-                Canvas
-              </div>
+              <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>Canvas</div>
               <div style={{ fontSize: '11px', color: 'rgba(237,233,255,0.4)', lineHeight: 1.5 }}>
                 Infinite canvas for freeform drawing and diagrams
               </div>
@@ -181,8 +179,12 @@ export default function PageTypeSelector({ onSelect, onCancel }: PageTypeSelecto
             cursor: 'pointer',
             transition: 'color 0.15s',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(237,233,255,0.6)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(237,233,255,0.35)'; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'rgba(237,233,255,0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'rgba(237,233,255,0.35)';
+          }}
         >
           Cancel
         </button>

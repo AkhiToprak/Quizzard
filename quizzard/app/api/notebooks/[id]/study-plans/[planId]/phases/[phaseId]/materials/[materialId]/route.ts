@@ -9,7 +9,9 @@ import {
   internalErrorResponse,
 } from '@/lib/api-response';
 
-type Params = { params: Promise<{ id: string; planId: string; phaseId: string; materialId: string }> };
+type Params = {
+  params: Promise<{ id: string; planId: string; phaseId: string; materialId: string }>;
+};
 
 /**
  * PATCH – update a material (toggle completed, update sortOrder/title)

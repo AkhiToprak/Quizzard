@@ -189,13 +189,18 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+      >
         {/* Username */}
         <div>
           <label style={labelStyle}>Username</label>
           <div style={{ position: 'relative' }}>
             <div style={iconWrapStyle}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>alternate_email</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                alternate_email
+              </span>
             </div>
             <input
               type="text"
@@ -204,8 +209,12 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
               onChange={(e) => handleUsernameChange(e.target.value)}
               disabled={loading}
               style={inputWithRightStyle}
-              onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-              onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+              onFocus={(e) => {
+                e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+              }}
+              onBlur={(e) => {
+                e.target.style.boxShadow = 'none';
+              }}
             />
             {/* Right icon / status */}
             <div
@@ -251,13 +260,19 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
           </div>
           {/* Status message */}
           {usernameStatus === 'available' && (
-            <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#4dff91' }}>{usernameMessage}</p>
+            <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#4dff91' }}>
+              {usernameMessage}
+            </p>
           )}
           {usernameStatus === 'taken' && (
-            <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#fd6f85' }}>{usernameMessage}</p>
+            <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#fd6f85' }}>
+              {usernameMessage}
+            </p>
           )}
           {usernameStatus === 'invalid' && (
-            <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#fd6f85' }}>{usernameMessage}</p>
+            <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#fd6f85' }}>
+              {usernameMessage}
+            </p>
           )}
           {(usernameStatus === 'idle' || usernameStatus === 'typing') && (
             <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#8888a8' }}>
@@ -268,10 +283,14 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
 
         {/* Full Name */}
         <div>
-          <label style={labelStyle}>Full Name <span style={{ color: '#8888a8', fontWeight: 400 }}>(optional)</span></label>
+          <label style={labelStyle}>
+            Full Name <span style={{ color: '#8888a8', fontWeight: 400 }}>(optional)</span>
+          </label>
           <div style={{ position: 'relative' }}>
             <div style={iconWrapStyle}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>person</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                person
+              </span>
             </div>
             <input
               type="text"
@@ -280,8 +299,12 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
               onChange={(e) => onChange('name', e.target.value)}
               disabled={loading}
               style={inputStyle}
-              onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-              onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+              onFocus={(e) => {
+                e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+              }}
+              onBlur={(e) => {
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
         </div>
@@ -291,7 +314,9 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
           <label style={labelStyle}>Email Address</label>
           <div style={{ position: 'relative' }}>
             <div style={iconWrapStyle}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>mail</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                mail
+              </span>
             </div>
             <input
               type="email"
@@ -301,8 +326,12 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
               required
               disabled={loading}
               style={inputStyle}
-              onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-              onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+              onFocus={(e) => {
+                e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+              }}
+              onBlur={(e) => {
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
         </div>
@@ -312,7 +341,9 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
           <label style={labelStyle}>Password</label>
           <div style={{ position: 'relative' }}>
             <div style={iconWrapStyle}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>lock</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                lock
+              </span>
             </div>
             <input
               type="password"
@@ -322,8 +353,12 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
               required
               disabled={loading}
               style={inputStyle}
-              onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-              onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+              onFocus={(e) => {
+                e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+              }}
+              onBlur={(e) => {
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
           {/* Strength indicator */}
@@ -344,7 +379,14 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
                 ))}
               </div>
               {passwordScore > 0 && (
-                <p style={{ margin: 0, fontSize: '12px', color: scoreColor[passwordScore], fontWeight: 600 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '12px',
+                    color: scoreColor[passwordScore],
+                    fontWeight: 600,
+                  }}
+                >
                   {scoreLabel[passwordScore]}
                 </p>
               )}
@@ -357,7 +399,9 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
           <label style={labelStyle}>Confirm Password</label>
           <div style={{ position: 'relative' }}>
             <div style={iconWrapStyle}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>lock_person</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                lock_person
+              </span>
             </div>
             <input
               type="password"
@@ -367,7 +411,9 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
               required
               disabled={loading}
               style={inputStyle}
-              onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
+              onFocus={(e) => {
+                e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+              }}
               onBlur={() => setConfirmBlurred(true)}
             />
           </div>
@@ -402,9 +448,14 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
             style={{ fontSize: '13px', color: '#aaa8c8', lineHeight: '1.6', cursor: 'pointer' }}
           >
             I agree to the{' '}
-            <a href="#" style={{ color: '#b9c3ff', textDecoration: 'none' }}>Terms of Service</a>
-            {' '}and{' '}
-            <a href="#" style={{ color: '#b9c3ff', textDecoration: 'none' }}>Privacy Policy</a>.
+            <a href="#" style={{ color: '#b9c3ff', textDecoration: 'none' }}>
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href="#" style={{ color: '#b9c3ff', textDecoration: 'none' }}>
+              Privacy Policy
+            </a>
+            .
           </label>
         </div>
 
@@ -424,7 +475,8 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
             cursor: loading ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit',
             boxShadow: loading ? 'none' : '0 8px 24px rgba(174,137,255,0.3)',
-            transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
+            transition:
+              'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -454,7 +506,9 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
           ) : (
             <>
               Continue
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>arrow_forward</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                arrow_forward
+              </span>
             </>
           )}
         </button>

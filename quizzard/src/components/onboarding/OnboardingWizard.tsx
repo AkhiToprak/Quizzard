@@ -45,7 +45,8 @@ export default function OnboardingWizard() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [formData, setFormData] = useState<FormData>(() => {
     const tierParam = searchParams.get('tier')?.toUpperCase();
-    const initialTier = (tierParam === 'PLUS' || tierParam === 'PRO') ? tierParam as TierKey : 'FREE';
+    const initialTier =
+      tierParam === 'PLUS' || tierParam === 'PRO' ? (tierParam as TierKey) : 'FREE';
     return { ...INITIAL_FORM, selectedTier: initialTier };
   });
   const [loading, setLoading] = useState(false);
@@ -53,11 +54,9 @@ export default function OnboardingWizard() {
   const [showPayment, setShowPayment] = useState(false);
   const paymentHandledRef = useRef(false);
 
-  const setStepError = (s: number, msg: string) =>
-    setStepErrors((prev) => ({ ...prev, [s]: msg }));
+  const setStepError = (s: number, msg: string) => setStepErrors((prev) => ({ ...prev, [s]: msg }));
 
-  const clearStepError = (s: number) =>
-    setStepErrors((prev) => ({ ...prev, [s]: '' }));
+  const clearStepError = (s: number) => setStepErrors((prev) => ({ ...prev, [s]: '' }));
 
   // Handle return from Stripe Embedded Checkout (redirect-based flow)
   useEffect(() => {
@@ -233,16 +232,23 @@ export default function OnboardingWizard() {
   const handleGoalsFinish = () => submitOnboarding(formData.studyGoals);
   const handleGoalsSkip = () => submitOnboarding([]);
 
-  const stepSubtitle = step === 1
-    ? "Join the Neon Scholar society."
-    : step === 2
-    ? "Choose your plan."
-    : step === 3
-    ? "Let's set up your profile."
-    : "Almost there — personalize your journey.";
+  const stepSubtitle =
+    step === 1
+      ? 'Join the Neon Scholar society.'
+      : step === 2
+        ? 'Choose your plan.'
+        : step === 3
+          ? "Let's set up your profile."
+          : 'Almost there — personalize your journey.';
 
   return (
-    <div style={step === 2 && !showPayment ? { width: '90vw', maxWidth: '960px', marginLeft: '50%', transform: 'translateX(-50%)' } : undefined}>
+    <div
+      style={
+        step === 2 && !showPayment
+          ? { width: '90vw', maxWidth: '960px', marginLeft: '50%', transform: 'translateX(-50%)' }
+          : undefined
+      }
+    >
       <style>{`
         @keyframes fadeSlide {
           from { opacity: 0; transform: translateY(12px); }
@@ -329,11 +335,7 @@ export default function OnboardingWizard() {
         />
 
         {/* Step Indicator */}
-        <StepIndicator
-          currentStep={step}
-          totalSteps={4}
-          labels={STEP_LABELS}
-        />
+        <StepIndicator currentStep={step} totalSteps={4} labels={STEP_LABELS} />
 
         {/* Step Content */}
         <div

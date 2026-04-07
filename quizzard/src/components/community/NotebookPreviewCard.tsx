@@ -110,9 +110,7 @@ export default function NotebookPreviewCard({
         overflow: 'hidden',
         border: `1px solid ${hovered ? 'rgba(174,137,255,0.3)' : '#555578'}`,
         transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-        boxShadow: hovered
-          ? '0 8px 24px rgba(174,137,255,0.12)'
-          : '0 2px 8px rgba(0,0,0,0.2)',
+        boxShadow: hovered ? '0 8px 24px rgba(174,137,255,0.12)' : '0 2px 8px rgba(0,0,0,0.2)',
         transition: `transform 0.2s ${TRANSITION}, box-shadow 0.2s ${TRANSITION}, border-color 0.2s ${TRANSITION}`,
         cursor: 'pointer',
         display: 'flex',

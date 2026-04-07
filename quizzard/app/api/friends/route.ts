@@ -53,11 +53,11 @@ export async function GET(request: NextRequest) {
         direction === 'outgoing'
           ? { requesterId: userId, status: 'pending' }
           : direction === 'incoming'
-          ? { addresseeId: userId, status: 'pending' }
-          : {
-              status: 'pending',
-              OR: [{ requesterId: userId }, { addresseeId: userId }],
-            };
+            ? { addresseeId: userId, status: 'pending' }
+            : {
+                status: 'pending',
+                OR: [{ requesterId: userId }, { addresseeId: userId }],
+              };
 
       const friendships = await db.friendship.findMany({
         where,

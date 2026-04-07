@@ -1,11 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { getAuthCodeUrl } from '@/lib/microsoftAuth';
-import {
-  successResponse,
-  unauthorizedResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { successResponse, unauthorizedResponse, internalErrorResponse } from '@/lib/api-response';
 
 /**
  * GET – initiate Microsoft OAuth flow, returns the authorization URL

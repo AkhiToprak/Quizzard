@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import NotebookCard, { type NotebookData } from '@/components/features/NotebookCard';
-import NotebookForm, { type FormData as NotebookFormData } from '@/components/features/NotebookForm';
+import NotebookForm, {
+  type FormData as NotebookFormData,
+} from '@/components/features/NotebookForm';
 import FolderCard, { type FolderData } from '@/components/features/FolderCard';
 import FolderForm from '@/components/features/FolderForm';
 import FolderBreadcrumbs from '@/components/features/FolderBreadcrumbs';
@@ -24,11 +26,48 @@ function SkeletonCard() {
         position: 'relative',
       }}
     >
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '8px', background: 'rgba(174,137,255,0.2)' }} />
-      <div style={{ padding: '24px 24px 24px 40px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ width: '64px', height: '20px', borderRadius: '9999px', background: 'rgba(229,227,255,0.06)' }} />
-        <div style={{ width: '80%', height: '18px', borderRadius: '6px', background: 'rgba(229,227,255,0.08)' }} />
-        <div style={{ width: '60%', height: '14px', borderRadius: '5px', background: 'rgba(229,227,255,0.05)' }} />
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: '8px',
+          background: 'rgba(174,137,255,0.2)',
+        }}
+      />
+      <div
+        style={{
+          padding: '24px 24px 24px 40px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+        }}
+      >
+        <div
+          style={{
+            width: '64px',
+            height: '20px',
+            borderRadius: '9999px',
+            background: 'rgba(229,227,255,0.06)',
+          }}
+        />
+        <div
+          style={{
+            width: '80%',
+            height: '18px',
+            borderRadius: '6px',
+            background: 'rgba(229,227,255,0.08)',
+          }}
+        />
+        <div
+          style={{
+            width: '60%',
+            height: '14px',
+            borderRadius: '5px',
+            background: 'rgba(229,227,255,0.05)',
+          }}
+        />
       </div>
       <style>{`
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
@@ -59,7 +98,13 @@ function NotebooksPageContent() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Search state
-  const { query: searchQuery, setQuery: setSearchQuery, results: searchResults, isLoading: searchLoading, clearResults } = useSearch('notebooks');
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    results: searchResults,
+    isLoading: searchLoading,
+    clearResults,
+  } = useSearch('notebooks');
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchDropdownVisible, setSearchDropdownVisible] = useState(false);
   const searchDropdownMouseRef = useRef(false);
@@ -160,7 +205,11 @@ function NotebooksPageContent() {
         body: JSON.stringify(data),
       });
       const json = await res.json();
-      if (json.success) { setEditingNotebook(null); setShowForm(false); await fetchContents(); }
+      if (json.success) {
+        setEditingNotebook(null);
+        setShowForm(false);
+        await fetchContents();
+      }
     } finally {
       setFormLoading(false);
     }
@@ -172,7 +221,10 @@ function NotebooksPageContent() {
     try {
       const res = await fetch(`/api/notebooks/${deleteTarget.id}`, { method: 'DELETE' });
       const json = await res.json();
-      if (json.success) { setDeleteTarget(null); await fetchContents(); }
+      if (json.success) {
+        setDeleteTarget(null);
+        await fetchContents();
+      }
     } finally {
       setDeleteLoading(false);
     }
@@ -196,7 +248,10 @@ function NotebooksPageContent() {
         body: JSON.stringify({ ...data, parentId: currentFolderId }),
       });
       const json = await res.json();
-      if (json.success) { setShowFolderForm(false); await fetchContents(); }
+      if (json.success) {
+        setShowFolderForm(false);
+        await fetchContents();
+      }
     } finally {
       setFolderFormLoading(false);
     }
@@ -212,7 +267,11 @@ function NotebooksPageContent() {
         body: JSON.stringify(data),
       });
       const json = await res.json();
-      if (json.success) { setEditingFolder(null); setShowFolderForm(false); await fetchContents(); }
+      if (json.success) {
+        setEditingFolder(null);
+        setShowFolderForm(false);
+        await fetchContents();
+      }
     } finally {
       setFolderFormLoading(false);
     }
@@ -222,9 +281,14 @@ function NotebooksPageContent() {
     if (!deleteFolderTarget) return;
     setDeleteFolderLoading(true);
     try {
-      const res = await fetch(`/api/notebook-folders/${deleteFolderTarget.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/notebook-folders/${deleteFolderTarget.id}`, {
+        method: 'DELETE',
+      });
       const json = await res.json();
-      if (json.success) { setDeleteFolderTarget(null); await fetchContents(); }
+      if (json.success) {
+        setDeleteFolderTarget(null);
+        await fetchContents();
+      }
     } finally {
       setDeleteFolderLoading(false);
     }
@@ -271,14 +335,23 @@ function NotebooksPageContent() {
               });
               const json = await res.json();
               if (json.success) await fetchContents();
-            } catch { /* silently fail */ }
+            } catch {
+              /* silently fail */
+            }
           }}
         />
       )}
 
       {/* Toolbar: filter dropdown + add buttons */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
-
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          marginBottom: '32px',
+          flexWrap: 'wrap',
+        }}
+      >
         {/* Subject filter dropdown */}
         <div ref={filterRef} style={{ position: 'relative' }}>
           {/* Trigger button */}
@@ -302,53 +375,66 @@ function NotebooksPageContent() {
             }}
           >
             {activeFilter !== ALL_LABEL ? (
-              <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff',
-                flexShrink: 0,
-              }} />
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff',
+                  flexShrink: 0,
+                }}
+              />
             ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: '15px', color: 'rgba(174,137,255,0.6)' }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '15px', color: 'rgba(174,137,255,0.6)' }}
+              >
                 filter_list
               </span>
             )}
             <span style={{ color: activeFilter !== ALL_LABEL ? '#e5e3ff' : '#aaa8c8' }}>
               {activeFilter !== ALL_LABEL ? activeFilter : 'All Subjects'}
             </span>
-            <span className="material-symbols-outlined" style={{
-              fontSize: '16px',
-              color: 'rgba(174,137,255,0.5)',
-              marginLeft: '2px',
-              transition: 'transform 0.15s',
-              transform: filterOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            }}>
+            <span
+              className="material-symbols-outlined"
+              style={{
+                fontSize: '16px',
+                color: 'rgba(174,137,255,0.5)',
+                marginLeft: '2px',
+                transition: 'transform 0.15s',
+                transform: filterOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+            >
               expand_more
             </span>
           </button>
 
           {/* Dropdown panel */}
           {filterOpen && (
-            <div style={{
-              position: 'absolute',
-              top: 'calc(100% + 6px)',
-              left: 0,
-              zIndex: 200,
-              background: '#18182e',
-              border: '1px solid rgba(174,137,255,0.18)',
-              borderRadius: '12px',
-              boxShadow: '0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(174,137,255,0.06)',
-              padding: '6px',
-              minWidth: '200px',
-              animation: 'dropIn 0.12s cubic-bezier(0.22,1,0.36,1)',
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 6px)',
+                left: 0,
+                zIndex: 200,
+                background: '#18182e',
+                border: '1px solid rgba(174,137,255,0.18)',
+                borderRadius: '12px',
+                boxShadow: '0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(174,137,255,0.06)',
+                padding: '6px',
+                minWidth: '200px',
+                animation: 'dropIn 0.12s cubic-bezier(0.22,1,0.36,1)',
+              }}
+            >
               <style>{`
                 @keyframes dropIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
               `}</style>
 
               <button
-                onClick={() => { setActiveFilter(ALL_LABEL); setFilterOpen(false); }}
+                onClick={() => {
+                  setActiveFilter(ALL_LABEL);
+                  setFilterOpen(false);
+                }}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -365,22 +451,47 @@ function NotebooksPageContent() {
                   fontFamily: 'inherit',
                   textAlign: 'left',
                 }}
-                onMouseEnter={(e) => { if (activeFilter !== ALL_LABEL) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.06)'; }}
-                onMouseLeave={(e) => { if (activeFilter !== ALL_LABEL) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                onMouseEnter={(e) => {
+                  if (activeFilter !== ALL_LABEL)
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      'rgba(174,137,255,0.06)';
+                }}
+                onMouseLeave={(e) => {
+                  if (activeFilter !== ALL_LABEL)
+                    (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                }}
               >
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(174,137,255,0.4)', flexShrink: 0 }} />
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: 'rgba(174,137,255,0.4)',
+                    flexShrink: 0,
+                  }}
+                />
                 All Subjects
                 {activeFilter === ALL_LABEL && (
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#ae89ff', marginLeft: 'auto' }}>check</span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '14px', color: '#ae89ff', marginLeft: 'auto' }}
+                  >
+                    check
+                  </span>
                 )}
               </button>
 
-              <div style={{ height: '1px', background: 'rgba(174,137,255,0.08)', margin: '4px 6px' }} />
+              <div
+                style={{ height: '1px', background: 'rgba(174,137,255,0.08)', margin: '4px 6px' }}
+              />
 
               {PRESETS.map((preset) => (
                 <button
                   key={preset.id}
-                  onClick={() => { setActiveFilter(preset.label); setFilterOpen(false); }}
+                  onClick={() => {
+                    setActiveFilter(preset.label);
+                    setFilterOpen(false);
+                  }}
                   style={{
                     width: '100%',
                     display: 'flex',
@@ -389,7 +500,8 @@ function NotebooksPageContent() {
                     padding: '8px 10px',
                     borderRadius: '8px',
                     border: 'none',
-                    background: activeFilter === preset.label ? 'rgba(174,137,255,0.12)' : 'transparent',
+                    background:
+                      activeFilter === preset.label ? 'rgba(174,137,255,0.12)' : 'transparent',
                     color: activeFilter === preset.label ? '#e5e3ff' : '#aaa8c8',
                     fontSize: '13px',
                     fontWeight: activeFilter === preset.label ? 600 : 400,
@@ -397,13 +509,33 @@ function NotebooksPageContent() {
                     fontFamily: 'inherit',
                     textAlign: 'left',
                   }}
-                  onMouseEnter={(e) => { if (activeFilter !== preset.label) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.06)'; }}
-                  onMouseLeave={(e) => { if (activeFilter !== preset.label) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                  onMouseEnter={(e) => {
+                    if (activeFilter !== preset.label)
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        'rgba(174,137,255,0.06)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeFilter !== preset.label)
+                      (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                  }}
                 >
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: preset.color, flexShrink: 0 }} />
+                  <span
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: preset.color,
+                      flexShrink: 0,
+                    }}
+                  />
                   {preset.label}
                   {activeFilter === preset.label && (
-                    <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#ae89ff', marginLeft: 'auto' }}>check</span>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: '14px', color: '#ae89ff', marginLeft: 'auto' }}
+                    >
+                      check
+                    </span>
                   )}
                 </button>
               ))}
@@ -431,14 +563,18 @@ function NotebooksPageContent() {
               fontFamily: 'inherit',
             }}
           >
-            <span style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff',
-            }} />
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: PRESETS.find((p) => p.label === activeFilter)?.color ?? '#ae89ff',
+              }}
+            />
             {activeFilter}
-            <span className="material-symbols-outlined" style={{ fontSize: '13px', opacity: 0.7 }}>close</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '13px', opacity: 0.7 }}>
+              close
+            </span>
           </button>
         )}
 
@@ -447,17 +583,28 @@ function NotebooksPageContent() {
           <span
             className="material-symbols-outlined"
             style={{
-              position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-              fontSize: 18, color: searchFocused ? '#ae89ff' : '#8888a8',
-              transition: 'color 0.2s', pointerEvents: 'none', zIndex: 1,
+              position: 'absolute',
+              left: 12,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: 18,
+              color: searchFocused ? '#ae89ff' : '#8888a8',
+              transition: 'color 0.2s',
+              pointerEvents: 'none',
+              zIndex: 1,
             }}
-          >search</span>
+          >
+            search
+          </span>
           <input
             type="text"
             placeholder="Search notebooks, pages, users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => { setSearchFocused(true); setSearchDropdownVisible(true); }}
+            onFocus={() => {
+              setSearchFocused(true);
+              setSearchDropdownVisible(true);
+            }}
             onBlur={() => {
               setSearchFocused(false);
               if (!searchDropdownMouseRef.current) setSearchDropdownVisible(false);
@@ -477,15 +624,22 @@ function NotebooksPageContent() {
             }}
           />
           <div
-            onMouseEnter={() => { searchDropdownMouseRef.current = true; }}
-            onMouseLeave={() => { searchDropdownMouseRef.current = false; }}
+            onMouseEnter={() => {
+              searchDropdownMouseRef.current = true;
+            }}
+            onMouseLeave={() => {
+              searchDropdownMouseRef.current = false;
+            }}
           >
             <SearchDropdown
               query={searchQuery}
               results={searchResults}
               isLoading={searchLoading}
               isVisible={searchDropdownVisible && searchQuery.length >= 2}
-              onClose={() => { setSearchDropdownVisible(false); clearResults(); }}
+              onClose={() => {
+                setSearchDropdownVisible(false);
+                clearResults();
+              }}
               context="notebooks"
             />
           </div>
@@ -495,7 +649,10 @@ function NotebooksPageContent() {
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
           {/* New Folder button */}
           <button
-            onClick={() => { setEditingFolder(null); setShowFolderForm(true); }}
+            onClick={() => {
+              setEditingFolder(null);
+              setShowFolderForm(true);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -511,18 +668,33 @@ function NotebooksPageContent() {
               fontFamily: 'inherit',
               transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.08)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-            onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'; }}
-            onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)';
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.08)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+            }}
+            onMouseDown={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)';
+            }}
+            onMouseUp={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)';
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>create_new_folder</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              create_new_folder
+            </span>
             New Folder
           </button>
 
           {/* Add Notebook button */}
           <button
-            onClick={() => { setEditingNotebook(null); setShowForm(true); }}
+            onClick={() => {
+              setEditingNotebook(null);
+              setShowForm(true);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -539,12 +711,22 @@ function NotebooksPageContent() {
               boxShadow: '0 4px 16px rgba(174,137,255,0.25)',
               transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
-            onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'; }}
-            onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+            }}
+            onMouseDown={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)';
+            }}
+            onMouseUp={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)';
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              add
+            </span>
             Add Notebook
           </button>
         </div>
@@ -552,21 +734,38 @@ function NotebooksPageContent() {
 
       {/* Loading */}
       {isLoading && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-          {[0, 1, 2].map((i) => <SkeletonCard key={i} />)}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: '24px',
+          }}
+        >
+          {[0, 1, 2].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       )}
 
       {/* Grid */}
       {!isLoading && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: '24px',
+          }}
+        >
           {/* Folders first */}
           {folders.map((folder) => (
             <FolderCard
               key={folder.id}
               folder={folder}
               onClick={(f) => handleFolderNavigate(f.id)}
-              onRename={(f) => { setEditingFolder(f); setShowFolderForm(true); }}
+              onRename={(f) => {
+                setEditingFolder(f);
+                setShowFolderForm(true);
+              }}
               onDelete={(f) => setDeleteFolderTarget(f)}
               onDropNotebook={handleDropNotebookIntoFolder}
             />
@@ -577,7 +776,10 @@ function NotebooksPageContent() {
             <NotebookCard
               key={nb.id}
               notebook={nb}
-              onEdit={(n) => { setEditingNotebook(n); setShowForm(true); }}
+              onEdit={(n) => {
+                setEditingNotebook(n);
+                setShowForm(true);
+              }}
               onDelete={(n) => setDeleteTarget(n)}
               draggable
               onDragStart={handleNotebookDragStart}
@@ -586,7 +788,10 @@ function NotebooksPageContent() {
 
           {/* Add folder card */}
           <div
-            onClick={() => { setEditingFolder(null); setShowFolderForm(true); }}
+            onClick={() => {
+              setEditingFolder(null);
+              setShowFolderForm(true);
+            }}
             style={{
               background: 'rgba(18,18,42,0.5)',
               borderRadius: '12px',
@@ -602,16 +807,30 @@ function NotebooksPageContent() {
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(174,137,255,0.5)';
-              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.add-folder-icon-wrap');
-              if (icon) { icon.style.background = 'rgba(174,137,255,0.2)'; icon.style.transform = 'scale(1.1)'; }
-              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>('.add-folder-label');
+              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>(
+                '.add-folder-icon-wrap'
+              );
+              if (icon) {
+                icon.style.background = 'rgba(174,137,255,0.2)';
+                icon.style.transform = 'scale(1.1)';
+              }
+              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>(
+                '.add-folder-label'
+              );
               if (label) label.style.color = '#e5e3ff';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(70,69,96,0.3)';
-              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.add-folder-icon-wrap');
-              if (icon) { icon.style.background = '#1c1c38'; icon.style.transform = 'scale(1)'; }
-              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>('.add-folder-label');
+              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>(
+                '.add-folder-icon-wrap'
+              );
+              if (icon) {
+                icon.style.background = '#1c1c38';
+                icon.style.transform = 'scale(1)';
+              }
+              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>(
+                '.add-folder-label'
+              );
               if (label) label.style.color = '#aaa8c8';
             }}
           >
@@ -625,22 +844,47 @@ function NotebooksPageContent() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'background 0.3s cubic-bezier(0.22,1,0.36,1), transform 0.3s cubic-bezier(0.22,1,0.36,1)',
+                transition:
+                  'background 0.3s cubic-bezier(0.22,1,0.36,1), transform 0.3s cubic-bezier(0.22,1,0.36,1)',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#8888a8' }}>create_new_folder</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '28px', color: '#8888a8' }}
+              >
+                create_new_folder
+              </span>
             </span>
-            <p className="add-folder-label" style={{ fontWeight: 700, color: '#aaa8c8', margin: '4px 0 0', transition: 'color 0.2s' }}>
+            <p
+              className="add-folder-label"
+              style={{
+                fontWeight: 700,
+                color: '#aaa8c8',
+                margin: '4px 0 0',
+                transition: 'color 0.2s',
+              }}
+            >
               New Folder
             </p>
-            <p style={{ fontSize: '12px', color: '#8888a8', margin: 0, textAlign: 'center', padding: '0 24px' }}>
+            <p
+              style={{
+                fontSize: '12px',
+                color: '#8888a8',
+                margin: 0,
+                textAlign: 'center',
+                padding: '0 24px',
+              }}
+            >
               Group your notebooks together
             </p>
           </div>
 
           {/* Add notebook card */}
           <div
-            onClick={() => { setEditingNotebook(null); setShowForm(true); }}
+            onClick={() => {
+              setEditingNotebook(null);
+              setShowForm(true);
+            }}
             style={{
               background: 'rgba(18,18,42,0.5)',
               borderRadius: '12px',
@@ -656,16 +900,30 @@ function NotebooksPageContent() {
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(174,137,255,0.5)';
-              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.add-icon-wrap');
-              if (icon) { icon.style.background = 'rgba(174,137,255,0.2)'; icon.style.transform = 'scale(1.1)'; }
-              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>('.add-label');
+              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>(
+                '.add-icon-wrap'
+              );
+              if (icon) {
+                icon.style.background = 'rgba(174,137,255,0.2)';
+                icon.style.transform = 'scale(1.1)';
+              }
+              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>(
+                '.add-label'
+              );
               if (label) label.style.color = '#e5e3ff';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(70,69,96,0.3)';
-              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.add-icon-wrap');
-              if (icon) { icon.style.background = '#1c1c38'; icon.style.transform = 'scale(1)'; }
-              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>('.add-label');
+              const icon = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>(
+                '.add-icon-wrap'
+              );
+              if (icon) {
+                icon.style.background = '#1c1c38';
+                icon.style.transform = 'scale(1)';
+              }
+              const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>(
+                '.add-label'
+              );
               if (label) label.style.color = '#aaa8c8';
             }}
           >
@@ -679,15 +937,37 @@ function NotebooksPageContent() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'background 0.3s cubic-bezier(0.22,1,0.36,1), transform 0.3s cubic-bezier(0.22,1,0.36,1)',
+                transition:
+                  'background 0.3s cubic-bezier(0.22,1,0.36,1), transform 0.3s cubic-bezier(0.22,1,0.36,1)',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#8888a8' }}>add</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '28px', color: '#8888a8' }}
+              >
+                add
+              </span>
             </span>
-            <p className="add-label" style={{ fontWeight: 700, color: '#aaa8c8', margin: '4px 0 0', transition: 'color 0.2s' }}>
+            <p
+              className="add-label"
+              style={{
+                fontWeight: 700,
+                color: '#aaa8c8',
+                margin: '4px 0 0',
+                transition: 'color 0.2s',
+              }}
+            >
               New Subject
             </p>
-            <p style={{ fontSize: '12px', color: '#8888a8', margin: 0, textAlign: 'center', padding: '0 24px' }}>
+            <p
+              style={{
+                fontSize: '12px',
+                color: '#8888a8',
+                margin: 0,
+                textAlign: 'center',
+                padding: '0 24px',
+              }}
+            >
               Organize your thoughts in a new notebook
             </p>
           </div>
@@ -705,8 +985,20 @@ function NotebooksPageContent() {
           }}
         >
           {[
-            { icon: 'book_4', color: '#ae89ff', bg: 'rgba(174,137,255,0.1)', value: totalNotebooks, label: 'Total Notebooks' },
-            { icon: 'flash_on', color: '#b9c3ff', bg: 'rgba(185,195,255,0.1)', value: '—', label: 'Mastered Cards' },
+            {
+              icon: 'book_4',
+              color: '#ae89ff',
+              bg: 'rgba(174,137,255,0.1)',
+              value: totalNotebooks,
+              label: 'Total Notebooks',
+            },
+            {
+              icon: 'flash_on',
+              color: '#b9c3ff',
+              bg: 'rgba(185,195,255,0.1)',
+              value: '—',
+              label: 'Mastered Cards',
+            },
           ].map(({ icon, color, bg, value, label }) => (
             <div
               key={label}
@@ -731,10 +1023,16 @@ function NotebooksPageContent() {
                   flexShrink: 0,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ color, fontSize: '24px' }}>{icon}</span>
+                <span className="material-symbols-outlined" style={{ color, fontSize: '24px' }}>
+                  {icon}
+                </span>
               </div>
               <div>
-                <p style={{ fontSize: '24px', fontWeight: 900, color: '#e5e3ff', margin: '0 0 2px' }}>{value}</p>
+                <p
+                  style={{ fontSize: '24px', fontWeight: 900, color: '#e5e3ff', margin: '0 0 2px' }}
+                >
+                  {value}
+                </p>
                 <p style={{ fontSize: '12px', color: '#aaa8c8', margin: 0 }}>{label}</p>
               </div>
             </div>
@@ -747,7 +1045,10 @@ function NotebooksPageContent() {
         <NotebookForm
           notebook={editingNotebook}
           onSubmit={editingNotebook ? handleEdit : handleCreate}
-          onCancel={() => { setShowForm(false); setEditingNotebook(null); }}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingNotebook(null);
+          }}
           isLoading={formLoading}
         />
       )}
@@ -757,7 +1058,10 @@ function NotebooksPageContent() {
         <FolderForm
           folder={editingFolder}
           onSubmit={editingFolder ? handleFolderRename : handleFolderCreate}
-          onCancel={() => { setShowFolderForm(false); setEditingFolder(null); }}
+          onCancel={() => {
+            setShowFolderForm(false);
+            setEditingFolder(null);
+          }}
           isLoading={folderFormLoading}
         />
       )}
@@ -776,7 +1080,9 @@ function NotebooksPageContent() {
             zIndex: 1000,
             padding: '20px',
           }}
-          onClick={() => { if (!deleteLoading) setDeleteTarget(null); }}
+          onClick={() => {
+            if (!deleteLoading) setDeleteTarget(null);
+          }}
         >
           <div
             style={{
@@ -805,23 +1111,37 @@ function NotebooksPageContent() {
                 marginBottom: '16px',
               }}
             >
-              <span className="material-symbols-outlined" style={{ color: '#fd6f85', fontSize: '24px' }}>delete</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#fd6f85', fontSize: '24px' }}
+              >
+                delete
+              </span>
             </div>
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
               Delete &ldquo;{deleteTarget.name}&rdquo;?
             </h3>
             <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 28px', lineHeight: 1.6 }}>
-              This will permanently delete the notebook and all its documents and chat history. This action cannot be undone.
+              This will permanently delete the notebook and all its documents and chat history. This
+              action cannot be undone.
             </p>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
-                onClick={() => { if (!deleteLoading) setDeleteTarget(null); }}
+                onClick={() => {
+                  if (!deleteLoading) setDeleteTarget(null);
+                }}
                 disabled={deleteLoading}
                 style={{
-                  flex: 1, padding: '12px', borderRadius: '12px',
-                  background: '#2a2a4c', border: 'none',
-                  fontSize: '14px', fontWeight: 600, color: '#aaa8c8',
-                  cursor: deleteLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  background: '#2a2a4c',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#aaa8c8',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
                 }}
               >
                 Cancel
@@ -830,11 +1150,16 @@ function NotebooksPageContent() {
                 onClick={handleDelete}
                 disabled={deleteLoading}
                 style={{
-                  flex: 1, padding: '12px', borderRadius: '12px',
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
                   background: deleteLoading ? 'rgba(253,111,133,0.2)' : '#fd6f85',
-                  border: 'none', fontSize: '14px', fontWeight: 700,
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: 700,
                   color: deleteLoading ? '#aaa8c8' : '#490013',
-                  cursor: deleteLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
                 }}
               >
                 {deleteLoading ? 'Deleting…' : 'Delete'}
@@ -858,7 +1183,9 @@ function NotebooksPageContent() {
             zIndex: 1000,
             padding: '20px',
           }}
-          onClick={() => { if (!deleteFolderLoading) setDeleteFolderTarget(null); }}
+          onClick={() => {
+            if (!deleteFolderLoading) setDeleteFolderTarget(null);
+          }}
         >
           <div
             style={{
@@ -887,23 +1214,37 @@ function NotebooksPageContent() {
                 marginBottom: '16px',
               }}
             >
-              <span className="material-symbols-outlined" style={{ color: '#fd6f85', fontSize: '24px' }}>folder_delete</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#fd6f85', fontSize: '24px' }}
+              >
+                folder_delete
+              </span>
             </div>
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
               Delete &ldquo;{deleteFolderTarget.name}&rdquo;?
             </h3>
             <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 28px', lineHeight: 1.6 }}>
-              This will delete the folder and all sub-folders. Notebooks inside will be moved to the root level. This action cannot be undone.
+              This will delete the folder and all sub-folders. Notebooks inside will be moved to the
+              root level. This action cannot be undone.
             </p>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
-                onClick={() => { if (!deleteFolderLoading) setDeleteFolderTarget(null); }}
+                onClick={() => {
+                  if (!deleteFolderLoading) setDeleteFolderTarget(null);
+                }}
                 disabled={deleteFolderLoading}
                 style={{
-                  flex: 1, padding: '12px', borderRadius: '12px',
-                  background: '#2a2a4c', border: 'none',
-                  fontSize: '14px', fontWeight: 600, color: '#aaa8c8',
-                  cursor: deleteFolderLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  background: '#2a2a4c',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#aaa8c8',
+                  cursor: deleteFolderLoading ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
                 }}
               >
                 Cancel
@@ -912,11 +1253,16 @@ function NotebooksPageContent() {
                 onClick={handleFolderDelete}
                 disabled={deleteFolderLoading}
                 style={{
-                  flex: 1, padding: '12px', borderRadius: '12px',
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
                   background: deleteFolderLoading ? 'rgba(253,111,133,0.2)' : '#fd6f85',
-                  border: 'none', fontSize: '14px', fontWeight: 700,
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: 700,
                   color: deleteFolderLoading ? '#aaa8c8' : '#490013',
-                  cursor: deleteFolderLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                  cursor: deleteFolderLoading ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
                 }}
               >
                 {deleteFolderLoading ? 'Deleting…' : 'Delete'}
@@ -928,7 +1274,10 @@ function NotebooksPageContent() {
 
       {/* FAB */}
       <button
-        onClick={() => { setEditingNotebook(null); setShowForm(true); }}
+        onClick={() => {
+          setEditingNotebook(null);
+          setShowForm(true);
+        }}
         title="Quick Note"
         style={{
           position: 'fixed',
@@ -948,14 +1297,25 @@ function NotebooksPageContent() {
           zIndex: 50,
           transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
-        onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.9)'; }}
-        onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)';
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+        }}
+        onMouseDown={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.9)';
+        }}
+        onMouseUp={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)';
+        }}
       >
         <span
           className="material-symbols-outlined"
-          style={{ fontSize: '28px', fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+          style={{
+            fontSize: '28px',
+            fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
+          }}
         >
           edit_note
         </span>
@@ -966,13 +1326,23 @@ function NotebooksPageContent() {
 
 export default function NotebooksPage() {
   return (
-    <Suspense fallback={
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-          {[0, 1, 2].map((i) => <SkeletonCard key={i} />)}
+    <Suspense
+      fallback={
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            {[0, 1, 2].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <NotebooksPageContent />
     </Suspense>
   );

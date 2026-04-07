@@ -140,11 +140,12 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     return createdResponse(result);
   } catch (err) {
-    if (err instanceof Error && (
-      err.message === 'Flashcard set not found' ||
-      err.message === 'One or more cardIds do not belong to this flashcard set' ||
-      err.message === 'Cannot move all cards; at least one must remain in the original set'
-    )) {
+    if (
+      err instanceof Error &&
+      (err.message === 'Flashcard set not found' ||
+        err.message === 'One or more cardIds do not belong to this flashcard set' ||
+        err.message === 'Cannot move all cards; at least one must remain in the original set')
+    ) {
       return badRequestResponse(err.message);
     }
     return internalErrorResponse();

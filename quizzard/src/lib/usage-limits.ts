@@ -41,10 +41,7 @@ export async function checkUsageLimit(
   return { allowed: used < limit, used, limit };
 }
 
-export async function incrementUsage(
-  userId: string,
-  featureType: FeatureType
-): Promise<void> {
+export async function incrementUsage(userId: string, featureType: FeatureType): Promise<void> {
   const month = getMonthStart();
   await db.usageRecord.upsert({
     where: {

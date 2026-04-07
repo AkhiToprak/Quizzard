@@ -100,7 +100,10 @@ export async function POST(request: NextRequest) {
             const imageDownloader = async (url: string): Promise<string | null> => {
               try {
                 // Only download from Microsoft Graph API URLs
-                if (!url.startsWith('https://graph.microsoft.com/') && !url.startsWith('https://www.onenote.com/')) {
+                if (
+                  !url.startsWith('https://graph.microsoft.com/') &&
+                  !url.startsWith('https://www.onenote.com/')
+                ) {
                   return null;
                 }
                 const imgResponse = await fetch(url, {
@@ -109,10 +112,14 @@ export async function POST(request: NextRequest) {
                 if (!imgResponse.ok) return null;
                 const imgBuffer = Buffer.from(await imgResponse.arrayBuffer());
                 const contentType = imgResponse.headers.get('content-type') || 'image/png';
-                const ext = contentType.includes('jpeg') || contentType.includes('jpg') ? 'jpg'
-                  : contentType.includes('gif') ? 'gif'
-                  : contentType.includes('webp') ? 'webp'
-                  : 'png';
+                const ext =
+                  contentType.includes('jpeg') || contentType.includes('jpg')
+                    ? 'jpg'
+                    : contentType.includes('gif')
+                      ? 'gif'
+                      : contentType.includes('webp')
+                        ? 'webp'
+                        : 'png';
                 const fileName = `onenote-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
                 // Save image — we'll create the page first, then use a placeholder pageId
@@ -146,7 +153,10 @@ export async function POST(request: NextRequest) {
 
               for (const imgUrl of imageUrls) {
                 try {
-                  if (!imgUrl.startsWith('https://graph.microsoft.com/') && !imgUrl.startsWith('https://www.onenote.com/')) {
+                  if (
+                    !imgUrl.startsWith('https://graph.microsoft.com/') &&
+                    !imgUrl.startsWith('https://www.onenote.com/')
+                  ) {
                     continue;
                   }
                   const imgResponse = await fetch(imgUrl, {
@@ -164,10 +174,14 @@ export async function POST(request: NextRequest) {
                   const imgBuffer = Buffer.from(await imgResponse.arrayBuffer());
                   if (imgBuffer.length > 10 * 1024 * 1024) continue; // Double-check actual size
                   const contentType = imgResponse.headers.get('content-type') || 'image/png';
-                  const ext = contentType.includes('jpeg') || contentType.includes('jpg') ? 'jpg'
-                    : contentType.includes('gif') ? 'gif'
-                    : contentType.includes('webp') ? 'webp'
-                    : 'png';
+                  const ext =
+                    contentType.includes('jpeg') || contentType.includes('jpg')
+                      ? 'jpg'
+                      : contentType.includes('gif')
+                        ? 'gif'
+                        : contentType.includes('webp')
+                          ? 'webp'
+                          : 'png';
                   const fileName = `onenote-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
                   const { filePath } = await saveImage(page.id, fileName, imgBuffer);
@@ -210,7 +224,10 @@ export async function POST(request: NextRequest) {
 
         sectionsImported++;
       } catch (sectionError) {
-        console.error(`[OneNote Import] Failed to import section ${onenoteSectionId}:`, sectionError);
+        console.error(
+          `[OneNote Import] Failed to import section ${onenoteSectionId}:`,
+          sectionError
+        );
         errors.push(`Failed to import section ${onenoteSectionId}`);
       }
     }
@@ -234,7 +251,11 @@ function extractImageUrls(html: string): string[] {
   const regex = /(?:src|data-fullres-src)=["']([^"']+)["']/gi;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(html)) !== null) {
-    if (match[1] && (match[1].startsWith('https://graph.microsoft.com/') || match[1].startsWith('https://www.onenote.com/'))) {
+    if (
+      match[1] &&
+      (match[1].startsWith('https://graph.microsoft.com/') ||
+        match[1].startsWith('https://www.onenote.com/'))
+    ) {
       urls.push(match[1]);
     }
   }

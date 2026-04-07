@@ -72,9 +72,7 @@ export default function LevelBadge({ level, size = 'md' }: LevelBadgeProps) {
             whiteSpace: 'nowrap',
           }}
         >
-          <span style={{ fontSize: '12px', fontWeight: 600, color: tier.color }}>
-            {tier.name}
-          </span>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: tier.color }}>{tier.name}</span>
         </div>
       )}
 

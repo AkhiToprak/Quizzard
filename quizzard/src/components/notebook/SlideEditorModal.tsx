@@ -33,17 +33,17 @@ interface SlideEditorModalProps {
 
 /** Convert rich presentation slides to simple SlideData for editing */
 function presentationToSlideData(ps: PresentationSlideData[]): SlideData[] {
-  return ps.map(s => {
+  return ps.map((s) => {
     const parts: string[] = [];
     if (s.subtitle) parts.push(s.subtitle);
-    if (s.bullets) parts.push(s.bullets.map(b => `• ${b}`).join('\n'));
+    if (s.bullets) parts.push(s.bullets.map((b) => `• ${b}`).join('\n'));
     if (s.leftColumn) {
       if (s.leftColumn.heading) parts.push(`[Left: ${s.leftColumn.heading}]`);
-      parts.push(s.leftColumn.bullets.map(b => `• ${b}`).join('\n'));
+      parts.push(s.leftColumn.bullets.map((b) => `• ${b}`).join('\n'));
     }
     if (s.rightColumn) {
       if (s.rightColumn.heading) parts.push(`[Right: ${s.rightColumn.heading}]`);
-      parts.push(s.rightColumn.bullets.map(b => `• ${b}`).join('\n'));
+      parts.push(s.rightColumn.bullets.map((b) => `• ${b}`).join('\n'));
     }
     if (s.graphicDescription) parts.push(`[Graphic: ${s.graphicDescription}]`);
     return {
@@ -54,7 +54,14 @@ function presentationToSlideData(ps: PresentationSlideData[]): SlideData[] {
   });
 }
 
-export default function SlideEditorModal({ initialSlides, presentationTitle, onExport, onClose, presentationSlides, themeColor }: SlideEditorModalProps) {
+export default function SlideEditorModal({
+  initialSlides,
+  presentationTitle,
+  onExport,
+  onClose,
+  presentationSlides,
+  themeColor,
+}: SlideEditorModalProps) {
   const [slides, setSlides] = useState<SlideData[]>(
     presentationSlides ? presentationToSlideData(presentationSlides) : initialSlides
   );
@@ -64,40 +71,46 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
   const activeSlide = slides[activeIndex];
 
   const updateSlide = useCallback((index: number, updates: Partial<SlideData>) => {
-    setSlides(prev => prev.map((s, i) => i === index ? { ...s, ...updates } : s));
+    setSlides((prev) => prev.map((s, i) => (i === index ? { ...s, ...updates } : s)));
   }, []);
 
   const addSlide = useCallback(() => {
     const newSlide: SlideData = { title: 'New Slide', content: '', notes: '' };
-    setSlides(prev => {
+    setSlides((prev) => {
       const next = [...prev];
       next.splice(activeIndex + 1, 0, newSlide);
       return next;
     });
-    setActiveIndex(prev => prev + 1);
+    setActiveIndex((prev) => prev + 1);
   }, [activeIndex]);
 
-  const deleteSlide = useCallback((index: number) => {
-    if (slides.length <= 1) return;
-    setSlides(prev => prev.filter((_, i) => i !== index));
-    setActiveIndex(prev => {
-      if (prev >= slides.length - 1) return Math.max(0, slides.length - 2);
-      if (prev > index) return prev - 1;
-      if (prev === index) return Math.min(prev, slides.length - 2);
-      return prev;
-    });
-  }, [slides.length]);
+  const deleteSlide = useCallback(
+    (index: number) => {
+      if (slides.length <= 1) return;
+      setSlides((prev) => prev.filter((_, i) => i !== index));
+      setActiveIndex((prev) => {
+        if (prev >= slides.length - 1) return Math.max(0, slides.length - 2);
+        if (prev > index) return prev - 1;
+        if (prev === index) return Math.min(prev, slides.length - 2);
+        return prev;
+      });
+    },
+    [slides.length]
+  );
 
-  const moveSlide = useCallback((from: number, to: number) => {
-    if (to < 0 || to >= slides.length) return;
-    setSlides(prev => {
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
-    });
-    setActiveIndex(to);
-  }, [slides.length]);
+  const moveSlide = useCallback(
+    (from: number, to: number) => {
+      if (to < 0 || to >= slides.length) return;
+      setSlides((prev) => {
+        const next = [...prev];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        return next;
+      });
+      setActiveIndex(to);
+    },
+    [slides.length]
+  );
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -147,7 +160,7 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
       }}
     >
       <div
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         style={{
           width: '90vw',
           maxWidth: '1000px',
@@ -245,7 +258,7 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
                   <input
                     type="text"
                     value={activeSlide.title}
-                    onChange={e => updateSlide(activeIndex, { title: e.target.value })}
+                    onChange={(e) => updateSlide(activeIndex, { title: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '10px 14px',
@@ -259,8 +272,12 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
                       outline: 'none',
                       boxSizing: 'border-box',
                     }}
-                    onFocus={e => { e.target.style.borderColor = '#8c52ff'; }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(140,82,255,0.15)'; }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#8c52ff';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(140,82,255,0.15)';
+                    }}
                   />
                 </div>
 
@@ -279,7 +296,7 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
                   </label>
                   <textarea
                     value={activeSlide.content}
-                    onChange={e => updateSlide(activeIndex, { content: e.target.value })}
+                    onChange={(e) => updateSlide(activeIndex, { content: e.target.value })}
                     style={{
                       flex: 1,
                       minHeight: '120px',
@@ -296,8 +313,12 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
                       boxSizing: 'border-box',
                       lineHeight: '1.6',
                     }}
-                    onFocus={e => { e.target.style.borderColor = '#8c52ff'; }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(140,82,255,0.15)'; }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#8c52ff';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(140,82,255,0.15)';
+                    }}
                   />
                 </div>
 
@@ -316,7 +337,7 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
                   </label>
                   <textarea
                     value={activeSlide.notes || ''}
-                    onChange={e => updateSlide(activeIndex, { notes: e.target.value })}
+                    onChange={(e) => updateSlide(activeIndex, { notes: e.target.value })}
                     placeholder="Optional notes visible only to the presenter..."
                     style={{
                       minHeight: '72px',
@@ -333,8 +354,12 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
                       boxSizing: 'border-box',
                       lineHeight: '1.5',
                     }}
-                    onFocus={e => { e.target.style.borderColor = '#8c52ff'; }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(140,82,255,0.15)'; }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#8c52ff';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(140,82,255,0.15)';
+                    }}
                   />
                 </div>
               </>
@@ -422,8 +447,12 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
                 fontFamily: 'inherit',
                 transition: 'background 0.12s ease',
               }}
-              onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = 'rgba(237,233,255,0.05)'; }}
-              onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = 'transparent'; }}
+              onMouseEnter={(e) => {
+                (e.target as HTMLButtonElement).style.background = 'rgba(237,233,255,0.05)';
+              }}
+              onMouseLeave={(e) => {
+                (e.target as HTMLButtonElement).style.background = 'transparent';
+              }}
             >
               Cancel
             </button>
@@ -449,14 +478,19 @@ export default function SlideEditorModal({ initialSlides, presentationTitle, onE
                 transition: 'opacity 0.15s ease',
                 opacity: slides.length === 0 ? 0.4 : 1,
               }}
-              onMouseEnter={e => {
+              onMouseEnter={(e) => {
                 if (!exporting) (e.target as HTMLButtonElement).style.opacity = '0.85';
               }}
-              onMouseLeave={e => {
-                if (!exporting) (e.target as HTMLButtonElement).style.opacity = slides.length === 0 ? '0.4' : '1';
+              onMouseLeave={(e) => {
+                if (!exporting)
+                  (e.target as HTMLButtonElement).style.opacity = slides.length === 0 ? '0.4' : '1';
               }}
             >
-              {exporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />}
+              {exporting ? (
+                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <Download size={14} />
+              )}
               {exporting ? 'Exporting...' : 'Export PPTX'}
             </button>
           </div>
@@ -532,7 +566,13 @@ function AddSlideButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function FooterIconButton({ onClick, disabled, title, danger, children }: {
+function FooterIconButton({
+  onClick,
+  disabled,
+  title,
+  danger,
+  children,
+}: {
   onClick: () => void;
   disabled?: boolean;
   title: string;

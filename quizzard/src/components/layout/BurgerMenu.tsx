@@ -51,7 +51,16 @@ const NAV_ITEMS = [
 export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const user = session?.user as { id?: string; username?: string; name?: string; avatarUrl?: string; tier?: string; role?: string } | undefined;
+  const user = session?.user as
+    | {
+        id?: string;
+        username?: string;
+        name?: string;
+        avatarUrl?: string;
+        tier?: string;
+        role?: string;
+      }
+    | undefined;
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [hoveredLogout, setHoveredLogout] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -63,7 +72,9 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
     } else {
       document.body.style.overflow = '';
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [open]);
 
   // Close on Escape
@@ -166,7 +177,17 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
             </div>
           )}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.textPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: COLORS.textPrimary,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
               {user?.name || user?.username || 'User'}
               <TierBadge tier={user?.tier || 'FREE'} role={user?.role} />
             </div>
@@ -179,7 +200,15 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
         </div>
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: '12px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <nav
+          style={{
+            flex: 1,
+            padding: '12px 12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             const isHovered = hoveredItem === item.href;
@@ -199,9 +228,13 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
                   background: isActive
                     ? 'rgba(174,137,255,0.1)'
                     : isHovered
-                    ? 'rgba(255,255,255,0.06)'
-                    : 'transparent',
-                  color: isActive ? COLORS.primary : isHovered ? COLORS.textPrimary : COLORS.textSecondary,
+                      ? 'rgba(255,255,255,0.06)'
+                      : 'transparent',
+                  color: isActive
+                    ? COLORS.primary
+                    : isHovered
+                      ? COLORS.textPrimary
+                      : COLORS.textSecondary,
                   textDecoration: 'none',
                   fontSize: 14,
                   fontWeight: isActive ? 700 : 500,

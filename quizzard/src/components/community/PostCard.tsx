@@ -330,9 +330,7 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
               <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.textPrimary }}>
                 {post.author.username}
               </div>
-              <div style={{ fontSize: 12, color: COLORS.textMuted }}>
-                {timeAgo(post.createdAt)}
-              </div>
+              <div style={{ fontSize: 12, color: COLORS.textMuted }}>{timeAgo(post.createdAt)}</div>
             </div>
           </div>
 
@@ -395,7 +393,8 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
                       padding: '8px 12px',
                       borderRadius: 8,
                       border: 'none',
-                      background: hoveredMenuItem === 'edit' ? 'rgba(255,255,255,0.07)' : 'transparent',
+                      background:
+                        hoveredMenuItem === 'edit' ? 'rgba(255,255,255,0.07)' : 'transparent',
                       color: COLORS.textPrimary,
                       fontSize: 13,
                       cursor: 'pointer',
@@ -403,7 +402,9 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
                       textAlign: 'left',
                     }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>edit</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                      edit
+                    </span>
                     Edit
                   </button>
                 )}
@@ -424,7 +425,8 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
                       padding: '8px 12px',
                       borderRadius: 8,
                       border: 'none',
-                      background: hoveredMenuItem === 'delete' ? 'rgba(253,111,133,0.08)' : 'transparent',
+                      background:
+                        hoveredMenuItem === 'delete' ? 'rgba(253,111,133,0.08)' : 'transparent',
                       color: COLORS.error,
                       fontSize: 13,
                       cursor: 'pointer',
@@ -432,7 +434,9 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
                       textAlign: 'left',
                     }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                      delete
+                    </span>
                     {deleting ? 'Deleting...' : isAdmin && !isAuthor ? 'Delete (Admin)' : 'Delete'}
                   </button>
                 )}
@@ -529,9 +533,7 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
         </div>
 
         {/* Images */}
-        {post.images.length > 0 && (
-          <div style={{ padding: '0 20px' }}>{renderImages()}</div>
-        )}
+        {post.images.length > 0 && <div style={{ padding: '0 20px' }}>{renderImages()}</div>}
 
         {/* Notebook embed */}
         {post.notebookRef && (
@@ -573,7 +575,8 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
               borderRadius: 8,
               border: 'none',
               background: hoveredUpvote ? 'rgba(174,137,255,0.08)' : 'transparent',
-              color: userVote === 1 ? COLORS.primary : hoveredUpvote ? COLORS.primary : COLORS.textMuted,
+              color:
+                userVote === 1 ? COLORS.primary : hoveredUpvote ? COLORS.primary : COLORS.textMuted,
               cursor: 'pointer',
               transition: `all 0.15s ${EASING}`,
             }}
@@ -596,7 +599,8 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
             style={{
               fontSize: 13,
               fontWeight: 700,
-              color: voteScore > 0 ? COLORS.primary : voteScore < 0 ? COLORS.error : COLORS.textMuted,
+              color:
+                voteScore > 0 ? COLORS.primary : voteScore < 0 ? COLORS.error : COLORS.textMuted,
               minWidth: 20,
               textAlign: 'center',
               userSelect: 'none',
@@ -617,7 +621,8 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
               borderRadius: 8,
               border: 'none',
               background: hoveredDownvote ? 'rgba(253,111,133,0.08)' : 'transparent',
-              color: userVote === -1 ? COLORS.error : hoveredDownvote ? COLORS.error : COLORS.textMuted,
+              color:
+                userVote === -1 ? COLORS.error : hoveredDownvote ? COLORS.error : COLORS.textMuted,
               cursor: 'pointer',
               transition: `all 0.15s ${EASING}`,
             }}
@@ -651,8 +656,8 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
               color: showComments
                 ? COLORS.primary
                 : hoveredComment
-                ? COLORS.primary
-                : COLORS.textMuted,
+                  ? COLORS.primary
+                  : COLORS.textMuted,
               fontSize: 13,
               fontWeight: 600,
               cursor: 'pointer',
@@ -675,11 +680,7 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
               paddingTop: 14,
             }}
           >
-            <CommentSection
-              postId={post.id}
-              commentCount={commentCount}
-              expanded
-            />
+            <CommentSection postId={post.id} commentCount={commentCount} expanded />
           </div>
         )}
       </div>

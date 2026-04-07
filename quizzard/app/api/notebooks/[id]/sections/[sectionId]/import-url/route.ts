@@ -24,7 +24,10 @@ export async function POST(request: NextRequest, { params }: Params) {
     const ip = getClientIp(request);
     const rl = await rateLimit(`url-import:${ip}`, 10, 60_000);
     if (!rl.success) {
-      return tooManyRequestsResponse('Too many URL import requests. Please try again later.', rl.retryAfterMs);
+      return tooManyRequestsResponse(
+        'Too many URL import requests. Please try again later.',
+        rl.retryAfterMs
+      );
     }
 
     const { id: notebookId, sectionId } = await params;

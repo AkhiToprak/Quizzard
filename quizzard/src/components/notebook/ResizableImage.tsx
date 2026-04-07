@@ -4,12 +4,7 @@ import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
 import { useCallback, useRef, useState, useEffect } from 'react';
-import {
-  RectangleHorizontal,
-  AlignLeft,
-  AlignRight,
-  Layers,
-} from 'lucide-react';
+import { RectangleHorizontal, AlignLeft, AlignRight, Layers } from 'lucide-react';
 
 /* ── Types ── */
 type HandlePosition = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
@@ -28,7 +23,11 @@ const HANDLES: HandleDef[] = [
   { pos: 'w', cursor: 'w-resize', style: { top: '50%', left: -5, transform: 'translateY(-50%)' } },
   { pos: 'e', cursor: 'e-resize', style: { top: '50%', right: -5, transform: 'translateY(-50%)' } },
   { pos: 'sw', cursor: 'sw-resize', style: { bottom: -5, left: -5 } },
-  { pos: 's', cursor: 's-resize', style: { bottom: -5, left: '50%', transform: 'translateX(-50%)' } },
+  {
+    pos: 's',
+    cursor: 's-resize',
+    style: { bottom: -5, left: '50%', transform: 'translateX(-50%)' },
+  },
   { pos: 'se', cursor: 'se-resize', style: { bottom: -5, right: -5 } },
 ];
 
@@ -45,10 +44,13 @@ const MIN_H = 40;
 /* ── Compute new dimensions for a given handle drag ── */
 function computeResize(
   h: HandlePosition,
-  sx: number, sy: number,
-  sw: number, sh: number,
-  ex: number, ey: number,
-  aspect: number,
+  sx: number,
+  sy: number,
+  sw: number,
+  sh: number,
+  ex: number,
+  ey: number,
+  aspect: number
 ): { w: number; h: number } {
   const dx = ex - sx;
   const dy = ey - sy;
@@ -150,7 +152,16 @@ function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps)
       const onMove = (ev: MouseEvent) => {
         const s = startRef.current;
         if (!s) return;
-        const next = computeResize(s.handle, s.x, s.y, s.width, s.height, ev.clientX, ev.clientY, s.aspect);
+        const next = computeResize(
+          s.handle,
+          s.x,
+          s.y,
+          s.width,
+          s.height,
+          ev.clientX,
+          ev.clientY,
+          s.aspect
+        );
         // Update local state only — fast, no ProseMirror overhead
         setDragSize(next);
       };
@@ -158,7 +169,16 @@ function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps)
       const onUp = (ev: MouseEvent) => {
         const s = startRef.current;
         if (s) {
-          const final = computeResize(s.handle, s.x, s.y, s.width, s.height, ev.clientX, ev.clientY, s.aspect);
+          const final = computeResize(
+            s.handle,
+            s.x,
+            s.y,
+            s.width,
+            s.height,
+            ev.clientX,
+            ev.clientY,
+            s.aspect
+          );
           // Commit to ProseMirror once on release
           updateAttributes({ width: final.w, height: final.h });
         }
@@ -173,7 +193,7 @@ function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps)
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
     },
-    [attrs.width, attrs.height, updateAttributes],
+    [attrs.width, attrs.height, updateAttributes]
   );
 
   /* ── Dimensions: prefer live drag state, fall back to committed attrs ── */
@@ -346,14 +366,8 @@ function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps)
                 height: 28,
                 borderRadius: '6px',
                 border: 'none',
-                background:
-                  layoutMode === mode
-                    ? 'rgba(140,82,255,0.18)'
-                    : 'transparent',
-                color:
-                  layoutMode === mode
-                    ? '#a47bff'
-                    : 'rgba(237,233,255,0.6)',
+                background: layoutMode === mode ? 'rgba(140,82,255,0.18)' : 'transparent',
+                color: layoutMode === mode ? '#a47bff' : 'rgba(237,233,255,0.6)',
                 cursor: 'pointer',
                 transition: 'background 0.1s',
               }}
@@ -363,9 +377,7 @@ function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps)
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background =
-                  layoutMode === mode
-                    ? 'rgba(140,82,255,0.18)'
-                    : 'transparent';
+                  layoutMode === mode ? 'rgba(140,82,255,0.18)' : 'transparent';
               }}
             >
               <Icon size={16} />

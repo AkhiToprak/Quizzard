@@ -32,7 +32,12 @@ function getAvatarGradient(id: string): string {
   return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
 }
 
-export default function CoWorkInviteModal({ open, onClose, notebookId, sessionId }: CoWorkInviteModalProps) {
+export default function CoWorkInviteModal({
+  open,
+  onClose,
+  notebookId,
+  sessionId,
+}: CoWorkInviteModalProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -49,9 +54,7 @@ export default function CoWorkInviteModal({ open, onClose, notebookId, sessionId
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
-          setFriends(
-            (json.data.friends || []).map((f: { friend: Friend }) => f.friend)
-          );
+          setFriends((json.data.friends || []).map((f: { friend: Friend }) => f.friend));
         }
       }
     } catch {
@@ -302,12 +305,18 @@ export default function CoWorkInviteModal({ open, onClose, notebookId, sessionId
                     }}
                   >
                     {isSelected && (
-                      <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#fff' }}>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: 14, color: '#fff' }}
+                      >
                         check
                       </span>
                     )}
                     {isSent && (
-                      <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#4ade80' }}>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: 14, color: '#4ade80' }}
+                      >
                         send
                       </span>
                     )}
@@ -363,9 +372,7 @@ export default function CoWorkInviteModal({ open, onClose, notebookId, sessionId
 
                   {/* Sent indicator */}
                   {isSent && (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#4ade80' }}>
-                      Invited
-                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#4ade80' }}>Invited</span>
                   )}
                 </div>
               );
@@ -414,9 +421,8 @@ export default function CoWorkInviteModal({ open, onClose, notebookId, sessionId
               cursor: selected.size === 0 || sending ? 'not-allowed' : 'pointer',
               transition: `all 0.15s ${EASING}`,
               fontFamily: 'inherit',
-              boxShadow: selected.size > 0 && hoveredSend
-                ? '0 8px 24px rgba(174,137,255,0.3)'
-                : 'none',
+              boxShadow:
+                selected.size > 0 && hoveredSend ? '0 8px 24px rgba(174,137,255,0.3)' : 'none',
               transform: hoveredSend && selected.size > 0 ? 'translateY(-1px)' : 'none',
             }}
           >

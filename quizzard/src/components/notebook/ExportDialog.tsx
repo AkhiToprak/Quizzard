@@ -42,7 +42,7 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
   }
 
   const togglePage = useCallback((pageId: string) => {
-    setSelectedPageIds(prev => {
+    setSelectedPageIds((prev) => {
       const next = new Set(prev);
       if (next.has(pageId)) next.delete(pageId);
       else next.add(pageId);
@@ -54,26 +54,26 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
     if (allSelected) {
       setSelectedPageIds(new Set());
     } else {
-      setSelectedPageIds(new Set(allPages.map(p => p.id)));
+      setSelectedPageIds(new Set(allPages.map((p) => p.id)));
     }
   }, [allSelected, allPages]);
 
   const toggleSection = useCallback((sec: SectionWithPages) => {
-    const sectionPageIds = flattenPages([sec]).map(p => p.id);
-    setSelectedPageIds(prev => {
+    const sectionPageIds = flattenPages([sec]).map((p) => p.id);
+    setSelectedPageIds((prev) => {
       const next = new Set(prev);
-      const allInSection = sectionPageIds.every(id => next.has(id));
+      const allInSection = sectionPageIds.every((id) => next.has(id));
       if (allInSection) {
-        sectionPageIds.forEach(id => next.delete(id));
+        sectionPageIds.forEach((id) => next.delete(id));
       } else {
-        sectionPageIds.forEach(id => next.add(id));
+        sectionPageIds.forEach((id) => next.add(id));
       }
       return next;
     });
   }, []);
 
   const toggleSplitPoint = useCallback((index: number) => {
-    setSplitAfter(prev => {
+    setSplitAfter((prev) => {
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
       else next.add(index);
@@ -138,7 +138,9 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
       const blob = await res.blob();
       const disposition = res.headers.get('Content-Disposition');
       const filenameMatch = disposition?.match(/filename="(.+)"/);
-      const filename = filenameMatch?.[1] || `export.${format === 'pptx' ? 'pptx' : mode === 'split' ? 'zip' : 'pdf'}`;
+      const filename =
+        filenameMatch?.[1] ||
+        `export.${format === 'pptx' ? 'pptx' : mode === 'split' ? 'zip' : 'pdf'}`;
 
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -157,19 +159,24 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
   }, [selectedPageIds, selectedCount, format, mode, splitAfter, notebookId, onClose]);
 
   // Ordered list of selected pages (for split UI)
-  const orderedSelectedPages = allPages.filter(p => selectedPageIds.has(p.id));
+  const orderedSelectedPages = allPages.filter((p) => selectedPageIds.has(p.id));
 
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(4px)',
       }}
       onClick={onClose}
     >
       <div
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         style={{
           background: '#13122a',
           border: '1px solid rgba(140,82,255,0.2)',
@@ -182,11 +189,15 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
         }}
       >
         {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '18px 20px 14px',
-          borderBottom: '1px solid rgba(140,82,255,0.12)',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '18px 20px 14px',
+            borderBottom: '1px solid rgba(140,82,255,0.12)',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Download size={18} style={{ color: '#8c52ff' }} />
             <span style={{ fontSize: 16, fontWeight: 700, color: '#ede9ff' }}>Export Pages</span>
@@ -194,9 +205,14 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
           <button
             onClick={onClose}
             style={{
-              background: 'none', border: 'none', color: 'rgba(237,233,255,0.4)',
-              cursor: 'pointer', padding: 4, borderRadius: 6,
-              display: 'flex', alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              color: 'rgba(237,233,255,0.4)',
+              cursor: 'pointer',
+              padding: 4,
+              borderRadius: 6,
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
             <X size={18} />
@@ -207,24 +223,39 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
         <div style={{ flex: 1, overflow: 'auto', padding: '16px 20px' }}>
           {/* Page selector */}
           <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}
+            >
               <span style={{ fontSize: 13, fontWeight: 600, color: '#ede9ff' }}>Select Pages</span>
               <button
                 onClick={toggleAll}
                 style={{
-                  background: 'none', border: 'none', color: '#8c52ff',
-                  cursor: 'pointer', fontSize: 12, fontWeight: 500,
+                  background: 'none',
+                  border: 'none',
+                  color: '#8c52ff',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 500,
                 }}
               >
                 {allSelected ? 'Deselect All' : 'Select All'}
               </button>
             </div>
-            <div style={{
-              maxHeight: 200, overflow: 'auto',
-              border: '1px solid rgba(140,82,255,0.1)',
-              borderRadius: 10, background: 'rgba(255,255,255,0.035)',
-            }}>
-              {sections.map(sec => (
+            <div
+              style={{
+                maxHeight: 200,
+                overflow: 'auto',
+                border: '1px solid rgba(140,82,255,0.1)',
+                borderRadius: 10,
+                background: 'rgba(255,255,255,0.035)',
+              }}
+            >
+              {sections.map((sec) => (
                 <SectionGroup
                   key={sec.id}
                   section={sec}
@@ -235,7 +266,14 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
                 />
               ))}
               {allPages.length === 0 && (
-                <div style={{ padding: 16, textAlign: 'center', color: 'rgba(237,233,255,0.3)', fontSize: 13 }}>
+                <div
+                  style={{
+                    padding: 16,
+                    textAlign: 'center',
+                    color: 'rgba(237,233,255,0.3)',
+                    fontSize: 13,
+                  }}
+                >
                   No pages in this notebook
                 </div>
               )}
@@ -244,12 +282,25 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
 
           {/* Format picker */}
           <div style={{ marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#ede9ff', display: 'block', marginBottom: 8 }}>Format</span>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#ede9ff',
+                display: 'block',
+                marginBottom: 8,
+              }}
+            >
+              Format
+            </span>
             <div style={{ display: 'flex', gap: 8 }}>
-              {(['pdf', 'pptx'] as ExportFormat[]).map(f => (
+              {(['pdf', 'pptx'] as ExportFormat[]).map((f) => (
                 <button
                   key={f}
-                  onClick={() => { setFormat(f); if (f === 'pptx') setMode('individual'); }}
+                  onClick={() => {
+                    setFormat(f);
+                    if (f === 'pptx') setMode('individual');
+                  }}
                   style={{
                     flex: 1,
                     padding: '8px 12px',
@@ -273,14 +324,28 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
           {/* PDF options */}
           {format === 'pdf' && selectedCount > 1 && (
             <div style={{ marginBottom: 16 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#ede9ff', display: 'block', marginBottom: 8 }}>PDF Options</span>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: '#ede9ff',
+                  display: 'block',
+                  marginBottom: 8,
+                }}
+              >
+                PDF Options
+              </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {(['individual', 'merge', 'split'] as ExportMode[]).map(m => (
+                {(['individual', 'merge', 'split'] as ExportMode[]).map((m) => (
                   <label
                     key={m}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 10px',
+                      borderRadius: 8,
+                      cursor: 'pointer',
                       background: mode === m ? 'rgba(140,82,255,0.1)' : 'transparent',
                       border: `1px solid ${mode === m ? 'rgba(140,82,255,0.25)' : 'transparent'}`,
                       transition: 'background 0.15s',
@@ -295,14 +360,18 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
                     />
                     <div>
                       <div style={{ fontSize: 13, color: '#ede9ff', fontWeight: 500 }}>
-                        {m === 'individual' ? 'Single PDF' : m === 'merge' ? 'Merge into one PDF' : 'Split into multiple PDFs'}
+                        {m === 'individual'
+                          ? 'Single PDF'
+                          : m === 'merge'
+                            ? 'Merge into one PDF'
+                            : 'Split into multiple PDFs'}
                       </div>
                       <div style={{ fontSize: 11, color: 'rgba(237,233,255,0.4)' }}>
                         {m === 'individual'
                           ? 'All selected pages in one file'
                           : m === 'merge'
-                          ? 'Each page generated separately, then merged'
-                          : 'Choose where to split, download as ZIP'}
+                            ? 'Each page generated separately, then merged'
+                            : 'Choose where to split, download as ZIP'}
                       </div>
                     </div>
                   </label>
@@ -314,33 +383,60 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
           {/* Split points selector */}
           {format === 'pdf' && mode === 'split' && orderedSelectedPages.length > 1 && (
             <div style={{ marginBottom: 16 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#ede9ff', display: 'block', marginBottom: 8 }}>
-                Split Points <span style={{ fontWeight: 400, color: 'rgba(237,233,255,0.4)' }}>(click between pages to split)</span>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: '#ede9ff',
+                  display: 'block',
+                  marginBottom: 8,
+                }}
+              >
+                Split Points{' '}
+                <span style={{ fontWeight: 400, color: 'rgba(237,233,255,0.4)' }}>
+                  (click between pages to split)
+                </span>
               </span>
-              <div style={{
-                border: '1px solid rgba(140,82,255,0.1)', borderRadius: 10,
-                background: 'rgba(255,255,255,0.035)', overflow: 'hidden',
-              }}>
+              <div
+                style={{
+                  border: '1px solid rgba(140,82,255,0.1)',
+                  borderRadius: 10,
+                  background: 'rgba(255,255,255,0.035)',
+                  overflow: 'hidden',
+                }}
+              >
                 {orderedSelectedPages.map((page, idx) => (
                   <div key={page.id}>
-                    <div style={{
-                      padding: '6px 12px', fontSize: 12, color: '#ede9ff',
-                      display: 'flex', alignItems: 'center', gap: 6,
-                    }}>
-                      <FileText size={12} style={{ color: 'rgba(237,233,255,0.3)', flexShrink: 0 }} />
+                    <div
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: 12,
+                        color: '#ede9ff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <FileText
+                        size={12}
+                        style={{ color: 'rgba(237,233,255,0.3)', flexShrink: 0 }}
+                      />
                       {page.title}
                     </div>
                     {idx < orderedSelectedPages.length - 1 && (
                       <button
                         onClick={() => toggleSplitPoint(idx)}
                         style={{
-                          width: '100%', padding: '3px 12px',
+                          width: '100%',
+                          padding: '3px 12px',
                           background: splitAfter.has(idx) ? 'rgba(140,82,255,0.15)' : 'transparent',
                           border: 'none',
                           borderTop: `1px ${splitAfter.has(idx) ? 'solid' : 'dashed'} ${splitAfter.has(idx) ? '#8c52ff' : 'rgba(140,82,255,0.15)'}`,
                           borderBottom: `1px ${splitAfter.has(idx) ? 'solid' : 'dashed'} ${splitAfter.has(idx) ? '#8c52ff' : 'rgba(140,82,255,0.15)'}`,
                           color: splitAfter.has(idx) ? '#8c52ff' : 'rgba(237,233,255,0.25)',
-                          cursor: 'pointer', fontSize: 10, fontWeight: 500,
+                          cursor: 'pointer',
+                          fontSize: 10,
+                          fontWeight: 500,
                           textAlign: 'center',
                           transition: 'all 0.15s',
                         }}
@@ -355,22 +451,32 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
           )}
 
           {error && (
-            <div style={{
-              padding: '8px 12px', borderRadius: 8, marginBottom: 12,
-              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-              color: '#fca5a5', fontSize: 12,
-            }}>
+            <div
+              style={{
+                padding: '8px 12px',
+                borderRadius: 8,
+                marginBottom: 12,
+                background: 'rgba(239,68,68,0.1)',
+                border: '1px solid rgba(239,68,68,0.2)',
+                color: '#fca5a5',
+                fontSize: 12,
+              }}
+            >
               {error}
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div style={{
-          padding: '14px 20px',
-          borderTop: '1px solid rgba(140,82,255,0.12)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
+        <div
+          style={{
+            padding: '14px 20px',
+            borderTop: '1px solid rgba(140,82,255,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <span style={{ fontSize: 12, color: 'rgba(237,233,255,0.4)' }}>
             {selectedCount} page{selectedCount !== 1 ? 's' : ''} selected
           </span>
@@ -378,30 +484,42 @@ export default function ExportDialog({ notebookId, sections, onClose }: ExportDi
             <button
               onClick={onClose}
               style={{
-                padding: '8px 16px', borderRadius: 8,
+                padding: '8px 16px',
+                borderRadius: 8,
                 background: 'transparent',
                 border: '1px solid rgba(140,82,255,0.2)',
                 color: 'rgba(237,233,255,0.6)',
-                cursor: 'pointer', fontSize: 13,
+                cursor: 'pointer',
+                fontSize: 13,
               }}
             >
               Cancel
             </button>
             <button
               onClick={handleExport}
-              disabled={selectedCount === 0 || isExporting || (mode === 'split' && splitAfter.size === 0)}
+              disabled={
+                selectedCount === 0 || isExporting || (mode === 'split' && splitAfter.size === 0)
+              }
               style={{
-                padding: '8px 20px', borderRadius: 8,
+                padding: '8px 20px',
+                borderRadius: 8,
                 background: selectedCount === 0 || isExporting ? 'rgba(140,82,255,0.3)' : '#8c52ff',
                 border: 'none',
                 color: '#fff',
                 cursor: selectedCount === 0 || isExporting ? 'not-allowed' : 'pointer',
-                fontSize: 13, fontWeight: 600,
-                display: 'flex', alignItems: 'center', gap: 6,
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
                 transition: 'background 0.15s',
               }}
             >
-              {isExporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />}
+              {isExporting ? (
+                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <Download size={14} />
+              )}
               {isExporting ? 'Exporting…' : 'Export'}
             </button>
           </div>
@@ -428,8 +546,9 @@ function SectionGroup({
 }) {
   const [expanded, setExpanded] = useState(true);
   const sectionPages = flattenSectionPages(section);
-  const allChecked = sectionPages.length > 0 && sectionPages.every(p => selectedPageIds.has(p.id));
-  const someChecked = sectionPages.some(p => selectedPageIds.has(p.id));
+  const allChecked =
+    sectionPages.length > 0 && sectionPages.every((p) => selectedPageIds.has(p.id));
+  const someChecked = sectionPages.some((p) => selectedPageIds.has(p.id));
 
   function flattenSectionPages(sec: SectionWithPages): { id: string; title: string }[] {
     const result: { id: string; title: string }[] = [...sec.pages];
@@ -443,7 +562,9 @@ function SectionGroup({
     <div>
       <div
         style={{
-          display: 'flex', alignItems: 'center', gap: 6,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
           padding: `6px 10px 6px ${10 + depth * 16}px`,
           cursor: 'pointer',
         }}
@@ -461,24 +582,34 @@ function SectionGroup({
         <input
           type="checkbox"
           checked={allChecked}
-          ref={el => { if (el) el.indeterminate = someChecked && !allChecked; }}
-          onChange={(e) => { e.stopPropagation(); onToggleSection(section); }}
-          onClick={e => e.stopPropagation()}
+          ref={(el) => {
+            if (el) el.indeterminate = someChecked && !allChecked;
+          }}
+          onChange={(e) => {
+            e.stopPropagation();
+            onToggleSection(section);
+          }}
+          onClick={(e) => e.stopPropagation()}
           style={{ accentColor: '#8c52ff', flexShrink: 0 }}
         />
         <span style={{ fontSize: 12, fontWeight: 600, color: '#ede9ff' }}>{section.title}</span>
-        <span style={{ fontSize: 10, color: 'rgba(237,233,255,0.3)' }}>({sectionPages.length})</span>
+        <span style={{ fontSize: 10, color: 'rgba(237,233,255,0.3)' }}>
+          ({sectionPages.length})
+        </span>
       </div>
       {expanded && (
         <>
-          {section.pages.map(page => (
+          {section.pages.map((page) => (
             <label
               key={page.id}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
                 padding: `4px 10px 4px ${28 + depth * 16}px`,
                 cursor: 'pointer',
-                fontSize: 12, color: 'rgba(237,233,255,0.7)',
+                fontSize: 12,
+                color: 'rgba(237,233,255,0.7)',
               }}
             >
               <input
@@ -493,7 +624,7 @@ function SectionGroup({
               </span>
             </label>
           ))}
-          {section.children.map(child => (
+          {section.children.map((child) => (
             <SectionGroup
               key={child.id}
               section={child}

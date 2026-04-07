@@ -1,11 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { isConnected } from '@/lib/microsoftAuth';
-import {
-  successResponse,
-  unauthorizedResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { successResponse, unauthorizedResponse, internalErrorResponse } from '@/lib/api-response';
 
 /**
  * GET – check if the current user has a Microsoft connection

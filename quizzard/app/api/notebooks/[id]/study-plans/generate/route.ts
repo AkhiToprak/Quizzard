@@ -41,7 +41,9 @@ export async function POST(request: NextRequest, { params }: Params) {
     // Usage limit check (ai_study_plan)
     const studyPlanUsage = await checkUsageLimit(userId, 'ai_study_plan');
     if (!studyPlanUsage.allowed) {
-      return tooManyRequestsResponse('Monthly study plan generation limit reached. Upgrade your plan for more.');
+      return tooManyRequestsResponse(
+        'Monthly study plan generation limit reached. Upgrade your plan for more.'
+      );
     }
 
     const body = await request.json().catch(() => ({}));
@@ -82,24 +84,26 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     if (flashcardSets.length > 0) {
       inventoryParts.push(
-        `Flashcard Sets:\n${flashcardSets.map(f => `  - "${f.title}" (id: ${f.id})`).join('\n')}`
+        `Flashcard Sets:\n${flashcardSets.map((f) => `  - "${f.title}" (id: ${f.id})`).join('\n')}`
       );
     }
 
     if (quizSets.length > 0) {
       inventoryParts.push(
-        `Quiz Sets:\n${quizSets.map(q => `  - "${q.title}" (id: ${q.id})`).join('\n')}`
+        `Quiz Sets:\n${quizSets.map((q) => `  - "${q.title}" (id: ${q.id})`).join('\n')}`
       );
     }
 
     if (documents.length > 0) {
       inventoryParts.push(
-        `Documents:\n${documents.map(d => `  - "${d.fileName}" (id: ${d.id})`).join('\n')}`
+        `Documents:\n${documents.map((d) => `  - "${d.fileName}" (id: ${d.id})`).join('\n')}`
       );
     }
 
     if (inventoryParts.length === 0) {
-      return badRequestResponse('This notebook has no content to create a study plan from. Add pages, flashcards, quizzes, or documents first.');
+      return badRequestResponse(
+        'This notebook has no content to create a study plan from. Add pages, flashcards, quizzes, or documents first.'
+      );
     }
 
     const inventory = inventoryParts.join('\n\n');
@@ -170,9 +174,10 @@ export async function POST(request: NextRequest, { params }: Params) {
       return { ...p, startDate: start, endDate: end };
     });
 
-    const planEndDate = phasesWithDates.length > 0
-      ? phasesWithDates[phasesWithDates.length - 1].endDate
-      : new Date(today.getTime() + duration * 86400000);
+    const planEndDate =
+      phasesWithDates.length > 0
+        ? phasesWithDates[phasesWithDates.length - 1].endDate
+        : new Date(today.getTime() + duration * 86400000);
 
     // Create plan + phases + materials in transaction
     const plan = await db.$transaction(async (tx) => {
@@ -190,7 +195,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       for (let i = 0; i < phasesWithDates.length; i++) {
         const p = phasesWithDates[i];
         // Filter to only valid referenceIds
-        const validMaterials = (p.materials || []).filter(m => validIds.has(m.referenceId));
+        const validMaterials = (p.materials || []).filter((m) => validIds.has(m.referenceId));
 
         await tx.studyPhase.create({
           data: {
@@ -201,16 +206,17 @@ export async function POST(request: NextRequest, { params }: Params) {
             startDate: p.startDate,
             endDate: p.endDate,
             status: i === 0 ? 'active' : 'upcoming',
-            materials: validMaterials.length > 0
-              ? {
-                  create: validMaterials.map((m, j) => ({
-                    type: m.type,
-                    referenceId: m.referenceId,
-                    title: m.title,
-                    sortOrder: j,
-                  })),
-                }
-              : undefined,
+            materials:
+              validMaterials.length > 0
+                ? {
+                    create: validMaterials.map((m, j) => ({
+                      type: m.type,
+                      referenceId: m.referenceId,
+                      title: m.title,
+                      sortOrder: j,
+                    })),
+                  }
+                : undefined,
           },
         });
       }
@@ -236,10 +242,14 @@ export async function POST(request: NextRequest, { params }: Params) {
     if (error && typeof error === 'object' && 'status' in error) {
       const apiError = error as { status: number; error?: { message?: string } };
       if (apiError.status === 429) {
-        return tooManyRequestsResponse('AI service rate limit reached. Please wait a moment and try again.');
+        return tooManyRequestsResponse(
+          'AI service rate limit reached. Please wait a moment and try again.'
+        );
       }
       if (apiError.status === 529 || apiError.status === 503) {
-        return internalErrorResponse('AI service is temporarily overloaded. Please try again in a moment.');
+        return internalErrorResponse(
+          'AI service is temporarily overloaded. Please try again in a moment.'
+        );
       }
     }
 

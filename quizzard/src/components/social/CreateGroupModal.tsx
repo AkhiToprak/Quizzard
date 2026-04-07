@@ -210,11 +210,12 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
+          >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label
-                style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}
-              >
+              <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}>
                 Group Name *
               </label>
               <input
@@ -238,9 +239,7 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label
-                style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}
-              >
+              <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}>
                 Description
               </label>
               <textarea
@@ -284,11 +283,12 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
               onMouseEnter={() => setHoveredSubmit(true)}
               onMouseLeave={() => setHoveredSubmit(false)}
               style={{
-                background: loading || !name.trim()
-                  ? COLORS.elevated
-                  : hoveredSubmit
-                    ? COLORS.deepPurple
-                    : COLORS.primary,
+                background:
+                  loading || !name.trim()
+                    ? COLORS.elevated
+                    : hoveredSubmit
+                      ? COLORS.deepPurple
+                      : COLORS.primary,
                 color: loading || !name.trim() ? COLORS.textMuted : '#1a0040',
                 fontSize: 14,
                 fontWeight: 700,

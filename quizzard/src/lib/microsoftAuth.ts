@@ -85,7 +85,13 @@ export async function getAuthCodeUrl(userId: string): Promise<string> {
 export async function acquireTokenByCode(
   code: string,
   state: string
-): Promise<{ userId: string; accessToken: string; refreshToken: string; expiresAt: Date; scope: string }> {
+): Promise<{
+  userId: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: Date;
+  scope: string;
+}> {
   const userId = verifyState(state);
   if (!userId) {
     throw new Error('Invalid or expired state parameter');
@@ -102,7 +108,9 @@ export async function acquireTokenByCode(
   }
 
   // MSAL caches tokens internally; extract what we need
-  const expiresAt = result.expiresOn ? new Date(result.expiresOn) : new Date(Date.now() + 3600 * 1000);
+  const expiresAt = result.expiresOn
+    ? new Date(result.expiresOn)
+    : new Date(Date.now() + 3600 * 1000);
 
   // Get the refresh token from the MSAL cache
   const tokenCache = getMsalClient().getTokenCache().serialize();
@@ -149,7 +157,9 @@ export async function getValidAccessToken(userId: string): Promise<string> {
       throw new Error('Token refresh failed');
     }
 
-    const expiresAt = result.expiresOn ? new Date(result.expiresOn) : new Date(Date.now() + 3600 * 1000);
+    const expiresAt = result.expiresOn
+      ? new Date(result.expiresOn)
+      : new Date(Date.now() + 3600 * 1000);
 
     // Check for updated refresh token in cache
     const tokenCache = getMsalClient().getTokenCache().serialize();

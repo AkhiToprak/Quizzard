@@ -42,7 +42,11 @@ export async function PUT(request: NextRequest, { params }: Params) {
     }
 
     // Each stroke must be an object (not deeply validated, but prevents primitive injection)
-    if (drawingData.some((stroke) => typeof stroke !== 'object' || stroke === null || Array.isArray(stroke))) {
+    if (
+      drawingData.some(
+        (stroke) => typeof stroke !== 'object' || stroke === null || Array.isArray(stroke)
+      )
+    ) {
       return badRequestResponse('Each drawing stroke must be an object');
     }
 

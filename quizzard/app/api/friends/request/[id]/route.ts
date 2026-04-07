@@ -11,10 +11,7 @@ import {
 } from '@/lib/api-response';
 
 // PUT — accept/decline a friend request
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();

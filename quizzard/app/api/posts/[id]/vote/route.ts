@@ -14,10 +14,7 @@ import {
 // Body: { value: 1 | -1 }
 // If user already voted with the same value, the vote is removed (toggle off).
 // If user voted with the opposite value, the vote is updated.
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();

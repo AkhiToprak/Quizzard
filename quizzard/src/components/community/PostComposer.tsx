@@ -321,9 +321,7 @@ export default function PostComposer({ onPostCreated }: PostComposerProps) {
                         borderRadius: 8,
                         border: 'none',
                         background:
-                          hoveredRemoveImg === idx
-                            ? 'rgba(253,111,133,0.9)'
-                            : 'rgba(0,0,0,0.6)',
+                          hoveredRemoveImg === idx ? 'rgba(253,111,133,0.9)' : 'rgba(0,0,0,0.6)',
                         color: '#fff',
                         cursor: 'pointer',
                         display: 'flex',
@@ -405,11 +403,7 @@ export default function PostComposer({ onPostCreated }: PostComposerProps) {
             {/* Poll creator */}
             {poll && (
               <div style={{ marginTop: 14 }}>
-                <PollCreator
-                  value={poll}
-                  onChange={setPoll}
-                  onRemove={() => setPoll(null)}
-                />
+                <PollCreator value={poll} onChange={setPoll} onRemove={() => setPoll(null)} />
               </div>
             )}
 
@@ -467,8 +461,8 @@ export default function PostComposer({ onPostCreated }: PostComposerProps) {
                       images.length >= MAX_IMAGES
                         ? COLORS.textMuted
                         : hoveredImageBtn
-                        ? COLORS.primary
-                        : COLORS.textSecondary,
+                          ? COLORS.primary
+                          : COLORS.textSecondary,
                     cursor: images.length >= MAX_IMAGES ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -502,13 +496,13 @@ export default function PostComposer({ onPostCreated }: PostComposerProps) {
                     background: poll
                       ? 'rgba(174,137,255,0.12)'
                       : hoveredPollBtn
-                      ? 'rgba(174,137,255,0.1)'
-                      : 'transparent',
+                        ? 'rgba(174,137,255,0.1)'
+                        : 'transparent',
                     color: poll
                       ? COLORS.primary
                       : hoveredPollBtn
-                      ? COLORS.primary
-                      : COLORS.textSecondary,
+                        ? COLORS.primary
+                        : COLORS.textSecondary,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -535,13 +529,13 @@ export default function PostComposer({ onPostCreated }: PostComposerProps) {
                     background: linkedNotebook
                       ? 'rgba(174,137,255,0.12)'
                       : hoveredNbBtn
-                      ? 'rgba(174,137,255,0.1)'
-                      : 'transparent',
+                        ? 'rgba(174,137,255,0.1)'
+                        : 'transparent',
                     color: linkedNotebook
                       ? COLORS.primary
                       : hoveredNbBtn
-                      ? COLORS.primary
-                      : COLORS.textSecondary,
+                        ? COLORS.primary
+                        : COLORS.textSecondary,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -593,8 +587,8 @@ export default function PostComposer({ onPostCreated }: PostComposerProps) {
                     hoveredPostBtn && canPost
                       ? '0 6px 20px rgba(174,137,255,0.3)'
                       : canPost
-                      ? '0 3px 12px rgba(174,137,255,0.15)'
-                      : 'none',
+                        ? '0 3px 12px rgba(174,137,255,0.15)'
+                        : 'none',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,

@@ -27,18 +27,21 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const quizSet = await db.quizSet.findFirst({ where: { id: setId, notebookId } });
     if (!quizSet) return notFoundResponse('Quiz set not found');
 
-    const questionRecord = await db.quizQuestion.findFirst({ where: { id: questionId, quizSetId: setId } });
+    const questionRecord = await db.quizQuestion.findFirst({
+      where: { id: questionId, quizSetId: setId },
+    });
     if (!questionRecord) return notFoundResponse('Quiz question not found');
 
     const body = await request.json().catch(() => ({}));
-    const { question, options, correctIndex, hint, correctExplanation, wrongExplanation } = body as {
-      question?: string;
-      options?: string[];
-      correctIndex?: number;
-      hint?: string | null;
-      correctExplanation?: string | null;
-      wrongExplanation?: string | null;
-    };
+    const { question, options, correctIndex, hint, correctExplanation, wrongExplanation } =
+      body as {
+        question?: string;
+        options?: string[];
+        correctIndex?: number;
+        hint?: string | null;
+        correctExplanation?: string | null;
+        wrongExplanation?: string | null;
+      };
 
     const data: Record<string, unknown> = {};
 
@@ -49,10 +52,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       data.question = question.trim();
     }
     if (options !== undefined) {
-      if (!Array.isArray(options) || options.length !== 4 || options.some(o => typeof o !== 'string' || o.trim().length === 0)) {
+      if (
+        !Array.isArray(options) ||
+        options.length !== 4 ||
+        options.some((o) => typeof o !== 'string' || o.trim().length === 0)
+      ) {
         return badRequestResponse('Options must be an array of exactly 4 non-empty strings');
       }
-      data.options = options.map(o => o.trim());
+      data.options = options.map((o) => o.trim());
     }
     if (correctIndex !== undefined) {
       if (typeof correctIndex !== 'number' || correctIndex < 0 || correctIndex > 3) {
@@ -95,7 +102,9 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     const quizSet = await db.quizSet.findFirst({ where: { id: setId, notebookId } });
     if (!quizSet) return notFoundResponse('Quiz set not found');
 
-    const questionRecord = await db.quizQuestion.findFirst({ where: { id: questionId, quizSetId: setId } });
+    const questionRecord = await db.quizQuestion.findFirst({
+      where: { id: questionId, quizSetId: setId },
+    });
     if (!questionRecord) return notFoundResponse('Quiz question not found');
 
     await db.quizQuestion.delete({ where: { id: questionId } });

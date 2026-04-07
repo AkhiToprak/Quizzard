@@ -15,7 +15,7 @@ const ALLOWED_DB_NAMES = ['collection.anki2', 'collection.anki21'];
 
 export async function parseAnkiFile(buffer: Buffer): Promise<AnkiCard[]> {
   // Validate ZIP magic bytes (PK signature)
-  if (buffer.length < 4 || buffer[0] !== 0x50 || buffer[1] !== 0x4B) {
+  if (buffer.length < 4 || buffer[0] !== 0x50 || buffer[1] !== 0x4b) {
     throw new Error('Invalid file: not a valid .apkg archive');
   }
 
@@ -23,7 +23,12 @@ export async function parseAnkiFile(buffer: Buffer): Promise<AnkiCard[]> {
 
   // Validate ZIP entries: reject any with path traversal or suspicious paths
   for (const entryPath of Object.keys(zip.files)) {
-    if (entryPath.includes('..') || entryPath.startsWith('/') || entryPath.startsWith('\\') || entryPath.includes('\0')) {
+    if (
+      entryPath.includes('..') ||
+      entryPath.startsWith('/') ||
+      entryPath.startsWith('\\') ||
+      entryPath.includes('\0')
+    ) {
       throw new Error('Invalid .apkg file: contains unsafe file paths');
     }
   }

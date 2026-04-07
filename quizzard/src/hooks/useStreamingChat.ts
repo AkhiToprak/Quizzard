@@ -102,15 +102,12 @@ export function useStreamingChat({ notebookId, chatId }: UseStreamingChatOptions
 
       let response: Response;
       try {
-        response = await fetch(
-          `/api/notebooks/${notebookId}/chats/${chatId}/messages`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message }),
-            signal: controller.signal,
-          }
-        );
+        response = await fetch(`/api/notebooks/${notebookId}/chats/${chatId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+          signal: controller.signal,
+        });
       } catch (err) {
         if (controller.signal.aborted) {
           setStatus('done');

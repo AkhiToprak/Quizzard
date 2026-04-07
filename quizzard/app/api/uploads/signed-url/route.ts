@@ -204,9 +204,7 @@ export async function POST(request: NextRequest) {
         return badRequestResponse(`Unhandled purpose: ${purpose}`);
     }
 
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .createSignedUploadUrl(storagePath);
+    const { data, error } = await supabase.storage.from(bucket).createSignedUploadUrl(storagePath);
 
     if (error || !data) {
       console.error('Failed to create signed upload URL:', error);

@@ -23,7 +23,7 @@ function mimeFromExtension(fileName: string): string | null {
     gif: 'image/gif',
     webp: 'image/webp',
   };
-  return ext ? map[ext] ?? null : null;
+  return ext ? (map[ext] ?? null) : null;
 }
 
 export async function POST(request: NextRequest, { params }: Params) {

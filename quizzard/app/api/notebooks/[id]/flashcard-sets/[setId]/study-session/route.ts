@@ -34,14 +34,9 @@ export async function GET(request: NextRequest, { params }: Params) {
     const dueCards = await db.flashcard.findMany({
       where: {
         flashcardSetId: setId,
-        OR: [
-          { nextReviewAt: null },
-          { nextReviewAt: { lte: now } },
-        ],
+        OR: [{ nextReviewAt: null }, { nextReviewAt: { lte: now } }],
       },
-      orderBy: [
-        { nextReviewAt: 'asc' },
-      ],
+      orderBy: [{ nextReviewAt: 'asc' }],
       take: 20,
       include: {
         images: {

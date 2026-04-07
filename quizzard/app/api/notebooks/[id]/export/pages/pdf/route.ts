@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     if (pages.length === 0) return notFoundResponse('No pages found');
 
-    const pagesData = pages.map(p => ({
+    const pagesData = pages.map((p) => ({
       title: p.title,
       textContent: p.textContent || '',
     }));

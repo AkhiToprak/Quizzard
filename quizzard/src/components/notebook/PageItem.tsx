@@ -19,7 +19,13 @@ interface PageItemProps {
   lockInfo?: PageLockInfo | null;
 }
 
-export default function PageItem({ page, notebookId, isActive, onRefresh, lockInfo }: PageItemProps) {
+export default function PageItem({
+  page,
+  notebookId,
+  isActive,
+  onRefresh,
+  lockInfo,
+}: PageItemProps) {
   const [hovered, setHovered] = useState(false);
 
   const handleDelete = async (e: React.MouseEvent) => {

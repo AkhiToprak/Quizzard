@@ -22,7 +22,11 @@ export default function SectionPanel() {
 
   const handleCreate = useCallback(async () => {
     const title = draftTitle.trim();
-    if (!title) { setIsCreating(false); setDraftTitle(''); return; }
+    if (!title) {
+      setIsCreating(false);
+      setDraftTitle('');
+      return;
+    }
     try {
       await fetch(`/api/notebooks/${notebookId}/sections`, {
         method: 'POST',
@@ -32,28 +36,35 @@ export default function SectionPanel() {
       setDraftTitle('');
       setIsCreating(false);
       refreshSections();
-    } catch { setIsCreating(false); setDraftTitle(''); }
+    } catch {
+      setIsCreating(false);
+      setDraftTitle('');
+    }
   }, [notebookId, draftTitle, refreshSections]);
 
   return (
-    <aside style={{
-      width: '180px',
-      minWidth: '180px',
-      background: '#111126',
-      borderRight: '1px solid rgba(140,82,255,0.1)',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      fontFamily: 'inherit',
-    }}>
-      {/* Logo + notebook name */}
-      <div style={{
-        padding: '14px 14px 10px',
-        borderBottom: '1px solid rgba(140,82,255,0.1)',
+    <aside
+      style={{
+        width: '180px',
+        minWidth: '180px',
+        background: '#111126',
+        borderRight: '1px solid rgba(140,82,255,0.1)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
-      }}>
+        height: '100%',
+        fontFamily: 'inherit',
+      }}
+    >
+      {/* Logo + notebook name */}
+      <div
+        style={{
+          padding: '14px 14px 10px',
+          borderBottom: '1px solid rgba(140,82,255,0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
         <Link href="/home">
           <Image
             src="/logo_trimmed.png"
@@ -68,30 +79,49 @@ export default function SectionPanel() {
             href="/notebooks"
             title="Back to notebooks"
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '22px', height: '22px', borderRadius: '5px',
-              background: 'transparent', border: 'none', textDecoration: 'none',
-              color: 'rgba(237,233,255,0.4)', flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '22px',
+              height: '22px',
+              borderRadius: '5px',
+              background: 'transparent',
+              border: 'none',
+              textDecoration: 'none',
+              color: 'rgba(237,233,255,0.4)',
+              flexShrink: 0,
               transition: 'color 0.12s ease',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(237,233,255,0.8)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(237,233,255,0.4)'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(237,233,255,0.8)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(237,233,255,0.4)';
+            }}
           >
             <ArrowLeft size={14} />
           </Link>
           <div
-            style={{ width: '7px', height: '7px', borderRadius: '50%', background: accentColor, flexShrink: 0 }}
+            style={{
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: accentColor,
+              flexShrink: 0,
+            }}
           />
-          <span style={{
-            fontSize: '13px',
-            fontWeight: 600,
-            color: '#ede9ff',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            flex: 1,
-            minWidth: 0,
-          }}>
+          <span
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#ede9ff',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
             {notebook?.name ?? '...'}
           </span>
         </div>
@@ -99,26 +129,40 @@ export default function SectionPanel() {
 
       {/* Section list */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {sections.map(section => (
+        {sections.map((section) => (
           <SectionListItem key={section.id} section={section} />
         ))}
 
         {/* Inline section creation */}
         {isCreating && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', borderLeft: '3px solid rgba(140,82,255,0.4)' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 10px',
+              borderLeft: '3px solid rgba(140,82,255,0.4)',
+            }}
+          >
             <FolderPlus size={12} style={{ color: 'rgba(237,233,255,0.3)', flexShrink: 0 }} />
             <input
               ref={inputRef}
               type="text"
               value={draftTitle}
-              onChange={e => setDraftTitle(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') { e.preventDefault(); handleCreate(); }
-                else if (e.key === 'Escape') { setIsCreating(false); setDraftTitle(''); }
+              onChange={(e) => setDraftTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleCreate();
+                } else if (e.key === 'Escape') {
+                  setIsCreating(false);
+                  setDraftTitle('');
+                }
               }}
               placeholder="Section name..."
               style={{
-                flex: 1, minWidth: 0,
+                flex: 1,
+                minWidth: 0,
                 background: 'rgba(140,82,255,0.08)',
                 border: '1px solid rgba(140,82,255,0.3)',
                 borderRadius: '4px',
@@ -136,11 +180,13 @@ export default function SectionPanel() {
       {/* SCHOLAR divider + button */}
       <div>
         {/* Divider */}
-        <div style={{
-          margin: '0 10px',
-          height: '1px',
-          background: 'linear-gradient(90deg, transparent, rgba(140,82,255,0.25), transparent)',
-        }} />
+        <div
+          style={{
+            margin: '0 10px',
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(140,82,255,0.25), transparent)',
+          }}
+        />
 
         {/* Scholar button */}
         <div style={{ padding: '8px 10px 4px' }}>
@@ -158,21 +204,19 @@ export default function SectionPanel() {
                 background: isScholarView
                   ? 'linear-gradient(135deg, rgba(140,82,255,0.2) 0%, rgba(81,112,255,0.12) 100%)'
                   : 'transparent',
-                border: isScholarView
-                  ? '1px solid rgba(140,82,255,0.3)'
-                  : '1px solid transparent',
+                border: isScholarView ? '1px solid rgba(140,82,255,0.3)' : '1px solid transparent',
                 cursor: 'pointer',
                 transition: 'background 0.15s ease, border-color 0.15s ease',
                 position: 'relative',
                 overflow: 'hidden',
               }}
-              onMouseEnter={e => {
+              onMouseEnter={(e) => {
                 if (!isScholarView) {
                   (e.currentTarget as HTMLDivElement).style.background = 'rgba(140,82,255,0.08)';
                   (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(140,82,255,0.15)';
                 }
               }}
-              onMouseLeave={e => {
+              onMouseLeave={(e) => {
                 if (!isScholarView) {
                   (e.currentTarget as HTMLDivElement).style.background = 'transparent';
                   (e.currentTarget as HTMLDivElement).style.borderColor = 'transparent';
@@ -181,32 +225,36 @@ export default function SectionPanel() {
             >
               {/* Glow dot when active */}
               {isScholarView && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  right: '-8px',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(140,82,255,0.4) 0%, transparent 70%)',
-                  pointerEvents: 'none',
-                }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-8px',
+                    right: '-8px',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(140,82,255,0.4) 0%, transparent 70%)',
+                    pointerEvents: 'none',
+                  }}
+                />
               )}
 
               {/* Icon */}
-              <div style={{
-                width: '22px',
-                height: '22px',
-                borderRadius: '6px',
-                background: isScholarView
-                  ? 'linear-gradient(135deg, rgba(140,82,255,0.4), rgba(81,112,255,0.3))'
-                  : 'rgba(140,82,255,0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                transition: 'background 0.15s ease',
-              }}>
+              <div
+                style={{
+                  width: '22px',
+                  height: '22px',
+                  borderRadius: '6px',
+                  background: isScholarView
+                    ? 'linear-gradient(135deg, rgba(140,82,255,0.4), rgba(81,112,255,0.3))'
+                    : 'rgba(140,82,255,0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'background 0.15s ease',
+                }}
+              >
                 <span
                   className="material-symbols-outlined"
                   style={{
@@ -220,14 +268,16 @@ export default function SectionPanel() {
                 </span>
               </div>
 
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                color: isScholarView ? '#c4a9ff' : 'rgba(174,137,255,0.5)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                transition: 'color 0.15s ease',
-              }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: isScholarView ? '#c4a9ff' : 'rgba(174,137,255,0.5)',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  transition: 'color 0.15s ease',
+                }}
+              >
                 Scholar
               </span>
             </div>
@@ -242,7 +292,10 @@ export default function SectionPanel() {
           onClick={() => setIsCreating(true)}
           style={{
             width: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '5px',
             padding: '6px 0',
             borderRadius: '5px',
             border: '1px solid rgba(140,82,255,0.12)',
@@ -254,11 +307,11 @@ export default function SectionPanel() {
             cursor: 'pointer',
             transition: 'background 0.12s ease, color 0.12s ease',
           }}
-          onMouseEnter={e => {
+          onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.07)';
             (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.6)';
           }}
-          onMouseLeave={e => {
+          onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
             (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.35)';
           }}

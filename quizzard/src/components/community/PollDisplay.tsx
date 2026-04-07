@@ -119,9 +119,7 @@ export default function PollDisplay({ postId, poll, onVote }: PollDisplayProps) 
                     left: 0,
                     bottom: 0,
                     width: `${percentage}%`,
-                    background: opt.userVoted
-                      ? 'rgba(174,137,255,0.15)'
-                      : 'rgba(255,255,255,0.07)',
+                    background: opt.userVoted ? 'rgba(174,137,255,0.15)' : 'rgba(255,255,255,0.07)',
                     transition: `width 0.5s ${EASING}`,
                   }}
                 />

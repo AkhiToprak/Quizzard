@@ -1,11 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
-import {
-  successResponse,
-  unauthorizedResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { successResponse, unauthorizedResponse, internalErrorResponse } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   try {
@@ -68,7 +64,10 @@ export async function GET(request: NextRequest) {
 
     // Tag filter
     if (tag) {
-      const tagNames = tag.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
+      const tagNames = tag
+        .split(',')
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
       if (tagNames.length > 0) {
         where.tags = {
           some: {
@@ -100,9 +99,7 @@ export async function GET(request: NextRequest) {
     const notebookWhere: any = {};
     if (search) {
       // Search in both notebook name and custom publish title
-      where.OR = [
-        ...(where.OR || []),
-      ];
+      where.OR = [...(where.OR || [])];
       // We need a different approach: add search conditions at the top level
       notebookWhere.name = { contains: search, mode: 'insensitive' };
     }
@@ -118,16 +115,17 @@ export async function GET(request: NextRequest) {
         OR: [
           { notebook: { name: { contains: search, mode: 'insensitive' } } },
           { title: { contains: search, mode: 'insensitive' } },
-          { tags: { some: { tag: { name: { contains: search.toLowerCase(), mode: 'insensitive' } } } } },
+          {
+            tags: {
+              some: { tag: { name: { contains: search.toLowerCase(), mode: 'insensitive' } } },
+            },
+          },
         ],
       };
       if (subject) {
         where.notebook = { subject: { contains: subject, mode: 'insensitive' } };
       }
-      where.AND = [
-        ...(baseOr ? [{ OR: baseOr }] : []),
-        searchConditions,
-      ];
+      where.AND = [...(baseOr ? [{ OR: baseOr }] : []), searchConditions];
     } else if (Object.keys(notebookWhere).length > 0) {
       where.notebook = notebookWhere;
     }
@@ -191,9 +189,7 @@ export async function GET(request: NextRequest) {
       where: { sharedNotebookId: { in: shareIds } },
       _avg: { value: true },
     });
-    const avgRatingMap = new Map(
-      ratingAggs.map((r) => [r.sharedNotebookId, r._avg.value || 0])
-    );
+    const avgRatingMap = new Map(ratingAggs.map((r) => [r.sharedNotebookId, r._avg.value || 0]));
 
     const notebooks = shares.map((s) => ({
       shareId: s.id,

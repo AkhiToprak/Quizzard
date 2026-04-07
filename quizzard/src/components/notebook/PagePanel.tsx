@@ -11,18 +11,30 @@ import type { NotebookChatItem } from '@/components/notebook/NotebookWorkspaceCo
 export default function PagePanel() {
   const router = useRouter();
   const {
-    notebookId, flatSections, sections, activeSectionId, activePageId,
-    activeChatId, isScholarView, chats, refreshChats, refreshSections,
+    notebookId,
+    flatSections,
+    sections,
+    activeSectionId,
+    activePageId,
+    activeChatId,
+    isScholarView,
+    chats,
+    refreshChats,
+    refreshSections,
   } = useNotebookWorkspace();
 
   const [isCreating, setIsCreating] = useState(false);
   const [draftTitle, setDraftTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const activeSection = flatSections.find(s => s.id === activeSectionId) ?? null;
+  const activeSection = flatSections.find((s) => s.id === activeSectionId) ?? null;
   const pages = activeSection?.pages ?? [];
 
-  const sectionNode = sections.flatMap(function flatten(s): typeof sections { return [s, ...s.children.flatMap(flatten)]; }).find(s => s.id === activeSectionId);
+  const sectionNode = sections
+    .flatMap(function flatten(s): typeof sections {
+      return [s, ...s.children.flatMap(flatten)];
+    })
+    .find((s) => s.id === activeSectionId);
   const accentColor = sectionNode ? getSectionColor(sectionNode) : '#8c52ff';
 
   useEffect(() => {
@@ -45,67 +57,91 @@ export default function PagePanel() {
       if (json.success && json.data?.id) {
         router.push(`/notebooks/${notebookId}/pages/${json.data.id}`);
       }
-    } catch { setIsCreating(false); setDraftTitle(''); }
+    } catch {
+      setIsCreating(false);
+      setDraftTitle('');
+    }
   }, [notebookId, activeSectionId, draftTitle, refreshSections, router]);
 
-  const handleDeletePage = useCallback(async (pageId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`, { method: 'DELETE' });
-      refreshSections();
-      if (activePageId === pageId) router.push(`/notebooks/${notebookId}`);
-    } catch { /* silent */ }
-  }, [notebookId, activePageId, router, refreshSections]);
+  const handleDeletePage = useCallback(
+    async (pageId: string, e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`, { method: 'DELETE' });
+        refreshSections();
+        if (activePageId === pageId) router.push(`/notebooks/${notebookId}`);
+      } catch {
+        /* silent */
+      }
+    },
+    [notebookId, activePageId, router, refreshSections]
+  );
 
-  const handleDeleteChat = useCallback(async (chatId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      await fetch(`/api/notebooks/${notebookId}/chats/${chatId}`, { method: 'DELETE' });
-      refreshChats();
-      if (activeChatId === chatId) router.push(`/notebooks/${notebookId}`);
-    } catch { /* silent */ }
-  }, [notebookId, activeChatId, router, refreshChats]);
+  const handleDeleteChat = useCallback(
+    async (chatId: string, e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        await fetch(`/api/notebooks/${notebookId}/chats/${chatId}`, { method: 'DELETE' });
+        refreshChats();
+        if (activeChatId === chatId) router.push(`/notebooks/${notebookId}`);
+      } catch {
+        /* silent */
+      }
+    },
+    [notebookId, activeChatId, router, refreshChats]
+  );
 
   // ── Scholar mode: show chats ──────────────────────────────────────────────
   if (isScholarView) {
     return (
-      <div style={{
-        width: '200px',
-        minWidth: '200px',
-        background: '#0a0918',
-        borderRight: '1px solid rgba(140,82,255,0.08)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        fontFamily: 'inherit',
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '14px 14px 10px',
-          borderBottom: '1px solid rgba(140,82,255,0.08)',
-          minHeight: '58px',
+      <div
+        style={{
+          width: '200px',
+          minWidth: '200px',
+          background: '#0a0918',
+          borderRight: '1px solid rgba(140,82,255,0.08)',
           display: 'flex',
-          alignItems: 'center',
-          gap: '7px',
-        }}>
-          <div style={{
-            width: '16px',
-            height: '16px',
-            borderRadius: '4px',
-            background: 'linear-gradient(135deg, rgba(140,82,255,0.4), rgba(81,112,255,0.3))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
+          flexDirection: 'column',
+          height: '100%',
+          fontFamily: 'inherit',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: '14px 14px 10px',
+            borderBottom: '1px solid rgba(140,82,255,0.08)',
+            minHeight: '58px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '7px',
+          }}
+        >
+          <div
+            style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '4px',
+              background: 'linear-gradient(135deg, rgba(140,82,255,0.4), rgba(81,112,255,0.3))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
             <Sparkles size={9} style={{ color: '#c4a9ff' }} />
           </div>
-          <span style={{
-            fontSize: '12px',
-            fontWeight: 600,
-            color: 'rgba(196,169,255,0.7)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}>
+          <span
+            style={{
+              fontSize: '12px',
+              fontWeight: 600,
+              color: 'rgba(196,169,255,0.7)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}
+          >
             Chats
           </span>
         </div>
@@ -114,13 +150,22 @@ export default function PagePanel() {
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {chats.length === 0 && (
             <div style={{ padding: '24px 14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.2)', margin: 0, lineHeight: 1.5 }}>
-                No chats yet.<br />Start a new chat below.
+              <p
+                style={{
+                  fontSize: '12px',
+                  color: 'rgba(237,233,255,0.2)',
+                  margin: 0,
+                  lineHeight: 1.5,
+                }}
+              >
+                No chats yet.
+                <br />
+                Start a new chat below.
               </p>
             </div>
           )}
 
-          {chats.map(chat => (
+          {chats.map((chat) => (
             <ChatRow
               key={chat.id}
               chat={chat}
@@ -133,11 +178,17 @@ export default function PagePanel() {
 
         {/* New chat button */}
         <div style={{ padding: '8px 10px', borderTop: '1px solid rgba(140,82,255,0.06)' }}>
-          <Link href={`/notebooks/${notebookId}?new=1`} style={{ textDecoration: 'none', display: 'block' }}>
+          <Link
+            href={`/notebooks/${notebookId}?new=1`}
+            style={{ textDecoration: 'none', display: 'block' }}
+          >
             <button
               style={{
                 width: '100%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
                 padding: '6px 0',
                 borderRadius: '5px',
                 border: '1px solid rgba(140,82,255,0.2)',
@@ -149,11 +200,11 @@ export default function PagePanel() {
                 cursor: 'pointer',
                 transition: 'background 0.12s ease, color 0.12s ease',
               }}
-              onMouseEnter={e => {
+              onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.14)';
                 (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.85)';
               }}
-              onMouseLeave={e => {
+              onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.06)';
                 (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.5)';
               }}
@@ -169,42 +220,58 @@ export default function PagePanel() {
 
   // ── Normal mode: show pages ───────────────────────────────────────────────
   return (
-    <div style={{
-      width: '200px',
-      minWidth: '200px',
-      background: '#0a0918',
-      borderRight: '1px solid rgba(140,82,255,0.08)',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      fontFamily: 'inherit',
-    }}>
-      {/* Section name header */}
-      <div style={{
-        padding: '14px 14px 10px',
-        borderBottom: '1px solid rgba(140,82,255,0.08)',
-        minHeight: '58px',
+    <div
+      style={{
+        width: '200px',
+        minWidth: '200px',
+        background: '#0a0918',
+        borderRight: '1px solid rgba(140,82,255,0.08)',
         display: 'flex',
-        alignItems: 'center',
-      }}>
+        flexDirection: 'column',
+        height: '100%',
+        fontFamily: 'inherit',
+      }}
+    >
+      {/* Section name header */}
+      <div
+        style={{
+          padding: '14px 14px 10px',
+          borderBottom: '1px solid rgba(140,82,255,0.08)',
+          minHeight: '58px',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
         {activeSection ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0 }}>
-            <div style={{ width: '3px', height: '16px', borderRadius: '2px', background: accentColor, flexShrink: 0 }} />
-            <span style={{
-              fontSize: '12px',
-              fontWeight: 600,
-              color: 'rgba(237,233,255,0.7)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}>
+            <div
+              style={{
+                width: '3px',
+                height: '16px',
+                borderRadius: '2px',
+                background: accentColor,
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'rgba(237,233,255,0.7)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {activeSection.title}
             </span>
           </div>
         ) : (
-          <span style={{ fontSize: '12px', color: 'rgba(237,233,255,0.25)' }}>Select a section</span>
+          <span style={{ fontSize: '12px', color: 'rgba(237,233,255,0.25)' }}>
+            Select a section
+          </span>
         )}
       </div>
 
@@ -212,13 +279,22 @@ export default function PagePanel() {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {pages.length === 0 && !isCreating && activeSection && (
           <div style={{ padding: '24px 14px', textAlign: 'center' }}>
-            <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.2)', margin: 0, lineHeight: 1.5 }}>
-              No pages yet.<br />Click &quot;Add page&quot; to start.
+            <p
+              style={{
+                fontSize: '12px',
+                color: 'rgba(237,233,255,0.2)',
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
+              No pages yet.
+              <br />
+              Click &quot;Add page&quot; to start.
             </p>
           </div>
         )}
 
-        {pages.map(page => {
+        {pages.map((page) => {
           const isActive = page.id === activePageId;
           return (
             <PageRow
@@ -234,24 +310,34 @@ export default function PagePanel() {
 
         {/* Inline page creation */}
         {isCreating && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '6px 14px',
-            borderLeft: `2px solid ${accentColor}60`,
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderLeft: `2px solid ${accentColor}60`,
+            }}
+          >
             <FilePlus size={12} style={{ color: 'rgba(237,233,255,0.3)', flexShrink: 0 }} />
             <input
               ref={inputRef}
               type="text"
               value={draftTitle}
-              onChange={e => setDraftTitle(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') { e.preventDefault(); handleCreate(); }
-                else if (e.key === 'Escape') { setIsCreating(false); setDraftTitle(''); }
+              onChange={(e) => setDraftTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleCreate();
+                } else if (e.key === 'Escape') {
+                  setIsCreating(false);
+                  setDraftTitle('');
+                }
               }}
               placeholder="Page title..."
               style={{
-                flex: 1, minWidth: 0,
+                flex: 1,
+                minWidth: 0,
                 background: 'rgba(140,82,255,0.08)',
                 border: '1px solid rgba(140,82,255,0.3)',
                 borderRadius: '4px',
@@ -269,11 +355,16 @@ export default function PagePanel() {
       {/* Add page button */}
       <div style={{ padding: '8px 10px', borderTop: '1px solid rgba(140,82,255,0.06)' }}>
         <button
-          onClick={() => { if (activeSectionId) setIsCreating(true); }}
+          onClick={() => {
+            if (activeSectionId) setIsCreating(true);
+          }}
           disabled={!activeSectionId}
           style={{
             width: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '5px',
             padding: '6px 0',
             borderRadius: '5px',
             border: '1px solid rgba(140,82,255,0.1)',
@@ -285,15 +376,17 @@ export default function PagePanel() {
             cursor: activeSectionId ? 'pointer' : 'not-allowed',
             transition: 'background 0.12s ease, color 0.12s ease',
           }}
-          onMouseEnter={e => {
+          onMouseEnter={(e) => {
             if (activeSectionId) {
               (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.07)';
               (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.6)';
             }
           }}
-          onMouseLeave={e => {
+          onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-            (e.currentTarget as HTMLButtonElement).style.color = activeSectionId ? 'rgba(237,233,255,0.35)' : 'rgba(237,233,255,0.15)';
+            (e.currentTarget as HTMLButtonElement).style.color = activeSectionId
+              ? 'rgba(237,233,255,0.35)'
+              : 'rgba(237,233,255,0.15)';
           }}
         >
           <Plus size={12} />
@@ -305,7 +398,12 @@ export default function PagePanel() {
 }
 
 // ── Chat row ───────────────────────────────────────────────────────────────
-function ChatRow({ chat, isActive, notebookId, onDelete }: {
+function ChatRow({
+  chat,
+  isActive,
+  notebookId,
+  onDelete,
+}: {
   chat: NotebookChatItem;
   isActive: boolean;
   notebookId: string;
@@ -315,16 +413,23 @@ function ChatRow({ chat, isActive, notebookId, onDelete }: {
   const accentColor = '#8c52ff';
 
   return (
-    <Link href={`/notebooks/${notebookId}/chats/${chat.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+    <Link
+      href={`/notebooks/${notebookId}/chats/${chat.id}`}
+      style={{ textDecoration: 'none', display: 'block' }}
+    >
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
           padding: '7px 14px',
           background: isActive
             ? `linear-gradient(135deg, ${accentColor}18 0%, rgba(81,112,255,0.10) 100%)`
-            : hovered ? 'rgba(237,233,255,0.04)' : 'transparent',
+            : hovered
+              ? 'rgba(237,233,255,0.04)'
+              : 'transparent',
           borderLeft: isActive ? `2px solid ${accentColor}` : '2px solid transparent',
           transition: 'background 0.1s ease',
           cursor: 'pointer',
@@ -334,30 +439,45 @@ function ChatRow({ chat, isActive, notebookId, onDelete }: {
           size={13}
           style={{ color: isActive ? accentColor : 'rgba(237,233,255,0.25)', flexShrink: 0 }}
         />
-        <span style={{
-          flex: 1, minWidth: 0,
-          fontFamily: 'inherit',
-          fontSize: '13px',
-          fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.6)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
+        <span
+          style={{
+            flex: 1,
+            minWidth: 0,
+            fontFamily: 'inherit',
+            fontSize: '13px',
+            fontWeight: isActive ? 600 : 400,
+            color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.6)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {chat.title}
         </span>
         {hovered && !isActive && (
           <button
-            onClick={e => onDelete(chat.id, e)}
+            onClick={(e) => onDelete(chat.id, e)}
             title="Delete chat"
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '18px', height: '18px', borderRadius: '3px',
-              border: 'none', background: 'transparent', cursor: 'pointer',
-              color: 'rgba(237,233,255,0.3)', padding: 0, flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '18px',
+              height: '18px',
+              borderRadius: '3px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: 'rgba(237,233,255,0.3)',
+              padding: 0,
+              flexShrink: 0,
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)';
+            }}
           >
             <Trash2 size={11} />
           </button>
@@ -368,7 +488,13 @@ function ChatRow({ chat, isActive, notebookId, onDelete }: {
 }
 
 // ── Page row ───────────────────────────────────────────────────────────────
-function PageRow({ page, isActive, notebookId, accentColor, onDelete }: {
+function PageRow({
+  page,
+  isActive,
+  notebookId,
+  accentColor,
+  onDelete,
+}: {
   page: { id: string; title: string };
   isActive: boolean;
   notebookId: string;
@@ -386,41 +512,63 @@ function PageRow({ page, isActive, notebookId, accentColor, onDelete }: {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
           padding: '7px 14px',
           background: isActive
             ? `linear-gradient(135deg, ${accentColor}18 0%, rgba(81,112,255,0.10) 100%)`
-            : hovered ? 'rgba(237,233,255,0.04)' : 'transparent',
+            : hovered
+              ? 'rgba(237,233,255,0.04)'
+              : 'transparent',
           borderLeft: isActive ? `2px solid ${accentColor}` : '2px solid transparent',
           transition: 'background 0.1s ease',
           cursor: 'pointer',
         }}
       >
-        <FileText size={13} style={{ color: isActive ? accentColor : 'rgba(237,233,255,0.25)', flexShrink: 0 }} />
-        <span style={{
-          flex: 1, minWidth: 0,
-          fontFamily: 'inherit',
-          fontSize: '13px',
-          fontWeight: isActive ? 600 : 400,
-          color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.6)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
+        <FileText
+          size={13}
+          style={{ color: isActive ? accentColor : 'rgba(237,233,255,0.25)', flexShrink: 0 }}
+        />
+        <span
+          style={{
+            flex: 1,
+            minWidth: 0,
+            fontFamily: 'inherit',
+            fontSize: '13px',
+            fontWeight: isActive ? 600 : 400,
+            color: isActive ? '#ede9ff' : 'rgba(237,233,255,0.6)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {page.title}
         </span>
         {hovered && !isActive && (
           <button
-            onClick={e => onDelete(page.id, e)}
+            onClick={(e) => onDelete(page.id, e)}
             title="Delete page"
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '18px', height: '18px', borderRadius: '3px',
-              border: 'none', background: 'transparent', cursor: 'pointer',
-              color: 'rgba(237,233,255,0.3)', padding: 0, flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '18px',
+              height: '18px',
+              borderRadius: '3px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: 'rgba(237,233,255,0.3)',
+              padding: 0,
+              flexShrink: 0,
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,233,255,0.3)';
+            }}
           >
             <Trash2 size={11} />
           </button>

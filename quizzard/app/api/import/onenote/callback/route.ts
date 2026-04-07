@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
   // Handle error from Microsoft (e.g., user denied consent)
   if (error) {
     const message = errorDescription || error;
-    return new NextResponse(
-      buildCallbackHtml('error', message),
-      { status: 200, headers: { 'Content-Type': 'text/html' } }
-    );
+    return new NextResponse(buildCallbackHtml('error', message), {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' },
+    });
   }
 
   if (!code || !state) {
@@ -50,17 +50,17 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return new NextResponse(
-      buildCallbackHtml('success', 'Connected successfully!'),
-      { status: 200, headers: { 'Content-Type': 'text/html' } }
-    );
+    return new NextResponse(buildCallbackHtml('success', 'Connected successfully!'), {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' },
+    });
   } catch (err) {
     console.error('[OneNote Callback] Error:', err);
     const message = err instanceof Error ? err.message : 'Authentication failed.';
-    return new NextResponse(
-      buildCallbackHtml('error', message),
-      { status: 200, headers: { 'Content-Type': 'text/html' } }
-    );
+    return new NextResponse(buildCallbackHtml('error', message), {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' },
+    });
   }
 }
 
@@ -84,5 +84,9 @@ function buildCallbackHtml(type: 'success' | 'error', message: string): string {
 }
 
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

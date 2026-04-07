@@ -88,9 +88,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
       // Locked by someone else — check if expired
       if (existingLock.expiresAt > new Date()) {
-        return conflictResponse(
-          `Page is locked by ${existingLock.lockedBy.username}`
-        );
+        return conflictResponse(`Page is locked by ${existingLock.lockedBy.username}`);
       }
 
       // Expired lock — take over

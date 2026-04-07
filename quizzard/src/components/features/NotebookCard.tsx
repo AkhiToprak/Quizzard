@@ -94,21 +94,33 @@ function formatDate(dateStr: string) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function NotebookCard({ notebook, onEdit, onDelete, draggable, onDragStart }: NotebookCardProps) {
+export default function NotebookCard({
+  notebook,
+  onEdit,
+  onDelete,
+  draggable,
+  onDragStart,
+}: NotebookCardProps) {
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const theme = getAccent(notebook.color);
-  const docCount = notebook._count.pages != null && notebook._count.pages > 0
-    ? `${notebook._count.pages} page${notebook._count.pages !== 1 ? 's' : ''}`
-    : `${notebook._count.documents} doc${notebook._count.documents !== 1 ? 's' : ''}`;
+  const docCount =
+    notebook._count.pages != null && notebook._count.pages > 0
+      ? `${notebook._count.pages} page${notebook._count.pages !== 1 ? 's' : ''}`
+      : `${notebook._count.documents} doc${notebook._count.documents !== 1 ? 's' : ''}`;
 
   return (
     <div
       style={{ position: 'relative' }}
       draggable={draggable}
-      onDragStart={(e) => { if (onDragStart) onDragStart(e, notebook); }}
+      onDragStart={(e) => {
+        if (onDragStart) onDragStart(e, notebook);
+      }}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
+      onMouseLeave={() => {
+        setHovered(false);
+        setMenuOpen(false);
+      }}
     >
       <Link href={`/notebooks/${notebook.id}`} style={{ textDecoration: 'none', display: 'block' }}>
         <div
@@ -122,7 +134,8 @@ export default function NotebookCard({ notebook, onEdit, onDelete, draggable, on
               ? `0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px ${theme.hoverBorder}`
               : '0 8px 24px rgba(0,0,0,0.3)',
             transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-            transition: 'transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s cubic-bezier(0.22,1,0.36,1), border-color 0.5s cubic-bezier(0.22,1,0.36,1)',
+            transition:
+              'transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s cubic-bezier(0.22,1,0.36,1), border-color 0.5s cubic-bezier(0.22,1,0.36,1)',
             cursor: 'pointer',
             minHeight: '160px',
           }}
@@ -156,7 +169,7 @@ export default function NotebookCard({ notebook, onEdit, onDelete, draggable, on
               zIndex: 2,
             }}
           >
-            {[0,1,2,3,4,5].map((i) => (
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
                 style={{
@@ -182,7 +195,14 @@ export default function NotebookCard({ notebook, onEdit, onDelete, draggable, on
             }}
           >
             {/* Top row: badge + more_vert */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '16px',
+              }}
+            >
               {notebook.subject ? (
                 <span
                   style={{
@@ -221,10 +241,16 @@ export default function NotebookCard({ notebook, onEdit, onDelete, draggable, on
                   borderRadius: '6px',
                   transition: 'color 0.15s',
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = theme.accent; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#aaa8c8'; }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = theme.accent;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = '#aaa8c8';
+                }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>more_vert</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                  more_vert
+                </span>
               </button>
             </div>
 
@@ -255,7 +281,9 @@ export default function NotebookCard({ notebook, onEdit, onDelete, draggable, on
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#aaa8c8' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>description</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
+                  description
+                </span>
                 <span style={{ fontSize: '12px' }}>{docCount}</span>
               </div>
               <span style={{ fontSize: '10px', color: '#8888a8', fontStyle: 'italic' }}>
@@ -283,7 +311,11 @@ export default function NotebookCard({ notebook, onEdit, onDelete, draggable, on
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            onClick={(e) => { e.preventDefault(); setMenuOpen(false); onEdit(notebook); }}
+            onClick={(e) => {
+              e.preventDefault();
+              setMenuOpen(false);
+              onEdit(notebook);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -299,14 +331,27 @@ export default function NotebookCard({ notebook, onEdit, onDelete, draggable, on
               fontFamily: 'inherit',
               textAlign: 'left',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ae89ff' }}>edit</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '18px', color: '#ae89ff' }}
+            >
+              edit
+            </span>
             Edit
           </button>
           <button
-            onClick={(e) => { e.preventDefault(); setMenuOpen(false); onDelete(notebook); }}
+            onClick={(e) => {
+              e.preventDefault();
+              setMenuOpen(false);
+              onDelete(notebook);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -322,10 +367,16 @@ export default function NotebookCard({ notebook, onEdit, onDelete, draggable, on
               fontFamily: 'inherit',
               textAlign: 'left',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.1)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              delete
+            </span>
             Delete
           </button>
         </div>

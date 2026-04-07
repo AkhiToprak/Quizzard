@@ -183,7 +183,9 @@ function InviteModal({
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
@@ -226,11 +228,19 @@ function InviteModal({
         @keyframes invSlideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
       `}</style>
       <div
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
         style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-          zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           animation: 'invFadeIn 0.2s ease-out',
         }}
       >
@@ -239,9 +249,16 @@ function InviteModal({
           aria-modal="true"
           aria-label="Invite Friend"
           style={{
-            maxWidth: 440, width: 'calc(100% - 32px)', background: COLORS.cardBg,
-            borderRadius: 24, padding: 32, boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
-            animation: `invSlideUp 0.3s ${EASING}`, display: 'flex', flexDirection: 'column', gap: 20,
+            maxWidth: 440,
+            width: 'calc(100% - 32px)',
+            background: COLORS.cardBg,
+            borderRadius: 24,
+            padding: 32,
+            boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+            animation: `invSlideUp 0.3s ${EASING}`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -254,13 +271,21 @@ function InviteModal({
               onMouseLeave={() => setHoveredClose(false)}
               aria-label="Close"
               style={{
-                background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 8,
                 color: hoveredClose ? COLORS.textPrimary : COLORS.textMuted,
                 transition: `color 0.2s ${EASING}`,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>close</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
+                close
+              </span>
             </button>
           </div>
 
@@ -268,8 +293,13 @@ function InviteModal({
             <span
               className="material-symbols-outlined"
               style={{
-                position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
-                fontSize: 20, color: COLORS.textMuted, pointerEvents: 'none',
+                position: 'absolute',
+                left: 14,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: 20,
+                color: COLORS.textMuted,
+                pointerEvents: 'none',
               }}
             >
               search
@@ -281,9 +311,15 @@ function InviteModal({
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               style={{
-                width: '100%', background: COLORS.inputBg, border: `1px solid ${COLORS.border}`,
-                borderRadius: 12, padding: '12px 14px 12px 44px', fontSize: 14,
-                color: COLORS.textPrimary, outline: 'none', boxSizing: 'border-box',
+                width: '100%',
+                background: COLORS.inputBg,
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 12,
+                padding: '12px 14px 12px 44px',
+                fontSize: 14,
+                color: COLORS.textPrimary,
+                outline: 'none',
+                boxSizing: 'border-box',
                 transition: `border-color 0.2s ${EASING}, box-shadow 0.2s ${EASING}`,
                 fontFamily: 'inherit',
               }}
@@ -299,25 +335,48 @@ function InviteModal({
           </div>
 
           {error && (
-            <div style={{ fontSize: 13, color: COLORS.error, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>error</span>
+            <div
+              style={{
+                fontSize: 13,
+                color: COLORS.error,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                error
+              </span>
               {error}
             </div>
           )}
 
           <div style={{ maxHeight: 280, overflowY: 'auto' }}>
             {loading ? (
-              <div style={{ padding: '32px 0', textAlign: 'center', color: COLORS.textMuted, fontSize: 14 }}>
+              <div
+                style={{
+                  padding: '32px 0',
+                  textAlign: 'center',
+                  color: COLORS.textMuted,
+                  fontSize: 14,
+                }}
+              >
                 Loading friends...
               </div>
             ) : filtered.length === 0 ? (
               <div
                 style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '32px 16px', gap: 8,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '32px 16px',
+                  gap: 8,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 36, color: COLORS.textMuted }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 36, color: COLORS.textMuted }}
+                >
                   person_search
                 </span>
                 <span style={{ fontSize: 14, color: COLORS.textSecondary }}>
@@ -332,8 +391,11 @@ function InviteModal({
                     onMouseEnter={() => setHoveredRow(friend.id)}
                     onMouseLeave={() => setHoveredRow(null)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '10px 12px', borderRadius: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '10px 12px',
+                      borderRadius: 12,
                       background: hoveredRow === friend.id ? COLORS.elevated : 'transparent',
                       transition: `background 0.2s ${EASING}`,
                     }}
@@ -342,8 +404,12 @@ function InviteModal({
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{
-                          fontSize: 14, fontWeight: 700, color: COLORS.textPrimary,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: COLORS.textPrimary,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {friend.username}
@@ -351,8 +417,11 @@ function InviteModal({
                       {friend.name && (
                         <div
                           style={{
-                            fontSize: 12, color: COLORS.textSecondary,
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            fontSize: 12,
+                            color: COLORS.textSecondary,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {friend.name}
@@ -363,13 +432,18 @@ function InviteModal({
                       onClick={() => handleInvite(friend.id)}
                       disabled={inviting === friend.id}
                       style={{
-                        background: COLORS.primary, color: '#1a0040',
-                        fontSize: 12, fontWeight: 600, borderRadius: 8,
-                        padding: '6px 14px', border: 'none',
+                        background: COLORS.primary,
+                        color: '#1a0040',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        borderRadius: 8,
+                        padding: '6px 14px',
+                        border: 'none',
                         cursor: inviting === friend.id ? 'not-allowed' : 'pointer',
                         opacity: inviting === friend.id ? 0.5 : 1,
                         transition: `opacity 0.2s ${EASING}`,
-                        whiteSpace: 'nowrap', flexShrink: 0,
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
                       }}
                     >
                       {inviting === friend.id ? 'Inviting...' : 'Invite'}
@@ -423,7 +497,9 @@ function ShareNotebookModal({
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
@@ -461,11 +537,19 @@ function ShareNotebookModal({
         @keyframes snmSlideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
       `}</style>
       <div
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
         style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-          zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           animation: 'snmFadeIn 0.2s ease-out',
         }}
       >
@@ -474,9 +558,16 @@ function ShareNotebookModal({
           aria-modal="true"
           aria-label="Share Notebook"
           style={{
-            maxWidth: 440, width: 'calc(100% - 32px)', background: COLORS.cardBg,
-            borderRadius: 24, padding: 32, boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
-            animation: `snmSlideUp 0.3s ${EASING}`, display: 'flex', flexDirection: 'column', gap: 20,
+            maxWidth: 440,
+            width: 'calc(100% - 32px)',
+            background: COLORS.cardBg,
+            borderRadius: 24,
+            padding: 32,
+            boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+            animation: `snmSlideUp 0.3s ${EASING}`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -489,40 +580,73 @@ function ShareNotebookModal({
               onMouseLeave={() => setHoveredClose(false)}
               aria-label="Close"
               style={{
-                background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 8,
                 color: hoveredClose ? COLORS.textPrimary : COLORS.textMuted,
                 transition: `color 0.2s ${EASING}`,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>close</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
+                close
+              </span>
             </button>
           </div>
 
           {error && (
-            <div style={{ fontSize: 13, color: COLORS.error, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>error</span>
+            <div
+              style={{
+                fontSize: 13,
+                color: COLORS.error,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                error
+              </span>
               {error}
             </div>
           )}
 
           <div style={{ maxHeight: 340, overflowY: 'auto' }}>
             {loading ? (
-              <div style={{ padding: '32px 0', textAlign: 'center', color: COLORS.textMuted, fontSize: 14 }}>
+              <div
+                style={{
+                  padding: '32px 0',
+                  textAlign: 'center',
+                  color: COLORS.textMuted,
+                  fontSize: 14,
+                }}
+              >
                 Loading notebooks...
               </div>
             ) : available.length === 0 ? (
               <div
                 style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '32px 16px', gap: 8,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '32px 16px',
+                  gap: 8,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 36, color: COLORS.textMuted }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 36, color: COLORS.textMuted }}
+                >
                   auto_stories
                 </span>
                 <span style={{ fontSize: 14, color: COLORS.textSecondary }}>
-                  {notebooks.length === 0 ? 'No notebooks available' : 'All notebooks already shared'}
+                  {notebooks.length === 0
+                    ? 'No notebooks available'
+                    : 'All notebooks already shared'}
                 </span>
               </div>
             ) : (
@@ -534,8 +658,11 @@ function ShareNotebookModal({
                     onMouseEnter={() => setHoveredRow(nb.id)}
                     onMouseLeave={() => setHoveredRow(null)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '12px 14px', borderRadius: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '12px 14px',
+                      borderRadius: 12,
                       background: hoveredRow === nb.id ? COLORS.elevated : 'transparent',
                       cursor: sharing === nb.id ? 'not-allowed' : 'pointer',
                       opacity: sharing === nb.id ? 0.5 : 1,
@@ -544,15 +671,22 @@ function ShareNotebookModal({
                   >
                     <div
                       style={{
-                        width: 8, height: 36, borderRadius: 4, flexShrink: 0,
+                        width: 8,
+                        height: 36,
+                        borderRadius: 4,
+                        flexShrink: 0,
                         background: nb.color || COLORS.primary,
                       }}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{
-                          fontSize: 14, fontWeight: 600, color: COLORS.textPrimary,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: COLORS.textPrimary,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {nb.name}
@@ -592,7 +726,9 @@ function DeleteConfirm({
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
@@ -606,11 +742,19 @@ function DeleteConfirm({
         @keyframes delSlideUp { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
       `}</style>
       <div
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
         style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-          zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          zIndex: 110,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           animation: 'delFadeIn 0.2s ease-out',
         }}
       >
@@ -618,20 +762,34 @@ function DeleteConfirm({
           role="alertdialog"
           aria-modal="true"
           style={{
-            maxWidth: 400, width: 'calc(100% - 32px)', background: COLORS.cardBg,
-            borderRadius: 20, padding: 28, boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
-            animation: `delSlideUp 0.25s ${EASING}`, display: 'flex', flexDirection: 'column', gap: 20,
+            maxWidth: 400,
+            width: 'calc(100% - 32px)',
+            background: COLORS.cardBg,
+            borderRadius: 20,
+            padding: 28,
+            boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+            animation: `delSlideUp 0.25s ${EASING}`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
               style={{
-                width: 44, height: 44, borderRadius: 12,
+                width: 44,
+                height: 44,
+                borderRadius: 12,
                 background: 'rgba(253,111,133,0.12)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 24, color: COLORS.error }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 24, color: COLORS.error }}
+              >
                 delete_forever
               </span>
             </div>
@@ -652,9 +810,13 @@ function DeleteConfirm({
               onMouseLeave={() => setHoveredCancel(false)}
               style={{
                 background: hoveredCancel ? COLORS.elevated : 'transparent',
-                border: `1px solid ${COLORS.border}`, borderRadius: 10,
-                color: COLORS.textSecondary, fontSize: 13, fontWeight: 600,
-                padding: '10px 18px', cursor: 'pointer',
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 10,
+                color: COLORS.textSecondary,
+                fontSize: 13,
+                fontWeight: 600,
+                padding: '10px 18px',
+                cursor: 'pointer',
                 transition: `background 0.2s ${EASING}`,
               }}
             >
@@ -667,9 +829,13 @@ function DeleteConfirm({
               onMouseLeave={() => setHoveredDelete(false)}
               style={{
                 background: hoveredDelete && !loading ? '#e55570' : COLORS.error,
-                border: 'none', borderRadius: 10,
-                color: '#fff', fontSize: 13, fontWeight: 600,
-                padding: '10px 18px', cursor: loading ? 'not-allowed' : 'pointer',
+                border: 'none',
+                borderRadius: 10,
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                padding: '10px 18px',
+                cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.6 : 1,
                 transition: `background 0.2s ${EASING}, opacity 0.2s ${EASING}`,
               }}
@@ -759,8 +925,24 @@ export default function GroupDetailPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ width: 200, height: 28, borderRadius: 8, background: COLORS.elevated }} />
           <div style={{ width: '60%', height: 16, borderRadius: 6, background: COLORS.elevated }} />
-          <div style={{ width: '100%', height: 200, borderRadius: 16, background: COLORS.cardBg, border: `1px solid ${COLORS.border}` }} />
-          <div style={{ width: '100%', height: 200, borderRadius: 16, background: COLORS.cardBg, border: `1px solid ${COLORS.border}` }} />
+          <div
+            style={{
+              width: '100%',
+              height: 200,
+              borderRadius: 16,
+              background: COLORS.cardBg,
+              border: `1px solid ${COLORS.border}`,
+            }}
+          />
+          <div
+            style={{
+              width: '100%',
+              height: 200,
+              borderRadius: 16,
+              background: COLORS.cardBg,
+              border: `1px solid ${COLORS.border}`,
+            }}
+          />
         </div>
       </div>
     );
@@ -770,8 +952,11 @@ export default function GroupDetailPage() {
     return (
       <div
         style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          gap: 12, padding: '80px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 12,
+          padding: '80px 16px',
         }}
       >
         <span className="material-symbols-outlined" style={{ fontSize: 48, color: COLORS.error }}>
@@ -781,8 +966,14 @@ export default function GroupDetailPage() {
         <button
           onClick={() => router.push('/groups')}
           style={{
-            background: 'none', border: `1px solid ${COLORS.border}`, borderRadius: 8,
-            color: COLORS.primary, fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer',
+            background: 'none',
+            border: `1px solid ${COLORS.border}`,
+            borderRadius: 8,
+            color: COLORS.primary,
+            fontSize: 13,
+            fontWeight: 600,
+            padding: '8px 16px',
+            cursor: 'pointer',
           }}
         >
           Back to Groups
@@ -808,30 +999,55 @@ export default function GroupDetailPage() {
             onMouseEnter={() => setHoveredBack(true)}
             onMouseLeave={() => setHoveredBack(false)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              background: 'none', border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              background: 'none',
+              border: 'none',
               color: hoveredBack ? COLORS.textPrimary : COLORS.textMuted,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              padding: '4px 0', marginBottom: 16,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: '4px 0',
+              marginBottom: 16,
               transition: `color 0.2s ${EASING}`,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              arrow_back
+            </span>
             All Groups
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: 16,
+            }}
+          >
             <div style={{ flex: 1 }}>
               <h1
                 style={{
-                  fontSize: 28, fontWeight: 700, color: COLORS.textPrimary,
-                  margin: 0, letterSpacing: '-0.02em',
+                  fontSize: 28,
+                  fontWeight: 700,
+                  color: COLORS.textPrimary,
+                  margin: 0,
+                  letterSpacing: '-0.02em',
                 }}
               >
                 {group.name}
               </h1>
               {group.description && (
-                <p style={{ fontSize: 14, color: COLORS.textSecondary, margin: '8px 0 0', lineHeight: 1.5 }}>
+                <p
+                  style={{
+                    fontSize: 14,
+                    color: COLORS.textSecondary,
+                    margin: '8px 0 0',
+                    lineHeight: 1.5,
+                  }}
+                >
                   {group.description}
                 </p>
               )}
@@ -846,38 +1062,68 @@ export default function GroupDetailPage() {
                   aria-label="Settings"
                   style={{
                     background: hoveredSettings ? COLORS.elevated : 'transparent',
-                    border: `1px solid ${COLORS.border}`, borderRadius: 10,
-                    padding: 8, cursor: 'pointer', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center',
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: 10,
+                    padding: 8,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     color: hoveredSettings ? COLORS.textPrimary : COLORS.textMuted,
                     transition: `background 0.2s ${EASING}, color 0.2s ${EASING}`,
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>settings</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
+                    settings
+                  </span>
                 </button>
 
                 {showSettings && (
                   <div
                     style={{
-                      position: 'absolute', right: 0, top: '100%', marginTop: 8,
-                      background: COLORS.cardBg, border: `1px solid ${COLORS.border}`,
-                      borderRadius: 12, padding: 6, minWidth: 180,
-                      boxShadow: '0 12px 40px rgba(0,0,0,0.4)', zIndex: 50,
+                      position: 'absolute',
+                      right: 0,
+                      top: '100%',
+                      marginTop: 8,
+                      background: COLORS.cardBg,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 12,
+                      padding: 6,
+                      minWidth: 180,
+                      boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+                      zIndex: 50,
                     }}
                   >
                     <button
-                      onClick={() => { setShowSettings(false); setShowDeleteConfirm(true); }}
+                      onClick={() => {
+                        setShowSettings(false);
+                        setShowDeleteConfirm(true);
+                      }}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        width: '100%', background: 'none', border: 'none',
-                        color: COLORS.error, fontSize: 13, fontWeight: 600,
-                        padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        color: COLORS.error,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        cursor: 'pointer',
                         transition: `background 0.2s ${EASING}`,
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(253,111,133,0.1)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(253,111,133,0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'none';
+                      }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                        delete
+                      </span>
                       Delete Group
                     </button>
                   </div>
@@ -890,13 +1136,26 @@ export default function GroupDetailPage() {
         {/* Members Section */}
         <div
           style={{
-            background: COLORS.cardBg, borderRadius: 16,
-            border: `1px solid ${COLORS.border}`, padding: 24, marginBottom: 24,
+            background: COLORS.cardBg,
+            borderRadius: 16,
+            border: `1px solid ${COLORS.border}`,
+            padding: 24,
+            marginBottom: 24,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 20,
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 22, color: COLORS.primary }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 22, color: COLORS.primary }}
+              >
                 group
               </span>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: COLORS.textPrimary, margin: 0 }}>
@@ -904,10 +1163,17 @@ export default function GroupDetailPage() {
               </h2>
               <span
                 style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  minWidth: 22, height: 22, borderRadius: 11,
-                  background: COLORS.elevated, color: COLORS.textSecondary,
-                  fontSize: 12, fontWeight: 600, padding: '0 6px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  background: COLORS.elevated,
+                  color: COLORS.textSecondary,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: '0 6px',
                 }}
               >
                 {group.members.length}
@@ -920,15 +1186,23 @@ export default function GroupDetailPage() {
                 onMouseEnter={() => setHoveredInvite(true)}
                 onMouseLeave={() => setHoveredInvite(false)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  background: 'none', border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'none',
+                  border: 'none',
                   color: hoveredInvite ? '#c4abff' : COLORS.primary,
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  padding: '4px 8px', borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: 8,
                   transition: `color 0.2s ${EASING}`,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                  person_add
+                </span>
                 Invite
               </button>
             )}
@@ -939,8 +1213,11 @@ export default function GroupDetailPage() {
               <div
                 key={member.id}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '10px 12px', borderRadius: 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '10px 12px',
+                  borderRadius: 12,
                 }}
               >
                 <Avatar user={member.user} size={36} />
@@ -948,8 +1225,12 @@ export default function GroupDetailPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span
                       style={{
-                        fontSize: 14, fontWeight: 700, color: COLORS.textPrimary,
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: COLORS.textPrimary,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {member.user.name || member.user.username}
@@ -958,8 +1239,11 @@ export default function GroupDetailPage() {
                   </div>
                   <div
                     style={{
-                      fontSize: 12, color: COLORS.textSecondary,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      fontSize: 12,
+                      color: COLORS.textSecondary,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     @{member.user.username}
@@ -973,13 +1257,25 @@ export default function GroupDetailPage() {
         {/* Shared Notebooks Section */}
         <div
           style={{
-            background: COLORS.cardBg, borderRadius: 16,
-            border: `1px solid ${COLORS.border}`, padding: 24,
+            background: COLORS.cardBg,
+            borderRadius: 16,
+            border: `1px solid ${COLORS.border}`,
+            padding: 24,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 20,
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 22, color: COLORS.primary }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 22, color: COLORS.primary }}
+              >
                 auto_stories
               </span>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: COLORS.textPrimary, margin: 0 }}>
@@ -987,10 +1283,17 @@ export default function GroupDetailPage() {
               </h2>
               <span
                 style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  minWidth: 22, height: 22, borderRadius: 11,
-                  background: COLORS.elevated, color: COLORS.textSecondary,
-                  fontSize: 12, fontWeight: 600, padding: '0 6px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  background: COLORS.elevated,
+                  color: COLORS.textSecondary,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: '0 6px',
                 }}
               >
                 {group.notebooks.length}
@@ -1002,15 +1305,23 @@ export default function GroupDetailPage() {
               onMouseEnter={() => setHoveredShare(true)}
               onMouseLeave={() => setHoveredShare(false)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: 'none', border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'none',
+                border: 'none',
                 color: hoveredShare ? '#c4abff' : COLORS.primary,
-                fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                padding: '4px 8px', borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 8,
                 transition: `color 0.2s ${EASING}`,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                add
+              </span>
               Share Notebook
             </button>
           </div>
@@ -1018,11 +1329,17 @@ export default function GroupDetailPage() {
           {group.notebooks.length === 0 ? (
             <div
               style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 8, padding: '32px 16px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 8,
+                padding: '32px 16px',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 40, color: COLORS.textMuted }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 40, color: COLORS.textMuted }}
+              >
                 auto_stories
               </span>
               <span style={{ fontSize: 14, color: COLORS.textSecondary }}>
@@ -1045,8 +1362,11 @@ export default function GroupDetailPage() {
                   onMouseLeave={() => setHoveredNotebook(null)}
                   style={{
                     background: hoveredNotebook === sn.id ? COLORS.elevated : '#12122a',
-                    borderRadius: 12, padding: '16px 18px',
-                    cursor: 'pointer', position: 'relative', overflow: 'hidden',
+                    borderRadius: 12,
+                    padding: '16px 18px',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden',
                     border: `1px solid ${hoveredNotebook === sn.id ? COLORS.primary + '44' : COLORS.border}`,
                     transition: `background 0.2s ${EASING}, border-color 0.2s ${EASING}, transform 0.2s ${EASING}`,
                     transform: hoveredNotebook === sn.id ? 'translateY(-1px)' : 'translateY(0)',
@@ -1054,16 +1374,24 @@ export default function GroupDetailPage() {
                 >
                   <div
                     style={{
-                      position: 'absolute', left: 0, top: 0, bottom: 0, width: 6,
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: 6,
                       background: sn.notebook.color || COLORS.primary,
                       borderRadius: '12px 0 0 12px',
                     }}
                   />
                   <div
                     style={{
-                      fontSize: 14, fontWeight: 600, color: COLORS.textPrimary,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: COLORS.textPrimary,
                       paddingLeft: 8,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {sn.notebook.name}

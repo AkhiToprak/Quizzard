@@ -62,7 +62,7 @@ export const config = {
     '/notebooks/:path*',
     '/settings/:path*',
     '/settings',
-'/home/:path*',
+    '/home/:path*',
     '/home',
     '/pricing',
   ],

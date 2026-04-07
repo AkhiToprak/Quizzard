@@ -103,7 +103,10 @@ export function conflictResponse(error: string = 'Conflict') {
 /**
  * Too many requests response (429)
  */
-export function tooManyRequestsResponse(error: string = 'Too many requests', retryAfterMs?: number) {
+export function tooManyRequestsResponse(
+  error: string = 'Too many requests',
+  retryAfterMs?: number
+) {
   const headers: Record<string, string> = {};
   if (retryAfterMs) {
     headers['Retry-After'] = String(Math.ceil(retryAfterMs / 1000));

@@ -33,7 +33,8 @@ export async function POST(
       where: { id: docId, notebookId },
     });
     if (!document) return notFoundResponse('Document not found');
-    if (!document.textContent) return badRequestResponse('Document has no text content to summarize');
+    if (!document.textContent)
+      return badRequestResponse('Document has no text content to summarize');
 
     const { searchParams } = new URL(request.url);
     const regenerate = searchParams.get('regenerate') === 'true';
@@ -60,9 +61,10 @@ export async function POST(
     }
 
     // Generate with Claude
-    const prompt = length === 'brief'
-      ? `Summarize the following document in 3-5 concise bullet points. Focus on the key takeaways.\n\nDocument:\n${document.textContent.slice(0, 15000)}`
-      : `Provide a comprehensive summary of the following document. Include:\n- Key points and main arguments\n- Important details and supporting evidence\n- Conclusions and implications\n\nFormat with clear headings and bullet points.\n\nDocument:\n${document.textContent.slice(0, 15000)}`;
+    const prompt =
+      length === 'brief'
+        ? `Summarize the following document in 3-5 concise bullet points. Focus on the key takeaways.\n\nDocument:\n${document.textContent.slice(0, 15000)}`
+        : `Provide a comprehensive summary of the following document. Include:\n- Key points and main arguments\n- Important details and supporting evidence\n- Conclusions and implications\n\nFormat with clear headings and bullet points.\n\nDocument:\n${document.textContent.slice(0, 15000)}`;
 
     const response = await anthropic.messages.create({
       model: AI_MODEL,
@@ -80,8 +82,8 @@ export async function POST(
     });
 
     const summaryContent = response.content
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
       .join('\n');
 
     // Cache the summary

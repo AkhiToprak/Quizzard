@@ -26,24 +26,25 @@ export default function FlashcardSetCreator({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const canSubmit = title.trim().length > 0
-    && cards.length >= 1
-    && cards.every(c => c.question.trim() && c.answer.trim())
-    && !isSubmitting;
+  const canSubmit =
+    title.trim().length > 0 &&
+    cards.length >= 1 &&
+    cards.every((c) => c.question.trim() && c.answer.trim()) &&
+    !isSubmitting;
 
   const addCard = useCallback(() => {
-    setCards(prev => [...prev, { question: '', answer: '' }]);
+    setCards((prev) => [...prev, { question: '', answer: '' }]);
   }, []);
 
   const removeCard = useCallback((index: number) => {
-    setCards(prev => {
+    setCards((prev) => {
       if (prev.length <= 1) return prev;
       return prev.filter((_, i) => i !== index);
     });
   }, []);
 
   const updateCard = useCallback((index: number, field: 'question' | 'answer', value: string) => {
-    setCards(prev => prev.map((c, i) => i === index ? { ...c, [field]: value } : c));
+    setCards((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -57,7 +58,7 @@ export default function FlashcardSetCreator({
         body: JSON.stringify({
           title: title.trim(),
           sectionId,
-          cards: cards.map(c => ({ question: c.question.trim(), answer: c.answer.trim() })),
+          cards: cards.map((c) => ({ question: c.question.trim(), answer: c.answer.trim() })),
         }),
       });
       const json = await res.json();
@@ -88,7 +89,7 @@ export default function FlashcardSetCreator({
       }}
     >
       <div
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         style={{
           width: '480px',
           maxHeight: '85vh',
@@ -103,21 +104,25 @@ export default function FlashcardSetCreator({
         }}
       >
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 20px',
-          borderBottom: '1px solid rgba(140,82,255,0.15)',
-          flexShrink: 0,
-        }}>
-          <h3 style={{
-            fontSize: '15px',
-            fontWeight: 700,
-            color: '#ede9ff',
-            margin: 0,
-            fontFamily: 'inherit',
-          }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 20px',
+            borderBottom: '1px solid rgba(140,82,255,0.15)',
+            flexShrink: 0,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: '15px',
+              fontWeight: 700,
+              color: '#ede9ff',
+              margin: 0,
+              fontFamily: 'inherit',
+            }}
+          >
             Create Flashcard Set
           </h3>
           <button
@@ -136,30 +141,34 @@ export default function FlashcardSetCreator({
         </div>
 
         {/* Body (scrollable) */}
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '16px 20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-        }}>
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '16px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
           {/* Title input */}
           <div>
-            <label style={{
-              fontSize: '11px',
-              color: 'rgba(237,233,255,0.4)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              display: 'block',
-              marginBottom: '6px',
-            }}>
+            <label
+              style={{
+                fontSize: '11px',
+                color: 'rgba(237,233,255,0.4)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                display: 'block',
+                marginBottom: '6px',
+              }}
+            >
               Set Title
             </label>
             <input
               type="text"
               value={title}
-              onChange={e => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Chapter 5 Vocabulary"
               style={{
                 width: '100%',
@@ -190,16 +199,20 @@ export default function FlashcardSetCreator({
                 gap: '8px',
               }}
             >
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-                <span style={{
-                  fontSize: '11px',
-                  color: 'rgba(237,233,255,0.3)',
-                  fontWeight: 600,
-                }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'rgba(237,233,255,0.3)',
+                    fontWeight: 600,
+                  }}
+                >
                   Card {index + 1}
                 </span>
                 {cards.length > 1 && (
@@ -214,8 +227,12 @@ export default function FlashcardSetCreator({
                       display: 'flex',
                       transition: 'color 0.12s ease',
                     }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(252,165,165,0.5)'; }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.color = 'rgba(252,165,165,0.5)';
+                    }}
                   >
                     <Trash2 size={13} />
                   </button>
@@ -223,7 +240,7 @@ export default function FlashcardSetCreator({
               </div>
               <textarea
                 value={card.question}
-                onChange={e => updateCard(index, 'question', e.target.value)}
+                onChange={(e) => updateCard(index, 'question', e.target.value)}
                 placeholder="Question..."
                 rows={2}
                 style={{
@@ -242,7 +259,7 @@ export default function FlashcardSetCreator({
               />
               <textarea
                 value={card.answer}
-                onChange={e => updateCard(index, 'answer', e.target.value)}
+                onChange={(e) => updateCard(index, 'answer', e.target.value)}
                 placeholder="Answer..."
                 rows={2}
                 style={{
@@ -280,11 +297,11 @@ export default function FlashcardSetCreator({
               fontFamily: 'inherit',
               transition: 'background 0.12s ease, color 0.12s ease',
             }}
-            onMouseEnter={e => {
+            onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background = 'rgba(140,82,255,0.08)';
               (e.currentTarget as HTMLButtonElement).style.color = '#c4a9ff';
             }}
-            onMouseLeave={e => {
+            onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
               (e.currentTarget as HTMLButtonElement).style.color = 'rgba(196,169,255,0.6)';
             }}
@@ -294,26 +311,30 @@ export default function FlashcardSetCreator({
 
           {/* Error */}
           {error && (
-            <div style={{
-              fontSize: '12px',
-              color: '#f87171',
-              textAlign: 'center',
-            }}>
+            <div
+              style={{
+                fontSize: '12px',
+                color: '#f87171',
+                textAlign: 'center',
+              }}
+            >
               {error}
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          gap: '8px',
-          padding: '12px 20px',
-          borderTop: '1px solid rgba(140,82,255,0.15)',
-          flexShrink: 0,
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: '8px',
+            padding: '12px 20px',
+            borderTop: '1px solid rgba(140,82,255,0.15)',
+            flexShrink: 0,
+          }}
+        >
           <button
             onClick={onClose}
             style={{

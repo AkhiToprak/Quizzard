@@ -40,9 +40,7 @@ export default function StudyGroupCard({ group, onClick }: StudyGroupCardProps) 
         border: `1px solid ${hovered ? COLORS.primary + '44' : COLORS.border}`,
         transition: `background 0.2s ${EASING}, border-color 0.2s ${EASING}, transform 0.2s ${EASING}, box-shadow 0.2s ${EASING}`,
         transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-        boxShadow: hovered
-          ? '0 8px 32px rgba(140, 82, 255, 0.12)'
-          : '0 2px 8px rgba(0, 0, 0, 0.2)',
+        boxShadow: hovered ? '0 8px 32px rgba(140, 82, 255, 0.12)' : '0 2px 8px rgba(0, 0, 0, 0.2)',
         display: 'flex',
         flexDirection: 'column' as const,
         gap: 12,

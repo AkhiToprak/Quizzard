@@ -35,10 +35,11 @@ export async function GET(request: NextRequest, { params }: Params) {
 
     // Walk up the tree (cap at 20 to prevent infinite loops on corrupted data)
     for (let i = 0; i < 20 && currentId; i++) {
-      const node: { id: string; name: string; parentId: string | null } | null = await db.notebookFolder.findFirst({
-        where: { id: currentId, userId },
-        select: { id: true, name: true, parentId: true },
-      });
+      const node: { id: string; name: string; parentId: string | null } | null =
+        await db.notebookFolder.findFirst({
+          where: { id: currentId, userId },
+          select: { id: true, name: true, parentId: true },
+        });
       if (!node) break;
       breadcrumbs.unshift({ id: node.id, name: node.name });
       currentId = node.parentId;

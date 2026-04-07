@@ -56,7 +56,12 @@ const labelStyle: React.CSSProperties = {
   textTransform: 'uppercase',
 };
 
-export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }: NotebookFormProps) {
+export default function NotebookForm({
+  notebook,
+  onSubmit,
+  onCancel,
+  isLoading,
+}: NotebookFormProps) {
   const isEditing = !!notebook;
 
   const [form, setForm] = useState<Omit<FormData, 'presetId'>>({
@@ -226,7 +231,14 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
         `}</style>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '24px',
+          }}
+        >
           <h2
             style={{
               fontFamily: 'inherit',
@@ -267,7 +279,10 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
           {/* Name */}
           <div>
             <label style={labelStyle}>
@@ -283,7 +298,8 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
               required
               style={{
                 ...inputStyle,
-                borderColor: focusedField === 'name' ? 'rgba(140,82,255,0.6)' : 'rgba(140,82,255,0.3)',
+                borderColor:
+                  focusedField === 'name' ? 'rgba(140,82,255,0.6)' : 'rgba(140,82,255,0.3)',
               }}
             />
           </div>
@@ -420,9 +436,10 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
                   placeholder="e.g. Spanish, Japanese, French…"
                   style={{
                     ...inputStyle,
-                    borderColor: focusedField === 'language'
-                      ? `${selectedPreset.color}99`
-                      : `${selectedPreset.color}50`,
+                    borderColor:
+                      focusedField === 'language'
+                        ? `${selectedPreset.color}99`
+                        : `${selectedPreset.color}50`,
                   }}
                 />
               </div>
@@ -436,7 +453,8 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
                 placeholder="e.g. Biology, History, Math"
                 style={{
                   ...inputStyle,
-                  borderColor: focusedField === 'subject' ? 'rgba(140,82,255,0.6)' : 'rgba(140,82,255,0.3)',
+                  borderColor:
+                    focusedField === 'subject' ? 'rgba(140,82,255,0.6)' : 'rgba(140,82,255,0.3)',
                 }}
               />
             ) : null}
@@ -606,7 +624,8 @@ export default function NotebookForm({ notebook, onSubmit, onCancel, isLoading }
                 ...inputStyle,
                 resize: 'vertical',
                 minHeight: '80px',
-                borderColor: focusedField === 'description' ? 'rgba(140,82,255,0.6)' : 'rgba(140,82,255,0.3)',
+                borderColor:
+                  focusedField === 'description' ? 'rgba(140,82,255,0.6)' : 'rgba(140,82,255,0.3)',
               }}
             />
           </div>

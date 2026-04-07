@@ -10,7 +10,13 @@ interface SlidePreviewProps {
   onClick: () => void;
 }
 
-export default function SlidePreview({ title, content, index, isActive, onClick }: SlidePreviewProps) {
+export default function SlidePreview({
+  title,
+  content,
+  index,
+  isActive,
+  onClick,
+}: SlidePreviewProps) {
   const [hovered, setHovered] = useState(false);
 
   const truncatedTitle = title.length > 22 ? title.slice(0, 22) + '...' : title;
@@ -27,9 +33,7 @@ export default function SlidePreview({ title, content, index, isActive, onClick 
         minHeight: '90px',
         padding: '10px 12px',
         borderRadius: '8px',
-        border: isActive
-          ? '1px solid #8c52ff'
-          : '1px solid rgba(140,82,255,0.15)',
+        border: isActive ? '1px solid #8c52ff' : '1px solid rgba(140,82,255,0.15)',
         background: isActive
           ? 'rgba(140,82,255,0.08)'
           : hovered

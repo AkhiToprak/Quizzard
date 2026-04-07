@@ -59,7 +59,10 @@ export async function rateLimit(
 export function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
-    const ips = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
+    const ips = forwarded
+      .split(',')
+      .map((ip) => ip.trim())
+      .filter(Boolean);
     return ips[ips.length - 1] || 'unknown';
   }
   return request.headers.get('x-real-ip') || 'unknown';

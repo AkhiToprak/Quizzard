@@ -28,7 +28,10 @@ declare module '@tiptap/core' {
   }
 }
 
-const LEVEL_STYLES: Record<ToggleLevel, { fontSize: string; fontWeight: string; letterSpacing: string }> = {
+const LEVEL_STYLES: Record<
+  ToggleLevel,
+  { fontSize: string; fontWeight: string; letterSpacing: string }
+> = {
   1: { fontSize: '30px', fontWeight: '700', letterSpacing: '-0.03em' },
   2: { fontSize: '22px', fontWeight: '700', letterSpacing: '-0.02em' },
   3: { fontSize: '18px', fontWeight: '600', letterSpacing: '0em' },
@@ -97,11 +100,7 @@ export const ToggleHeading = Node.create<ToggleHeadingOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return [
-      'div',
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-      0,
-    ];
+    return ['div', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
   },
 
   addInputRules() {
@@ -110,7 +109,7 @@ export const ToggleHeading = Node.create<ToggleHeadingOptions>({
         find: new RegExp(`^(#{${level}})\\s$`),
         type: this.type,
         getAttributes: { level, collapsed: false, summary: '' },
-      }),
+      })
     );
   },
 

@@ -82,9 +82,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
   const unlockedMap = new Map(data?.unlocked?.map((u) => [u.badge, u]) ?? []);
   const progressMap = new Map(data?.progress?.map((p) => [p.badge, p]) ?? []);
 
-  const filtered = ACHIEVEMENTS.filter(
-    (a) => activeTab === 'all' || a.category === activeTab
-  );
+  const filtered = ACHIEVEMENTS.filter((a) => activeTab === 'all' || a.category === activeTab);
 
   const totalUnlocked = ACHIEVEMENTS.filter((a) => unlockedSet.has(a.badge)).length;
   const totalCount = ACHIEVEMENTS.length;
@@ -178,7 +176,8 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s cubic-bezier(0.22,1,0.36,1)',
+                transition:
+                  'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s cubic-bezier(0.22,1,0.36,1)',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
@@ -222,9 +221,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
           return (
             <div
               key={achievement.badge}
-              onClick={() =>
-                setExpandedBadge(isExpanded ? null : achievement.badge)
-              }
+              onClick={() => setExpandedBadge(isExpanded ? null : achievement.badge)}
               style={{
                 background: isUnlocked ? '#161630' : '#1a1a30',
                 borderRadius: '16px',
@@ -238,24 +235,20 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                 border: isUnlocked
                   ? '1px solid rgba(174,137,255,0.2)'
                   : '1px solid rgba(58,58,92,0.4)',
-                boxShadow: isUnlocked
-                  ? '0 0 20px rgba(174,137,255,0.08)'
-                  : 'none',
+                boxShadow: isUnlocked ? '0 0 20px rgba(174,137,255,0.08)' : 'none',
                 transition:
                   'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.03)';
                 if (isUnlocked) {
-                  e.currentTarget.style.boxShadow =
-                    '0 0 28px rgba(174,137,255,0.15)';
+                  e.currentTarget.style.boxShadow = '0 0 28px rgba(174,137,255,0.15)';
                 }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';
                 if (isUnlocked) {
-                  e.currentTarget.style.boxShadow =
-                    '0 0 20px rgba(174,137,255,0.08)';
+                  e.currentTarget.style.boxShadow = '0 0 20px rgba(174,137,255,0.08)';
                 }
               }}
             >
@@ -265,9 +258,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                   width: '48px',
                   height: '48px',
                   borderRadius: '14px',
-                  background: isUnlocked
-                    ? 'rgba(174,137,255,0.15)'
-                    : '#3a3a5c',
+                  background: isUnlocked ? 'rgba(174,137,255,0.15)' : '#3a3a5c',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -318,18 +309,11 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                       style={{
                         height: '100%',
                         width: `${
-                          progress
-                            ? Math.min(
-                                (progress.current / progress.target) * 100,
-                                100
-                              )
-                            : 0
+                          progress ? Math.min((progress.current / progress.target) * 100, 100) : 0
                         }%`,
                         borderRadius: '3px',
-                        background:
-                          'linear-gradient(90deg, #ae89ff, #8348f6)',
-                        transition:
-                          'width 0.4s cubic-bezier(0.22,1,0.36,1)',
+                        background: 'linear-gradient(90deg, #ae89ff, #8348f6)',
+                        transition: 'width 0.4s cubic-bezier(0.22,1,0.36,1)',
                       }}
                     />
                   </div>
@@ -374,10 +358,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                         fontWeight: 600,
                       }}
                     >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: '14px' }}
-                      >
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
                         check_circle
                       </span>
                       Unlocked

@@ -1,10 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import {
-  EmbeddedCheckoutProvider,
-  EmbeddedCheckout,
-} from '@stripe/react-stripe-js';
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { getStripe } from '@/lib/stripe-client';
 import type { TierKey } from '@/lib/tiers';
 import { TIERS } from '@/lib/tiers';
@@ -58,12 +55,12 @@ export default function PaymentStep({ tier, onSuccess, onBack, error }: PaymentS
           >
             error
           </span>
-          <p style={{ color: 'var(--error, #fd6f85)', fontSize: '14px', margin: 0 }}>
-            {initError}
-          </p>
+          <p style={{ color: 'var(--error, #fd6f85)', fontSize: '14px', margin: 0 }}>{initError}</p>
         </div>
         <button onClick={onBack} style={backButtonStyle}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+            arrow_back
+          </span>
           Back to plan selection
         </button>
       </div>
@@ -75,7 +72,9 @@ export default function PaymentStep({ tier, onSuccess, onBack, error }: PaymentS
       {/* Header with back button */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button onClick={onBack} style={backButtonStyle}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+            arrow_back
+          </span>
           Back
         </button>
         <p style={{ color: '#aaa8c8', fontSize: '14px', margin: 0 }}>
@@ -104,7 +103,14 @@ export default function PaymentStep({ tier, onSuccess, onBack, error }: PaymentS
       </div>
 
       {error && (
-        <p style={{ color: 'var(--error, #fd6f85)', fontSize: '13px', margin: 0, textAlign: 'center' }}>
+        <p
+          style={{
+            color: 'var(--error, #fd6f85)',
+            fontSize: '13px',
+            margin: 0,
+            textAlign: 'center',
+          }}
+        >
           {error}
         </p>
       )}

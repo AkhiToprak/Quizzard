@@ -53,9 +53,12 @@ export function hydrateStrokes(raw: unknown[]): StrokeData[] {
 
 function getStrokeDashArray(style: LineStyle, width: number): string | undefined {
   switch (style) {
-    case 'dashed': return `${Math.max(8, width * 3)} ${Math.max(4, width * 1.5)}`;
-    case 'dotted': return `${Math.max(1, width * 0.5)} ${Math.max(4, width * 1.5)}`;
-    default: return undefined;
+    case 'dashed':
+      return `${Math.max(8, width * 3)} ${Math.max(4, width * 1.5)}`;
+    case 'dotted':
+      return `${Math.max(1, width * 0.5)} ${Math.max(4, width * 1.5)}`;
+    default:
+      return undefined;
   }
 }
 
@@ -81,7 +84,10 @@ function pointsToSvgPath(points: { x: number; y: number }[]): string {
 }
 
 function getBoundingBox(points: { x: number; y: number }[]) {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   for (const p of points) {
     if (p.x < minX) minX = p.x;
     if (p.y < minY) minY = p.y;
@@ -94,7 +100,7 @@ function getBoundingBox(points: { x: number; y: number }[]) {
 function projectToRulerLine(
   point: { x: number; y: number },
   origin: { x: number; y: number },
-  angleDeg: number,
+  angleDeg: number
 ): { x: number; y: number } {
   const rad = (angleDeg * Math.PI) / 180;
   const dir = { x: Math.cos(rad), y: Math.sin(rad) };
@@ -175,7 +181,7 @@ export default function DrawingOverlay({
         y: e.clientY - rect.top,
       };
     },
-    [],
+    []
   );
 
   // Handle pointer down
@@ -191,8 +197,8 @@ export default function DrawingOverlay({
           const ox = s.offset?.x ?? 0;
           const oy = s.offset?.y ?? 0;
           for (const pt of s.points) {
-            const dx = (pt.x + ox) - point.x;
-            const dy = (pt.y + oy) - point.y;
+            const dx = pt.x + ox - point.x;
+            const dy = pt.y + oy - point.y;
             if (dx * dx + dy * dy <= ERASER_HIT_RADIUS * ERASER_HIT_RADIUS) {
               onStrokesChange(strokes.filter((_, idx) => idx !== i));
               return;
@@ -219,7 +225,7 @@ export default function DrawingOverlay({
       setCurrentStroke(newStroke);
       (e.target as SVGSVGElement).setPointerCapture?.(e.pointerId);
     },
-    [mode, activeTool, getSvgPoint, strokes, onStrokesChange, penColor, penWidth, lineStyle, ruler],
+    [mode, activeTool, getSvgPoint, strokes, onStrokesChange, penColor, penWidth, lineStyle, ruler]
   );
 
   const handlePointerMove = useCallback(
@@ -234,7 +240,7 @@ export default function DrawingOverlay({
         return { ...prev, points: [...prev.points, point] };
       });
     },
-    [currentStroke, mode, getSvgPoint, ruler],
+    [currentStroke, mode, getSvgPoint, ruler]
   );
 
   const handlePointerUp = useCallback(() => {
@@ -253,7 +259,7 @@ export default function DrawingOverlay({
       e.stopPropagation();
       setSelectedId(strokeId);
     },
-    [mode],
+    [mode]
   );
 
   // Deselect on background click
@@ -276,7 +282,7 @@ export default function DrawingOverlay({
       };
       (e.target as SVGElement).setPointerCapture?.(e.pointerId);
     },
-    [mode, selectedId, strokes],
+    [mode, selectedId, strokes]
   );
 
   const handleDragMove = useCallback((e: React.PointerEvent) => {
@@ -298,7 +304,7 @@ export default function DrawingOverlay({
     const updated = strokes.map((s) =>
       s.id === dragState.current!.strokeId
         ? { ...s, offset: { x: dragOffset.x, y: dragOffset.y } }
-        : s,
+        : s
     );
     onStrokesChange(updated);
     dragState.current = null;
@@ -311,7 +317,11 @@ export default function DrawingOverlay({
       if (!selectedId) return;
       if (e.key === 'Delete' || e.key === 'Backspace') {
         // Don't intercept if user is typing in an input
-        if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
+        if (
+          (e.target as HTMLElement).tagName === 'INPUT' ||
+          (e.target as HTMLElement).tagName === 'TEXTAREA'
+        )
+          return;
         e.preventDefault();
         onStrokesChange(strokes.filter((s) => s.id !== selectedId));
         setSelectedId(null);
@@ -338,7 +348,7 @@ export default function DrawingOverlay({
       };
       (e.target as SVGElement).setPointerCapture?.(e.pointerId);
     },
-    [ruler],
+    [ruler]
   );
 
   const handleRulerPointerMove = useCallback(
@@ -363,7 +373,7 @@ export default function DrawingOverlay({
         onRulerChange({ ...ruler, angle });
       }
     },
-    [ruler, onRulerChange],
+    [ruler, onRulerChange]
   );
 
   const handleRulerPointerUp = useCallback(() => {
@@ -489,7 +499,10 @@ export default function DrawingOverlay({
             strokeWidth={currentStroke.width}
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeDasharray={getStrokeDashArray(currentStroke.lineStyle ?? 'solid', currentStroke.width)}
+            strokeDasharray={getStrokeDashArray(
+              currentStroke.lineStyle ?? 'solid',
+              currentStroke.width
+            )}
             style={{ pointerEvents: 'none' }}
           />
         )}
@@ -499,8 +512,10 @@ export default function DrawingOverlay({
           <g>
             {/* Main ruler line */}
             <line
-              x1={rulerX1} y1={rulerY1}
-              x2={rulerX2} y2={rulerY2}
+              x1={rulerX1}
+              y1={rulerY1}
+              x2={rulerX2}
+              y2={rulerY2}
               stroke="rgba(164,123,255,0.35)"
               strokeWidth={1.5}
               strokeDasharray="8 4"
@@ -508,8 +523,10 @@ export default function DrawingOverlay({
             />
             {/* Ruler body (wider hit area for dragging) */}
             <line
-              x1={rulerX1} y1={rulerY1}
-              x2={rulerX2} y2={rulerY2}
+              x1={rulerX1}
+              y1={rulerY1}
+              x2={rulerX2}
+              y2={rulerY2}
               stroke="transparent"
               strokeWidth={20}
               style={{ pointerEvents: 'stroke', cursor: 'move' }}
@@ -519,7 +536,8 @@ export default function DrawingOverlay({
             />
             {/* Center handle */}
             <circle
-              cx={ruler.position.x} cy={ruler.position.y}
+              cx={ruler.position.x}
+              cy={ruler.position.y}
               r={6}
               fill="rgba(164,123,255,0.5)"
               stroke="rgba(164,123,255,0.8)"
@@ -531,7 +549,8 @@ export default function DrawingOverlay({
             />
             {/* Rotation handle 1 */}
             <circle
-              cx={handleX} cy={handleY}
+              cx={handleX}
+              cy={handleY}
               r={5}
               fill="rgba(140,82,255,0.4)"
               stroke="rgba(140,82,255,0.7)"
@@ -543,7 +562,8 @@ export default function DrawingOverlay({
             />
             {/* Rotation handle 2 */}
             <circle
-              cx={handleX2} cy={handleY2}
+              cx={handleX2}
+              cy={handleY2}
               r={5}
               fill="rgba(140,82,255,0.4)"
               stroke="rgba(140,82,255,0.7)"

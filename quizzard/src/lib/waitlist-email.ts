@@ -63,7 +63,7 @@ export async function sendLaunchAnnouncement(emails: string[]) {
               </p>
             </div>
           `,
-        })),
+        }))
       );
     } catch (err) {
       console.error(`Failed to send launch batch ${i / BATCH_SIZE + 1}:`, err);

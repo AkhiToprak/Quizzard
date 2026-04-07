@@ -37,7 +37,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // Preserve the order from pageIds
     const orderedPages = pageIds
-      .map(pid => pages.find(p => p.id === pid))
+      .map((pid) => pages.find((p) => p.id === pid))
       .filter(Boolean) as typeof pages;
 
     // Generate individual PDFs and merge with pdf-lib
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       ]);
       const sourcePdf = await PDFDocument.load(pdfBytes);
       const copiedPages = await mergedPdf.copyPages(sourcePdf, sourcePdf.getPageIndices());
-      copiedPages.forEach(p => mergedPdf.addPage(p));
+      copiedPages.forEach((p) => mergedPdf.addPage(p));
     }
 
     const mergedBytes = await mergedPdf.save();

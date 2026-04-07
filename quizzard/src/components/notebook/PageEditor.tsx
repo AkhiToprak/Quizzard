@@ -79,7 +79,13 @@ interface PageEditorProps {
   highlightTerm?: string;
 }
 
-export default function PageEditor({ notebookId, pageId, coWorkSessionId, currentUserId, highlightTerm }: PageEditorProps) {
+export default function PageEditor({
+  notebookId,
+  pageId,
+  coWorkSessionId,
+  currentUserId,
+  highlightTerm,
+}: PageEditorProps) {
   const [page, setPage] = useState<PageData | null>(null);
   const [title, setTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -93,7 +99,11 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
   const [penWidth, setPenWidth] = useState(4);
   const [lineStyle, setLineStyle] = useState<LineStyle>('solid');
   const [activeTool, setActiveTool] = useState<ActiveTool>('pen');
-  const [ruler, setRuler] = useState<RulerState>({ active: false, angle: 0, position: { x: 400, y: 300 } });
+  const [ruler, setRuler] = useState<RulerState>({
+    active: false,
+    angle: 0,
+    position: { x: 400, y: 300 },
+  });
   const [strokes, setStrokes] = useState<StrokeData[]>([]);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
@@ -122,10 +132,9 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
 
     const releaseLock = async () => {
       try {
-        await fetch(
-          `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`,
-          { method: 'DELETE' }
-        );
+        await fetch(`/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`, {
+          method: 'DELETE',
+        });
       } catch {
         // silent
       }
@@ -139,7 +148,7 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
     const handleBeforeUnload = () => {
       // Use sendBeacon for reliable cleanup on tab close
       navigator.sendBeacon(
-        `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`,
+        `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`
         // sendBeacon doesn't support DELETE, so the lock will auto-expire after 5 min
       );
     };
@@ -167,7 +176,7 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         // silent
       }
     },
-    [notebookId, pageId],
+    [notebookId, pageId]
   );
 
   const handleStrokesChange = useCallback(
@@ -176,7 +185,7 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
       if (saveDrawingRef.current) clearTimeout(saveDrawingRef.current);
       saveDrawingRef.current = setTimeout(() => saveDrawing(newStrokes), 1500);
     },
-    [saveDrawing],
+    [saveDrawing]
   );
 
   useEffect(() => {
@@ -187,7 +196,10 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
     (async () => {
       try {
         const res = await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`);
-        if (res.status === 404) { setNotFound(true); return; }
+        if (res.status === 404) {
+          setNotFound(true);
+          return;
+        }
         const json = await res.json();
         if (json.success) {
           setPage(json.data);
@@ -201,7 +213,9 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
       }
     })();
 
-    return () => { isMountedRef.current = false; };
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [notebookId, pageId]);
 
   const save = useCallback(
@@ -218,7 +232,7 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         if (isMountedRef.current) setSaveStatus('unsaved');
       }
     },
-    [notebookId, pageId],
+    [notebookId, pageId]
   );
 
   const scheduleSave = useCallback(
@@ -229,7 +243,7 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         save(contentJson, plainText, titleRef.current);
       }, 1500);
     },
-    [save],
+    [save]
   );
 
   const editor = useEditor(
@@ -261,7 +275,11 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
           },
         }),
         ResizableImage,
-        Placeholder.configure({ placeholder: lockedByOther ? 'This page is being edited by someone else...' : 'Start writing...' }),
+        Placeholder.configure({
+          placeholder: lockedByOther
+            ? 'This page is being edited by someone else...'
+            : 'Start writing...',
+        }),
         Typography,
         Table.configure({ resizable: true, handleWidth: 5, cellMinWidth: 80 }),
         TableRow,
@@ -277,7 +295,7 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         scheduleSave(json, ed.getText());
       },
     },
-    [page, lockedByOther],
+    [page, lockedByOther]
   );
 
   const handleTitleChange = useCallback(
@@ -291,7 +309,7 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
         save(json, editor.getText(), newTitle);
       }, 1500);
     },
-    [editor, save],
+    [editor, save]
   );
 
   useEffect(() => {
@@ -334,9 +352,28 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
     return (
       <div style={{ padding: '40px 56px' }}>
         <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
-        <div style={{ width: '240px', height: '28px', borderRadius: '8px', background: 'rgba(237,233,255,0.08)', marginBottom: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div
+          style={{
+            width: '240px',
+            height: '28px',
+            borderRadius: '8px',
+            background: 'rgba(237,233,255,0.08)',
+            marginBottom: '24px',
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }}
+        />
         {[1, 0.9, 0.7].map((w, i) => (
-          <div key={i} style={{ width: `${w * 100}%`, height: '14px', borderRadius: '6px', background: 'rgba(237,233,255,0.05)', marginBottom: '12px', animation: `pulse 1.5s ease-in-out infinite ${i * 0.1}s` }} />
+          <div
+            key={i}
+            style={{
+              width: `${w * 100}%`,
+              height: '14px',
+              borderRadius: '6px',
+              background: 'rgba(237,233,255,0.05)',
+              marginBottom: '12px',
+              animation: `pulse 1.5s ease-in-out infinite ${i * 0.1}s`,
+            }}
+          />
         ))}
       </div>
     );
@@ -344,8 +381,18 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
 
   if (notFound) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '400px' }}>
-        <p style={{ fontFamily: 'inherit', fontSize: '15px', color: 'rgba(237,233,255,0.3)' }}>Page not found.</p>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          minHeight: '400px',
+        }}
+      >
+        <p style={{ fontFamily: 'inherit', fontSize: '15px', color: 'rgba(237,233,255,0.3)' }}>
+          Page not found.
+        </p>
       </div>
     );
   }
@@ -482,29 +529,59 @@ export default function PageEditor({ notebookId, pageId, coWorkSessionId, curren
             readOnly={lockedByOther}
             style={{
               flex: 1,
-              background: 'none', border: 'none', outline: 'none',
+              background: 'none',
+              border: 'none',
+              outline: 'none',
               fontFamily: 'inherit',
-              fontSize: '32px', fontWeight: 700,
+              fontSize: '32px',
+              fontWeight: 700,
               color: '#ede9ff',
-              letterSpacing: '-0.04em', lineHeight: 1.2, padding: 0,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.2,
+              padding: 0,
             }}
           />
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
-            fontFamily: 'inherit', fontSize: '11px',
-            color: saveStatus === 'saved'
-              ? 'rgba(237,233,255,0.2)'
-              : saveStatus === 'saving' ? 'rgba(140,82,255,0.6)' : 'rgba(249,115,22,0.6)',
-            transition: 'color 0.2s',
-          }}>
-            {saveStatus === 'saving' && <Loader size={11} style={{ animation: 'spin 0.8s linear infinite' }} />}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              flexShrink: 0,
+              fontFamily: 'inherit',
+              fontSize: '11px',
+              color:
+                saveStatus === 'saved'
+                  ? 'rgba(237,233,255,0.2)'
+                  : saveStatus === 'saving'
+                    ? 'rgba(140,82,255,0.6)'
+                    : 'rgba(249,115,22,0.6)',
+              transition: 'color 0.2s',
+            }}
+          >
+            {saveStatus === 'saving' && (
+              <Loader size={11} style={{ animation: 'spin 0.8s linear infinite' }} />
+            )}
             {saveStatus === 'saved' && 'Saved'}
             {saveStatus === 'saving' && 'Saving...'}
             {saveStatus === 'unsaved' && 'Unsaved'}
           </div>
         </div>
-        <p style={{ fontFamily: 'inherit', fontSize: '11px', color: 'rgba(237,233,255,0.22)', margin: '0 0 0 2px' }}>
-          {new Date(page.updatedAt).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+        <p
+          style={{
+            fontFamily: 'inherit',
+            fontSize: '11px',
+            color: 'rgba(237,233,255,0.22)',
+            margin: '0 0 0 2px',
+          }}
+        >
+          {new Date(page.updatedAt).toLocaleString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          })}
         </p>
         <div style={{ height: '1px', background: 'rgba(140,82,255,0.1)', margin: '14px 0 0' }} />
       </div>

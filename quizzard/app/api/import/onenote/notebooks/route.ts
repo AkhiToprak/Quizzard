@@ -36,7 +36,11 @@ export async function GET(request: NextRequest) {
       .get();
 
     const notebooks = (response.value || []).map(
-      (nb: { id: string; displayName: string; sections?: { id: string; displayName: string }[] }) => ({
+      (nb: {
+        id: string;
+        displayName: string;
+        sections?: { id: string; displayName: string }[];
+      }) => ({
         id: nb.id,
         displayName: nb.displayName,
         sections: (nb.sections || []).map((s) => ({

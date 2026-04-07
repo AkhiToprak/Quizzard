@@ -135,7 +135,12 @@ function CommentVoteButtons({
         style={{
           fontSize: 11,
           fontWeight: 700,
-          color: comment.voteScore > 0 ? COLORS.primary : comment.voteScore < 0 ? COLORS.error : COLORS.textMuted,
+          color:
+            comment.voteScore > 0
+              ? COLORS.primary
+              : comment.voteScore < 0
+                ? COLORS.error
+                : COLORS.textMuted,
           minWidth: 14,
           textAlign: 'center',
           userSelect: 'none',
@@ -456,7 +461,9 @@ function CommentRow({
                   flexShrink: 0,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  delete
+                </span>
               </button>
             )}
           </div>
@@ -496,7 +503,9 @@ function CommentRow({
                   transition: `color 0.15s ${EASING}`,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>reply</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  reply
+                </span>
                 Reply
               </button>
             )}
@@ -546,7 +555,9 @@ function CommentRow({
                     marginLeft: 20,
                   }}
                 >
-                  {loadingReplies ? 'Loading...' : `View more replies (${comment.replyCount - allReplies.length})`}
+                  {loadingReplies
+                    ? 'Loading...'
+                    : `View more replies (${comment.replyCount - allReplies.length})`}
                 </button>
               )}
             </div>
@@ -578,9 +589,15 @@ function CommentRow({
 }
 
 /* ── Main CommentSection ── */
-export default function CommentSection({ postId, commentCount, expanded = false }: CommentSectionProps) {
+export default function CommentSection({
+  postId,
+  commentCount,
+  expanded = false,
+}: CommentSectionProps) {
   const { data: session } = useSession();
-  const user = session?.user as { id?: string; username?: string; avatarUrl?: string; role?: string } | undefined;
+  const user = session?.user as
+    | { id?: string; username?: string; avatarUrl?: string; role?: string }
+    | undefined;
   const isAdmin = user?.role === 'admin';
 
   const [comments, setComments] = useState<Comment[]>([]);
@@ -596,28 +613,31 @@ export default function CommentSection({ postId, commentCount, expanded = false 
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const fetchComments = useCallback(async (cursor?: string) => {
-    setLoading(true);
-    try {
-      const url = `/api/posts/${postId}/comments?limit=20${cursor ? `&cursor=${cursor}` : ''}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success) {
-          if (cursor) {
-            setComments((prev) => [...prev, ...json.data.comments]);
-          } else {
-            setComments(json.data.comments);
+  const fetchComments = useCallback(
+    async (cursor?: string) => {
+      setLoading(true);
+      try {
+        const url = `/api/posts/${postId}/comments?limit=20${cursor ? `&cursor=${cursor}` : ''}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            if (cursor) {
+              setComments((prev) => [...prev, ...json.data.comments]);
+            } else {
+              setComments(json.data.comments);
+            }
+            setNextCursor(json.data.nextCursor);
           }
-          setNextCursor(json.data.nextCursor);
         }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      // silently fail
-    } finally {
-      setLoading(false);
-    }
-  }, [postId]);
+    },
+    [postId]
+  );
 
   useEffect(() => {
     if (showAll && comments.length === 0) {
@@ -856,7 +876,12 @@ export default function CommentSection({ postId, commentCount, expanded = false 
 }
 
 /* ── Helpers for immutable nested state updates ── */
-function updateCommentVote(comments: Comment[], id: string, userVote: number, voteScore: number): Comment[] {
+function updateCommentVote(
+  comments: Comment[],
+  id: string,
+  userVote: number,
+  voteScore: number
+): Comment[] {
   return comments.map((c) => {
     if (c.id === id) return { ...c, userVote, voteScore };
     if (c.replies.length > 0) {
@@ -886,7 +911,8 @@ function removeComment(comments: Comment[], id: string): Comment[] {
     .map((c) => {
       if (c.replies.length > 0) {
         const updatedReplies = removeComment(c.replies, id);
-        if (updatedReplies !== c.replies) return { ...c, replies: updatedReplies, replyCount: c.replyCount - 1 };
+        if (updatedReplies !== c.replies)
+          return { ...c, replies: updatedReplies, replyCount: c.replyCount - 1 };
       }
       return c;
     });

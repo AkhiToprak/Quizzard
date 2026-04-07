@@ -26,8 +26,15 @@ function DroppableCrumb({
 
   return (
     <span
-      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOver(true); }}
-      onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setDragOver(true);
+      }}
+      onDragEnter={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
       onDragLeave={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(false);
       }}
@@ -49,7 +56,11 @@ function DroppableCrumb({
   );
 }
 
-export default function FolderBreadcrumbs({ breadcrumbs, onNavigate, onDropNotebook }: FolderBreadcrumbsProps) {
+export default function FolderBreadcrumbs({
+  breadcrumbs,
+  onNavigate,
+  onDropNotebook,
+}: FolderBreadcrumbsProps) {
   return (
     <nav
       style={{
@@ -79,10 +90,17 @@ export default function FolderBreadcrumbs({ breadcrumbs, onNavigate, onDropNoteb
             alignItems: 'center',
             gap: '6px',
           }}
-          onMouseEnter={(e) => { if (breadcrumbs.length > 0) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.1)'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
+          onMouseEnter={(e) => {
+            if (breadcrumbs.length > 0)
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.1)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'none';
+          }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>home</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+            home
+          </span>
           My Notebooks
         </button>
       </DroppableCrumb>
@@ -99,7 +117,9 @@ export default function FolderBreadcrumbs({ breadcrumbs, onNavigate, onDropNoteb
             </span>
             <DroppableCrumb folderId={crumb.id} onDropNotebook={onDropNotebook}>
               <button
-                onClick={() => { if (!isLast) onNavigate(crumb.id); }}
+                onClick={() => {
+                  if (!isLast) onNavigate(crumb.id);
+                }}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -116,8 +136,14 @@ export default function FolderBreadcrumbs({ breadcrumbs, onNavigate, onDropNoteb
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}
-                onMouseEnter={(e) => { if (!isLast) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.1)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
+                onMouseEnter={(e) => {
+                  if (!isLast)
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      'rgba(174,137,255,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'none';
+                }}
               >
                 {crumb.name}
               </button>

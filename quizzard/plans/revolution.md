@@ -12,29 +12,29 @@ Quizzard has auth (email/password via NextAuth), a personal dashboard, and a not
 
 ## Current State Summary
 
-| Aspect | Current | Target |
-|--------|---------|--------|
-| User model | `id, email, name, password, dailyGoal` | + `username`, `avatarUrl`, `bio`, `onboardingComplete` |
-| Registration | Single form: name, email, password | 3-step wizard: account → avatar → study goals |
-| Post-login | Redirects to `/dashboard` | Redirects to `/home` (new feed-centered page) |
-| Social | None | Friends, posts, notebook sharing, co-work |
-| Navigation | Sidebar on all dashboard pages | Sidebar on dashboard/notebooks, burger menu on home |
+| Aspect       | Current                                | Target                                                 |
+| ------------ | -------------------------------------- | ------------------------------------------------------ |
+| User model   | `id, email, name, password, dailyGoal` | + `username`, `avatarUrl`, `bio`, `onboardingComplete` |
+| Registration | Single form: name, email, password     | 3-step wizard: account → avatar → study goals          |
+| Post-login   | Redirects to `/dashboard`              | Redirects to `/home` (new feed-centered page)          |
+| Social       | None                                   | Friends, posts, notebook sharing, co-work              |
+| Navigation   | Sidebar on all dashboard pages         | Sidebar on dashboard/notebooks, burger menu on home    |
 
 ---
 
 ## Architecture Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Onboarding | Multi-step wizard replacing `/auth/register` | Single guided flow, no separate route |
+| Decision    | Choice                                                | Rationale                                                       |
+| ----------- | ----------------------------------------------------- | --------------------------------------------------------------- |
+| Onboarding  | Multi-step wizard replacing `/auth/register`          | Single guided flow, no separate route                           |
 | Home layout | Feed-centered 3-column (notebooks \| feed \| friends) | Maximizes community engagement as primary post-login experience |
-| Navigation | Burger on home, sidebar on dashboard/notebooks | Cleaner home layout, preserve existing dashboard/notebook UX |
-| Friends | Request/accept + username search | Requires unique usernames (set during onboarding) |
-| Sharing | Copy OR live view-only (user chooses) | Flexibility without CRDT complexity |
-| Co-work | Turn-based (page locking) | No WebSocket infra needed; one editor per page at a time |
-| Posts | Rich: text, images, polls, notebook links | Full social feature set |
-| Goals | Custom categories (hours, pages, quizzes, notebooks) | Flexible, aligns with gamification plans |
-| Visibility | User chooses: public / friends / specific | Maximum user control over content |
+| Navigation  | Burger on home, sidebar on dashboard/notebooks        | Cleaner home layout, preserve existing dashboard/notebook UX    |
+| Friends     | Request/accept + username search                      | Requires unique usernames (set during onboarding)               |
+| Sharing     | Copy OR live view-only (user chooses)                 | Flexibility without CRDT complexity                             |
+| Co-work     | Turn-based (page locking)                             | No WebSocket infra needed; one editor per page at a time        |
+| Posts       | Rich: text, images, polls, notebook links             | Full social feature set                                         |
+| Goals       | Custom categories (hours, pages, quizzes, notebooks)  | Flexible, aligns with gamification plans                        |
+| Visibility  | User chooses: public / friends / specific             | Maximum user control over content                               |
 
 ---
 
@@ -47,6 +47,7 @@ Quizzard has auth (email/password via NextAuth), a personal dashboard, and a not
 **File:** `prisma/schema.prisma` — modify `User` model
 
 Add these fields to the existing User model:
+
 ```prisma
 model User {
   // ... existing fields (id, email, name, password, dailyGoal, createdAt, updatedAt) ...
@@ -60,6 +61,7 @@ model User {
 **Why `username` is required (not optional):** The friend system depends on username search. Every user must have one. Since this is pre-launch, reset the dev DB if needed.
 
 **Also update:**
+
 - `src/types/next-auth.d.ts` — add `username: string` and `avatarUrl?: string` to Session user type and JWT type
 - `src/auth/config.ts`:
   - In `authorize()`: return `{ id, email, name, username, avatarUrl }` (add fields to select query)
@@ -67,14 +69,29 @@ model User {
   - In `session()` callback: pass `username` and `avatarUrl` to `session.user`
 
 **Exact changes to `src/auth/config.ts`:**
+
 ```ts
 // In authorize():
 const user = await db.user.findUnique({
   where: { email: credentials.email },
-  select: { id: true, email: true, name: true, password: true, username: true, avatarUrl: true, onboardingComplete: true }
+  select: {
+    id: true,
+    email: true,
+    name: true,
+    password: true,
+    username: true,
+    avatarUrl: true,
+    onboardingComplete: true,
+  },
 });
 // ...after password check...
-return { id: user.id, email: user.email, name: user.name, username: user.username, avatarUrl: user.avatarUrl };
+return {
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  username: user.username,
+  avatarUrl: user.avatarUrl,
+};
 
 // In jwt callback:
 if (user) {
@@ -144,12 +161,14 @@ model Friendship {
 ```
 
 Add to User model:
+
 ```prisma
 sentFriendRequests     Friendship[] @relation("SentFriendRequests")
 receivedFriendRequests Friendship[] @relation("ReceivedFriendRequests")
 ```
 
 **Edge cases to handle in API:**
+
 - Can't friend yourself
 - Can't send duplicate request (unique constraint)
 - If A sends to B and B sends to A: auto-accept both
@@ -303,6 +322,7 @@ model PostComment {
 ```
 
 Add to User model:
+
 ```prisma
 posts          Post[]
 postLikes      PostLike[]
@@ -423,6 +443,7 @@ npx prisma generate
 Props: `{ currentStep: number, totalSteps: number, labels: string[] }`
 
 **Behavior:**
+
 - Horizontal bar: 3 circles connected by lines
 - Completed steps: filled purple (#ae89ff) circle with checkmark icon
 - Current step: outlined purple circle, subtle pulsing glow
@@ -444,18 +465,24 @@ Props: `{ currentStep: number, totalSteps: number, labels: string[] }`
 // State management
 const [step, setStep] = useState(1); // 1 = Account, 2 = Avatar, 3 = Goals
 const [formData, setFormData] = useState({
-  username: '', email: '', name: '', password: '', confirmPassword: '',
+  username: '',
+  email: '',
+  name: '',
+  password: '',
+  confirmPassword: '',
   avatarUrl: null as string | null,
   studyGoals: [] as { type: string; target: number }[],
 });
 ```
 
 **Flow:**
+
 1. Step 1 → validate & register (POST /api/auth/register) → auto-login → step 2
 2. Step 2 → upload avatar or skip → step 3
 3. Step 3 → pick goals → PUT /api/user/onboarding → redirect to /dashboard (later /home)
 
 **UX details:**
+
 - Back button on steps 2 and 3 (step 1 is irreversible after registration)
 - "Skip" button on steps 2 and 3
 - Keyboard: Enter advances, Escape goes back
@@ -470,6 +497,7 @@ const [formData, setFormData] = useState({
 **New file:** `src/components/onboarding/AccountStep.tsx`
 
 **Fields:**
+
 1. **Username** — icon `alternate_email`
    - Validation: 3-20 chars, `/^[a-zA-Z0-9_]+$/`, no spaces
    - Real-time uniqueness check: debounced 500ms → `GET /api/user/check-username?username=xxx`
@@ -483,6 +511,7 @@ const [formData, setFormData] = useState({
 6. **Terms checkbox** (same as current)
 
 **On submit:**
+
 1. Client-side validation
 2. `POST /api/auth/register` with `{ username, email, name, password }`
 3. On success: `signIn('credentials', { email, password, redirect: false })`
@@ -498,16 +527,19 @@ const [formData, setFormData] = useState({
 **New file:** `src/components/onboarding/AvatarStep.tsx`
 
 **Layout:**
+
 - Large circular preview (120px) centered — default: first letter of username in purple circle
 - Two option cards side by side below:
 
 **Option 1: Upload Photo** — icon `photo_camera`
+
 - File picker: accept image/png, image/jpeg, image/webp, max 5MB
 - Preview in circle with `object-fit: cover`
 - Uploads to `POST /api/user/avatar` (multipart)
 - Server saves to `public/uploads/avatars/{userId}.{ext}`
 
 **Option 2: Create Avatar** — icon `face`
+
 - **Greyed out**: `pointer-events: none; opacity: 0.4`
 - "Coming Soon" badge overlay (small purple pill)
 
@@ -521,14 +553,15 @@ const [formData, setFormData] = useState({
 
 **Layout:** 4 selectable cards in 2x2 grid
 
-| Type | Icon | Label | Presets |
-|------|------|-------|---------|
-| `hours` | `schedule` | "Study Hours / Week" | 5h, 10h, 15h, 20h+ |
-| `pages` | `description` | "Pages Written / Week" | 5, 10, 20, 50 |
-| `quizzes` | `psychology` | "Quizzes Completed / Week" | 3, 5, 10, 20 |
-| `notebooks` | `auto_stories` | "Notebooks Finished / Week" | 1, 2, 3, 5 |
+| Type        | Icon           | Label                       | Presets            |
+| ----------- | -------------- | --------------------------- | ------------------ |
+| `hours`     | `schedule`     | "Study Hours / Week"        | 5h, 10h, 15h, 20h+ |
+| `pages`     | `description`  | "Pages Written / Week"      | 5, 10, 20, 50      |
+| `quizzes`   | `psychology`   | "Quizzes Completed / Week"  | 3, 5, 10, 20       |
+| `notebooks` | `auto_stories` | "Notebooks Finished / Week" | 1, 2, 3, 5         |
 
 **Interaction:**
+
 1. Tap card to toggle selection (multi-select)
 2. Selected card expands, shows preset buttons
 3. Tap preset OR type custom number
@@ -536,6 +569,7 @@ const [formData, setFormData] = useState({
 5. At least 1 goal to proceed (or "Skip")
 
 **On submit:**
+
 - `PUT /api/user/onboarding` with `{ avatarUrl, studyGoals: [{ type, target }] }`
 - Server: sets `onboardingComplete: true`, creates `StudyGoal` records
 - Redirect to `/dashboard` (changed to `/home` in Phase 6)
@@ -545,6 +579,7 @@ const [formData, setFormData] = useState({
 ### 2.6 — Onboarding API Routes
 
 **New file:** `app/api/user/check-username/route.ts`
+
 ```
 GET /api/user/check-username?username=xxx
 → { available: boolean }
@@ -552,6 +587,7 @@ No auth required. Validate format server-side.
 ```
 
 **Modify:** `app/api/auth/register/route.ts`
+
 ```
 POST /api/auth/register
 Body: { username, email, name, password }
@@ -563,6 +599,7 @@ Body: { username, email, name, password }
 ```
 
 **New file:** `app/api/user/avatar/route.ts`
+
 ```
 POST /api/user/avatar (multipart/form-data)
 Auth required. Accept png/jpeg/webp, max 5MB.
@@ -571,6 +608,7 @@ Save to public/uploads/avatars/{userId}.{ext}, update user.avatarUrl.
 ```
 
 **New file:** `app/api/user/onboarding/route.ts`
+
 ```
 PUT /api/user/onboarding
 Auth required.
@@ -616,7 +654,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/notebooks/:path*', '/settings/:path*', '/ai-chat/:path*', '/home/:path*', '/auth/register'],
+  matcher: [
+    '/dashboard/:path*',
+    '/notebooks/:path*',
+    '/settings/:path*',
+    '/ai-chat/:path*',
+    '/home/:path*',
+    '/auth/register',
+  ],
 };
 ```
 
@@ -631,6 +676,7 @@ export const config = {
 ### 3.1 — Friend Request API
 
 **New file:** `app/api/friends/request/route.ts`
+
 ```
 POST /api/friends/request
 Auth required
@@ -646,6 +692,7 @@ Errors: 400 self-friend, 400 duplicate, 400 already friends, 404 not found
 ```
 
 **New file:** `app/api/friends/request/[id]/route.ts`
+
 ```
 PUT — accept/decline (Body: { action: "accept" | "decline" })
   Validate: user is addressee, status is "pending"
@@ -659,6 +706,7 @@ DELETE — cancel request (requester only, pending only)
 ### 3.2 — Friends List & Unfriend API
 
 **New file:** `app/api/friends/route.ts`
+
 ```
 GET /api/friends?status=accepted|pending&direction=incoming|outgoing
 - accepted (default): all friends (requester OR addressee, status=accepted)
@@ -668,6 +716,7 @@ GET /api/friends?status=accepted|pending&direction=incoming|outgoing
 ```
 
 **New file:** `app/api/friends/[id]/route.ts`
+
 ```
 DELETE — unfriend (id = friendship ID, user must be requester or addressee)
 ```
@@ -677,6 +726,7 @@ DELETE — unfriend (id = friendship ID, user must be requester or addressee)
 ### 3.3 — User Search API
 
 **New file:** `app/api/users/search/route.ts`
+
 ```
 GET /api/users/search?q=xxx
 Auth required. Search by username (case-insensitive contains). Exclude self. Limit 20.
@@ -731,6 +781,7 @@ Add "Friends" section below nav links: header with badge, compact FriendsList (t
 ### 4.1 — Share Notebook API
 
 **New file:** `app/api/notebooks/[id]/share/route.ts`
+
 ```
 POST /api/notebooks/[id]/share
 Auth required (must own notebook)
@@ -741,6 +792,7 @@ Body: { type: "copy"|"live_view", visibility: "public"|"friends"|"specific", sha
 ```
 
 **New file:** `app/api/community/notebooks/route.ts`
+
 ```
 GET /api/community/notebooks?filter=all|friends|mine&search=xxx&subject=xxx&page=1&limit=20
 Paginated. Each result: notebookName, subject, color, authorUsername, authorAvatar, pageCount, shareType, createdAt.
@@ -761,6 +813,7 @@ Deep-clone in a Prisma transaction: notebook → sections → pages (content + d
 **New file:** `src/components/notebook/ShareNotebookModal.tsx`
 
 **3 tabs:**
+
 1. **Community:** visibility toggle + share type + "Share" button + unshare if already shared
 2. **Send to Friend:** friend picker (checkboxes) + share type toggle + "Send" button
 3. **Link:** copyable link if publicly shared
@@ -784,6 +837,7 @@ Color bar + name + subject badge + author (avatar + username) + page count + act
 ### 5.1 — Post CRUD API
 
 **New file:** `app/api/posts/route.ts`
+
 ```
 POST /api/posts (multipart/form-data)
 Auth required. Fields: content (1-2000 chars), visibility, notebookRef?, images[] (max 4), poll? (JSON).
@@ -794,6 +848,7 @@ Cursor-based pagination. Includes: author, images, poll (with user vote), like/c
 ```
 
 **Visibility logic:**
+
 ```
 User can see post if:
 1. visibility = "public"
@@ -819,6 +874,7 @@ User can see post if:
 ### 5.3 — Post Composer UI
 
 **New file:** `src/components/community/PostComposer.tsx`
+
 - Avatar (32px) + auto-expand textarea + char count (shows at >1800)
 - Toolbar: image upload (max 4), poll creator toggle, notebook link picker, visibility selector
 - "Post" button (purple, disabled when empty)
@@ -834,6 +890,7 @@ User can see post if:
 ### 5.4 — Post Card UI
 
 **New file:** `src/components/community/PostCard.tsx`
+
 1. Header: avatar (40px) + username + timestamp + "..." menu
 2. Content: text, whitespace preserved, URLs auto-linked
 3. Images: 1=full-width, 2=side-by-side, 3-4=2x2 grid
@@ -859,11 +916,13 @@ User can see post if:
 ### 6.1 — Home Route & Layout
 
 **New file:** `app/(home)/layout.tsx`
+
 - No sidebar. HomeHeader at top. Max-width ~1400px centered.
 - 3 columns: 280px | flex-1 | 300px
 - Mobile (<768px): single column, stacked
 
 **New file:** `app/(home)/home/page.tsx`
+
 - Left: `<RecentNotebooksPanel />`
 - Center: `<HomeFeed />`
 - Right: `<SocialPanel />`
@@ -873,6 +932,7 @@ User can see post if:
 ### 6.2 — Home Header
 
 **New file:** `src/components/layout/HomeHeader.tsx`
+
 - Burger menu button → slide-out menu
 - Logo (36px, from `public/logo_trimmed.png`)
 - Search bar (centered, max-width 500px) — searches posts, notebooks, users
@@ -880,6 +940,7 @@ User can see post if:
 - User avatar (32px, click → dropdown: Profile, Settings, Logout)
 
 **New file:** `src/components/layout/BurgerMenu.tsx`
+
 - Slide-out from left: 280px, background #121222
 - User info (avatar 64px + name + @username)
 - Nav: Home, Dashboard, Notebooks, AI Chat, Settings
@@ -893,6 +954,7 @@ User can see post if:
 **New file:** `src/components/home/RecentNotebooksPanel.tsx`
 
 Position: sticky (top: 80px)
+
 1. "Go to Dashboard" card — purple gradient, icon `dashboard`, click → `/dashboard`
 2. "Recent Notebooks" header + "View All" → `/notebooks`
 3. Last 5 notebooks: color dot + name (truncate) + "updated 2h ago"
@@ -903,6 +965,7 @@ Position: sticky (top: 80px)
 ### 6.4 — Center Column: Home Feed
 
 **New file:** `src/components/home/HomeFeed.tsx`
+
 1. PostComposer (from Phase 5)
 2. Tab bar: "For You" | "Friends Only" | "Trending" (animated underline)
 3. PostFeed (from Phase 5)
@@ -914,6 +977,7 @@ Position: sticky (top: 80px)
 **New file:** `src/components/home/SocialPanel.tsx`
 
 Position: sticky (top: 80px)
+
 1. "Friend Requests" (if pending > 0): up to 3 with Accept/Decline + "See all"
 2. "Friends": "Find Friends" button + compact FriendsList
 3. "Shared With Me": last 3 notebooks shared by friends
@@ -923,13 +987,16 @@ Position: sticky (top: 80px)
 ### 6.6 — Notifications Bell & Dropdown
 
 **New file:** `src/components/layout/NotificationBell.tsx`
+
 - Bell icon with unread badge. Polls every 30s: `GET /api/notifications?unreadCount=true`
 
 **New file:** `src/components/layout/NotificationDropdown.tsx`
+
 - Max-height 400px, scrollable. "Mark all read" button.
 - Items: icon + text + timestamp + read indicator. Click → navigate + mark read.
 
 **New file:** `app/api/notifications/route.ts`
+
 ```
 GET /api/notifications?cursor=xxx&limit=20 | ?unreadCount=true → { count }
 PUT /api/notifications/read-all
@@ -953,12 +1020,14 @@ PUT /api/notifications/read-all
 ### 7.1 — Co-Work Session API
 
 **New file:** `app/api/notebooks/[id]/cowork/route.ts`
+
 ```
 POST — create session (host = current user, added as first participant)
 GET — get active session for this notebook (or null)
 ```
 
 **New file:** `app/api/notebooks/[id]/cowork/[sessionId]/route.ts`
+
 ```
 GET — full state (participants, locks)
 DELETE — end session (host only, cleans up all locks)
@@ -973,6 +1042,7 @@ DELETE — end session (host only, cleans up all locks)
 ### 7.2 — Page Lock API
 
 **New file:** `app/api/notebooks/[id]/cowork/[sessionId]/lock/[pageId]/route.ts`
+
 ```
 POST — lock page (expiresAt = now + 5min). 409 if locked by someone else. Refresh if locked by self.
 DELETE — release lock (must be lock holder)
@@ -981,6 +1051,7 @@ DELETE — release lock (must be lock holder)
 **Lock heartbeat:** Client calls POST every 2 minutes to refresh `expiresAt`.
 **Auto-expire:** If user closes tab, lock expires in 5 minutes.
 **Cleanup:** Every lock API call also deletes expired locks:
+
 ```ts
 await db.pageLock.deleteMany({ where: { sessionId, expiresAt: { lt: new Date() } } });
 ```
@@ -990,12 +1061,14 @@ await db.pageLock.deleteMany({ where: { sessionId, expiresAt: { lt: new Date() }
 ### 7.3 — Co-Work Invite Flow
 
 **New file:** `src/components/notebook/CoWorkButton.tsx`
+
 - No session: "Start Co-Work" button
 - Host: "Co-Working (N)" badge + "End Session"
 - Participant: "Co-Working (N)" badge + "Leave"
 - Not in session: "Join Co-Work" button
 
 **New file:** `src/components/notebook/CoWorkInviteModal.tsx`
+
 - Friends picker + "Send Invite" (creates Notification type: "co_work_invite")
 
 ---
@@ -1003,22 +1076,27 @@ await db.pageLock.deleteMany({ where: { sessionId, expiresAt: { lt: new Date() }
 ### 7.4 — Co-Work Session UI
 
 **Modify:** `src/components/notebook/NotebookSidebar.tsx`
+
 - Lock indicators on page items: blue pencil (self), orange lock (other + tooltip)
 
 **New file:** `src/components/notebook/CoWorkBar.tsx`
+
 - Horizontal bar below header: participant avatars (overlapping) + count + "Invite" + session timer
 
 **Modify:** `src/components/notebook/PageEditor.tsx`
+
 - On page open (if co-work): auto-lock (`POST .../lock/[pageId]`)
 - Heartbeat interval (2 min)
 - On navigate away / beforeunload: release lock
 - If locked by other: read-only view + banner
 
 **New file:** `src/components/notebook/PageLockIndicator.tsx`
+
 - Banner: avatar + "@username is editing this page"
 - Polls lock status every 10s, auto-removes when expired
 
 **New file:** `src/components/notebook/CoWorkChat.tsx`
+
 - Collapsible chat panel (right side). In-memory messages (not persisted).
 
 ---
@@ -1027,17 +1105,18 @@ await db.pageLock.deleteMany({ where: { sessionId, expiresAt: { lt: new Date() }
 
 ### Per-Phase Testing
 
-| Phase | Key Tests |
-|-------|-----------|
-| 1 | `prisma migrate dev` succeeds, `prisma studio` shows all tables, existing data intact |
-| 2 | Register → 3 steps → onboardingComplete=true → redirect. Existing login works. |
-| 3 | Search user → request → accept → friends list → unfriend |
-| 4 | Share as copy → community browser → download → original unaffected. Live view works. |
-| 5 | Text post → feed. Image post → gallery. Poll → vote → results. Visibility enforced. |
-| 6 | Login → /home. 3 columns. Feed works. Burger menu navigates. Notifications show. |
-| 7 | Start session → invite → join → lock page → edit → release → other user edits. Session end cleans up. |
+| Phase | Key Tests                                                                                             |
+| ----- | ----------------------------------------------------------------------------------------------------- |
+| 1     | `prisma migrate dev` succeeds, `prisma studio` shows all tables, existing data intact                 |
+| 2     | Register → 3 steps → onboardingComplete=true → redirect. Existing login works.                        |
+| 3     | Search user → request → accept → friends list → unfriend                                              |
+| 4     | Share as copy → community browser → download → original unaffected. Live view works.                  |
+| 5     | Text post → feed. Image post → gallery. Poll → vote → results. Visibility enforced.                   |
+| 6     | Login → /home. 3 columns. Feed works. Burger menu navigates. Notifications show.                      |
+| 7     | Start session → invite → join → lock page → edit → release → other user edits. Session end cleans up. |
 
 ### Regression Checks (after every phase)
+
 - Login/logout works
 - Existing notebooks accessible and editable
 - Dashboard loads with correct data
@@ -1049,32 +1128,34 @@ await db.pageLock.deleteMany({ where: { sessionId, expiresAt: { lt: new Date() }
 ## File Impact Summary
 
 ### Modified Files
-| File | Phase | Changes |
-|------|-------|---------|
-| `prisma/schema.prisma` | 1 | 14+ new models, expand User/Notebook/Page |
-| `src/auth/config.ts` | 1, 2 | username/avatar/onboardingComplete on JWT/session |
-| `src/types/next-auth.d.ts` | 1 | Add username, avatarUrl to types |
-| `src/middleware.ts` | 2, 6 | Custom middleware: onboarding + home redirect |
-| `app/(auth)/auth/register/page.tsx` | 2 | Replace with OnboardingWizard |
-| `app/api/auth/register/route.ts` | 2 | Accept username, set onboardingComplete |
-| `src/components/layout/Sidebar.tsx` | 3 | Add friends section |
-| `src/components/notebook/NotebookSidebar.tsx` | 7 | Page lock indicators |
-| `src/components/notebook/PageEditor.tsx` | 7 | Auto-lock/unlock, read-only mode |
-| `app/(auth)/auth/login/page.tsx` | 6 | Redirect to /home |
+
+| File                                          | Phase | Changes                                           |
+| --------------------------------------------- | ----- | ------------------------------------------------- |
+| `prisma/schema.prisma`                        | 1     | 14+ new models, expand User/Notebook/Page         |
+| `src/auth/config.ts`                          | 1, 2  | username/avatar/onboardingComplete on JWT/session |
+| `src/types/next-auth.d.ts`                    | 1     | Add username, avatarUrl to types                  |
+| `src/middleware.ts`                           | 2, 6  | Custom middleware: onboarding + home redirect     |
+| `app/(auth)/auth/register/page.tsx`           | 2     | Replace with OnboardingWizard                     |
+| `app/api/auth/register/route.ts`              | 2     | Accept username, set onboardingComplete           |
+| `src/components/layout/Sidebar.tsx`           | 3     | Add friends section                               |
+| `src/components/notebook/NotebookSidebar.tsx` | 7     | Page lock indicators                              |
+| `src/components/notebook/PageEditor.tsx`      | 7     | Auto-lock/unlock, read-only mode                  |
+| `app/(auth)/auth/login/page.tsx`              | 6     | Redirect to /home                                 |
 
 ### New Directories
-| Directory | Phase | Purpose |
-|-----------|-------|---------|
-| `src/components/onboarding/` | 2 | Wizard steps & components |
-| `src/components/social/` | 3 | Friends list, search, modals |
-| `src/components/community/` | 4, 5 | Posts, feed, sharing, browser |
-| `src/components/home/` | 6 | Home page panels |
-| `app/(home)/` | 6 | Home route group |
-| `app/api/friends/` | 3 | Friend system APIs |
-| `app/api/posts/` | 5 | Post CRUD + interactions |
-| `app/api/community/` | 4 | Community notebook browser |
-| `app/api/notebooks/[id]/share/` | 4 | Notebook sharing APIs |
-| `app/api/notebooks/[id]/cowork/` | 7 | Co-work session APIs |
-| `app/api/notifications/` | 4, 6 | Notification CRUD |
-| `app/api/user/` | 2 | Avatar, onboarding, username check |
-| `app/api/users/` | 3 | User search |
+
+| Directory                        | Phase | Purpose                            |
+| -------------------------------- | ----- | ---------------------------------- |
+| `src/components/onboarding/`     | 2     | Wizard steps & components          |
+| `src/components/social/`         | 3     | Friends list, search, modals       |
+| `src/components/community/`      | 4, 5  | Posts, feed, sharing, browser      |
+| `src/components/home/`           | 6     | Home page panels                   |
+| `app/(home)/`                    | 6     | Home route group                   |
+| `app/api/friends/`               | 3     | Friend system APIs                 |
+| `app/api/posts/`                 | 5     | Post CRUD + interactions           |
+| `app/api/community/`             | 4     | Community notebook browser         |
+| `app/api/notebooks/[id]/share/`  | 4     | Notebook sharing APIs              |
+| `app/api/notebooks/[id]/cowork/` | 7     | Co-work session APIs               |
+| `app/api/notifications/`         | 4, 6  | Notification CRUD                  |
+| `app/api/user/`                  | 2     | Avatar, onboarding, username check |
+| `app/api/users/`                 | 3     | User search                        |

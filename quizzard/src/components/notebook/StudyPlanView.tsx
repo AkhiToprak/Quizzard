@@ -61,19 +61,26 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
       const res = await fetch(apiBase);
       const json = await res.json();
       if (json.success && json.data) setPlan(json.data);
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }, [apiBase]);
 
   // Compute overall progress
-  const allMaterials = plan.phases.flatMap(p => p.materials);
+  const allMaterials = plan.phases.flatMap((p) => p.materials);
   const totalMaterials = allMaterials.length;
-  const completedMaterials = allMaterials.filter(m => m.completed).length;
+  const completedMaterials = allMaterials.filter((m) => m.completed).length;
   const overallProgress = totalMaterials > 0 ? (completedMaterials / totalMaterials) * 100 : 0;
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   const saveTitle = useCallback(async () => {
-    if (!titleDraft.trim()) { setEditingTitle(false); setTitleDraft(plan.title); return; }
+    if (!titleDraft.trim()) {
+      setEditingTitle(false);
+      setTitleDraft(plan.title);
+      return;
+    }
     try {
       await fetch(apiBase, {
         method: 'PATCH',
@@ -82,7 +89,9 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
       });
       setEditingTitle(false);
       refresh();
-    } catch { setEditingTitle(false); }
+    } catch {
+      setEditingTitle(false);
+    }
   }, [apiBase, titleDraft, plan.title, refresh]);
 
   const saveDesc = useCallback(async () => {
@@ -94,7 +103,9 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
       });
       setEditingDesc(false);
       refresh();
-    } catch { setEditingDesc(false); }
+    } catch {
+      setEditingDesc(false);
+    }
   }, [apiBase, descDraft, refresh]);
 
   const deletePlan = useCallback(async () => {
@@ -102,7 +113,9 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
     try {
       await fetch(apiBase, { method: 'DELETE' });
       router.push(`/notebooks/${notebookId}`);
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }, [apiBase, notebookId, router]);
 
   const addPhase = useCallback(async () => {
@@ -127,66 +140,114 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
       setNewPhaseTitle('');
       setNewPhaseDays(7);
       refresh();
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }, [apiBase, newPhaseTitle, newPhaseDays, plan.phases, refresh]);
 
   return (
-    <div style={{
-      height: '100%', overflow: 'auto',
-      padding: '32px 40px',
-      fontFamily: 'inherit',
-    }}>
+    <div
+      style={{
+        height: '100%',
+        overflow: 'auto',
+        padding: '32px 40px',
+        fontFamily: 'inherit',
+      }}
+    >
       {/* Header */}
       <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '8px' }}>
+        <div
+          style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '8px' }}
+        >
           <div style={{ flex: 1 }}>
             {editingTitle ? (
               <input
                 value={titleDraft}
-                onChange={e => setTitleDraft(e.target.value)}
+                onChange={(e) => setTitleDraft(e.target.value)}
                 onBlur={saveTitle}
-                onKeyDown={e => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') { setEditingTitle(false); setTitleDraft(plan.title); } }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveTitle();
+                  if (e.key === 'Escape') {
+                    setEditingTitle(false);
+                    setTitleDraft(plan.title);
+                  }
+                }}
                 autoFocus
                 style={{
-                  fontSize: '24px', fontWeight: 700, color: '#ede9ff',
-                  background: 'rgba(140,82,255,0.08)', border: '1px solid rgba(140,82,255,0.3)',
-                  borderRadius: '8px', padding: '4px 10px', outline: 'none',
+                  fontSize: '24px',
+                  fontWeight: 700,
+                  color: '#ede9ff',
+                  background: 'rgba(140,82,255,0.08)',
+                  border: '1px solid rgba(140,82,255,0.3)',
+                  borderRadius: '8px',
+                  padding: '4px 10px',
+                  outline: 'none',
                   fontFamily: 'inherit',
                   width: '100%',
                 }}
               />
             ) : (
               <h1
-                onClick={() => { setEditingTitle(true); setTitleDraft(plan.title); }}
+                onClick={() => {
+                  setEditingTitle(true);
+                  setTitleDraft(plan.title);
+                }}
                 style={{
-                  fontSize: '24px', fontWeight: 700, color: '#ede9ff',
-                  margin: 0, cursor: 'pointer',
+                  fontSize: '24px',
+                  fontWeight: 700,
+                  color: '#ede9ff',
+                  margin: 0,
+                  cursor: 'pointer',
                   fontFamily: 'inherit',
                 }}
               >
                 {plan.title}
                 {plan.source === 'ai' && (
-                  <Sparkles size={14} style={{ color: '#8c52ff', marginLeft: '8px', verticalAlign: 'middle' }} />
+                  <Sparkles
+                    size={14}
+                    style={{ color: '#8c52ff', marginLeft: '8px', verticalAlign: 'middle' }}
+                  />
                 )}
               </h1>
             )}
           </div>
 
           <div style={{ display: 'flex', gap: '6px', paddingTop: '4px' }}>
-            <button onClick={() => { setEditingTitle(true); setTitleDraft(plan.title); }} style={{
-              width: '32px', height: '32px', borderRadius: '8px',
-              border: '1px solid rgba(140,82,255,0.15)', background: 'transparent',
-              color: 'rgba(196,169,255,0.4)', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <button
+              onClick={() => {
+                setEditingTitle(true);
+                setTitleDraft(plan.title);
+              }}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                border: '1px solid rgba(140,82,255,0.15)',
+                background: 'transparent',
+                color: 'rgba(196,169,255,0.4)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Edit3 size={14} />
             </button>
-            <button onClick={deletePlan} style={{
-              width: '32px', height: '32px', borderRadius: '8px',
-              border: '1px solid rgba(140,82,255,0.15)', background: 'transparent',
-              color: 'rgba(252,165,165,0.5)', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <button
+              onClick={deletePlan}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                border: '1px solid rgba(140,82,255,0.15)',
+                background: 'transparent',
+                color: 'rgba(252,165,165,0.5)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Trash2 size={14} />
             </button>
           </div>
@@ -196,23 +257,36 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
         {editingDesc ? (
           <textarea
             value={descDraft}
-            onChange={e => setDescDraft(e.target.value)}
+            onChange={(e) => setDescDraft(e.target.value)}
             onBlur={saveDesc}
             autoFocus
             rows={3}
             style={{
-              width: '100%', fontSize: '14px', color: 'rgba(237,233,255,0.6)',
-              background: 'rgba(140,82,255,0.06)', border: '1px solid rgba(140,82,255,0.2)',
-              borderRadius: '8px', padding: '8px 12px', outline: 'none', resize: 'vertical',
-              fontFamily: 'inherit', lineHeight: 1.6,
+              width: '100%',
+              fontSize: '14px',
+              color: 'rgba(237,233,255,0.6)',
+              background: 'rgba(140,82,255,0.06)',
+              border: '1px solid rgba(140,82,255,0.2)',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              outline: 'none',
+              resize: 'vertical',
+              fontFamily: 'inherit',
+              lineHeight: 1.6,
             }}
           />
         ) : (
           <p
-            onClick={() => { setEditingDesc(true); setDescDraft(plan.description || ''); }}
+            onClick={() => {
+              setEditingDesc(true);
+              setDescDraft(plan.description || '');
+            }}
             style={{
-              fontSize: '14px', color: plan.description ? 'rgba(237,233,255,0.5)' : 'rgba(237,233,255,0.2)',
-              margin: '0 0 4px', lineHeight: 1.6, cursor: 'pointer',
+              fontSize: '14px',
+              color: plan.description ? 'rgba(237,233,255,0.5)' : 'rgba(237,233,255,0.2)',
+              margin: '0 0 4px',
+              lineHeight: 1.6,
+              cursor: 'pointer',
             }}
           >
             {plan.description || 'Click to add a description...'}
@@ -220,26 +294,39 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
         )}
 
         {/* Meta row */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '16px',
-          margin: '12px 0 24px',
-          fontSize: '12px', color: 'rgba(196,169,255,0.4)',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            margin: '12px 0 24px',
+            fontSize: '12px',
+            color: 'rgba(196,169,255,0.4)',
+          }}
+        >
           <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <CalendarDays size={13} />
             {formatDate(plan.startDate)} – {formatDate(plan.endDate)}
           </span>
-          <span>{plan.phases.length} phase{plan.phases.length !== 1 ? 's' : ''}</span>
-          <span>{totalMaterials} material{totalMaterials !== 1 ? 's' : ''}</span>
+          <span>
+            {plan.phases.length} phase{plan.phases.length !== 1 ? 's' : ''}
+          </span>
+          <span>
+            {totalMaterials} material{totalMaterials !== 1 ? 's' : ''}
+          </span>
         </div>
 
         {/* Overall progress */}
         {totalMaterials > 0 && (
           <div style={{ marginBottom: '28px' }}>
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              marginBottom: '6px',
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '6px',
+              }}
+            >
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(196,169,255,0.5)' }}>
                 Overall Progress
               </span>
@@ -247,18 +334,25 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
                 {completedMaterials}/{totalMaterials} ({Math.round(overallProgress)}%)
               </span>
             </div>
-            <div style={{
-              height: '6px', borderRadius: '3px',
-              background: 'rgba(140,82,255,0.1)',
-            }}>
-              <div style={{
-                height: '100%', borderRadius: '3px',
-                background: overallProgress === 100
-                  ? 'linear-gradient(90deg, rgba(74,222,128,0.7), rgba(74,222,128,0.9))'
-                  : 'linear-gradient(90deg, #8c52ff, #5170ff)',
-                width: `${overallProgress}%`,
-                transition: 'width 0.4s ease',
-              }} />
+            <div
+              style={{
+                height: '6px',
+                borderRadius: '3px',
+                background: 'rgba(140,82,255,0.1)',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  borderRadius: '3px',
+                  background:
+                    overallProgress === 100
+                      ? 'linear-gradient(90deg, rgba(74,222,128,0.7), rgba(74,222,128,0.9))'
+                      : 'linear-gradient(90deg, #8c52ff, #5170ff)',
+                  width: `${overallProgress}%`,
+                  transition: 'width 0.4s ease',
+                }}
+              />
             </div>
           </div>
         )}
@@ -269,11 +363,16 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
             <div key={phase.id} style={{ position: 'relative' }}>
               {/* Timeline connector line */}
               {idx < plan.phases.length - 1 && (
-                <div style={{
-                  position: 'absolute', left: '19px', top: '100%',
-                  width: '2px', height: '16px',
-                  background: 'rgba(140,82,255,0.15)',
-                }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '19px',
+                    top: '100%',
+                    width: '2px',
+                    height: '16px',
+                    background: 'rgba(140,82,255,0.15)',
+                  }}
+                />
               )}
               <StudyPhaseCard
                 notebookId={notebookId}
@@ -287,56 +386,91 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
 
         {/* Add Phase */}
         {showAddPhase ? (
-          <div style={{
-            marginTop: '16px', padding: '16px',
-            background: 'rgba(30,29,53,0.6)',
-            border: '1px solid rgba(140,82,255,0.15)',
-            borderRadius: '12px',
-          }}>
+          <div
+            style={{
+              marginTop: '16px',
+              padding: '16px',
+              background: 'rgba(30,29,53,0.6)',
+              border: '1px solid rgba(140,82,255,0.15)',
+              borderRadius: '12px',
+            }}
+          >
             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
               <input
                 value={newPhaseTitle}
-                onChange={e => setNewPhaseTitle(e.target.value)}
+                onChange={(e) => setNewPhaseTitle(e.target.value)}
                 placeholder="Phase title..."
                 autoFocus
                 style={{
-                  flex: 1, fontSize: '13px', color: '#ede9ff',
-                  background: 'rgba(140,82,255,0.08)', border: '1px solid rgba(140,82,255,0.2)',
-                  borderRadius: '8px', padding: '8px 12px', outline: 'none',
+                  flex: 1,
+                  fontSize: '13px',
+                  color: '#ede9ff',
+                  background: 'rgba(140,82,255,0.08)',
+                  border: '1px solid rgba(140,82,255,0.2)',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  outline: 'none',
                   fontFamily: 'inherit',
                 }}
               />
               <input
                 type="number"
                 value={newPhaseDays}
-                onChange={e => setNewPhaseDays(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => setNewPhaseDays(Math.max(1, parseInt(e.target.value) || 1))}
                 min={1}
                 style={{
-                  width: '60px', fontSize: '13px', color: '#ede9ff',
-                  background: 'rgba(140,82,255,0.08)', border: '1px solid rgba(140,82,255,0.2)',
-                  borderRadius: '8px', padding: '8px', outline: 'none', textAlign: 'center',
+                  width: '60px',
+                  fontSize: '13px',
+                  color: '#ede9ff',
+                  background: 'rgba(140,82,255,0.08)',
+                  border: '1px solid rgba(140,82,255,0.2)',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  outline: 'none',
+                  textAlign: 'center',
                   fontFamily: 'inherit',
                 }}
               />
-              <span style={{ fontSize: '12px', color: 'rgba(196,169,255,0.4)', alignSelf: 'center' }}>days</span>
+              <span
+                style={{ fontSize: '12px', color: 'rgba(196,169,255,0.4)', alignSelf: 'center' }}
+              >
+                days
+              </span>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={addPhase} disabled={!newPhaseTitle.trim()} style={{
-                padding: '7px 16px', borderRadius: '8px', border: 'none',
-                background: newPhaseTitle.trim() ? '#8c52ff' : 'rgba(140,82,255,0.2)',
-                color: newPhaseTitle.trim() ? '#fff' : 'rgba(196,169,255,0.4)',
-                fontSize: '12px', fontWeight: 600, cursor: newPhaseTitle.trim() ? 'pointer' : 'not-allowed',
-                fontFamily: 'inherit',
-              }}>
+              <button
+                onClick={addPhase}
+                disabled={!newPhaseTitle.trim()}
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: newPhaseTitle.trim() ? '#8c52ff' : 'rgba(140,82,255,0.2)',
+                  color: newPhaseTitle.trim() ? '#fff' : 'rgba(196,169,255,0.4)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: newPhaseTitle.trim() ? 'pointer' : 'not-allowed',
+                  fontFamily: 'inherit',
+                }}
+              >
                 Add Phase
               </button>
-              <button onClick={() => { setShowAddPhase(false); setNewPhaseTitle(''); }} style={{
-                padding: '7px 16px', borderRadius: '8px',
-                border: '1px solid rgba(140,82,255,0.2)',
-                background: 'transparent', color: '#c4a9ff',
-                fontSize: '12px', cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}>
+              <button
+                onClick={() => {
+                  setShowAddPhase(false);
+                  setNewPhaseTitle('');
+                }}
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(140,82,255,0.2)',
+                  background: 'transparent',
+                  color: '#c4a9ff',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
                 Cancel
               </button>
             </div>
@@ -345,11 +479,20 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
           <button
             onClick={() => setShowAddPhase(true)}
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              width: '100%', marginTop: '16px', padding: '12px',
-              borderRadius: '10px', border: '1.5px dashed rgba(140,82,255,0.2)',
-              background: 'transparent', cursor: 'pointer',
-              color: 'rgba(196,169,255,0.4)', fontSize: '13px', fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              width: '100%',
+              marginTop: '16px',
+              padding: '12px',
+              borderRadius: '10px',
+              border: '1.5px dashed rgba(140,82,255,0.2)',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: 'rgba(196,169,255,0.4)',
+              fontSize: '13px',
+              fontWeight: 500,
               fontFamily: 'inherit',
               transition: 'border-color 0.15s ease, color 0.15s ease',
             }}

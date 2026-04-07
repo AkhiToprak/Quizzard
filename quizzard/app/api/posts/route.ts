@@ -41,10 +41,18 @@ export async function POST(request: NextRequest) {
 
     // Rate limit: 10 posts per 10 minutes per user
     const rl = await rateLimit(rateLimitKey('post:create', request, userId), 10, 10 * 60 * 1000);
-    if (!rl.success) return tooManyRequestsResponse('Too many posts. Please slow down.', rl.retryAfterMs);
+    if (!rl.success)
+      return tooManyRequestsResponse('Too many posts. Please slow down.', rl.retryAfterMs);
 
     const body = await request.json();
-    const { content, visibility: rawVisibility, imagePaths, poll, notebookRef, specificFriendIds } = body;
+    const {
+      content,
+      visibility: rawVisibility,
+      imagePaths,
+      poll,
+      notebookRef,
+      specificFriendIds,
+    } = body;
 
     // Validate content
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
@@ -74,13 +82,22 @@ export async function POST(request: NextRequest) {
     let pollData: { question: string; options: string[] } | null = null;
     if (poll) {
       pollData = poll;
-      if (!pollData || !pollData.question || typeof pollData.question !== 'string' || pollData.question.trim().length === 0) {
+      if (
+        !pollData ||
+        !pollData.question ||
+        typeof pollData.question !== 'string' ||
+        pollData.question.trim().length === 0
+      ) {
         return badRequestResponse('Poll question is required');
       }
       if (pollData.question.length > 200) {
         return badRequestResponse('Poll question must be 200 characters or less');
       }
-      if (!Array.isArray(pollData.options) || pollData.options.length < MIN_POLL_OPTIONS || pollData.options.length > MAX_POLL_OPTIONS) {
+      if (
+        !Array.isArray(pollData.options) ||
+        pollData.options.length < MIN_POLL_OPTIONS ||
+        pollData.options.length > MAX_POLL_OPTIONS
+      ) {
         return badRequestResponse(`Poll must have ${MIN_POLL_OPTIONS}-${MAX_POLL_OPTIONS} options`);
       }
       for (const opt of pollData.options) {
@@ -131,7 +148,7 @@ export async function POST(request: NextRequest) {
         },
       });
       const friendIds = new Set(
-        friendships.map((f) => f.requesterId === userId ? f.addresseeId : f.requesterId)
+        friendships.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId))
       );
       const nonFriends = visibleToIds.filter((id) => !friendIds.has(id));
       if (nonFriends.length > 0) {
@@ -276,10 +293,7 @@ export async function GET(request: NextRequest) {
       // Public posts sorted by engagement (likes + comments)
       // For trending, we'll get public posts and sort by like count
       where = {
-        OR: [
-          { visibility: 'public' },
-          { authorId: userId },
-        ],
+        OR: [{ visibility: 'public' }, { authorId: userId }],
       };
     } else {
       // 'foryou' — public + friends' posts visible to user
@@ -323,9 +337,10 @@ export async function GET(request: NextRequest) {
           take: 1,
         },
       },
-      orderBy: feed === 'trending'
-        ? [{ votes: { _count: 'desc' } }, { createdAt: 'desc' }]
-        : { createdAt: 'desc' },
+      orderBy:
+        feed === 'trending'
+          ? [{ votes: { _count: 'desc' } }, { createdAt: 'desc' }]
+          : { createdAt: 'desc' },
       take: limit + 1, // Fetch one extra to determine if there's a next page
     });
 
@@ -335,31 +350,29 @@ export async function GET(request: NextRequest) {
 
     // Fetch vote scores for all posts in batch
     const postIds = sliced.map((p) => p.id);
-    const voteScores = postIds.length > 0
-      ? await db.postVote.groupBy({
-          by: ['postId'],
-          where: { postId: { in: postIds } },
-          _sum: { value: true },
-        })
-      : [];
-    const voteScoreMap = new Map(
-      voteScores.map((v) => [v.postId, v._sum.value ?? 0])
-    );
+    const voteScores =
+      postIds.length > 0
+        ? await db.postVote.groupBy({
+            by: ['postId'],
+            where: { postId: { in: postIds } },
+            _sum: { value: true },
+          })
+        : [];
+    const voteScoreMap = new Map(voteScores.map((v) => [v.postId, v._sum.value ?? 0]));
 
     // For polls, check if user has voted
-    const pollIds = sliced
-      .filter((p) => p.poll)
-      .map((p) => p.poll!.id);
+    const pollIds = sliced.filter((p) => p.poll).map((p) => p.poll!.id);
 
-    const userVotes = pollIds.length > 0
-      ? await db.pollVote.findMany({
-          where: {
-            userId,
-            option: { pollId: { in: pollIds } },
-          },
-          select: { optionId: true },
-        })
-      : [];
+    const userVotes =
+      pollIds.length > 0
+        ? await db.pollVote.findMany({
+            where: {
+              userId,
+              option: { pollId: { in: pollIds } },
+            },
+            select: { optionId: true },
+          })
+        : [];
     const votedOptionIds = new Set(userVotes.map((v) => v.optionId));
 
     const formatted = sliced.map((post) => formatPostWithVotes(post, votedOptionIds, voteScoreMap));
@@ -382,9 +395,7 @@ async function getFriendIds(userId: string): Promise<string[]> {
     },
     select: { requesterId: true, addresseeId: true },
   });
-  return friendships.map((f) =>
-    f.requesterId === userId ? f.addresseeId : f.requesterId
-  );
+  return friendships.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId));
 }
 
 // Helper: format a post for the response (used for create)
@@ -406,13 +417,15 @@ function formatPost(post: any, userId: string) {
       ? {
           id: post.poll.id,
           question: post.poll.question,
-          options: post.poll.options.map((opt: { id: string; text: string; sortOrder: number; _count: { votes: number } }) => ({
-            id: opt.id,
-            text: opt.text,
-            sortOrder: opt.sortOrder,
-            voteCount: opt._count.votes,
-            userVoted: false, // Just created, user hasn't voted
-          })),
+          options: post.poll.options.map(
+            (opt: { id: string; text: string; sortOrder: number; _count: { votes: number } }) => ({
+              id: opt.id,
+              text: opt.text,
+              sortOrder: opt.sortOrder,
+              voteCount: opt._count.votes,
+              userVoted: false, // Just created, user hasn't voted
+            })
+          ),
         }
       : null,
     voteScore: 0,
@@ -422,8 +435,12 @@ function formatPost(post: any, userId: string) {
 }
 
 // Helper: format a post with vote info (used for feed)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatPostWithVotes(post: any, votedOptionIds: Set<string>, voteScoreMap: Map<string, number>) {
+function formatPostWithVotes(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  post: any,
+  votedOptionIds: Set<string>,
+  voteScoreMap: Map<string, number>
+) {
   return {
     id: post.id,
     content: post.content,
@@ -440,13 +457,15 @@ function formatPostWithVotes(post: any, votedOptionIds: Set<string>, voteScoreMa
       ? {
           id: post.poll.id,
           question: post.poll.question,
-          options: post.poll.options.map((opt: { id: string; text: string; sortOrder: number; _count: { votes: number } }) => ({
-            id: opt.id,
-            text: opt.text,
-            sortOrder: opt.sortOrder,
-            voteCount: opt._count.votes,
-            userVoted: votedOptionIds.has(opt.id),
-          })),
+          options: post.poll.options.map(
+            (opt: { id: string; text: string; sortOrder: number; _count: { votes: number } }) => ({
+              id: opt.id,
+              text: opt.text,
+              sortOrder: opt.sortOrder,
+              voteCount: opt._count.votes,
+              userVoted: votedOptionIds.has(opt.id),
+            })
+          ),
         }
       : null,
     voteScore: voteScoreMap.get(post.id) ?? 0,

@@ -258,10 +258,7 @@ export default function NotebookBrowser() {
         gap: '12px',
       }}
     >
-      <span
-        className="material-symbols-outlined"
-        style={{ fontSize: '48px', color: '#555578' }}
-      >
+      <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#555578' }}>
         library_books
       </span>
       <p style={{ fontSize: '16px', fontWeight: 600, color: '#aaa8c8', margin: 0 }}>
@@ -287,18 +284,13 @@ export default function NotebookBrowser() {
         gap: '12px',
       }}
     >
-      <span
-        className="material-symbols-outlined"
-        style={{ fontSize: '48px', color: '#fd6f85' }}
-      >
+      <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#fd6f85' }}>
         error_outline
       </span>
       <p style={{ fontSize: '16px', fontWeight: 600, color: '#fd6f85', margin: 0 }}>
         Something went wrong
       </p>
-      <p style={{ fontSize: '13px', color: '#8888a8', margin: 0, textAlign: 'center' }}>
-        {error}
-      </p>
+      <p style={{ fontSize: '13px', color: '#8888a8', margin: 0, textAlign: 'center' }}>{error}</p>
       <button
         onClick={fetchNotebooks}
         style={{

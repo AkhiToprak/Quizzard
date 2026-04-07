@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useRef, useCallback, useMemo, type DragEvent, type ChangeEvent } from 'react';
-import { X, FileUp, Loader2, AlertCircle, CheckCircle2, FileSpreadsheet, ClipboardPaste, Archive } from 'lucide-react';
+import {
+  X,
+  FileUp,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  FileSpreadsheet,
+  ClipboardPaste,
+  Archive,
+} from 'lucide-react';
 import { useDirectUpload } from '@/hooks/useDirectUpload';
 
 interface FlashcardImportDialogProps {
@@ -60,10 +69,13 @@ export default function FlashcardImportDialog({
     setDragOver(false);
   }, []);
 
-  const handleTabChange = useCallback((tab: Tab) => {
-    setActiveTab(tab);
-    resetUpload();
-  }, [resetUpload]);
+  const handleTabChange = useCallback(
+    (tab: Tab) => {
+      setActiveTab(tab);
+      resetUpload();
+    },
+    [resetUpload]
+  );
 
   // --- File upload (CSV/Excel/Anki) ---
 
@@ -170,22 +182,31 @@ export default function FlashcardImportDialog({
 
   const termSepChar = useMemo(() => {
     switch (termSep) {
-      case 'tab': return '\t';
-      case 'comma': return ',';
-      case 'semicolon': return ';';
-      case 'colon': return ':';
-      case 'custom': return customTermSep || '\t';
+      case 'tab':
+        return '\t';
+      case 'comma':
+        return ',';
+      case 'semicolon':
+        return ';';
+      case 'colon':
+        return ':';
+      case 'custom':
+        return customTermSep || '\t';
     }
   }, [termSep, customTermSep]);
 
   const cardSepRegex = useMemo(() => {
     switch (cardSep) {
-      case 'newline': return /\n/;
-      case 'double-newline': return /\n\s*\n/;
-      case 'semicolon': return /;/;
-      case 'custom': return customCardSep
-        ? new RegExp(customCardSep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-        : /\n/;
+      case 'newline':
+        return /\n/;
+      case 'double-newline':
+        return /\n\s*\n/;
+      case 'semicolon':
+        return /;/;
+      case 'custom':
+        return customCardSep
+          ? new RegExp(customCardSep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          : /\n/;
     }
   }, [cardSep, customCardSep]);
 
@@ -268,9 +289,7 @@ export default function FlashcardImportDialog({
     flex: 1,
     padding: '6px 8px',
     borderRadius: '6px',
-    border: isActive
-      ? '1px solid rgba(140,82,255,0.5)'
-      : '1px solid rgba(140,82,255,0.15)',
+    border: isActive ? '1px solid rgba(140,82,255,0.5)' : '1px solid rgba(140,82,255,0.15)',
     background: isActive ? 'rgba(140,82,255,0.15)' : 'rgba(140,82,255,0.04)',
     color: isActive ? '#c4a9ff' : 'rgba(237,233,255,0.5)',
     fontSize: '11px',
@@ -282,7 +301,14 @@ export default function FlashcardImportDialog({
 
   // Placeholder text for textarea
   const termSepDisplay = termSepChar === '\t' ? '\\t' : termSepChar;
-  const cardSepDisplay = cardSep === 'newline' ? '\\n' : cardSep === 'double-newline' ? '\\n\\n' : cardSep === 'semicolon' ? ';' : (customCardSep || '\\n');
+  const cardSepDisplay =
+    cardSep === 'newline'
+      ? '\\n'
+      : cardSep === 'double-newline'
+        ? '\\n\\n'
+        : cardSep === 'semicolon'
+          ? ';'
+          : customCardSep || '\\n';
 
   return (
     <div
@@ -490,7 +516,8 @@ export default function FlashcardImportDialog({
                           color: 'rgba(237,233,255,0.35)',
                         }}
                       >
-                        {activeTab === 'anki' ? '.apkg files' : '.csv, .xlsx, .xls files'} — max 50MB
+                        {activeTab === 'anki' ? '.apkg files' : '.csv, .xlsx, .xls files'} — max
+                        50MB
                       </p>
                     </div>
                   </>
@@ -609,7 +636,12 @@ export default function FlashcardImportDialog({
                       value={customTermSep}
                       onChange={(e) => setCustomTermSep(e.target.value)}
                       placeholder="e.g. | or ->"
-                      style={{ ...inputStyle, marginTop: '6px', fontSize: '12px', padding: '6px 10px' }}
+                      style={{
+                        ...inputStyle,
+                        marginTop: '6px',
+                        fontSize: '12px',
+                        padding: '6px 10px',
+                      }}
                     />
                   )}
                 </div>
@@ -641,7 +673,12 @@ export default function FlashcardImportDialog({
                       value={customCardSep}
                       onChange={(e) => setCustomCardSep(e.target.value)}
                       placeholder="e.g. || or ---"
-                      style={{ ...inputStyle, marginTop: '6px', fontSize: '12px', padding: '6px 10px' }}
+                      style={{
+                        ...inputStyle,
+                        marginTop: '6px',
+                        fontSize: '12px',
+                        padding: '6px 10px',
+                      }}
                     />
                   )}
                 </div>
@@ -705,15 +742,9 @@ export default function FlashcardImportDialog({
                         alignItems: 'center',
                       }}
                     >
-                      <span style={{ flex: 1, opacity: 0.8 }}>
-                        {truncate(card.question, 40)}
-                      </span>
-                      <span style={{ color: 'rgba(237,233,255,0.3)', flexShrink: 0 }}>
-                        →
-                      </span>
-                      <span style={{ flex: 1, opacity: 0.6 }}>
-                        {truncate(card.answer, 40)}
-                      </span>
+                      <span style={{ flex: 1, opacity: 0.8 }}>{truncate(card.question, 40)}</span>
+                      <span style={{ color: 'rgba(237,233,255,0.3)', flexShrink: 0 }}>→</span>
+                      <span style={{ flex: 1, opacity: 0.6 }}>{truncate(card.answer, 40)}</span>
                     </div>
                   ))}
                   {parsedCards.length > 5 && (

@@ -154,19 +154,22 @@ export default function PublishRichEditor({ content, onChange }: PublishRichEdit
     fileInputRef.current?.click();
   }, []);
 
-  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || !editor) return;
+  const handleFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || !editor) return;
 
-    for (const file of Array.from(files)) {
-      if (!file.type.startsWith('image/')) continue;
-      if (file.size > 5 * 1024 * 1024) continue; // 5MB limit
-      const base64 = await fileToBase64(file);
-      editor.chain().focus().setImage({ src: base64 }).run();
-    }
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) continue;
+        if (file.size > 5 * 1024 * 1024) continue; // 5MB limit
+        const base64 = await fileToBase64(file);
+        editor.chain().focus().setImage({ src: base64 }).run();
+      }
 
-    e.target.value = '';
-  }, [editor]);
+      e.target.value = '';
+    },
+    [editor]
+  );
 
   useEffect(() => {
     return () => {
@@ -342,16 +345,20 @@ export default function PublishRichEditor({ content, onChange }: PublishRichEdit
         `}</style>
 
         {/* Drop zone hint */}
-        <div style={{
-          padding: '8px 16px',
-          borderTop: `1px solid ${COLORS.borderSubtle}`,
-          fontSize: 11,
-          color: COLORS.textMuted,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>info</span>
+        <div
+          style={{
+            padding: '8px 16px',
+            borderTop: `1px solid ${COLORS.borderSubtle}`,
+            fontSize: 11,
+            color: COLORS.textMuted,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+            info
+          </span>
           Drag & drop or paste images directly into the editor
         </div>
       </div>

@@ -75,7 +75,10 @@ export default function CalloutView({ node, updateAttributes }: NodeViewProps) {
           title="Change callout type"
         >
           <span style={{ display: 'flex', alignItems: 'center', color: style.borderColor }}>
-            {(() => { const Icon = CALLOUT_ICONS[style.icon]; return Icon ? <Icon size={16} /> : null; })()}
+            {(() => {
+              const Icon = CALLOUT_ICONS[style.icon];
+              return Icon ? <Icon size={16} /> : null;
+            })()}
           </span>
           <ChevronDown size={10} style={{ opacity: 0.5 }} />
         </button>
@@ -114,14 +117,8 @@ export default function CalloutView({ node, updateAttributes }: NodeViewProps) {
                     padding: '6px 10px',
                     borderRadius: '6px',
                     border: 'none',
-                    background:
-                      calloutType === t
-                        ? 'rgba(140,82,255,0.18)'
-                        : 'transparent',
-                    color:
-                      calloutType === t
-                        ? '#a47bff'
-                        : 'rgba(237,233,255,0.7)',
+                    background: calloutType === t ? 'rgba(140,82,255,0.18)' : 'transparent',
+                    color: calloutType === t ? '#a47bff' : 'rgba(237,233,255,0.7)',
                     fontFamily: 'inherit',
                     fontSize: '13px',
                     cursor: 'pointer',
@@ -129,19 +126,19 @@ export default function CalloutView({ node, updateAttributes }: NodeViewProps) {
                     transition: 'background 0.1s',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background =
-                      'rgba(237,233,255,0.06)';
+                    e.currentTarget.style.background = 'rgba(237,233,255,0.06)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background =
-                      calloutType === t
-                        ? 'rgba(140,82,255,0.18)'
-                        : 'transparent';
+                      calloutType === t ? 'rgba(140,82,255,0.18)' : 'transparent';
                   }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', color: s.borderColor }}>
-                        {(() => { const Icon = CALLOUT_ICONS[s.icon]; return Icon ? <Icon size={14} /> : null; })()}
-                      </span>
+                    {(() => {
+                      const Icon = CALLOUT_ICONS[s.icon];
+                      return Icon ? <Icon size={14} /> : null;
+                    })()}
+                  </span>
                   <span>{s.label}</span>
                   <span
                     style={{

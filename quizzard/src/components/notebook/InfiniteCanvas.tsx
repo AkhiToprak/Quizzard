@@ -40,15 +40,23 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     (async () => {
       try {
         const res = await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`);
-        if (res.status === 404) { setNotFound(true); return; }
+        if (res.status === 404) {
+          setNotFound(true);
+          return;
+        }
         const json = await res.json();
-        if (json.success) { setPage(json.data); setTitle(json.data.title); }
+        if (json.success) {
+          setPage(json.data);
+          setTitle(json.data.title);
+        }
       } finally {
         if (isMountedRef.current) setIsLoading(false);
       }
     })();
 
-    return () => { isMountedRef.current = false; };
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [notebookId, pageId]);
 
   const save = useCallback(
@@ -65,7 +73,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         if (isMountedRef.current) setSaveStatus('unsaved');
       }
     },
-    [notebookId, pageId],
+    [notebookId, pageId]
   );
 
   const scheduleSave = useCallback(
@@ -76,7 +84,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         save(canvasState, titleRef.current);
       }, 2000);
     },
-    [save],
+    [save]
   );
 
   const handleTitleChange = useCallback(
@@ -93,7 +101,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         save(snapshot as unknown as Record<string, unknown>, newTitle);
       }, 1500);
     },
-    [save],
+    [save]
   );
 
   const handleMount = useCallback(
@@ -101,29 +109,40 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
       editorRef.current = editor;
 
       // Load saved canvas state
-      if (page?.content && typeof page.content === 'object' && Object.keys(page.content).length > 0) {
+      if (
+        page?.content &&
+        typeof page.content === 'object' &&
+        Object.keys(page.content).length > 0
+      ) {
         try {
-          editor.store.loadStoreSnapshot(page.content as unknown as Parameters<typeof editor.store.loadStoreSnapshot>[0]);
+          editor.store.loadStoreSnapshot(
+            page.content as unknown as Parameters<typeof editor.store.loadStoreSnapshot>[0]
+          );
         } catch {
           // If loading fails, start with empty canvas
         }
       }
 
       // Subscribe to store changes for auto-save
-      const unsub = editor.store.listen(() => {
-        const snapshot = editor.store.getStoreSnapshot();
-        scheduleSave(snapshot as unknown as Record<string, unknown>);
-      }, { source: 'user', scope: 'document' });
+      const unsub = editor.store.listen(
+        () => {
+          const snapshot = editor.store.getStoreSnapshot();
+          scheduleSave(snapshot as unknown as Record<string, unknown>);
+        },
+        { source: 'user', scope: 'document' }
+      );
 
       return () => {
         unsub();
       };
     },
-    [page, scheduleSave],
+    [page, scheduleSave]
   );
 
   useEffect(() => {
-    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
   }, []);
 
   /* Loading skeleton */
@@ -131,16 +150,43 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     return (
       <div style={{ padding: '40px 56px' }}>
         <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
-        <div style={{ width: '240px', height: '28px', borderRadius: '8px', background: 'rgba(237,233,255,0.08)', marginBottom: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-        <div style={{ width: '100%', height: '400px', borderRadius: '12px', background: 'rgba(237,233,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite 0.1s' }} />
+        <div
+          style={{
+            width: '240px',
+            height: '28px',
+            borderRadius: '8px',
+            background: 'rgba(237,233,255,0.08)',
+            marginBottom: '24px',
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }}
+        />
+        <div
+          style={{
+            width: '100%',
+            height: '400px',
+            borderRadius: '12px',
+            background: 'rgba(237,233,255,0.04)',
+            animation: 'pulse 1.5s ease-in-out infinite 0.1s',
+          }}
+        />
       </div>
     );
   }
 
   if (notFound) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '400px' }}>
-        <p style={{ fontFamily: 'inherit', fontSize: '15px', color: 'rgba(237,233,255,0.3)' }}>Page not found.</p>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          minHeight: '400px',
+        }}
+      >
+        <p style={{ fontFamily: 'inherit', fontSize: '15px', color: 'rgba(237,233,255,0.3)' }}>
+          Page not found.
+        </p>
       </div>
     );
   }
@@ -166,39 +212,66 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
             placeholder="Untitled Canvas"
             style={{
               flex: 1,
-              background: 'none', border: 'none', outline: 'none',
+              background: 'none',
+              border: 'none',
+              outline: 'none',
               fontFamily: 'inherit',
-              fontSize: '32px', fontWeight: 700,
+              fontSize: '32px',
+              fontWeight: 700,
               color: '#ede9ff',
-              letterSpacing: '-0.04em', lineHeight: 1.2, padding: 0,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.2,
+              padding: 0,
             }}
           />
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
-            fontFamily: 'inherit', fontSize: '11px',
-            color: saveStatus === 'saved'
-              ? 'rgba(237,233,255,0.2)'
-              : saveStatus === 'saving' ? 'rgba(140,82,255,0.6)' : 'rgba(249,115,22,0.6)',
-            transition: 'color 0.2s',
-          }}>
-            {saveStatus === 'saving' && <Loader size={11} style={{ animation: 'spin 0.8s linear infinite' }} />}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              flexShrink: 0,
+              fontFamily: 'inherit',
+              fontSize: '11px',
+              color:
+                saveStatus === 'saved'
+                  ? 'rgba(237,233,255,0.2)'
+                  : saveStatus === 'saving'
+                    ? 'rgba(140,82,255,0.6)'
+                    : 'rgba(249,115,22,0.6)',
+              transition: 'color 0.2s',
+            }}
+          >
+            {saveStatus === 'saving' && (
+              <Loader size={11} style={{ animation: 'spin 0.8s linear infinite' }} />
+            )}
             {saveStatus === 'saved' && 'Saved'}
             {saveStatus === 'saving' && 'Saving...'}
             {saveStatus === 'unsaved' && 'Unsaved'}
           </div>
         </div>
-        <p style={{ fontFamily: 'inherit', fontSize: '11px', color: 'rgba(237,233,255,0.22)', margin: '0 0 0 2px' }}>
-          {new Date(page.updatedAt).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+        <p
+          style={{
+            fontFamily: 'inherit',
+            fontSize: '11px',
+            color: 'rgba(237,233,255,0.22)',
+            margin: '0 0 0 2px',
+          }}
+        >
+          {new Date(page.updatedAt).toLocaleString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          })}
         </p>
         <div style={{ height: '1px', background: 'rgba(140,82,255,0.1)', margin: '14px 0 0' }} />
       </div>
 
       {/* Canvas */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <Tldraw
-          onMount={handleMount}
-          inferDarkMode
-        />
+        <Tldraw onMount={handleMount} inferDarkMode />
       </div>
     </div>
   );

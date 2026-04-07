@@ -6,7 +6,12 @@ import { useDirectUpload } from '@/hooks/useDirectUpload';
 
 function getInitials(name?: string | null): string {
   if (!name) return '?';
-  return name.split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2);
+  return name
+    .split(' ')
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 type Section = 'account' | 'notifications' | 'goals' | 'subscription' | 'privacy' | 'admin';
@@ -73,7 +78,9 @@ export default function SettingsPage() {
 
   const [dailyGoal, setDailyGoal] = useState<number>(10);
   const [goalInput, setGoalInput] = useState<string>('10');
-  const [goalStatus, setGoalStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
+  const [goalStatus, setGoalStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(
+    null
+  );
   const [goalLoading, setGoalLoading] = useState(false);
 
   // Subscription state
@@ -81,8 +88,13 @@ export default function SettingsPage() {
   const [subPendingTier, setSubPendingTier] = useState<string | null>(null);
   const [subPeriodEnd, setSubPeriodEnd] = useState<string | null>(null);
   const [subLoading, setSubLoading] = useState(false);
-  const [subStatus, setSubStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
-  const [subConfirmAction, setSubConfirmAction] = useState<{ action: 'cancel' | 'change'; newTier?: string } | null>(null);
+  const [subStatus, setSubStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(
+    null
+  );
+  const [subConfirmAction, setSubConfirmAction] = useState<{
+    action: 'cancel' | 'change';
+    newTier?: string;
+  } | null>(null);
 
   const tierNames: Record<string, string> = { FREE: 'Free', PLUS: 'Plus', PRO: 'Pro' };
   const tierPrices: Record<string, number> = { FREE: 0, PLUS: 5, PRO: 10 };
@@ -401,7 +413,9 @@ export default function SettingsPage() {
         setAdminPage(data.data.page);
         setAdminTotalPages(data.data.totalPages);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setAdminLoading(false);
   }, []);
 
@@ -434,10 +448,16 @@ export default function SettingsPage() {
       });
       if (res.ok) {
         setAdminUsers((prev) =>
-          prev.map((u) => u.id === banModalUser.id ? { ...u, banned: true, banReason: banReason.trim() || null } : u)
+          prev.map((u) =>
+            u.id === banModalUser.id
+              ? { ...u, banned: true, banReason: banReason.trim() || null }
+              : u
+          )
         );
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setAdminActionLoading(null);
     setBanModalUser(null);
     setBanReason('');
@@ -453,10 +473,12 @@ export default function SettingsPage() {
       });
       if (res.ok) {
         setAdminUsers((prev) =>
-          prev.map((u) => u.id === userId ? { ...u, banned: false, banReason: null } : u)
+          prev.map((u) => (u.id === userId ? { ...u, banned: false, banReason: null } : u))
         );
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setAdminActionLoading(null);
   };
 
@@ -469,7 +491,9 @@ export default function SettingsPage() {
         setAdminUsers((prev) => prev.filter((u) => u.id !== deleteConfirmUser.id));
         setAdminTotal((t) => t - 1);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setAdminActionLoading(null);
     setDeleteConfirmUser(null);
   };
@@ -516,15 +540,44 @@ export default function SettingsPage() {
     { section: 'goals', icon: 'track_changes', label: 'Study Goals' },
     { section: 'subscription', icon: 'credit_card', label: 'Subscription' },
     { section: 'privacy', icon: 'lock', label: 'Privacy & Security' },
-    ...(isAdmin ? [{ section: 'admin' as Section, icon: 'admin_panel_settings', label: 'User Management' }] : []),
+    ...(isAdmin
+      ? [{ section: 'admin' as Section, icon: 'admin_panel_settings', label: 'User Management' }]
+      : []),
   ];
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', position: 'relative' }}>
-
       {/* Ambient bg blobs */}
-      <div style={{ position: 'fixed', top: 0, right: 0, width: '600px', height: '600px', background: 'rgba(174,137,255,0.05)', filter: 'blur(120px)', borderRadius: '50%', zIndex: 0, transform: 'translate(50%, -50%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'fixed', bottom: 0, left: '256px', width: '400px', height: '400px', background: 'rgba(185,195,255,0.05)', filter: 'blur(100px)', borderRadius: '50%', zIndex: 0, transform: 'translate(-50%, 50%)', pointerEvents: 'none' }} />
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          width: '600px',
+          height: '600px',
+          background: 'rgba(174,137,255,0.05)',
+          filter: 'blur(120px)',
+          borderRadius: '50%',
+          zIndex: 0,
+          transform: 'translate(50%, -50%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: '256px',
+          width: '400px',
+          height: '400px',
+          background: 'rgba(185,195,255,0.05)',
+          filter: 'blur(100px)',
+          borderRadius: '50%',
+          zIndex: 0,
+          transform: 'translate(-50%, 50%)',
+          pointerEvents: 'none',
+        }}
+      />
 
       {/* Page header */}
       <header style={{ marginBottom: '48px' }}>
@@ -545,15 +598,39 @@ export default function SettingsPage() {
         </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px', alignItems: 'start', position: 'relative', zIndex: 1 }}>
-
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 2fr',
+          gap: '32px',
+          alignItems: 'start',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
           {/* Profile card */}
-          <div style={{ background: '#161630', borderRadius: '32px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div
+            style={{
+              background: '#161630',
+              borderRadius: '32px',
+              padding: '32px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px',
+            }}
+          >
             {/* Avatar + name */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: '16px',
+              }}
+            >
               <div style={{ position: 'relative' }}>
                 {session?.user?.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -612,17 +689,27 @@ export default function SettingsPage() {
                     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                     transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
                   }}
-                  onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.9)'; }}
-                  onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+                  onMouseDown={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.9)';
+                  }}
+                  onMouseUp={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+                  }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                    edit
+                  </span>
                 </button>
               </div>
               <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>
+                <h3
+                  style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}
+                >
                   {session?.user?.name ?? 'Scholar'}
                 </h3>
-                <p style={{ fontSize: '13px', color: '#b9c3ff', fontWeight: 500, margin: 0 }}>Scholar Level 1</p>
+                <p style={{ fontSize: '13px', color: '#b9c3ff', fontWeight: 500, margin: 0 }}>
+                  Scholar Level 1
+                </p>
               </div>
             </div>
 
@@ -652,7 +739,8 @@ export default function SettingsPage() {
                     }}
                     onMouseEnter={(e) => {
                       if (!active) {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(35,35,60,0.3)';
+                        (e.currentTarget as HTMLButtonElement).style.background =
+                          'rgba(35,35,60,0.3)';
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -661,19 +749,19 @@ export default function SettingsPage() {
                       }
                     }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{icon}</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      {icon}
+                    </span>
                     {label}
                   </button>
                 );
               })}
             </nav>
           </div>
-
         </div>
 
         {/* Right column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
           {/* Account Security */}
           <section
             style={{
@@ -688,20 +776,45 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div
                 style={{
-                  width: '48px', height: '48px', borderRadius: '16px',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '16px',
                   background: 'rgba(174,137,255,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ color: '#ae89ff', fontSize: '24px' }}>fingerprint</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: '#ae89ff', fontSize: '24px' }}
+                >
+                  fingerprint
+                </span>
               </div>
-              <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>Account Security</h3>
+              <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
+                Account Security
+              </h3>
             </div>
 
             {/* Email row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', alignItems: 'end' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                gap: '16px',
+                alignItems: 'end',
+              }}
+            >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 700, color: '#cbd2ff', paddingLeft: '4px' }}>
+                <label
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#cbd2ff',
+                    paddingLeft: '4px',
+                  }}
+                >
                   Email Address
                 </label>
                 <input
@@ -725,8 +838,12 @@ export default function SettingsPage() {
                   whiteSpace: 'nowrap',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#292946'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c'; }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = '#292946';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c';
+                }}
               >
                 Change Email
               </button>
@@ -734,14 +851,24 @@ export default function SettingsPage() {
 
             {/* Change Password */}
             <div style={{ paddingTop: '24px', borderTop: '1px solid rgba(70,69,96,0.1)' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 24px' }}>Change Password</h4>
-              <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h4
+                style={{ fontSize: '16px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 24px' }}
+              >
+                Change Password
+              </h4>
+              <form
+                onSubmit={handlePasswordUpdate}
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+              >
                 {pwStatus && (
                   <div
                     style={{
                       padding: '12px 16px',
                       borderRadius: '12px',
-                      background: pwStatus.type === 'error' ? 'rgba(253,111,133,0.12)' : 'rgba(174,137,255,0.12)',
+                      background:
+                        pwStatus.type === 'error'
+                          ? 'rgba(253,111,133,0.12)'
+                          : 'rgba(174,137,255,0.12)',
                       color: pwStatus.type === 'error' ? '#fd6f85' : '#ae89ff',
                       fontSize: '14px',
                     }}
@@ -755,8 +882,12 @@ export default function SettingsPage() {
                   value={passwords.current}
                   onChange={(e) => setPasswords((p) => ({ ...p, current: e.target.value }))}
                   style={inputStyle}
-                  onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-                  onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+                  onFocus={(e) => {
+                    e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <input
@@ -765,8 +896,12 @@ export default function SettingsPage() {
                     value={passwords.newPass}
                     onChange={(e) => setPasswords((p) => ({ ...p, newPass: e.target.value }))}
                     style={inputStyle}
-                    onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-                    onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+                    onFocus={(e) => {
+                      e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.boxShadow = 'none';
+                    }}
                   />
                   <input
                     type="password"
@@ -774,8 +909,12 @@ export default function SettingsPage() {
                     value={passwords.confirm}
                     onChange={(e) => setPasswords((p) => ({ ...p, confirm: e.target.value }))}
                     style={inputStyle}
-                    onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-                    onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+                    onFocus={(e) => {
+                      e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.boxShadow = 'none';
+                    }}
                   />
                 </div>
                 <button
@@ -795,9 +934,18 @@ export default function SettingsPage() {
                     boxShadow: pwLoading ? 'none' : '0 8px 24px rgba(174,137,255,0.3)',
                     transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
                   }}
-                  onMouseEnter={(e) => { if (!pwLoading) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)'; }}
-                  onMouseLeave={(e) => { if (!pwLoading) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
-                  onMouseDown={(e) => { if (!pwLoading) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.97)'; }}
+                  onMouseEnter={(e) => {
+                    if (!pwLoading)
+                      (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!pwLoading)
+                      (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+                  }}
+                  onMouseDown={(e) => {
+                    if (!pwLoading)
+                      (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.97)';
+                  }}
                 >
                   {pwLoading ? 'Updating…' : 'Update Password'}
                 </button>
@@ -811,7 +959,8 @@ export default function SettingsPage() {
               background: '#1c1c38',
               borderRadius: '32px',
               padding: '32px',
-              display: activeSection === 'notifications' || activeSection === 'account' ? 'flex' : 'none',
+              display:
+                activeSection === 'notifications' || activeSection === 'account' ? 'flex' : 'none',
               flexDirection: 'column',
               gap: '32px',
             }}
@@ -819,21 +968,44 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div
                 style={{
-                  width: '48px', height: '48px', borderRadius: '16px',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '16px',
                   background: 'rgba(185,195,255,0.32)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ color: '#b9c3ff', fontSize: '24px' }}>campaign</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: '#b9c3ff', fontSize: '24px' }}
+                >
+                  campaign
+                </span>
               </div>
-              <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>Notifications</h3>
+              <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
+                Notifications
+              </h3>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[
-                { key: 'studyReminders' as const, label: 'Study Reminders', desc: 'Get nudged when you fall behind your daily streak.' },
-                { key: 'productUpdates' as const, label: 'Product Updates', desc: 'Stay informed about new AI features and beta releases.' },
-                { key: 'weeklyReport' as const, label: 'Weekly Scholar Report', desc: 'A detailed breakdown of your learning progress via email.' },
+                {
+                  key: 'studyReminders' as const,
+                  label: 'Study Reminders',
+                  desc: 'Get nudged when you fall behind your daily streak.',
+                },
+                {
+                  key: 'productUpdates' as const,
+                  label: 'Product Updates',
+                  desc: 'Stay informed about new AI features and beta releases.',
+                },
+                {
+                  key: 'weeklyReport' as const,
+                  label: 'Weekly Scholar Report',
+                  desc: 'A detailed breakdown of your learning progress via email.',
+                },
               ].map(({ key, label, desc }) => (
                 <div
                   key={key}
@@ -847,11 +1019,24 @@ export default function SettingsPage() {
                     borderRadius: '16px',
                     transition: 'background 0.15s',
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#232342'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#161630'; }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.background = '#232342';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.background = '#161630';
+                  }}
                 >
                   <div>
-                    <p style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 2px' }}>{label}</p>
+                    <p
+                      style={{
+                        fontSize: '15px',
+                        fontWeight: 700,
+                        color: '#e5e3ff',
+                        margin: '0 0 2px',
+                      }}
+                    >
+                      {label}
+                    </p>
                     <p style={{ fontSize: '12px', color: '#aaa8c8', margin: 0 }}>{desc}</p>
                   </div>
                   <Toggle
@@ -877,20 +1062,38 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div
                 style={{
-                  width: '48px', height: '48px', borderRadius: '16px',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '16px',
                   background: 'rgba(255,222,89,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ color: '#ffde59', fontSize: '24px' }}>track_changes</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: '#ffde59', fontSize: '24px' }}
+                >
+                  track_changes
+                </span>
               </div>
               <div>
-                <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>Study Goals</h3>
-                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>Set the targets that drive your daily learning habit.</p>
+                <h3
+                  style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}
+                >
+                  Study Goals
+                </h3>
+                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
+                  Set the targets that drive your daily learning habit.
+                </p>
               </div>
             </div>
 
-            <form onSubmit={handleGoalSave} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <form
+              onSubmit={handleGoalSave}
+              style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+            >
               <div
                 style={{
                   background: '#161630',
@@ -901,19 +1104,42 @@ export default function SettingsPage() {
                   gap: '16px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '24px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: '24px',
+                  }}
+                >
                   <div>
-                    <p style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>Daily Page Goal</p>
+                    <p
+                      style={{
+                        fontSize: '15px',
+                        fontWeight: 700,
+                        color: '#e5e3ff',
+                        margin: '0 0 4px',
+                      }}
+                    >
+                      Daily Page Goal
+                    </p>
                     <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0, lineHeight: 1.6 }}>
-                      How many pages do you want to write or study each day? Your dashboard progress bar tracks this.
+                      How many pages do you want to write or study each day? Your dashboard progress
+                      bar tracks this.
                     </p>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}
+                  >
                     <button
                       type="button"
-                      onClick={() => { const v = Math.max(1, parseInt(goalInput || '0', 10) - 1); setGoalInput(String(v)); }}
+                      onClick={() => {
+                        const v = Math.max(1, parseInt(goalInput || '0', 10) - 1);
+                        setGoalInput(String(v));
+                      }}
                       style={{
-                        width: '36px', height: '36px',
+                        width: '36px',
+                        height: '36px',
                         borderRadius: '10px',
                         background: '#2a2a4c',
                         border: 'none',
@@ -921,12 +1147,18 @@ export default function SettingsPage() {
                         fontSize: '20px',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         transition: 'background 0.15s',
                         fontFamily: 'inherit',
                       }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#2d2d4a'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c'; }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = '#2d2d4a';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c';
+                      }}
                     >
                       −
                     </button>
@@ -950,14 +1182,22 @@ export default function SettingsPage() {
                         textAlign: 'center',
                         boxSizing: 'border-box',
                       }}
-                      onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-                      onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+                      onFocus={(e) => {
+                        e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.boxShadow = 'none';
+                      }}
                     />
                     <button
                       type="button"
-                      onClick={() => { const v = Math.min(200, parseInt(goalInput || '0', 10) + 1); setGoalInput(String(v)); }}
+                      onClick={() => {
+                        const v = Math.min(200, parseInt(goalInput || '0', 10) + 1);
+                        setGoalInput(String(v));
+                      }}
                       style={{
-                        width: '36px', height: '36px',
+                        width: '36px',
+                        height: '36px',
                         borderRadius: '10px',
                         background: '#2a2a4c',
                         border: 'none',
@@ -965,12 +1205,18 @@ export default function SettingsPage() {
                         fontSize: '20px',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         transition: 'background 0.15s',
                         fontFamily: 'inherit',
                       }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#2d2d4a'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c'; }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = '#2d2d4a';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c';
+                      }}
                     >
                       +
                     </button>
@@ -1033,7 +1279,10 @@ export default function SettingsPage() {
                   style={{
                     padding: '12px 16px',
                     borderRadius: '12px',
-                    background: goalStatus.type === 'error' ? 'rgba(253,111,133,0.12)' : 'rgba(174,137,255,0.12)',
+                    background:
+                      goalStatus.type === 'error'
+                        ? 'rgba(253,111,133,0.12)'
+                        : 'rgba(174,137,255,0.12)',
                     color: goalStatus.type === 'error' ? '#fd6f85' : '#ae89ff',
                     fontSize: '14px',
                   }}
@@ -1059,8 +1308,14 @@ export default function SettingsPage() {
                   boxShadow: goalLoading ? 'none' : '0 8px 24px rgba(174,137,255,0.3)',
                   transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
                 }}
-                onMouseEnter={(e) => { if (!goalLoading) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)'; }}
-                onMouseLeave={(e) => { if (!goalLoading) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+                onMouseEnter={(e) => {
+                  if (!goalLoading)
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!goalLoading)
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+                }}
               >
                 {goalLoading ? 'Saving…' : 'Save Goal'}
               </button>
@@ -1081,16 +1336,31 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div
                 style={{
-                  width: '48px', height: '48px', borderRadius: '16px',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '16px',
                   background: 'rgba(192,132,252,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ color: '#c084fc', fontSize: '24px' }}>credit_card</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: '#c084fc', fontSize: '24px' }}
+                >
+                  credit_card
+                </span>
               </div>
               <div>
-                <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>Subscription</h3>
-                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>Manage your plan and billing.</p>
+                <h3
+                  style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}
+                >
+                  Subscription
+                </h3>
+                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
+                  Manage your plan and billing.
+                </p>
               </div>
             </div>
 
@@ -1105,11 +1375,28 @@ export default function SettingsPage() {
                 gap: '16px',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <div>
-                  <p style={{ fontSize: '13px', color: '#aaa8c8', margin: '0 0 4px', fontWeight: 600 }}>Current Plan</p>
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      color: '#aaa8c8',
+                      margin: '0 0 4px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Current Plan
+                  </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '28px', fontWeight: 800, color: tierColors[subTier] || '#e5e3ff' }}>
+                    <span
+                      style={{
+                        fontSize: '28px',
+                        fontWeight: 800,
+                        color: tierColors[subTier] || '#e5e3ff',
+                      }}
+                    >
                       {tierNames[subTier] || subTier}
                     </span>
                     {subTier !== 'FREE' && (
@@ -1139,7 +1426,11 @@ export default function SettingsPage() {
                 <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
                   Current period ends on{' '}
                   <span style={{ color: '#e5e3ff', fontWeight: 600 }}>
-                    {new Date(subPeriodEnd).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    {new Date(subPeriodEnd).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
                   </span>
                 </p>
               )}
@@ -1150,7 +1441,8 @@ export default function SettingsPage() {
                   style={{
                     padding: '14px 18px',
                     borderRadius: '14px',
-                    background: subPendingTier === 'FREE' ? 'rgba(253,111,133,0.1)' : 'rgba(174,137,255,0.1)',
+                    background:
+                      subPendingTier === 'FREE' ? 'rgba(253,111,133,0.1)' : 'rgba(174,137,255,0.1)',
                     border: `1px solid ${subPendingTier === 'FREE' ? 'rgba(253,111,133,0.25)' : 'rgba(174,137,255,0.25)'}`,
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -1159,8 +1451,17 @@ export default function SettingsPage() {
                   }}
                 >
                   <div>
-                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#e5e3ff', margin: '0 0 2px' }}>
-                      {subPendingTier === 'FREE' ? 'Cancellation scheduled' : `Switching to ${tierNames[subPendingTier]}`}
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: '#e5e3ff',
+                        margin: '0 0 2px',
+                      }}
+                    >
+                      {subPendingTier === 'FREE'
+                        ? 'Cancellation scheduled'
+                        : `Switching to ${tierNames[subPendingTier]}`}
                     </p>
                     <p style={{ fontSize: '12px', color: '#aaa8c8', margin: 0 }}>
                       {subPendingTier === 'FREE'
@@ -1185,8 +1486,16 @@ export default function SettingsPage() {
                       opacity: subLoading ? 0.5 : 1,
                       transition: 'background 0.15s',
                     }}
-                    onMouseEnter={(e) => { if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.12)'; }}
-                    onMouseLeave={(e) => { if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                    onMouseEnter={(e) => {
+                      if (!subLoading)
+                        (e.currentTarget as HTMLButtonElement).style.background =
+                          'rgba(255,255,255,0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!subLoading)
+                        (e.currentTarget as HTMLButtonElement).style.background =
+                          'rgba(255,255,255,0.08)';
+                    }}
                   >
                     Undo
                   </button>
@@ -1197,7 +1506,14 @@ export default function SettingsPage() {
             {/* Plan options */}
             {!subPendingTier && (
               <div>
-                <p style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 16px' }}>
+                <p
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    color: '#e5e3ff',
+                    margin: '0 0 16px',
+                  }}
+                >
                   {subTier === 'FREE' ? 'Upgrade your plan' : 'Change plan'}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
@@ -1211,7 +1527,9 @@ export default function SettingsPage() {
                           background: isCurrent ? 'rgba(174,137,255,0.08)' : '#161630',
                           borderRadius: '16px',
                           padding: '20px',
-                          border: isCurrent ? '1px solid rgba(174,137,255,0.3)' : '1px solid rgba(70,69,96,0.2)',
+                          border: isCurrent
+                            ? '1px solid rgba(174,137,255,0.3)'
+                            : '1px solid rgba(70,69,96,0.2)',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '12px',
@@ -1219,13 +1537,24 @@ export default function SettingsPage() {
                         }}
                       >
                         <div>
-                          <p style={{ fontSize: '17px', fontWeight: 700, color, margin: '0 0 4px' }}>
+                          <p
+                            style={{ fontSize: '17px', fontWeight: 700, color, margin: '0 0 4px' }}
+                          >
                             {tierNames[tier]}
                           </p>
-                          <p style={{ fontSize: '22px', fontWeight: 800, color: '#e5e3ff', margin: 0 }}>
+                          <p
+                            style={{
+                              fontSize: '22px',
+                              fontWeight: 800,
+                              color: '#e5e3ff',
+                              margin: 0,
+                            }}
+                          >
                             {tierPrices[tier] === 0 ? 'Free' : `CHF ${tierPrices[tier]}`}
                             {tierPrices[tier] > 0 && (
-                              <span style={{ fontSize: '13px', fontWeight: 500, color: '#aaa8c8' }}>/mo</span>
+                              <span style={{ fontSize: '13px', fontWeight: 500, color: '#aaa8c8' }}>
+                                /mo
+                              </span>
                             )}
                           </p>
                         </div>
@@ -1256,7 +1585,10 @@ export default function SettingsPage() {
                             style={{
                               padding: '10px',
                               borderRadius: '12px',
-                              background: tier === 'FREE' ? 'rgba(253,111,133,0.12)' : 'rgba(174,137,255,0.15)',
+                              background:
+                                tier === 'FREE'
+                                  ? 'rgba(253,111,133,0.12)'
+                                  : 'rgba(174,137,255,0.15)',
                               color: tier === 'FREE' ? '#fd6f85' : '#ae89ff',
                               border: 'none',
                               fontSize: '13px',
@@ -1267,17 +1599,25 @@ export default function SettingsPage() {
                               opacity: subLoading ? 0.5 : 1,
                             }}
                             onMouseEnter={(e) => {
-                              if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background =
-                                tier === 'FREE' ? 'rgba(253,111,133,0.2)' : 'rgba(174,137,255,0.25)';
+                              if (!subLoading)
+                                (e.currentTarget as HTMLButtonElement).style.background =
+                                  tier === 'FREE'
+                                    ? 'rgba(253,111,133,0.2)'
+                                    : 'rgba(174,137,255,0.25)';
                             }}
                             onMouseLeave={(e) => {
-                              if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background =
-                                tier === 'FREE' ? 'rgba(253,111,133,0.12)' : 'rgba(174,137,255,0.15)';
+                              if (!subLoading)
+                                (e.currentTarget as HTMLButtonElement).style.background =
+                                  tier === 'FREE'
+                                    ? 'rgba(253,111,133,0.12)'
+                                    : 'rgba(174,137,255,0.15)';
                             }}
                           >
                             {tier === 'FREE'
                               ? 'Cancel subscription'
-                              : (tierPrices[tier] > tierPrices[subTier] ? 'Upgrade' : 'Downgrade')}
+                              : tierPrices[tier] > tierPrices[subTier]
+                                ? 'Upgrade'
+                                : 'Downgrade'}
                           </button>
                         )}
                       </div>
@@ -1292,7 +1632,10 @@ export default function SettingsPage() {
                 style={{
                   padding: '12px 16px',
                   borderRadius: '12px',
-                  background: subStatus.type === 'error' ? 'rgba(253,111,133,0.12)' : 'rgba(174,137,255,0.12)',
+                  background:
+                    subStatus.type === 'error'
+                      ? 'rgba(253,111,133,0.12)'
+                      : 'rgba(174,137,255,0.12)',
                   color: subStatus.type === 'error' ? '#fd6f85' : '#ae89ff',
                   fontSize: '14px',
                 }}
@@ -1323,10 +1666,20 @@ export default function SettingsPage() {
                   opacity: subLoading ? 0.5 : 1,
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={(e) => { if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.2)'; }}
-                onMouseLeave={(e) => { if (!subLoading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.12)'; }}
+                onMouseEnter={(e) => {
+                  if (!subLoading)
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      'rgba(174,137,255,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!subLoading)
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      'rgba(174,137,255,0.12)';
+                }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>open_in_new</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                  open_in_new
+                </span>
                 Manage Billing
               </button>
             )}
@@ -1342,10 +1695,16 @@ export default function SettingsPage() {
                 border: '1px solid rgba(174,137,255,0.1)',
               }}
             >
-              <span className="material-symbols-outlined" style={{ color: '#ae89ff', fontSize: '20px', flexShrink: 0, marginTop: '1px' }}>info</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#ae89ff', fontSize: '20px', flexShrink: 0, marginTop: '1px' }}
+              >
+                info
+              </span>
               <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0, lineHeight: 1.6 }}>
-                Plan changes and cancellations take effect at the end of your current billing period (30 days after payment).
-                You will keep access to your current plan&apos;s features until then.
+                Plan changes and cancellations take effect at the end of your current billing period
+                (30 days after payment). You will keep access to your current plan&apos;s features
+                until then.
               </p>
             </div>
           </section>
@@ -1363,7 +1722,9 @@ export default function SettingsPage() {
                 background: 'rgba(0,0,0,0.7)',
                 backdropFilter: 'blur(8px)',
               }}
-              onClick={(e) => { if (e.target === e.currentTarget && !subLoading) setSubConfirmAction(null); }}
+              onClick={(e) => {
+                if (e.target === e.currentTarget && !subLoading) setSubConfirmAction(null);
+              }}
             >
               <div
                 style={{
@@ -1379,30 +1740,54 @@ export default function SettingsPage() {
                   border: `1px solid ${subConfirmAction.action === 'cancel' ? 'rgba(253,111,133,0.3)' : 'rgba(174,137,255,0.3)'}`,
                 }}
               >
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: subConfirmAction.action === 'cancel' ? 'rgba(253,111,133,0.15)' : 'rgba(174,137,255,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <span className="material-symbols-outlined" style={{
-                    color: subConfirmAction.action === 'cancel' ? '#fd6f85' : '#ae89ff',
-                    fontSize: '28px',
-                  }}>
+                <div
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '16px',
+                    background:
+                      subConfirmAction.action === 'cancel'
+                        ? 'rgba(253,111,133,0.15)'
+                        : 'rgba(174,137,255,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      color: subConfirmAction.action === 'cancel' ? '#fd6f85' : '#ae89ff',
+                      fontSize: '28px',
+                    }}
+                  >
                     {subConfirmAction.action === 'cancel' ? 'cancel' : 'swap_horiz'}
                   </span>
                 </div>
-                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0, textAlign: 'center' }}>
+                <h3
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: '#ffffff',
+                    margin: 0,
+                    textAlign: 'center',
+                  }}
+                >
                   {subConfirmAction.action === 'cancel'
                     ? 'Cancel your subscription?'
                     : `Switch to ${tierNames[subConfirmAction.newTier!]}?`}
                 </h3>
-                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, margin: 0, textAlign: 'center' }}>
+                <p
+                  style={{
+                    fontSize: '14px',
+                    color: 'rgba(255,255,255,0.6)',
+                    lineHeight: 1.7,
+                    margin: 0,
+                    textAlign: 'center',
+                  }}
+                >
                   {subConfirmAction.action === 'cancel'
-                    ? 'Your plan will revert to Free at the end of your current billing period. You\'ll keep access to your current features until then.'
+                    ? "Your plan will revert to Free at the end of your current billing period. You'll keep access to your current features until then."
                     : `Your plan will change from ${tierNames[subTier]} to ${tierNames[subConfirmAction.newTier!]} (CHF ${tierPrices[subConfirmAction.newTier!]}/mo) at the end of your current billing period.`}
                 </p>
                 <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '4px' }}>
@@ -1428,7 +1813,9 @@ export default function SettingsPage() {
                   </button>
                   <button
                     disabled={subLoading}
-                    onClick={() => handleSubAction(subConfirmAction.action, subConfirmAction.newTier)}
+                    onClick={() =>
+                      handleSubAction(subConfirmAction.action, subConfirmAction.newTier)
+                    }
                     style={{
                       flex: 1,
                       padding: '12px',
@@ -1471,17 +1858,38 @@ export default function SettingsPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div
                   style={{
-                    width: '48px', height: '48px', borderRadius: '16px',
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '16px',
                     background: 'rgba(255,222,89,0.15)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ color: '#ffde59', fontSize: '24px' }}>admin_panel_settings</span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ color: '#ffde59', fontSize: '24px' }}
+                  >
+                    admin_panel_settings
+                  </span>
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>User Management</h3>
+                  <h3
+                    style={{
+                      fontSize: '22px',
+                      fontWeight: 700,
+                      color: '#e5e3ff',
+                      margin: '0 0 4px',
+                    }}
+                  >
+                    User Management
+                  </h3>
                   <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
-                    Search, ban, or delete users. {adminTotal > 0 && <span style={{ color: '#ae89ff' }}>{adminTotal} total users</span>}
+                    Search, ban, or delete users.{' '}
+                    {adminTotal > 0 && (
+                      <span style={{ color: '#ae89ff' }}>{adminTotal} total users</span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -1490,12 +1898,20 @@ export default function SettingsPage() {
               <div style={{ position: 'relative' }}>
                 <div
                   style={{
-                    position: 'absolute', left: 0, top: 0, bottom: 0,
-                    paddingLeft: '16px', display: 'flex', alignItems: 'center',
-                    pointerEvents: 'none', color: '#8888a8',
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    paddingLeft: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    pointerEvents: 'none',
+                    color: '#8888a8',
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                    search
+                  </span>
                 </div>
                 <input
                   type="text"
@@ -1507,34 +1923,68 @@ export default function SettingsPage() {
                     paddingLeft: '44px',
                     paddingRight: adminSearch ? '44px' : '20px',
                   }}
-                  onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)'; }}
-                  onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+                  onFocus={(e) => {
+                    e.target.style.boxShadow = '0 0 0 2px rgba(174,137,255,0.4)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
                 {adminSearch && (
                   <button
-                    onClick={() => { setAdminSearch(''); setAdminPage(1); fetchAdminUsers('', 1); }}
+                    onClick={() => {
+                      setAdminSearch('');
+                      setAdminPage(1);
+                      fetchAdminUsers('', 1);
+                    }}
                     style={{
-                      position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
-                      background: 'rgba(70,69,96,0.3)', border: 'none', borderRadius: '8px',
-                      width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer', color: '#aaa8c8',
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'rgba(70,69,96,0.3)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      width: '28px',
+                      height: '28px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: '#aaa8c8',
                     }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                      close
+                    </span>
                   </button>
                 )}
               </div>
 
               {/* Loading state */}
               {adminLoading && (
-                <div style={{ textAlign: 'center', padding: '24px', color: '#aaa8c8', fontSize: '14px' }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '24px',
+                    color: '#aaa8c8',
+                    fontSize: '14px',
+                  }}
+                >
                   Loading users…
                 </div>
               )}
 
               {/* User list */}
               {!adminLoading && adminUsers.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '32px', color: '#8888a8', fontSize: '14px' }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '32px',
+                    color: '#8888a8',
+                    fontSize: '14px',
+                  }}
+                >
                   {adminSearch ? 'No users found for that search.' : 'No users found.'}
                 </div>
               )}
@@ -1554,7 +2004,9 @@ export default function SettingsPage() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '16px',
-                          border: user.banned ? '1px solid rgba(253,111,133,0.15)' : '1px solid transparent',
+                          border: user.banned
+                            ? '1px solid rgba(253,111,133,0.15)'
+                            : '1px solid transparent',
                           transition: 'background 0.15s',
                           opacity: isUserLoading ? 0.6 : 1,
                         }}
@@ -1562,12 +2014,19 @@ export default function SettingsPage() {
                         {/* Avatar */}
                         <div
                           style={{
-                            width: '40px', height: '40px', borderRadius: '12px',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
                             background: user.banned
                               ? 'linear-gradient(135deg, #fd6f85 0%, #c8475d 100%)'
                               : 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '14px', fontWeight: 700, color: '#fff', flexShrink: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            color: '#fff',
+                            flexShrink: 0,
                           }}
                         >
                           {(user.name || user.username).charAt(0).toUpperCase()}
@@ -1575,47 +2034,92 @@ export default function SettingsPage() {
 
                         {/* Info */}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              flexWrap: 'wrap',
+                            }}
+                          >
                             <span style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff' }}>
                               {user.name || user.username}
                             </span>
-                            <span style={{ fontSize: '12px', color: '#8888a8' }}>@{user.username}</span>
+                            <span style={{ fontSize: '12px', color: '#8888a8' }}>
+                              @{user.username}
+                            </span>
                             {user.role === 'admin' && (
-                              <span style={{
-                                fontSize: '10px', fontWeight: 700, color: '#ffde59',
-                                background: 'rgba(255,222,89,0.12)', padding: '2px 8px',
-                                borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em',
-                              }}>
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  color: '#ffde59',
+                                  background: 'rgba(255,222,89,0.12)',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.05em',
+                                }}
+                              >
                                 Admin
                               </span>
                             )}
                             {user.banned && (
-                              <span style={{
-                                fontSize: '10px', fontWeight: 700, color: '#fd6f85',
-                                background: 'rgba(253,111,133,0.12)', padding: '2px 8px',
-                                borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em',
-                              }}>
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  color: '#fd6f85',
+                                  background: 'rgba(253,111,133,0.12)',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.05em',
+                                }}
+                              >
                                 Banned
                               </span>
                             )}
                             {isSelf && (
-                              <span style={{
-                                fontSize: '10px', fontWeight: 700, color: '#4ade80',
-                                background: 'rgba(74,222,128,0.12)', padding: '2px 8px',
-                                borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em',
-                              }}>
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  color: '#4ade80',
+                                  background: 'rgba(74,222,128,0.12)',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.05em',
+                                }}
+                              >
                                 You
                               </span>
                             )}
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              marginTop: '4px',
+                            }}
+                          >
                             <span style={{ fontSize: '12px', color: '#aaa8c8' }}>{user.email}</span>
                             <span style={{ fontSize: '11px', color: '#8888a8' }}>
-                              {user.notebookCount} notebook{user.notebookCount !== 1 ? 's' : ''} · {user.postCount} post{user.postCount !== 1 ? 's' : ''}
+                              {user.notebookCount} notebook{user.notebookCount !== 1 ? 's' : ''} ·{' '}
+                              {user.postCount} post{user.postCount !== 1 ? 's' : ''}
                             </span>
                           </div>
                           {user.banned && user.banReason && (
-                            <p style={{ fontSize: '11px', color: '#fd6f85', margin: '4px 0 0', fontStyle: 'italic' }}>
+                            <p
+                              style={{
+                                fontSize: '11px',
+                                color: '#fd6f85',
+                                margin: '4px 0 0',
+                                fontStyle: 'italic',
+                              }}
+                            >
                               Reason: {user.banReason}
                             </p>
                           )}
@@ -1629,33 +2133,74 @@ export default function SettingsPage() {
                                 onClick={() => handleUnbanUser(user.id)}
                                 disabled={isUserLoading}
                                 style={{
-                                  display: 'flex', alignItems: 'center', gap: '4px',
-                                  padding: '8px 14px', borderRadius: '10px', border: 'none',
-                                  background: 'rgba(74,222,128,0.12)', color: '#4ade80',
-                                  fontSize: '12px', fontWeight: 700, cursor: 'pointer',
-                                  fontFamily: 'inherit', transition: 'background 0.15s',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '8px 14px',
+                                  borderRadius: '10px',
+                                  border: 'none',
+                                  background: 'rgba(74,222,128,0.12)',
+                                  color: '#4ade80',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  fontFamily: 'inherit',
+                                  transition: 'background 0.15s',
                                 }}
-                                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(74,222,128,0.2)'; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(74,222,128,0.12)'; }}
+                                onMouseEnter={(e) => {
+                                  (e.currentTarget as HTMLButtonElement).style.background =
+                                    'rgba(74,222,128,0.2)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  (e.currentTarget as HTMLButtonElement).style.background =
+                                    'rgba(74,222,128,0.12)';
+                                }}
                               >
-                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>lock_open</span>
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{ fontSize: '14px' }}
+                                >
+                                  lock_open
+                                </span>
                                 Unban
                               </button>
                             ) : (
                               <button
-                                onClick={() => { setBanModalUser(user); setBanReason(''); }}
+                                onClick={() => {
+                                  setBanModalUser(user);
+                                  setBanReason('');
+                                }}
                                 disabled={isUserLoading}
                                 style={{
-                                  display: 'flex', alignItems: 'center', gap: '4px',
-                                  padding: '8px 14px', borderRadius: '10px', border: 'none',
-                                  background: 'rgba(255,222,89,0.1)', color: '#ffde59',
-                                  fontSize: '12px', fontWeight: 700, cursor: 'pointer',
-                                  fontFamily: 'inherit', transition: 'background 0.15s',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '8px 14px',
+                                  borderRadius: '10px',
+                                  border: 'none',
+                                  background: 'rgba(255,222,89,0.1)',
+                                  color: '#ffde59',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  fontFamily: 'inherit',
+                                  transition: 'background 0.15s',
                                 }}
-                                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,222,89,0.18)'; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,222,89,0.1)'; }}
+                                onMouseEnter={(e) => {
+                                  (e.currentTarget as HTMLButtonElement).style.background =
+                                    'rgba(255,222,89,0.18)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  (e.currentTarget as HTMLButtonElement).style.background =
+                                    'rgba(255,222,89,0.1)';
+                                }}
                               >
-                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>block</span>
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{ fontSize: '14px' }}
+                                >
+                                  block
+                                </span>
                                 Ban
                               </button>
                             )}
@@ -1663,16 +2208,35 @@ export default function SettingsPage() {
                               onClick={() => setDeleteConfirmUser(user)}
                               disabled={isUserLoading}
                               style={{
-                                display: 'flex', alignItems: 'center', gap: '4px',
-                                padding: '8px 14px', borderRadius: '10px', border: 'none',
-                                background: 'rgba(253,111,133,0.1)', color: '#fd6f85',
-                                fontSize: '12px', fontWeight: 700, cursor: 'pointer',
-                                fontFamily: 'inherit', transition: 'background 0.15s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '8px 14px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                background: 'rgba(253,111,133,0.1)',
+                                color: '#fd6f85',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                fontFamily: 'inherit',
+                                transition: 'background 0.15s',
                               }}
-                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.18)'; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.1)'; }}
+                              onMouseEnter={(e) => {
+                                (e.currentTarget as HTMLButtonElement).style.background =
+                                  'rgba(253,111,133,0.18)';
+                              }}
+                              onMouseLeave={(e) => {
+                                (e.currentTarget as HTMLButtonElement).style.background =
+                                  'rgba(253,111,133,0.1)';
+                              }}
                             >
-                              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete</span>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: '14px' }}
+                              >
+                                delete
+                              </span>
                               Delete
                             </button>
                           </div>
@@ -1685,15 +2249,27 @@ export default function SettingsPage() {
 
               {/* Pagination */}
               {!adminLoading && adminTotalPages > 1 && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', paddingTop: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    paddingTop: '8px',
+                  }}
+                >
                   <button
                     onClick={() => setAdminPage((p) => Math.max(1, p - 1))}
                     disabled={adminPage <= 1}
                     style={{
-                      padding: '8px 16px', borderRadius: '10px', border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
                       background: adminPage <= 1 ? '#232342' : '#2a2a4c',
                       color: adminPage <= 1 ? '#555578' : '#e5e3ff',
-                      fontSize: '13px', fontWeight: 700, cursor: adminPage <= 1 ? 'default' : 'pointer',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: adminPage <= 1 ? 'default' : 'pointer',
                       fontFamily: 'inherit',
                     }}
                   >
@@ -1706,10 +2282,14 @@ export default function SettingsPage() {
                     onClick={() => setAdminPage((p) => Math.min(adminTotalPages, p + 1))}
                     disabled={adminPage >= adminTotalPages}
                     style={{
-                      padding: '8px 16px', borderRadius: '10px', border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
                       background: adminPage >= adminTotalPages ? '#232342' : '#2a2a4c',
                       color: adminPage >= adminTotalPages ? '#555578' : '#e5e3ff',
-                      fontSize: '13px', fontWeight: 700, cursor: adminPage >= adminTotalPages ? 'default' : 'pointer',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: adminPage >= adminTotalPages ? 'default' : 'pointer',
                       fontFamily: 'inherit',
                     }}
                   >
@@ -1724,28 +2304,47 @@ export default function SettingsPage() {
           {banModalUser && (
             <div
               style={{
-                position: 'fixed', inset: 0, zIndex: 9999,
-                background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                position: 'fixed',
+                inset: 0,
+                zIndex: 9999,
+                background: 'rgba(0,0,0,0.6)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
               onClick={() => setBanModalUser(null)}
             >
               <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  background: '#1c1c38', borderRadius: '24px', padding: '32px',
-                  width: '100%', maxWidth: '440px',
+                  background: '#1c1c38',
+                  borderRadius: '24px',
+                  padding: '32px',
+                  width: '100%',
+                  maxWidth: '440px',
                   boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
                   border: '1px solid rgba(255,222,89,0.15)',
                 }}
               >
-                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
+                <h3
+                  style={{ fontSize: '20px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}
+                >
                   Ban @{banModalUser.username}
                 </h3>
                 <p style={{ fontSize: '13px', color: '#aaa8c8', margin: '0 0 20px' }}>
                   This user won&apos;t be able to log in. You can unban them later.
                 </p>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#cbd2ff', marginBottom: '8px', paddingLeft: '4px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#cbd2ff',
+                    marginBottom: '8px',
+                    paddingLeft: '4px',
+                  }}
+                >
                   Ban Reason (optional)
                 </label>
                 <textarea
@@ -1758,16 +2357,33 @@ export default function SettingsPage() {
                     resize: 'vertical',
                     minHeight: '80px',
                   }}
-                  onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(255,222,89,0.3)'; }}
-                  onBlur={(e) => { e.target.style.boxShadow = 'none'; }}
+                  onFocus={(e) => {
+                    e.target.style.boxShadow = '0 0 0 2px rgba(255,222,89,0.3)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
-                <div style={{ display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'flex-end' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '12px',
+                    marginTop: '20px',
+                    justifyContent: 'flex-end',
+                  }}
+                >
                   <button
                     onClick={() => setBanModalUser(null)}
                     style={{
-                      padding: '12px 24px', borderRadius: '12px', border: '1px solid rgba(70,69,96,0.3)',
-                      background: 'transparent', color: '#aaa8c8', fontSize: '14px', fontWeight: 700,
-                      cursor: 'pointer', fontFamily: 'inherit',
+                      padding: '12px 24px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(70,69,96,0.3)',
+                      background: 'transparent',
+                      color: '#aaa8c8',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
                     }}
                   >
                     Cancel
@@ -1775,9 +2391,15 @@ export default function SettingsPage() {
                   <button
                     onClick={handleBanUser}
                     style={{
-                      padding: '12px 24px', borderRadius: '12px', border: 'none',
-                      background: '#ffde59', color: '#5f4f00', fontSize: '14px', fontWeight: 700,
-                      cursor: 'pointer', fontFamily: 'inherit',
+                      padding: '12px 24px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      background: '#ffde59',
+                      color: '#5f4f00',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
                       boxShadow: '0 4px 16px rgba(255,222,89,0.2)',
                     }}
                   >
@@ -1792,39 +2414,71 @@ export default function SettingsPage() {
           {deleteConfirmUser && (
             <div
               style={{
-                position: 'fixed', inset: 0, zIndex: 9999,
-                background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                position: 'fixed',
+                inset: 0,
+                zIndex: 9999,
+                background: 'rgba(0,0,0,0.6)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
               onClick={() => setDeleteConfirmUser(null)}
             >
               <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  background: '#1c1c38', borderRadius: '24px', padding: '32px',
-                  width: '100%', maxWidth: '440px',
+                  background: '#1c1c38',
+                  borderRadius: '24px',
+                  padding: '32px',
+                  width: '100%',
+                  maxWidth: '440px',
                   boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
                   border: '1px solid rgba(253,111,133,0.2)',
                 }}
               >
-                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fd6f85', margin: '0 0 8px' }}>
+                <h3
+                  style={{ fontSize: '20px', fontWeight: 700, color: '#fd6f85', margin: '0 0 8px' }}
+                >
                   Delete @{deleteConfirmUser.username}?
                 </h3>
-                <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 8px', lineHeight: 1.6 }}>
-                  This will <strong style={{ color: '#fd6f85' }}>permanently delete</strong> this user and all their data:
+                <p
+                  style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 8px', lineHeight: 1.6 }}
+                >
+                  This will <strong style={{ color: '#fd6f85' }}>permanently delete</strong> this
+                  user and all their data:
                 </p>
-                <ul style={{ fontSize: '13px', color: '#aaa8c8', margin: '0 0 20px', paddingLeft: '20px', lineHeight: 1.8 }}>
-                  <li>{deleteConfirmUser.notebookCount} notebook{deleteConfirmUser.notebookCount !== 1 ? 's' : ''}</li>
-                  <li>{deleteConfirmUser.postCount} post{deleteConfirmUser.postCount !== 1 ? 's' : ''}</li>
+                <ul
+                  style={{
+                    fontSize: '13px',
+                    color: '#aaa8c8',
+                    margin: '0 0 20px',
+                    paddingLeft: '20px',
+                    lineHeight: 1.8,
+                  }}
+                >
+                  <li>
+                    {deleteConfirmUser.notebookCount} notebook
+                    {deleteConfirmUser.notebookCount !== 1 ? 's' : ''}
+                  </li>
+                  <li>
+                    {deleteConfirmUser.postCount} post{deleteConfirmUser.postCount !== 1 ? 's' : ''}
+                  </li>
                   <li>All comments, friends, and shared content</li>
                 </ul>
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                   <button
                     onClick={() => setDeleteConfirmUser(null)}
                     style={{
-                      padding: '12px 24px', borderRadius: '12px', border: '1px solid rgba(70,69,96,0.3)',
-                      background: 'transparent', color: '#aaa8c8', fontSize: '14px', fontWeight: 700,
-                      cursor: 'pointer', fontFamily: 'inherit',
+                      padding: '12px 24px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(70,69,96,0.3)',
+                      background: 'transparent',
+                      color: '#aaa8c8',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
                     }}
                   >
                     Cancel
@@ -1832,9 +2486,15 @@ export default function SettingsPage() {
                   <button
                     onClick={handleDeleteUser}
                     style={{
-                      padding: '12px 24px', borderRadius: '12px', border: 'none',
-                      background: '#c8475d', color: '#fff', fontSize: '14px', fontWeight: 700,
-                      cursor: 'pointer', fontFamily: 'inherit',
+                      padding: '12px 24px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      background: '#c8475d',
+                      color: '#fff',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
                       boxShadow: '0 4px 16px rgba(253,111,133,0.2)',
                     }}
                   >
@@ -1860,14 +2520,25 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div
                 style={{
-                  width: '48px', height: '48px', borderRadius: '16px',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '16px',
                   background: 'rgba(253,111,133,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ color: '#fd6f85', fontSize: '24px' }}>dangerous</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: '#fd6f85', fontSize: '24px' }}
+                >
+                  dangerous
+                </span>
               </div>
-              <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#fd6f85', margin: 0 }}>Danger Zone</h3>
+              <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#fd6f85', margin: 0 }}>
+                Danger Zone
+              </h3>
             </div>
             <div
               style={{
@@ -1879,8 +2550,16 @@ export default function SettingsPage() {
                 gap: '16px',
               }}
             >
-              <p style={{ fontSize: '14px', color: 'rgba(255,151,163,0.8)', lineHeight: 1.7, margin: 0 }}>
-                Once you delete your account, there is no going back. All your study notebooks, flashcards, and progress history will be permanently erased from our neon scrolls.
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: 'rgba(255,151,163,0.8)',
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                Once you delete your account, there is no going back. All your study notebooks,
+                flashcards, and progress history will be permanently erased from our neon scrolls.
               </p>
               <button
                 style={{
@@ -1898,7 +2577,8 @@ export default function SettingsPage() {
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                   boxShadow: '0 4px 20px rgba(253,111,133,0.2)',
-                  transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+                  transition:
+                    'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLButtonElement).style.background = '#fd6f85';
@@ -1908,10 +2588,14 @@ export default function SettingsPage() {
                   (e.currentTarget as HTMLButtonElement).style.background = '#c8475d';
                   (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
                 }}
-                onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'; }}
+                onMouseDown={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)';
+                }}
                 onClick={() => setDeleteConfirmOpen(true)}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete_forever</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                  delete_forever
+                </span>
                 Delete Account
               </button>
             </div>
@@ -1932,7 +2616,9 @@ export default function SettingsPage() {
             background: 'rgba(0,0,0,0.7)',
             backdropFilter: 'blur(8px)',
           }}
-          onClick={(e) => { if (e.target === e.currentTarget) setAvatarEditorOpen(false); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setAvatarEditorOpen(false);
+          }}
         >
           <div
             style={{
@@ -1969,7 +2655,12 @@ export default function SettingsPage() {
 
             {/* Scale slider */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-              <span className="material-symbols-outlined" style={{ color: '#aaa8c8', fontSize: '18px' }}>photo_size_select_small</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#aaa8c8', fontSize: '18px' }}
+              >
+                photo_size_select_small
+              </span>
               <input
                 type="range"
                 min="0.5"
@@ -1983,7 +2674,12 @@ export default function SettingsPage() {
                   height: '6px',
                 }}
               />
-              <span className="material-symbols-outlined" style={{ color: '#aaa8c8', fontSize: '24px' }}>photo_size_select_large</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#aaa8c8', fontSize: '24px' }}
+              >
+                photo_size_select_large
+              </span>
             </div>
 
             {avatarError && (
@@ -2007,8 +2703,13 @@ export default function SettingsPage() {
                   fontFamily: 'inherit',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.08)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    'rgba(174,137,255,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                }}
               >
                 Cancel
               </button>
@@ -2020,7 +2721,9 @@ export default function SettingsPage() {
                   padding: '12px',
                   borderRadius: '12px',
                   border: 'none',
-                  background: avatarUploading ? '#6b5a99' : 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
+                  background: avatarUploading
+                    ? '#6b5a99'
+                    : 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
                   color: '#ffffff',
                   fontSize: '14px',
                   fontWeight: 700,
@@ -2048,7 +2751,9 @@ export default function SettingsPage() {
             background: 'rgba(0,0,0,0.7)',
             backdropFilter: 'blur(8px)',
           }}
-          onClick={(e) => { if (e.target === e.currentTarget && !deleting) setDeleteConfirmOpen(false); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleting) setDeleteConfirmOpen(false);
+          }}
         >
           <div
             style={{
@@ -2064,22 +2769,46 @@ export default function SettingsPage() {
               border: '1px solid rgba(253,111,133,0.3)',
             }}
           >
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              background: 'rgba(253,111,133,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <span className="material-symbols-outlined" style={{ color: '#fd6f85', fontSize: '28px' }}>warning</span>
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '16px',
+                background: 'rgba(253,111,133,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#fd6f85', fontSize: '28px' }}
+              >
+                warning
+              </span>
             </div>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0, textAlign: 'center' }}>
+            <h3
+              style={{
+                fontSize: '20px',
+                fontWeight: 700,
+                color: '#ffffff',
+                margin: 0,
+                textAlign: 'center',
+              }}
+            >
               Delete your account?
             </h3>
-            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, margin: 0, textAlign: 'center' }}>
-              This action is permanent. All your notebooks, flashcards, progress, and data will be permanently deleted. This cannot be undone.
+            <p
+              style={{
+                fontSize: '14px',
+                color: 'rgba(255,255,255,0.6)',
+                lineHeight: 1.7,
+                margin: 0,
+                textAlign: 'center',
+              }}
+            >
+              This action is permanent. All your notebooks, flashcards, progress, and data will be
+              permanently deleted. This cannot be undone.
             </p>
             <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '4px' }}>
               <button

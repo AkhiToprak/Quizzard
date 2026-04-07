@@ -27,7 +27,12 @@ interface FlashcardSetManagerProps {
 
 type Mode = 'browse' | 'merge' | 'split';
 
-export default function FlashcardSetManager({ notebookId, sectionId, onClose, onUpdated }: FlashcardSetManagerProps) {
+export default function FlashcardSetManager({
+  notebookId,
+  sectionId,
+  onClose,
+  onUpdated,
+}: FlashcardSetManagerProps) {
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [selectedSetIds, setSelectedSetIds] = useState<Set<string>>(new Set());
   const [expandedSetId, setExpandedSetId] = useState<string | null>(null);
@@ -62,37 +67,46 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
     setLoading(false);
   }, [notebookId]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchSets(); }, [fetchSets]);
+  useEffect(() => {
+    fetchSets(); // eslint-disable-line react-hooks/set-state-in-effect
+  }, [fetchSets]);
 
   // Fetch cards for a specific set
-  const fetchCards = useCallback(async (setId: string) => {
-    setLoadingCards(true);
-    try {
-      const res = await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}`);
-      const json = await res.json();
-      if (json.success && json.data?.flashcards) {
-        setExpandedCards(json.data.flashcards);
+  const fetchCards = useCallback(
+    async (setId: string) => {
+      setLoadingCards(true);
+      try {
+        const res = await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${setId}`);
+        const json = await res.json();
+        if (json.success && json.data?.flashcards) {
+          setExpandedCards(json.data.flashcards);
+        }
+      } catch {
+        /* silent */
       }
-    } catch { /* silent */ }
-    setLoadingCards(false);
-  }, [notebookId]);
+      setLoadingCards(false);
+    },
+    [notebookId]
+  );
 
-  const toggleExpand = useCallback((setId: string) => {
-    if (expandedSetId === setId) {
-      setExpandedSetId(null);
-      setExpandedCards([]);
-      setSelectedCardIds(new Set());
-    } else {
-      setExpandedSetId(setId);
-      setSelectedCardIds(new Set());
-      fetchCards(setId);
-    }
-  }, [expandedSetId, fetchCards]);
+  const toggleExpand = useCallback(
+    (setId: string) => {
+      if (expandedSetId === setId) {
+        setExpandedSetId(null);
+        setExpandedCards([]);
+        setSelectedCardIds(new Set());
+      } else {
+        setExpandedSetId(setId);
+        setSelectedCardIds(new Set());
+        fetchCards(setId);
+      }
+    },
+    [expandedSetId, fetchCards]
+  );
 
   // Toggle set selection (merge mode)
   const toggleSetSelection = useCallback((setId: string) => {
-    setSelectedSetIds(prev => {
+    setSelectedSetIds((prev) => {
       const next = new Set(prev);
       if (next.has(setId)) next.delete(setId);
       else next.add(setId);
@@ -102,7 +116,7 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
 
   // Toggle card selection (split mode)
   const toggleCardSelection = useCallback((cardId: string) => {
-    setSelectedCardIds(prev => {
+    setSelectedCardIds((prev) => {
       const next = new Set(prev);
       if (next.has(cardId)) next.delete(cardId);
       else next.add(cardId);
@@ -164,14 +178,17 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
     setOperating(true);
     setError('');
     try {
-      const res = await fetch(`/api/notebooks/${notebookId}/flashcard-sets/${expandedSetId}/split`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cardIds: Array.from(selectedCardIds),
-          newTitle: splitTitle.trim(),
-        }),
-      });
+      const res = await fetch(
+        `/api/notebooks/${notebookId}/flashcard-sets/${expandedSetId}/split`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cardIds: Array.from(selectedCardIds),
+            newTitle: splitTitle.trim(),
+          }),
+        }
+      );
       const json = await res.json();
       if (json.success) {
         setShowSplitDialog(false);
@@ -188,10 +205,21 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
       setError('Split failed. Please try again.');
     }
     setOperating(false);
-  }, [notebookId, expandedSetId, selectedCardIds, splitTitle, expandedCards.length, fetchSets, onUpdated]);
+  }, [
+    notebookId,
+    expandedSetId,
+    selectedCardIds,
+    splitTitle,
+    expandedCards.length,
+    fetchSets,
+    onUpdated,
+  ]);
 
   const canMerge = selectedSetIds.size >= 2;
-  const canSplit = expandedSetId !== null && selectedCardIds.size > 0 && selectedCardIds.size < expandedCards.length;
+  const canSplit =
+    expandedSetId !== null &&
+    selectedCardIds.size > 0 &&
+    selectedCardIds.size < expandedCards.length;
 
   return (
     <div
@@ -208,7 +236,7 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
       }}
     >
       <div
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         style={{
           width: '520px',
           maxHeight: '85vh',
@@ -223,21 +251,25 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
         }}
       >
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 20px',
-          borderBottom: '1px solid rgba(140,82,255,0.15)',
-          flexShrink: 0,
-        }}>
-          <h3 style={{
-            fontSize: '15px',
-            fontWeight: 700,
-            color: '#ede9ff',
-            margin: 0,
-            fontFamily: 'inherit',
-          }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 20px',
+            borderBottom: '1px solid rgba(140,82,255,0.15)',
+            flexShrink: 0,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: '15px',
+              fontWeight: 700,
+              color: '#ede9ff',
+              margin: 0,
+              fontFamily: 'inherit',
+            }}
+          >
             Manage Flashcard Sets
           </h3>
           <button
@@ -256,59 +288,79 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
         </div>
 
         {/* Mode tabs */}
-        <div style={{
-          display: 'flex',
-          gap: '4px',
-          padding: '12px 20px 8px',
-          flexShrink: 0,
-          alignItems: 'center',
-        }}>
-          {(['browse', 'merge', 'split'] as Mode[]).map(m => (
-            <ModeTab key={m} label={m.charAt(0).toUpperCase() + m.slice(1)} active={mode === m} onClick={() => switchMode(m)} />
+        <div
+          style={{
+            display: 'flex',
+            gap: '4px',
+            padding: '12px 20px 8px',
+            flexShrink: 0,
+            alignItems: 'center',
+          }}
+        >
+          {(['browse', 'merge', 'split'] as Mode[]).map((m) => (
+            <ModeTab
+              key={m}
+              label={m.charAt(0).toUpperCase() + m.slice(1)}
+              active={mode === m}
+              onClick={() => switchMode(m)}
+            />
           ))}
           <div style={{ flex: 1 }} />
           <ImportButton onClick={() => setShowImport(true)} />
         </div>
 
         {/* Body */}
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '8px 20px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-        }}>
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '8px 20px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+          }}
+        >
           {loading ? (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '40px 0', color: 'rgba(237,233,255,0.3)',
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '40px 0',
+                color: 'rgba(237,233,255,0.3)',
+              }}
+            >
               <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
             </div>
           ) : sets.length === 0 ? (
-            <div style={{
-              padding: '32px 16px', textAlign: 'center',
-              fontSize: '13px', color: 'rgba(237,233,255,0.3)',
-            }}>
+            <div
+              style={{
+                padding: '32px 16px',
+                textAlign: 'center',
+                fontSize: '13px',
+                color: 'rgba(237,233,255,0.3)',
+              }}
+            >
               No flashcard sets in this notebook.
             </div>
           ) : (
             <>
               {/* Mode description */}
-              <div style={{
-                fontSize: '11px',
-                color: 'rgba(237,233,255,0.35)',
-                padding: '0 0 6px',
-                lineHeight: 1.5,
-              }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(237,233,255,0.35)',
+                  padding: '0 0 6px',
+                  lineHeight: 1.5,
+                }}
+              >
                 {mode === 'browse' && 'Click a set to view its cards.'}
                 {mode === 'merge' && 'Select 2 or more sets to merge them into one.'}
                 {mode === 'split' && 'Click a set, then select cards to split into a new set.'}
               </div>
 
               {/* Set list */}
-              {sets.map(set => {
+              {sets.map((set) => {
                 const cardCount = set._count?.flashcards ?? set.flashcards?.length ?? 0;
                 const isExpanded = expandedSetId === set.id;
                 const isSelectedForMerge = selectedSetIds.has(set.id);
@@ -328,29 +380,39 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
 
                     {/* Expanded cards */}
                     {isExpanded && (
-                      <div style={{
-                        marginLeft: '12px',
-                        borderLeft: '2px solid rgba(140,82,255,0.15)',
-                        paddingLeft: '10px',
-                        paddingTop: '4px',
-                        paddingBottom: '4px',
-                      }}>
+                      <div
+                        style={{
+                          marginLeft: '12px',
+                          borderLeft: '2px solid rgba(140,82,255,0.15)',
+                          paddingLeft: '10px',
+                          paddingTop: '4px',
+                          paddingBottom: '4px',
+                        }}
+                      >
                         {loadingCards ? (
-                          <div style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            padding: '16px 0', color: 'rgba(237,233,255,0.3)',
-                          }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: '16px 0',
+                              color: 'rgba(237,233,255,0.3)',
+                            }}
+                          >
                             <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
                           </div>
                         ) : expandedCards.length === 0 ? (
-                          <div style={{
-                            fontSize: '12px', color: 'rgba(237,233,255,0.25)',
-                            padding: '8px 0',
-                          }}>
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: 'rgba(237,233,255,0.25)',
+                              padding: '8px 0',
+                            }}
+                          >
                             No cards in this set.
                           </div>
                         ) : (
-                          expandedCards.map(card => (
+                          expandedCards.map((card) => (
                             <CardRow
                               key={card.id}
                               card={card}
@@ -370,30 +432,38 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
 
           {/* Error */}
           {error && (
-            <div style={{
-              fontSize: '12px',
-              color: '#f87171',
-              textAlign: 'center',
-              padding: '4px 0',
-            }}>
+            <div
+              style={{
+                fontSize: '12px',
+                color: '#f87171',
+                textAlign: 'center',
+                padding: '4px 0',
+              }}
+            >
               {error}
             </div>
           )}
         </div>
 
         {/* Footer actions */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-          padding: '12px 20px',
-          borderTop: '1px solid rgba(140,82,255,0.15)',
-          flexShrink: 0,
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            padding: '12px 20px',
+            borderTop: '1px solid rgba(140,82,255,0.15)',
+            flexShrink: 0,
+          }}
+        >
           <div style={{ fontSize: '11px', color: 'rgba(237,233,255,0.3)' }}>
-            {mode === 'merge' && selectedSetIds.size > 0 && `${selectedSetIds.size} set${selectedSetIds.size > 1 ? 's' : ''} selected`}
-            {mode === 'split' && selectedCardIds.size > 0 && `${selectedCardIds.size} card${selectedCardIds.size > 1 ? 's' : ''} selected`}
+            {mode === 'merge' &&
+              selectedSetIds.size > 0 &&
+              `${selectedSetIds.size} set${selectedSetIds.size > 1 ? 's' : ''} selected`}
+            {mode === 'split' &&
+              selectedCardIds.size > 0 &&
+              `${selectedCardIds.size} card${selectedCardIds.size > 1 ? 's' : ''} selected`}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
@@ -414,7 +484,10 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
 
             {mode === 'merge' && (
               <button
-                onClick={() => { setShowMergeDialog(true); setMergeTitle(''); }}
+                onClick={() => {
+                  setShowMergeDialog(true);
+                  setMergeTitle('');
+                }}
                 disabled={!canMerge}
                 style={{
                   display: 'flex',
@@ -439,7 +512,10 @@ export default function FlashcardSetManager({ notebookId, sectionId, onClose, on
 
             {mode === 'split' && (
               <button
-                onClick={() => { setShowSplitDialog(true); setSplitTitle(''); }}
+                onClick={() => {
+                  setShowSplitDialog(true);
+                  setSplitTitle('');
+                }}
                 disabled={!canSplit}
                 style={{
                   display: 'flex',
@@ -543,7 +619,15 @@ function ImportButton({ onClick }: { onClick: () => void }) {
 }
 
 /* ── Mode Tab ── */
-function ModeTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function ModeTab({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -556,7 +640,9 @@ function ModeTab({ label, active, onClick }: { label: string; active: boolean; o
         border: active ? '1px solid rgba(140,82,255,0.4)' : '1px solid rgba(140,82,255,0.12)',
         background: active
           ? 'rgba(140,82,255,0.2)'
-          : hovered ? 'rgba(140,82,255,0.08)' : 'transparent',
+          : hovered
+            ? 'rgba(140,82,255,0.08)'
+            : 'transparent',
         color: active ? '#c4a9ff' : hovered ? 'rgba(237,233,255,0.6)' : 'rgba(237,233,255,0.4)',
         fontSize: '12px',
         fontWeight: active ? 600 : 400,
@@ -571,7 +657,15 @@ function ModeTab({ label, active, onClick }: { label: string; active: boolean; o
 }
 
 /* ── Set Row ── */
-function SetRow({ set, cardCount, isExpanded, mode, isSelectedForMerge, onToggleExpand, onToggleMergeSelect }: {
+function SetRow({
+  set,
+  cardCount,
+  isExpanded,
+  mode,
+  isSelectedForMerge,
+  onToggleExpand,
+  onToggleMergeSelect,
+}: {
   set: FlashcardSet;
   cardCount: number;
   isExpanded: boolean;
@@ -606,27 +700,29 @@ function SetRow({ set, cardCount, isExpanded, mode, isSelectedForMerge, onToggle
           ? 'rgba(140,82,255,0.15)'
           : isExpanded
             ? 'rgba(140,82,255,0.08)'
-            : hovered ? 'rgba(237,233,255,0.04)' : 'transparent',
-        border: isSelectedForMerge
-          ? '1px solid rgba(140,82,255,0.35)'
-          : '1px solid transparent',
+            : hovered
+              ? 'rgba(237,233,255,0.04)'
+              : 'transparent',
+        border: isSelectedForMerge ? '1px solid rgba(140,82,255,0.35)' : '1px solid transparent',
         transition: 'background 0.12s ease, border-color 0.12s ease',
       }}
     >
       {/* Checkbox for merge mode */}
       {mode === 'merge' && (
-        <div style={{
-          width: '16px',
-          height: '16px',
-          borderRadius: '4px',
-          border: isSelectedForMerge ? '2px solid #8c52ff' : '2px solid rgba(237,233,255,0.2)',
-          background: isSelectedForMerge ? 'rgba(140,82,255,0.3)' : 'transparent',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          transition: 'border-color 0.12s ease, background 0.12s ease',
-        }}>
+        <div
+          style={{
+            width: '16px',
+            height: '16px',
+            borderRadius: '4px',
+            border: isSelectedForMerge ? '2px solid #8c52ff' : '2px solid rgba(237,233,255,0.2)',
+            background: isSelectedForMerge ? 'rgba(140,82,255,0.3)' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            transition: 'border-color 0.12s ease, background 0.12s ease',
+          }}
+        >
           {isSelectedForMerge && <Check size={10} style={{ color: '#c4a9ff' }} />}
         </div>
       )}
@@ -646,24 +742,28 @@ function SetRow({ set, cardCount, isExpanded, mode, isSelectedForMerge, onToggle
 
       <Layers size={13} style={{ color: '#8c52ff', flexShrink: 0 }} />
 
-      <span style={{
-        flex: 1,
-        fontSize: '13px',
-        fontWeight: 500,
-        color: '#ede9ff',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        minWidth: 0,
-      }}>
+      <span
+        style={{
+          flex: 1,
+          fontSize: '13px',
+          fontWeight: 500,
+          color: '#ede9ff',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          minWidth: 0,
+        }}
+      >
         {set.title}
       </span>
 
-      <span style={{
-        fontSize: '11px',
-        color: 'rgba(237,233,255,0.3)',
-        flexShrink: 0,
-      }}>
+      <span
+        style={{
+          fontSize: '11px',
+          color: 'rgba(237,233,255,0.3)',
+          flexShrink: 0,
+        }}
+      >
         {cardCount} card{cardCount !== 1 ? 's' : ''}
       </span>
     </div>
@@ -671,7 +771,12 @@ function SetRow({ set, cardCount, isExpanded, mode, isSelectedForMerge, onToggle
 }
 
 /* ── Card Row ── */
-function CardRow({ card, mode, isSelected, onToggleSelect }: {
+function CardRow({
+  card,
+  mode,
+  isSelected,
+  onToggleSelect,
+}: {
   card: FlashcardCard;
   mode: Mode;
   isSelected: boolean;
@@ -693,7 +798,9 @@ function CardRow({ card, mode, isSelected, onToggleSelect }: {
         cursor: mode === 'split' ? 'pointer' : 'default',
         background: isSelected
           ? 'rgba(140,82,255,0.12)'
-          : hovered && mode === 'split' ? 'rgba(237,233,255,0.03)' : 'transparent',
+          : hovered && mode === 'split'
+            ? 'rgba(237,233,255,0.03)'
+            : 'transparent',
         border: isSelected ? '1px solid rgba(140,82,255,0.3)' : '1px solid transparent',
         transition: 'background 0.12s ease, border-color 0.12s ease',
         marginBottom: '2px',
@@ -701,45 +808,54 @@ function CardRow({ card, mode, isSelected, onToggleSelect }: {
     >
       {/* Checkbox for split mode */}
       {mode === 'split' && (
-        <div style={{
-          width: '14px',
-          height: '14px',
-          borderRadius: '3px',
-          border: isSelected ? '2px solid #8c52ff' : '2px solid rgba(237,233,255,0.2)',
-          background: isSelected ? 'rgba(140,82,255,0.3)' : 'transparent',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          marginTop: '2px',
-          transition: 'border-color 0.12s ease, background 0.12s ease',
-        }}>
+        <div
+          style={{
+            width: '14px',
+            height: '14px',
+            borderRadius: '3px',
+            border: isSelected ? '2px solid #8c52ff' : '2px solid rgba(237,233,255,0.2)',
+            background: isSelected ? 'rgba(140,82,255,0.3)' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            marginTop: '2px',
+            transition: 'border-color 0.12s ease, background 0.12s ease',
+          }}
+        >
           {isSelected && <Check size={8} style={{ color: '#c4a9ff' }} />}
         </div>
       )}
 
       {mode !== 'split' && (
-        <CreditCard size={11} style={{ color: 'rgba(140,82,255,0.4)', flexShrink: 0, marginTop: '2px' }} />
+        <CreditCard
+          size={11}
+          style={{ color: 'rgba(140,82,255,0.4)', flexShrink: 0, marginTop: '2px' }}
+        />
       )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: '12px',
-          color: '#ede9ff',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
+        <div
+          style={{
+            fontSize: '12px',
+            color: '#ede9ff',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {card.question}
         </div>
-        <div style={{
-          fontSize: '11px',
-          color: 'rgba(237,233,255,0.35)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          marginTop: '1px',
-        }}>
+        <div
+          style={{
+            fontSize: '11px',
+            color: 'rgba(237,233,255,0.35)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            marginTop: '1px',
+          }}
+        >
           {card.answer}
         </div>
       </div>
@@ -748,7 +864,16 @@ function CardRow({ card, mode, isSelected, onToggleSelect }: {
 }
 
 /* ── Title Input Dialog (overlay within modal) ── */
-function TitleDialog({ title, placeholder, value, onChange, onConfirm, onCancel, confirmLabel, operating }: {
+function TitleDialog({
+  title,
+  placeholder,
+  value,
+  onChange,
+  onConfirm,
+  onCancel,
+  confirmLabel,
+  operating,
+}: {
   title: string;
   placeholder: string;
   value: string;
@@ -775,7 +900,7 @@ function TitleDialog({ title, placeholder, value, onChange, onConfirm, onCancel,
       }}
     >
       <div
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         style={{
           width: '340px',
           background: '#1a1a36',
@@ -786,20 +911,22 @@ function TitleDialog({ title, placeholder, value, onChange, onConfirm, onCancel,
           fontFamily: 'inherit',
         }}
       >
-        <h4 style={{
-          fontSize: '14px',
-          fontWeight: 700,
-          color: '#ede9ff',
-          margin: '0 0 12px',
-          fontFamily: 'inherit',
-        }}>
+        <h4
+          style={{
+            fontSize: '14px',
+            fontWeight: 700,
+            color: '#ede9ff',
+            margin: '0 0 12px',
+            fontFamily: 'inherit',
+          }}
+        >
           {title}
         </h4>
         <input
           type="text"
           value={value}
-          onChange={e => onChange(e.target.value)}
-          onKeyDown={e => {
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
             if (e.key === 'Enter' && canConfirm) onConfirm();
             if (e.key === 'Escape') onCancel();
           }}

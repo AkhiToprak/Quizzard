@@ -70,13 +70,14 @@ export default function FileUpload({ notebookId, onUploadComplete }: FileUploadP
       {/* Drop zone */}
       <div
         onClick={() => !(isUploading || isDirectUploading) && inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); if (!(isUploading || isDirectUploading)) setIsDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!(isUploading || isDirectUploading)) setIsDragging(true);
+        }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         style={{
-          border: isDragging
-            ? '2px solid #5170ff'
-            : '2px dashed rgba(81,112,255,0.3)',
+          border: isDragging ? '2px solid #5170ff' : '2px dashed rgba(81,112,255,0.3)',
           borderRadius: '14px',
           padding: '28px 20px',
           background: isDragging ? 'rgba(81,112,255,0.06)' : 'rgba(81,112,255,0.03)',
@@ -85,12 +86,12 @@ export default function FileUpload({ notebookId, onUploadComplete }: FileUploadP
           alignItems: 'center',
           justifyContent: 'center',
           gap: '10px',
-          cursor: (isUploading || isDirectUploading) ? 'default' : 'pointer',
+          cursor: isUploading || isDirectUploading ? 'default' : 'pointer',
           transition: 'border-color 0.15s ease, background 0.15s ease',
           textAlign: 'center',
         }}
       >
-        {(isUploading || isDirectUploading) ? (
+        {isUploading || isDirectUploading ? (
           <>
             <Loader
               size={26}

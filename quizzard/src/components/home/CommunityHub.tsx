@@ -143,7 +143,9 @@ function FeaturedNotebookCard({ notebook }: { notebook: CommunityNotebook }) {
       <div
         style={{
           height: 130,
-          background: notebook.coverImageUrl ? undefined : getCoverGradient(notebook.shareId, notebook.color),
+          background: notebook.coverImageUrl
+            ? undefined
+            : getCoverGradient(notebook.shareId, notebook.color),
           position: 'relative',
           display: 'flex',
           alignItems: 'center',
@@ -168,10 +170,17 @@ function FeaturedNotebookCard({ notebook }: { notebook: CommunityNotebook }) {
         {notebook.subject && (
           <span
             style={{
-              position: 'absolute', top: 10, right: 10,
-              padding: '3px 10px', borderRadius: 8,
-              background: sc.bg, color: sc.text,
-              fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              padding: '3px 10px',
+              borderRadius: 8,
+              background: sc.bg,
+              color: sc.text,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
               backdropFilter: 'blur(8px)',
             }}
           >
@@ -182,42 +191,78 @@ function FeaturedNotebookCard({ notebook }: { notebook: CommunityNotebook }) {
 
       {/* Content */}
       <div style={{ padding: '14px 16px 16px' }}>
-        <div style={{
-          fontSize: 15, fontWeight: 700, color: COLORS.textPrimary,
-          marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: 700,
+            color: COLORS.textPrimary,
+            marginBottom: 6,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {notebook.title || notebook.name}
         </div>
-        <div style={{
-          fontSize: 12, color: COLORS.textSecondary, lineHeight: 1.5,
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
-          overflow: 'hidden', marginBottom: 12,
-        }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: COLORS.textSecondary,
+            lineHeight: 1.5,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical' as const,
+            overflow: 'hidden',
+            marginBottom: 12,
+          }}
+        >
           {notebook.description}
         </div>
 
         {/* Footer */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{
-              width: 20, height: 20, borderRadius: 6,
-              background: `linear-gradient(135deg, ${notebook.color || COLORS.primary}, ${notebook.color || COLORS.primary}88)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 10, fontWeight: 700, color: '#fff',
-            }}>
+            <div
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 6,
+                background: `linear-gradient(135deg, ${notebook.color || COLORS.primary}, ${notebook.color || COLORS.primary}88)`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 10,
+                fontWeight: 700,
+                color: '#fff',
+              }}
+            >
               {notebook.authorName[0]}
             </div>
             <span style={{ fontSize: 11, color: COLORS.textMuted }}>{notebook.authorName}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 14, color: COLORS.textMuted }}>download</span>
-              <span style={{ fontSize: 11, color: COLORS.textMuted }}>{formatCount(notebook.downloadCount)}</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 14, color: COLORS.textMuted }}
+              >
+                download
+              </span>
+              <span style={{ fontSize: 11, color: COLORS.textMuted }}>
+                {formatCount(notebook.downloadCount)}
+              </span>
             </div>
             {notebook.averageRating > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14, color: COLORS.secondary }}>star</span>
-                <span style={{ fontSize: 11, color: COLORS.textMuted }}>{notebook.averageRating}</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 14, color: COLORS.secondary }}
+                >
+                  star
+                </span>
+                <span style={{ fontSize: 11, color: COLORS.textMuted }}>
+                  {notebook.averageRating}
+                </span>
               </div>
             )}
           </div>
@@ -254,49 +299,107 @@ function LibraryCard({ notebook }: { notebook: CommunityNotebook }) {
     >
       {/* Top row */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: sc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: sc.text }}>auto_stories</span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            marginBottom: 14,
+          }}
+        >
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: sc.bg,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20, color: sc.text }}>
+              auto_stories
+            </span>
           </div>
           {notebook.subject && (
-            <span style={{
-              padding: '3px 8px', borderRadius: 6, background: sc.bg, color: sc.text,
-              fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
-            }}>
+            <span
+              style={{
+                padding: '3px 8px',
+                borderRadius: 6,
+                background: sc.bg,
+                color: sc.text,
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+              }}
+            >
               {notebook.subject}
             </span>
           )}
         </div>
 
-        <div style={{
-          fontSize: 14, fontWeight: 700, color: COLORS.textPrimary,
-          marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: COLORS.textPrimary,
+            marginBottom: 6,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {notebook.title || notebook.name}
         </div>
-        <div style={{
-          fontSize: 12, color: COLORS.textSecondary, lineHeight: 1.5,
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
-          overflow: 'hidden',
-        }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: COLORS.textSecondary,
+            lineHeight: 1.5,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical' as const,
+            overflow: 'hidden',
+          }}
+        >
           {notebook.description}
         </div>
       </div>
 
       {/* Bottom row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: 14,
+        }}
+      >
         <span style={{ fontSize: 11, color: COLORS.textMuted }}>By {notebook.authorName}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 13, color: COLORS.textMuted }}>visibility</span>
-            <span style={{ fontSize: 10, color: COLORS.textMuted }}>{formatCount(notebook.viewCount)}</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 13, color: COLORS.textMuted }}
+            >
+              visibility
+            </span>
+            <span style={{ fontSize: 10, color: COLORS.textMuted }}>
+              {formatCount(notebook.viewCount)}
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 13, color: COLORS.textMuted }}>download</span>
-            <span style={{ fontSize: 10, color: COLORS.textMuted }}>{formatCount(notebook.downloadCount)}</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 13, color: COLORS.textMuted }}
+            >
+              download
+            </span>
+            <span style={{ fontSize: 10, color: COLORS.textMuted }}>
+              {formatCount(notebook.downloadCount)}
+            </span>
           </div>
         </div>
       </div>
@@ -330,38 +433,107 @@ function LargeFeatureCard({ notebook }: { notebook: CommunityNotebook }) {
       }}
     >
       {/* Text side */}
-      <div style={{ flex: 1, padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <div
+        style={{
+          flex: 1,
+          padding: 22,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+        }}
+      >
         <div>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '4px 10px', borderRadius: 8, background: 'rgba(140,82,255,0.12)', marginBottom: 12,
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 13, color: COLORS.secondary }}>emoji_events</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: COLORS.secondary, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '4px 10px',
+              borderRadius: 8,
+              background: 'rgba(140,82,255,0.12)',
+              marginBottom: 12,
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 13, color: COLORS.secondary }}
+            >
+              emoji_events
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: COLORS.secondary,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
+            >
               Community Favorite
             </span>
           </div>
 
-          <div style={{ fontSize: 20, fontWeight: 700, color: COLORS.textPrimary, lineHeight: 1.3, marginBottom: 8 }}>
+          <div
+            style={{
+              fontSize: 20,
+              fontWeight: 700,
+              color: COLORS.textPrimary,
+              lineHeight: 1.3,
+              marginBottom: 8,
+            }}
+          >
             {notebook.title || notebook.name}
           </div>
-          <div style={{
-            fontSize: 13, color: COLORS.textSecondary, lineHeight: 1.6,
-            display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const,
-            overflow: 'hidden',
-          }}>
+          <div
+            style={{
+              fontSize: 13,
+              color: COLORS.textSecondary,
+              lineHeight: 1.6,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical' as const,
+              overflow: 'hidden',
+            }}
+          >
             {notebook.description}
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, background: COLORS.primary, color: '#fff', fontSize: 12, fontWeight: 700 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 10,
+              background: COLORS.primary,
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              download
+            </span>
             {formatCount(notebook.downloadCount)} downloads
           </span>
           {notebook.averageRating > 0 && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: COLORS.textMuted }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16, color: COLORS.secondary }}>star</span>
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 12,
+                color: COLORS.textMuted,
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 16, color: COLORS.secondary }}
+              >
+                star
+              </span>
               {notebook.averageRating} ({notebook.ratingCount})
             </span>
           )}
@@ -369,26 +541,57 @@ function LargeFeatureCard({ notebook }: { notebook: CommunityNotebook }) {
       </div>
 
       {/* Gradient side */}
-      <div style={{
-        width: 200, background: notebook.coverImageUrl ? undefined : getCoverGradient(notebook.shareId, notebook.color),
-        position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        overflow: 'hidden',
-      }}>
+      <div
+        style={{
+          width: 200,
+          background: notebook.coverImageUrl
+            ? undefined
+            : getCoverGradient(notebook.shareId, notebook.color),
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          overflow: 'hidden',
+        }}
+      >
         {notebook.coverImageUrl ? (
           <img
             src={notebook.coverImageUrl}
             alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              position: 'absolute',
+              inset: 0,
+            }}
           />
         ) : (
-          <span className="material-symbols-outlined" style={{ fontSize: 56, color: 'rgba(255,255,255,0.1)' }}>school</span>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 56, color: 'rgba(255,255,255,0.1)' }}
+          >
+            school
+          </span>
         )}
         {notebook.subject && (
-          <span style={{
-            position: 'absolute', top: 12, right: 12,
-            padding: '3px 8px', borderRadius: 6, background: sc.bg, color: sc.text,
-            fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
-          }}>
+          <span
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              padding: '3px 8px',
+              borderRadius: 6,
+              background: sc.bg,
+              color: sc.text,
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+            }}
+          >
             {notebook.subject}
           </span>
         )}
@@ -472,7 +675,9 @@ export default function CommunityHub() {
       rated: 'rating',
     };
     try {
-      const res = await fetch(`/api/community/notebooks?filter=all&sort=${sortMap[filterTab]}&limit=5`);
+      const res = await fetch(
+        `/api/community/notebooks?filter=all&sort=${sortMap[filterTab]}&limit=5`
+      );
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data?.notebooks?.length) {
@@ -487,7 +692,9 @@ export default function CommunityHub() {
     setLoadingLibrary(false);
   }, [filterTab]);
 
-  useEffect(() => { fetchNotebooks(); }, [fetchNotebooks]);
+  useEffect(() => {
+    fetchNotebooks();
+  }, [fetchNotebooks]);
 
   useEffect(() => {
     // Skip initial load (handled by fetchNotebooks)
@@ -530,7 +737,14 @@ export default function CommunityHub() {
       `}</style>
 
       {/* Main tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 28, borderBottom: `1px solid ${COLORS.borderSubtle}` }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          marginBottom: 28,
+          borderBottom: `1px solid ${COLORS.borderSubtle}`,
+        }}
+      >
         {mainTabs.map((tab) => {
           const isActive = mainTab === tab.key;
           const isHovered = hoveredMainTab === tab.key;
@@ -545,7 +759,11 @@ export default function CommunityHub() {
                 border: 'none',
                 borderBottom: `2px solid ${isActive ? COLORS.secondary : 'transparent'}`,
                 background: 'transparent',
-                color: isActive ? COLORS.secondary : isHovered ? COLORS.textPrimary : COLORS.textMuted,
+                color: isActive
+                  ? COLORS.secondary
+                  : isHovered
+                    ? COLORS.textPrimary
+                    : COLORS.textMuted,
                 fontSize: 14,
                 fontWeight: isActive ? 700 : 500,
                 cursor: 'pointer',
@@ -563,8 +781,23 @@ export default function CommunityHub() {
         <>
           {/* Most Downloaded This Week */}
           <div style={{ marginBottom: 36 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.textPrimary, margin: 0, fontFamily: 'inherit' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: COLORS.textPrimary,
+                  margin: 0,
+                  fontFamily: 'inherit',
+                }}
+              >
                 Most Downloaded This Week
               </h2>
               <Link
@@ -572,15 +805,23 @@ export default function CommunityHub() {
                 onMouseEnter={() => setHoveredViewAll(true)}
                 onMouseLeave={() => setHoveredViewAll(false)}
                 style={{
-                  border: 'none', background: 'transparent',
+                  border: 'none',
+                  background: 'transparent',
                   color: hoveredViewAll ? COLORS.primaryLight : COLORS.textMuted,
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 4,
-                  transition: `color 0.15s ${EASING}`, textDecoration: 'none',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  transition: `color 0.15s ${EASING}`,
+                  textDecoration: 'none',
                 }}
               >
                 View All
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                  arrow_forward
+                </span>
               </Link>
             </div>
 
@@ -588,14 +829,33 @@ export default function CommunityHub() {
             <div
               ref={scrollRef}
               className="community-scroll"
-              style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8, scrollSnapType: 'x mandatory' }}
+              style={{
+                display: 'flex',
+                gap: 16,
+                overflowX: 'auto',
+                paddingBottom: 8,
+                scrollSnapType: 'x mandatory',
+              }}
             >
               {loadingFeatured
                 ? Array.from({ length: 3 }).map((_, i) => <FeaturedSkeleton key={i} />)
                 : featured.map((nb) => <FeaturedNotebookCard key={nb.shareId} notebook={nb} />)}
               {!loadingFeatured && featured.length === 0 && (
-                <div style={{ padding: 40, textAlign: 'center', color: COLORS.textMuted, fontSize: 13, width: '100%' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 32, display: 'block', marginBottom: 8, opacity: 0.4 }}>library_books</span>
+                <div
+                  style={{
+                    padding: 40,
+                    textAlign: 'center',
+                    color: COLORS.textMuted,
+                    fontSize: 13,
+                    width: '100%',
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 32, display: 'block', marginBottom: 8, opacity: 0.4 }}
+                  >
+                    library_books
+                  </span>
                   No featured notebooks yet. Be the first to share!
                 </div>
               )}
@@ -604,12 +864,37 @@ export default function CommunityHub() {
 
           {/* Library Explorer */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.textPrimary, margin: 0, fontFamily: 'inherit' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
+                flexWrap: 'wrap',
+                gap: 12,
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: COLORS.textPrimary,
+                  margin: 0,
+                  fontFamily: 'inherit',
+                }}
+              >
                 Library Explorer
               </h2>
 
-              <div style={{ display: 'flex', gap: 2, background: COLORS.surface, borderRadius: 10, padding: 3 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 2,
+                  background: COLORS.surface,
+                  borderRadius: 10,
+                  padding: 3,
+                }}
+              >
                 {filterTabs.map((tab) => {
                   const isActive = filterTab === tab.key;
                   const isHovered = hoveredFilterTab === tab.key;
@@ -620,10 +905,18 @@ export default function CommunityHub() {
                       onMouseEnter={() => setHoveredFilterTab(tab.key)}
                       onMouseLeave={() => setHoveredFilterTab(null)}
                       style={{
-                        padding: '6px 14px', borderRadius: 8, border: 'none',
+                        padding: '6px 14px',
+                        borderRadius: 8,
+                        border: 'none',
                         background: isActive ? COLORS.elevated : 'transparent',
-                        color: isActive ? COLORS.textPrimary : isHovered ? COLORS.textSecondary : COLORS.textMuted,
-                        fontSize: 12, fontWeight: isActive ? 600 : 500, cursor: 'pointer',
+                        color: isActive
+                          ? COLORS.textPrimary
+                          : isHovered
+                            ? COLORS.textSecondary
+                            : COLORS.textMuted,
+                        fontSize: 12,
+                        fontWeight: isActive ? 600 : 500,
+                        cursor: 'pointer',
                         transition: `background 0.15s ${EASING}, color 0.15s ${EASING}`,
                       }}
                     >
@@ -636,22 +929,46 @@ export default function CommunityHub() {
 
             {/* Bento grid */}
             {loadingLibrary ? (
-              <div className="community-bento-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-                {Array.from({ length: 4 }).map((_, i) => <GridSkeleton key={i} />)}
+              <div
+                className="community-bento-grid"
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}
+              >
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <GridSkeleton key={i} />
+                ))}
               </div>
             ) : library.length === 0 ? (
-              <div style={{
-                padding: 60, textAlign: 'center', color: COLORS.textMuted, fontSize: 13,
-                background: COLORS.cardBg, borderRadius: 16, border: `1px solid ${COLORS.borderSubtle}`,
-              }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 36, display: 'block', marginBottom: 10, opacity: 0.4 }}>search</span>
+              <div
+                style={{
+                  padding: 60,
+                  textAlign: 'center',
+                  color: COLORS.textMuted,
+                  fontSize: 13,
+                  background: COLORS.cardBg,
+                  borderRadius: 16,
+                  border: `1px solid ${COLORS.borderSubtle}`,
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 36, display: 'block', marginBottom: 10, opacity: 0.4 }}
+                >
+                  search
+                </span>
                 No notebooks found. Try adjusting your filters.
               </div>
             ) : (
-              <div className="community-bento-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-                {gridCards.map((nb) => <LibraryCard key={nb.shareId} notebook={nb} />)}
+              <div
+                className="community-bento-grid"
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}
+              >
+                {gridCards.map((nb) => (
+                  <LibraryCard key={nb.shareId} notebook={nb} />
+                ))}
                 {communityFavorite && <LargeFeatureCard notebook={communityFavorite} />}
-                {library.length > 4 && <LibraryCard notebook={library[library.length - 2] || library[0]} />}
+                {library.length > 4 && (
+                  <LibraryCard notebook={library[library.length - 2] || library[0]} />
+                )}
               </div>
             )}
           </div>
@@ -668,12 +985,26 @@ export default function CommunityHub() {
 /* ─── Friends Feed placeholder ─── */
 function FriendsFeedPlaceholder() {
   return (
-    <div style={{
-      textAlign: 'center', padding: 60, color: COLORS.textMuted, fontSize: 14,
-      background: COLORS.cardBg, borderRadius: 16, border: `1px solid ${COLORS.borderSubtle}`,
-    }}>
-      <span className="material-symbols-outlined" style={{ fontSize: 40, display: 'block', marginBottom: 12, opacity: 0.4 }}>group</span>
-      <div style={{ fontWeight: 600, color: COLORS.textSecondary, marginBottom: 6 }}>Friends Feed</div>
+    <div
+      style={{
+        textAlign: 'center',
+        padding: 60,
+        color: COLORS.textMuted,
+        fontSize: 14,
+        background: COLORS.cardBg,
+        borderRadius: 16,
+        border: `1px solid ${COLORS.borderSubtle}`,
+      }}
+    >
+      <span
+        className="material-symbols-outlined"
+        style={{ fontSize: 40, display: 'block', marginBottom: 12, opacity: 0.4 }}
+      >
+        group
+      </span>
+      <div style={{ fontWeight: 600, color: COLORS.textSecondary, marginBottom: 6 }}>
+        Friends Feed
+      </div>
       <div style={{ fontSize: 12, color: COLORS.textMuted }}>
         See what your friends are studying and sharing. Add friends to get started!
       </div>

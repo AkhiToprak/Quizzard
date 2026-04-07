@@ -33,7 +33,13 @@ function formatDate(dateStr: string) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function FolderCard({ folder, onClick, onRename, onDelete, onDropNotebook }: FolderCardProps) {
+export default function FolderCard({
+  folder,
+  onClick,
+  onRename,
+  onDelete,
+  onDropNotebook,
+}: FolderCardProps) {
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -43,7 +49,9 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
 
   const itemCount = [];
   if (folder._count.notebooks > 0) {
-    itemCount.push(`${folder._count.notebooks} notebook${folder._count.notebooks !== 1 ? 's' : ''}`);
+    itemCount.push(
+      `${folder._count.notebooks} notebook${folder._count.notebooks !== 1 ? 's' : ''}`
+    );
   }
   if (folder._count.children > 0) {
     itemCount.push(`${folder._count.children} folder${folder._count.children !== 1 ? 's' : ''}`);
@@ -54,9 +62,19 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
     <div
       style={{ position: 'relative' }}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
-      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOver(true); }}
-      onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
+      onMouseLeave={() => {
+        setHovered(false);
+        setMenuOpen(false);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setDragOver(true);
+      }}
+      onDragEnter={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
       onDragLeave={(e) => {
         // Only clear if leaving the card entirely (not entering a child)
         if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(false);
@@ -82,7 +100,8 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
               ? `0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px ${hoverBorder}`
               : '0 8px 24px rgba(0,0,0,0.3)',
           transform: dragOver ? 'scale(1.03)' : hovered ? 'translateY(-4px)' : 'translateY(0)',
-          transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1), border-color 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s',
+          transition:
+            'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1), border-color 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s',
           cursor: 'pointer',
           minHeight: '160px',
         }}
@@ -111,7 +130,14 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
           }}
         >
           {/* Top row: folder badge + menu */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '16px',
+            }}
+          >
             <span
               style={{
                 padding: '3px 10px',
@@ -144,10 +170,16 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
                 borderRadius: '6px',
                 transition: 'color 0.15s',
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = accent; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#aaa8c8'; }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.color = accent;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.color = '#aaa8c8';
+              }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>more_vert</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                more_vert
+              </span>
             </button>
           </div>
 
@@ -191,7 +223,9 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#aaa8c8' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>inventory_2</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
+                inventory_2
+              </span>
               <span style={{ fontSize: '12px' }}>{countLabel}</span>
             </div>
             <span style={{ fontSize: '10px', color: '#8888a8', fontStyle: 'italic' }}>
@@ -218,7 +252,11 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onRename(folder); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen(false);
+              onRename(folder);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -234,14 +272,27 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
               fontFamily: 'inherit',
               textAlign: 'left',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ae89ff' }}>edit</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '18px', color: '#ae89ff' }}
+            >
+              edit
+            </span>
             Rename
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(folder); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen(false);
+              onDelete(folder);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -257,10 +308,16 @@ export default function FolderCard({ folder, onClick, onRename, onDelete, onDrop
               fontFamily: 'inherit',
               textAlign: 'left',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.1)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(253,111,133,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              delete
+            </span>
             Delete
           </button>
         </div>

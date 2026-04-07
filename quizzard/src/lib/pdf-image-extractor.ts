@@ -17,9 +17,7 @@ const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0
  * JPEG or deflate-compressed streams; this approach reliably captures the
  * JPEG ones (the vast majority) and any inline PNGs.
  */
-export async function extractPdfImages(
-  pdfBuffer: Buffer
-): Promise<ExtractedPdfImage[]> {
+export async function extractPdfImages(pdfBuffer: Buffer): Promise<ExtractedPdfImage[]> {
   const images: ExtractedPdfImage[] = [];
 
   // Strategy 1: Extract JPEG images by finding FFD8FF...FFD9 sequences
@@ -40,10 +38,7 @@ export async function extractPdfImages(
   return images.slice(0, MAX_IMAGES);
 }
 
-function extractJpegImages(
-  pdfBuffer: Buffer,
-  images: ExtractedPdfImage[]
-): void {
+function extractJpegImages(pdfBuffer: Buffer, images: ExtractedPdfImage[]): void {
   let offset = 0;
 
   while (offset < pdfBuffer.length && images.length < MAX_IMAGES) {
@@ -103,11 +98,7 @@ function findJpegEnd(buf: Buffer, startSearch: number): number {
       }
 
       // Skip markers with length fields (everything except RST0-RST7, SOI, EOI, TEM, and stuffed bytes)
-      if (
-        marker !== 0x00 &&
-        marker !== 0x01 &&
-        !(marker >= 0xd0 && marker <= 0xd7)
-      ) {
+      if (marker !== 0x00 && marker !== 0x01 && !(marker >= 0xd0 && marker <= 0xd7)) {
         if (pos + 3 < buf.length) {
           const segLen = (buf[pos + 2] << 8) | buf[pos + 3];
           pos += 2 + segLen;
@@ -121,10 +112,7 @@ function findJpegEnd(buf: Buffer, startSearch: number): number {
   return -1;
 }
 
-function extractPngImages(
-  pdfBuffer: Buffer,
-  images: ExtractedPdfImage[]
-): void {
+function extractPngImages(pdfBuffer: Buffer, images: ExtractedPdfImage[]): void {
   let offset = 0;
 
   while (offset < pdfBuffer.length && images.length < MAX_IMAGES) {
@@ -221,11 +209,7 @@ async function extractWithPdfjs(
           }
 
           // Convert raw RGBA pixel data to a minimal BMP
-          const bmpBuffer = rgbaToBmp(
-            imgData.data,
-            imgData.width,
-            imgData.height
-          );
+          const bmpBuffer = rgbaToBmp(imgData.data, imgData.width, imgData.height);
 
           // Skip tiny images (likely artifacts, icons, or spacer pixels)
           if (imgData.width < 10 || imgData.height < 10) continue;
@@ -254,11 +238,7 @@ async function extractWithPdfjs(
  * BMP is chosen because it requires no compression library — it is a
  * simple header + raw pixel data format.
  */
-function rgbaToBmp(
-  rgba: Uint8ClampedArray,
-  width: number,
-  height: number
-): Buffer {
+function rgbaToBmp(rgba: Uint8ClampedArray, width: number, height: number): Buffer {
   const rowSize = Math.ceil((width * 3) / 4) * 4; // rows padded to 4-byte boundary
   const pixelDataSize = rowSize * height;
   const fileSize = 54 + pixelDataSize; // 14-byte file header + 40-byte DIB header + pixel data

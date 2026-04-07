@@ -48,9 +48,11 @@ export default function FileImportDialog({
         const { storagePath } = await upload(file, 'section-import', { notebookId, sectionId });
 
         // Determine the correct API endpoint based on file type
-        const isPptx = file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-        const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          || file.type === 'application/vnd.ms-excel';
+        const isPptx =
+          file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+        const isExcel =
+          file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          file.type === 'application/vnd.ms-excel';
         const importPath = isPptx ? 'import-pptx' : isExcel ? 'import-xlsx' : 'import';
 
         const res = await fetch(
@@ -208,9 +210,7 @@ export default function FileImportDialog({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           style={{
-            border: `2px dashed ${
-              dragOver ? 'rgba(140,82,255,0.5)' : 'rgba(140,82,255,0.2)'
-            }`,
+            border: `2px dashed ${dragOver ? 'rgba(140,82,255,0.5)' : 'rgba(140,82,255,0.2)'}`,
             borderRadius: '12px',
             padding: '40px 20px',
             display: 'flex',
@@ -218,13 +218,8 @@ export default function FileImportDialog({
             alignItems: 'center',
             justifyContent: 'center',
             gap: '12px',
-            cursor:
-              uploadState === 'idle' || uploadState === 'error'
-                ? 'pointer'
-                : 'default',
-            background: dragOver
-              ? 'rgba(140,82,255,0.06)'
-              : 'rgba(140,82,255,0.02)',
+            cursor: uploadState === 'idle' || uploadState === 'error' ? 'pointer' : 'default',
+            background: dragOver ? 'rgba(140,82,255,0.06)' : 'rgba(140,82,255,0.02)',
             transition: 'border-color 0.2s ease, background 0.2s ease',
             minHeight: '180px',
           }}

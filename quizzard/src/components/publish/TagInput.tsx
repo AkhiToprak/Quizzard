@@ -16,8 +16,14 @@ const COLORS = {
 } as const;
 
 const TAG_COLORS = [
-  '#ff6b6b', '#ffde59', '#4ecdc4', '#ffb142',
-  '#ae89ff', '#ff89ae', '#63cdff', '#48db9c',
+  '#ff6b6b',
+  '#ffde59',
+  '#4ecdc4',
+  '#ffb142',
+  '#ae89ff',
+  '#ff89ae',
+  '#63cdff',
+  '#48db9c',
 ];
 
 function getTagColor(index: number): string {
@@ -55,29 +61,30 @@ export default function TagInput({ tags, onChange, maxTags = 15, error }: TagInp
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const fetchSuggestions = useCallback(async (query: string) => {
-    if (query.length < 1) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-    try {
-      const res = await fetch(`/api/tags?search=${encodeURIComponent(query)}&limit=8`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data?.tags) {
-          const filtered = json.data.tags.filter(
-            (t: SuggestionTag) => !tags.includes(t.name)
-          );
-          setSuggestions(filtered);
-          setShowSuggestions(filtered.length > 0);
-          setSelectedIndex(-1);
-        }
+  const fetchSuggestions = useCallback(
+    async (query: string) => {
+      if (query.length < 1) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
       }
-    } catch {
-      // ignore
-    }
-  }, [tags]);
+      try {
+        const res = await fetch(`/api/tags?search=${encodeURIComponent(query)}&limit=8`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data?.tags) {
+            const filtered = json.data.tags.filter((t: SuggestionTag) => !tags.includes(t.name));
+            setSuggestions(filtered);
+            setShowSuggestions(filtered.length > 0);
+            setSelectedIndex(-1);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    },
+    [tags]
+  );
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -158,7 +165,10 @@ export default function TagInput({ tags, onChange, maxTags = 15, error }: TagInp
           >
             #{tag}
             <button
-              onClick={(e) => { e.stopPropagation(); removeTag(tag); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                removeTag(tag);
+              }}
               style={{
                 border: 'none',
                 background: 'none',
@@ -181,8 +191,13 @@ export default function TagInput({ tags, onChange, maxTags = 15, error }: TagInp
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={() => { setFocused(true); }}
-            onBlur={() => { setFocused(false); setTimeout(() => setShowSuggestions(false), 150); }}
+            onFocus={() => {
+              setFocused(true);
+            }}
+            onBlur={() => {
+              setFocused(false);
+              setTimeout(() => setShowSuggestions(false), 150);
+            }}
             placeholder={tags.length === 0 ? 'Type a tag and press Enter...' : 'Add more...'}
             style={{
               border: 'none',
@@ -235,7 +250,10 @@ export default function TagInput({ tags, onChange, maxTags = 15, error }: TagInp
           {suggestions.map((s, i) => (
             <button
               key={s.id}
-              onMouseDown={(e) => { e.preventDefault(); addTag(s.name); }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                addTag(s.name);
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',

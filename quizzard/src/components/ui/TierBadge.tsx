@@ -9,7 +9,8 @@ interface TierBadgeProps {
 
 const ADMIN_BADGE = {
   label: 'Admin',
-  className: 'bg-red-500/20 text-red-300 border border-red-500/40 shadow-[0_0_8px_rgba(239,68,68,0.3)]',
+  className:
+    'bg-red-500/20 text-red-300 border border-red-500/40 shadow-[0_0_8px_rgba(239,68,68,0.3)]',
 };
 
 export default function TierBadge({ tier, role }: TierBadgeProps) {

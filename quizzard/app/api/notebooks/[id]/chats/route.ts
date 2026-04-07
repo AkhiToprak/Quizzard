@@ -61,7 +61,11 @@ export async function POST(request: NextRequest, { params }: Params) {
     if (!notebook) return notFoundResponse('Notebook not found');
 
     const body = await request.json().catch(() => ({}));
-    const { title, contextPageIds = [], contextDocIds = [] } = body as {
+    const {
+      title,
+      contextPageIds = [],
+      contextDocIds = [],
+    } = body as {
       title?: string;
       contextPageIds?: string[];
       contextDocIds?: string[];

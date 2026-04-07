@@ -13,7 +13,12 @@ interface ImageUploadButtonProps {
   pageId: string;
 }
 
-export default function ImageUploadButton({ editor, notebookId, sectionId, pageId }: ImageUploadButtonProps) {
+export default function ImageUploadButton({
+  editor,
+  notebookId,
+  sectionId,
+  pageId,
+}: ImageUploadButtonProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { upload, isUploading } = useDirectUpload();
 
@@ -46,10 +51,14 @@ export default function ImageUploadButton({ editor, notebookId, sectionId, pageI
 
       const json = await res.json();
       if (json.success && json.data?.url) {
-        editor.chain().focus().insertContent({
-          type: 'resizableImage',
-          attrs: { src: json.data.url, alt: file.name, width: null },
-        }).run();
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'resizableImage',
+            attrs: { src: json.data.url, alt: file.name, width: null },
+          })
+          .run();
       }
     } catch {
       // Upload failed silently

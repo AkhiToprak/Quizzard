@@ -121,10 +121,7 @@ function SkeletonRow({ compact }: { compact: boolean }) {
   );
 }
 
-export default function FriendsList({
-  compact = false,
-  onAddFriendClick,
-}: FriendsListProps) {
+export default function FriendsList({ compact = false, onAddFriendClick }: FriendsListProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendsCount, setFriendsCount] = useState(0);
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
@@ -173,10 +170,7 @@ export default function FriendsList({
     fetchData();
   }, [fetchData]);
 
-  const handleRequestAction = async (
-    friendshipId: string,
-    action: 'accept' | 'decline'
-  ) => {
+  const handleRequestAction = async (friendshipId: string, action: 'accept' | 'decline') => {
     setRespondingTo(friendshipId);
     try {
       const res = await fetch(`/api/friends/request/${friendshipId}`, {
@@ -187,9 +181,7 @@ export default function FriendsList({
 
       if (!res.ok) throw new Error('Failed to respond to request');
 
-      setPendingRequests((prev) =>
-        prev.filter((r) => r.friendshipId !== friendshipId)
-      );
+      setPendingRequests((prev) => prev.filter((r) => r.friendshipId !== friendshipId));
       setPendingCount((prev) => Math.max(0, prev - 1));
 
       if (action === 'accept') {
@@ -310,10 +302,7 @@ export default function FriendsList({
                     gap: 8,
                     padding: '6px 8px',
                     borderRadius: 8,
-                    background:
-                      hoveredFriendId === friend.friendshipId
-                        ? '#232342'
-                        : 'transparent',
+                    background: hoveredFriendId === friend.friendshipId ? '#232342' : 'transparent',
                     transition: TRANSITION,
                     cursor: 'pointer',
                   }}
@@ -431,10 +420,7 @@ export default function FriendsList({
           onMouseLeave={() => setHoveredAddFriend(false)}
           onClick={onAddFriendClick}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 18 }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
             person_add
           </span>
           Find Friends
@@ -559,27 +545,16 @@ export default function FriendsList({
                             ? 'rgba(74, 222, 128, 0.2)'
                             : 'rgba(74, 222, 128, 0.1)',
                         color: '#4ade80',
-                        cursor:
-                          respondingTo === request.friendshipId
-                            ? 'not-allowed'
-                            : 'pointer',
+                        cursor: respondingTo === request.friendshipId ? 'not-allowed' : 'pointer',
                         transition: TRANSITION,
-                        opacity:
-                          respondingTo === request.friendshipId ? 0.5 : 1,
+                        opacity: respondingTo === request.friendshipId ? 0.5 : 1,
                       }}
                       disabled={respondingTo === request.friendshipId}
-                      onMouseEnter={() =>
-                        setHoveredAccept(request.friendshipId)
-                      }
+                      onMouseEnter={() => setHoveredAccept(request.friendshipId)}
                       onMouseLeave={() => setHoveredAccept(null)}
-                      onClick={() =>
-                        handleRequestAction(request.friendshipId, 'accept')
-                      }
+                      onClick={() => handleRequestAction(request.friendshipId, 'accept')}
                     >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: 18 }}
-                      >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                         check
                       </span>
                     </button>
@@ -597,27 +572,16 @@ export default function FriendsList({
                             ? 'rgba(253, 111, 133, 0.2)'
                             : 'rgba(253, 111, 133, 0.1)',
                         color: '#fd6f85',
-                        cursor:
-                          respondingTo === request.friendshipId
-                            ? 'not-allowed'
-                            : 'pointer',
+                        cursor: respondingTo === request.friendshipId ? 'not-allowed' : 'pointer',
                         transition: TRANSITION,
-                        opacity:
-                          respondingTo === request.friendshipId ? 0.5 : 1,
+                        opacity: respondingTo === request.friendshipId ? 0.5 : 1,
                       }}
                       disabled={respondingTo === request.friendshipId}
-                      onMouseEnter={() =>
-                        setHoveredDecline(request.friendshipId)
-                      }
+                      onMouseEnter={() => setHoveredDecline(request.friendshipId)}
                       onMouseLeave={() => setHoveredDecline(null)}
-                      onClick={() =>
-                        handleRequestAction(request.friendshipId, 'decline')
-                      }
+                      onClick={() => handleRequestAction(request.friendshipId, 'decline')}
                     >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: 18 }}
-                      >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                         close
                       </span>
                     </button>
@@ -646,10 +610,7 @@ export default function FriendsList({
             padding: '32px 16px',
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 32, color: '#fd6f85' }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#fd6f85' }}>
             error
           </span>
           <span style={{ fontSize: 14, color: '#fd6f85' }}>{error}</span>
@@ -683,10 +644,7 @@ export default function FriendsList({
             padding: '40px 16px',
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 40, color: '#8888a8' }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: 40, color: '#8888a8' }}>
             group
           </span>
           <span
@@ -723,10 +681,7 @@ export default function FriendsList({
                 alignItems: 'center',
                 gap: 10,
                 padding: '8px 16px',
-                background:
-                  hoveredFriendId === friend.friendshipId
-                    ? '#232342'
-                    : 'transparent',
+                background: hoveredFriendId === friend.friendshipId ? '#232342' : 'transparent',
                 transition: TRANSITION,
                 cursor: 'pointer',
                 position: 'relative',
@@ -779,10 +734,7 @@ export default function FriendsList({
                     transition: TRANSITION,
                   }}
                 >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 16 }}
-                  >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                     more_horiz
                   </span>
                 </button>

@@ -1,8 +1,8 @@
-"use client";
-import * as React from "react";
-import { Sparkle } from "lucide-react";
-import { createRoot } from "react-dom/client";
-import { cn } from "@/lib/utils";
+'use client';
+import * as React from 'react';
+import { Sparkle } from 'lucide-react';
+import { createRoot } from 'react-dom/client';
+import { cn } from '@/lib/utils';
 
 interface Point {
   x: number;
@@ -65,12 +65,12 @@ const Component = React.forwardRef<HTMLDivElement, MouseSparklesProps>(
       minimumDistanceBetweenStars = 75,
       glowDuration = 75,
       maximumGlowPointSpacing = 10,
-      colors = ["249 146 253", "252 254 255"],
-      sizes = ["1.4rem", "1rem", "0.6rem"],
+      colors = ['249 146 253', '252 254 255'],
+      sizes = ['1.4rem', '1rem', '0.6rem'],
       className,
       ...props
     },
-    ref,
+    ref
   ) => {
     const configRef = React.useRef({
       starAnimationDuration,
@@ -80,7 +80,7 @@ const Component = React.forwardRef<HTMLDivElement, MouseSparklesProps>(
       maximumGlowPointSpacing,
       colors,
       sizes,
-      animations: ["fall-1", "fall-2", "fall-3"],
+      animations: ['fall-1', 'fall-2', 'fall-3'],
     });
 
     const lastRef = React.useRef({
@@ -93,10 +93,10 @@ const Component = React.forwardRef<HTMLDivElement, MouseSparklesProps>(
 
     const createStar = React.useCallback(
       (position: Point) => {
-        const wrapper = document.createElement("div");
+        const wrapper = document.createElement('div');
         const color = selectRandom(configRef.current.colors);
         const size = selectRandom(configRef.current.sizes);
-        wrapper.className = cn("mouse-sparkles-star", className);
+        wrapper.className = cn('mouse-sparkles-star', className);
         wrapper.style.left = `${position.x}px`;
         wrapper.style.top = `${position.y}px`;
         wrapper.style.fontSize = size;
@@ -112,22 +112,19 @@ const Component = React.forwardRef<HTMLDivElement, MouseSparklesProps>(
           document.body.removeChild(wrapper);
         }, configRef.current.starAnimationDuration);
       },
-      [Icon, className],
+      [Icon, className]
     );
 
     const createGlowPoint = React.useCallback(
       (position: Point) => {
-        const glow = document.createElement("div");
-        glow.className = cn("mouse-sparkles-glow-point", className);
+        const glow = document.createElement('div');
+        glow.className = cn('mouse-sparkles-glow-point', className);
         glow.style.left = `${position.x}px`;
         glow.style.top = `${position.y}px`;
         document.body.appendChild(glow);
-        setTimeout(
-          () => document.body.removeChild(glow),
-          configRef.current.glowDuration,
-        );
+        setTimeout(() => document.body.removeChild(glow), configRef.current.glowDuration);
       },
-      [className],
+      [className]
     );
 
     const createGlow = React.useCallback(
@@ -135,7 +132,7 @@ const Component = React.forwardRef<HTMLDivElement, MouseSparklesProps>(
         const distance = calcDistance(last, current);
         const quantity = Math.max(
           Math.floor(distance / configRef.current.maximumGlowPointSpacing),
-          1,
+          1
         );
         const dx = (current.x - last.x) / quantity;
         const dy = (current.y - last.y) / quantity;
@@ -145,16 +142,13 @@ const Component = React.forwardRef<HTMLDivElement, MouseSparklesProps>(
           createGlowPoint({ x, y });
         });
       },
-      [createGlowPoint],
+      [createGlowPoint]
     );
 
     const handleOnMove = React.useCallback(
       (e: { clientX: number; clientY: number }) => {
         const mousePosition = { x: e.clientX, y: e.clientY };
-        if (
-          lastRef.current.mousePosition.x === 0 &&
-          lastRef.current.mousePosition.y === 0
-        ) {
+        if (lastRef.current.mousePosition.x === 0 && lastRef.current.mousePosition.y === 0) {
           lastRef.current.mousePosition = mousePosition;
         }
         const now = new Date().getTime();
@@ -162,8 +156,7 @@ const Component = React.forwardRef<HTMLDivElement, MouseSparklesProps>(
           calcDistance(lastRef.current.starPosition, mousePosition) >=
           configRef.current.minimumDistanceBetweenStars;
         const hasBeenLongEnough =
-          now - lastRef.current.starTimestamp >
-          configRef.current.minimumTimeBetweenStars;
+          now - lastRef.current.starTimestamp > configRef.current.minimumTimeBetweenStars;
         if (hasMovedFarEnough || hasBeenLongEnough) {
           createStar(mousePosition);
           lastRef.current.starTimestamp = now;
@@ -172,28 +165,26 @@ const Component = React.forwardRef<HTMLDivElement, MouseSparklesProps>(
         createGlow(lastRef.current.mousePosition, mousePosition);
         lastRef.current.mousePosition = mousePosition;
       },
-      [createStar, createGlow],
+      [createStar, createGlow]
     );
 
     React.useEffect(() => {
-      window.addEventListener("mousemove", handleOnMove);
-      window.addEventListener("touchmove", (e) => handleOnMove(e.touches[0]));
-      document.body.addEventListener("mouseleave", () => {
+      window.addEventListener('mousemove', handleOnMove);
+      window.addEventListener('touchmove', (e) => handleOnMove(e.touches[0]));
+      document.body.addEventListener('mouseleave', () => {
         lastRef.current.mousePosition = { x: 0, y: 0 };
       });
       return () => {
-        window.removeEventListener("mousemove", handleOnMove);
-        window.removeEventListener("touchmove", (e) =>
-          handleOnMove(e.touches[0]),
-        );
-        document.body.removeEventListener("mouseleave", () => {
+        window.removeEventListener('mousemove', handleOnMove);
+        window.removeEventListener('touchmove', (e) => handleOnMove(e.touches[0]));
+        document.body.removeEventListener('mouseleave', () => {
           lastRef.current.mousePosition = { x: 0, y: 0 };
         });
       };
     }, [handleOnMove]);
 
     return null;
-  },
+  }
 );
 
 export function rand(min: number, max: number) {
@@ -210,5 +201,5 @@ export function calcDistance(a: Point, b: Point) {
   return Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
 }
 
-Component.displayName = "Component";
+Component.displayName = 'Component';
 export { Component };

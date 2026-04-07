@@ -28,9 +28,22 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 
 export function detectCurrency(locale: string): string {
   const mapping: Record<string, string> = {
-    en_US: 'USD', en_GB: 'GBP', de: 'EUR', fr: 'EUR', it: 'EUR', es: 'EUR',
-    pt_BR: 'BRL', ja: 'JPY', ko: 'KRW', tr: 'TRY', hi: 'INR',
-    en_CA: 'CAD', en_AU: 'AUD', de_CH: 'CHF', fr_CH: 'CHF', it_CH: 'CHF',
+    en_US: 'USD',
+    en_GB: 'GBP',
+    de: 'EUR',
+    fr: 'EUR',
+    it: 'EUR',
+    es: 'EUR',
+    pt_BR: 'BRL',
+    ja: 'JPY',
+    ko: 'KRW',
+    tr: 'TRY',
+    hi: 'INR',
+    en_CA: 'CAD',
+    en_AU: 'AUD',
+    de_CH: 'CHF',
+    fr_CH: 'CHF',
+    it_CH: 'CHF',
   };
   const normalized = locale.replace('-', '_');
   return mapping[normalized] ?? mapping[normalized.split('_')[0]] ?? 'CHF';

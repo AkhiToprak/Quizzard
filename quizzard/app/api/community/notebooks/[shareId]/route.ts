@@ -159,7 +159,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     });
 
     if (!share) return notFoundResponse('Shared notebook not found');
-    if (share.sharedById !== userId) return forbiddenResponse('You can only delete your own publications');
+    if (share.sharedById !== userId)
+      return forbiddenResponse('You can only delete your own publications');
 
     await db.sharedNotebook.delete({ where: { id: shareId } });
 

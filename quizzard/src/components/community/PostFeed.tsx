@@ -214,14 +214,12 @@ export default function PostFeed() {
                 padding: '10px 14px',
                 borderRadius: 10,
                 border: 'none',
-                background: isActive
-                  ? COLORS.elevated
-                  : 'transparent',
+                background: isActive ? COLORS.elevated : 'transparent',
                 color: isActive
                   ? COLORS.primary
                   : isHovered
-                  ? COLORS.textSecondary
-                  : COLORS.textMuted,
+                    ? COLORS.textSecondary
+                    : COLORS.textMuted,
                 fontSize: 13,
                 fontWeight: isActive ? 700 : 500,
                 cursor: 'pointer',
@@ -261,18 +259,15 @@ export default function PostFeed() {
             color: COLORS.textMuted,
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 48, opacity: 0.4 }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.4 }}>
             {feed === 'friends' ? 'group_off' : feed === 'trending' ? 'trending_flat' : 'forum'}
           </span>
           <span style={{ fontSize: 15, fontWeight: 600 }}>
             {feed === 'friends'
               ? 'No posts from friends yet'
               : feed === 'trending'
-              ? 'No trending posts yet'
-              : 'No posts yet. Be the first!'}
+                ? 'No trending posts yet'
+                : 'No posts yet. Be the first!'}
           </span>
           <span style={{ fontSize: 13, opacity: 0.7 }}>
             {feed === 'friends'
@@ -283,18 +278,11 @@ export default function PostFeed() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onDelete={handleDelete}
-              onUpdate={handleUpdate}
-            />
+            <PostCard key={post.id} post={post} onDelete={handleDelete} onUpdate={handleUpdate} />
           ))}
 
           {/* Infinite scroll sentinel */}
-          {nextCursor && (
-            <div ref={observerRef} style={{ height: 1 }} />
-          )}
+          {nextCursor && <div ref={observerRef} style={{ height: 1 }} />}
 
           {/* Loading more */}
           {loadingMore && (

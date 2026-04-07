@@ -48,7 +48,7 @@ function safeStr(val: unknown, fallback: string): string {
 }
 
 function getNotificationText(n: Notification): string {
-  const data = (n.data && typeof n.data === 'object') ? n.data : {};
+  const data = n.data && typeof n.data === 'object' ? n.data : {};
   switch (n.type) {
     case 'friend_request':
       return `${safeStr(data.username, 'Someone')} sent you a friend request`;
@@ -92,7 +92,11 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function NotificationDropdown({ onClose, onRead, onReadAll }: NotificationDropdownProps) {
+export default function NotificationDropdown({
+  onClose,
+  onRead,
+  onReadAll,
+}: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -135,9 +139,7 @@ export default function NotificationDropdown({ onClose, onRead, onReadAll }: Not
     try {
       const res = await fetch(`/api/notifications/${id}`, { method: 'PUT' });
       if (res.ok) {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-        );
+        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
         onRead();
       }
     } catch {
@@ -268,8 +270,8 @@ export default function NotificationDropdown({ onClose, onRead, onReadAll }: Not
                     background: isHovered
                       ? 'rgba(255,255,255,0.07)'
                       : !n.read
-                      ? 'rgba(174,137,255,0.04)'
-                      : 'transparent',
+                        ? 'rgba(174,137,255,0.04)'
+                        : 'transparent',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: `background 0.1s`,

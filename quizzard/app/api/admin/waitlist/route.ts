@@ -1,11 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAdminUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
-import {
-  successResponse,
-  forbiddenResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { successResponse, forbiddenResponse, internalErrorResponse } from '@/lib/api-response';
 import { sendLaunchAnnouncement } from '@/lib/waitlist-email';
 
 // GET — list all waitlist subscribers (admin only)
@@ -55,7 +51,10 @@ export async function POST(request: NextRequest) {
 
     await sendLaunchAnnouncement(emails);
 
-    return successResponse({ sent: emails.length }, `Launch announcement queued for ${emails.length} subscribers.`);
+    return successResponse(
+      { sent: emails.length },
+      `Launch announcement queued for ${emails.length} subscribers.`
+    );
   } catch {
     return internalErrorResponse();
   }

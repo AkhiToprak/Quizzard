@@ -199,7 +199,9 @@ export default function SocialPanel() {
               </Link>
             </div>
 
-            <div style={{ padding: '0 10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div
+              style={{ padding: '0 10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}
+            >
               {requests.map((req) => {
                 const isResponding = respondingTo === req.id;
                 return (
@@ -217,7 +219,13 @@ export default function SocialPanel() {
                       <img
                         src={req.requester.avatarUrl}
                         alt={req.requester.username}
-                        style={{ width: 32, height: 32, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 10,
+                          objectFit: 'cover',
+                          flexShrink: 0,
+                        }}
                       />
                     ) : (
                       <div
@@ -266,7 +274,8 @@ export default function SocialPanel() {
                           height: 28,
                           borderRadius: 8,
                           border: 'none',
-                          background: hoveredAccept === req.id ? COLORS.success : 'rgba(74,222,128,0.12)',
+                          background:
+                            hoveredAccept === req.id ? COLORS.success : 'rgba(74,222,128,0.12)',
                           color: hoveredAccept === req.id ? '#fff' : COLORS.success,
                           cursor: isResponding ? 'wait' : 'pointer',
                           display: 'flex',
@@ -275,7 +284,9 @@ export default function SocialPanel() {
                           transition: `all 0.15s ${EASING}`,
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                          check
+                        </span>
                       </button>
                       <button
                         onClick={() => handleRespond(req.id, 'declined')}
@@ -287,7 +298,8 @@ export default function SocialPanel() {
                           height: 28,
                           borderRadius: 8,
                           border: 'none',
-                          background: hoveredDecline === req.id ? COLORS.error : 'rgba(253,111,133,0.1)',
+                          background:
+                            hoveredDecline === req.id ? COLORS.error : 'rgba(253,111,133,0.1)',
                           color: hoveredDecline === req.id ? '#fff' : COLORS.error,
                           cursor: isResponding ? 'wait' : 'pointer',
                           display: 'flex',
@@ -296,7 +308,9 @@ export default function SocialPanel() {
                           transition: `all 0.15s ${EASING}`,
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                          close
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -370,7 +384,9 @@ export default function SocialPanel() {
                 Shared With Me
               </span>
             </div>
-            <div style={{ padding: '0 8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div
+              style={{ padding: '0 8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}
+            >
               {sharedNotebooks.map((nb) => {
                 const isHovered = hoveredNb === nb.shareId;
                 return (

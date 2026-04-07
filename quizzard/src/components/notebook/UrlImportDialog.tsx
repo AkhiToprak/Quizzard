@@ -428,14 +428,15 @@ export default function UrlImportDialog({
             }}
           >
             {importState === 'importing' && (
-              <Loader2
-                size={14}
-                style={{ animation: 'url-import-spin 1s linear infinite' }}
-              />
+              <Loader2 size={14} style={{ animation: 'url-import-spin 1s linear infinite' }} />
             )}
             {importState === 'importing'
-              ? (isYouTubeUrl ? 'Extracting transcript...' : 'Importing...')
-              : (isYouTubeUrl ? 'Extract Transcript' : 'Import')}
+              ? isYouTubeUrl
+                ? 'Extracting transcript...'
+                : 'Importing...'
+              : isYouTubeUrl
+                ? 'Extract Transcript'
+                : 'Import'}
           </button>
         </div>
 

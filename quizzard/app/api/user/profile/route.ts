@@ -46,7 +46,17 @@ export async function PUT(request: NextRequest) {
     if (!userId) return unauthorizedResponse();
 
     const body = await request.json();
-    const { name, bio, dailyGoal, age, location, school, lineOfWork, profilePrivate, hideAchievements } = body;
+    const {
+      name,
+      bio,
+      dailyGoal,
+      age,
+      location,
+      school,
+      lineOfWork,
+      profilePrivate,
+      hideAchievements,
+    } = body;
 
     const data: Record<string, unknown> = {};
 

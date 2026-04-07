@@ -47,9 +47,9 @@ export async function POST(
     }
 
     // Calculate score
-    const questionMap = new Map(quizSet.questions.map(q => [q.id, q]));
+    const questionMap = new Map(quizSet.questions.map((q) => [q.id, q]));
     let score = 0;
-    const answerRecords = answers.map(a => {
+    const answerRecords = answers.map((a) => {
       const question = questionMap.get(a.questionId);
       const isCorrect = question ? question.correctIndex === a.selectedIdx : false;
       if (isCorrect) score++;

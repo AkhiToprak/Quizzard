@@ -132,7 +132,9 @@ export default function CoWorkBar({
               animation: 'coworkBarPulse 2s ease-in-out infinite',
             }}
           />
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', letterSpacing: '0.05em' }}>
+          <span
+            style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', letterSpacing: '0.05em' }}
+          >
             LIVE
           </span>
         </div>

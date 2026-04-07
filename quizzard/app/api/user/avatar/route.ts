@@ -13,8 +13,8 @@ import {
 // Magic byte signatures for allowed image types
 const MAGIC_BYTES: { ext: string; bytes: number[] }[] = [
   { ext: 'png', bytes: [0x89, 0x50, 0x4e, 0x47] }, // PNG
-  { ext: 'jpg', bytes: [0xff, 0xd8, 0xff] },         // JPEG
-  { ext: 'webp', bytes: [0x52, 0x49, 0x46, 0x46] },  // WebP (RIFF header)
+  { ext: 'jpg', bytes: [0xff, 0xd8, 0xff] }, // JPEG
+  { ext: 'webp', bytes: [0x52, 0x49, 0x46, 0x46] }, // WebP (RIFF header)
 ];
 
 function detectImageType(buffer: Buffer): string | null {

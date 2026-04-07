@@ -14,10 +14,7 @@ import { canUserSeePost } from '@/lib/post-visibility';
 const MAX_CONTENT_LENGTH = 2000;
 
 // GET — get a single post
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -77,10 +74,7 @@ export async function GET(
 }
 
 // PUT — edit a post (content only)
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -192,22 +186,25 @@ function formatPost(post: any, votedOptionIds: Set<string>, voteScore: number) {
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     author: post.author,
-    images: post.images?.map((img: { id: string; url: string; sortOrder: number }) => ({
-      id: img.id,
-      url: img.url,
-      sortOrder: img.sortOrder,
-    })) || [],
+    images:
+      post.images?.map((img: { id: string; url: string; sortOrder: number }) => ({
+        id: img.id,
+        url: img.url,
+        sortOrder: img.sortOrder,
+      })) || [],
     poll: post.poll
       ? {
           id: post.poll.id,
           question: post.poll.question,
-          options: post.poll.options.map((opt: { id: string; text: string; sortOrder: number; _count: { votes: number } }) => ({
-            id: opt.id,
-            text: opt.text,
-            sortOrder: opt.sortOrder,
-            voteCount: opt._count.votes,
-            userVoted: votedOptionIds.has(opt.id),
-          })),
+          options: post.poll.options.map(
+            (opt: { id: string; text: string; sortOrder: number; _count: { votes: number } }) => ({
+              id: opt.id,
+              text: opt.text,
+              sortOrder: opt.sortOrder,
+              voteCount: opt._count.votes,
+              userVoted: votedOptionIds.has(opt.id),
+            })
+          ),
         }
       : null,
     voteScore,

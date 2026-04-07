@@ -4,8 +4,11 @@ import mammoth from 'mammoth';
 // where @napi-rs/canvas native binaries are unavailable. pdfjs-dist requires these
 // globals but only uses them for rendering — text extraction works without them.
 if (typeof globalThis.DOMMatrix === 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const stub = class { constructor(..._args: any[]) {} } as any;
+  const stub = class {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    constructor(..._args: any[]) {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
   globalThis.DOMMatrix = stub;
   globalThis.DOMPoint = globalThis.DOMPoint ?? stub;
   globalThis.DOMRect = globalThis.DOMRect ?? stub;

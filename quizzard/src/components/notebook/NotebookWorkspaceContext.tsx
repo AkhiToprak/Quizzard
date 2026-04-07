@@ -74,7 +74,13 @@ export function useNotebookWorkspace() {
   return ctx;
 }
 
-export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId: string; children: React.ReactNode }) {
+export function NotebookWorkspaceProvider({
+  notebookId,
+  children,
+}: {
+  notebookId: string;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const [notebook, setNotebook] = useState<NotebookMeta | null>(null);
   const [flatSections, setFlatSections] = useState<SectionData[]>([]);
@@ -122,7 +128,9 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
       if (json.success && json.data) {
         setNotebook({ name: json.data.name, color: json.data.color });
       }
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }, [notebookId]);
 
   const fetchSections = useCallback(async () => {
@@ -135,7 +143,9 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
         setSections(buildSectionTree(flat));
         setSectionsLoaded(true);
       }
-    } catch { setSectionsLoaded(true); /* silent */ }
+    } catch {
+      setSectionsLoaded(true); /* silent */
+    }
   }, [notebookId]);
 
   const fetchChats = useCallback(async () => {
@@ -145,7 +155,9 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
       if (json.success && json.data) {
         setChats(json.data as NotebookChatItem[]);
       }
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }, [notebookId]);
 
   const fetchStudyPlans = useCallback(async () => {
@@ -155,7 +167,9 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
       if (json.success && json.data) {
         setStudyPlans(json.data as StudyPlanSummary[]);
       }
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }, [notebookId]);
 
   useEffect(() => {
@@ -169,34 +183,45 @@ export function NotebookWorkspaceProvider({ notebookId, children }: { notebookId
   useEffect(() => {
     if (flatSections.length === 0) return;
     if (activePageId) {
-      const owner = flatSections.find(s => s.pages.some(p => p.id === activePageId));
+      const owner = flatSections.find((s) => s.pages.some((p) => p.id === activePageId));
       if (owner) {
         setActiveSectionId(owner.id);
         return;
       }
     }
     // Default: first root section
-    const firstRoot = flatSections.find(s => s.parentId === null) ?? flatSections[0];
+    const firstRoot = flatSections.find((s) => s.parentId === null) ?? flatSections[0];
     if (firstRoot && !activeSectionId) {
       setActiveSectionId(firstRoot.id);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flatSections, activePageId]);
 
   return (
-    <NotebookWorkspaceContext.Provider value={{
-      notebookId, notebook, sections, flatSections, sectionsLoaded,
-      activeSectionId, setActiveSectionId,
-      activePageId, activeChatId, activeFlashcardSetId, activeQuizSetId,
-      activeStudyPlanId,
-      chats, studyPlans,
-      refreshChats: fetchChats,
-      refreshSections: fetchSections,
-      refreshStudyPlans: fetchStudyPlans,
-      isScholarView: activeChatId !== null,
-      sidebarCollapsed,
-      setSidebarCollapsed,
-    }}>
+    <NotebookWorkspaceContext.Provider
+      value={{
+        notebookId,
+        notebook,
+        sections,
+        flatSections,
+        sectionsLoaded,
+        activeSectionId,
+        setActiveSectionId,
+        activePageId,
+        activeChatId,
+        activeFlashcardSetId,
+        activeQuizSetId,
+        activeStudyPlanId,
+        chats,
+        studyPlans,
+        refreshChats: fetchChats,
+        refreshSections: fetchSections,
+        refreshStudyPlans: fetchStudyPlans,
+        isScholarView: activeChatId !== null,
+        sidebarCollapsed,
+        setSidebarCollapsed,
+      }}
+    >
       {children}
     </NotebookWorkspaceContext.Provider>
   );

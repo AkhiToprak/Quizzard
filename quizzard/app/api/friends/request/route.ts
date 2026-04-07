@@ -19,7 +19,11 @@ export async function POST(request: NextRequest) {
 
     // Rate limit: 20 friend requests per 10 minutes per user
     const rl = await rateLimit(rateLimitKey('friend:request', request, userId), 20, 10 * 60 * 1000);
-    if (!rl.success) return tooManyRequestsResponse('Too many friend requests. Please slow down.', rl.retryAfterMs);
+    if (!rl.success)
+      return tooManyRequestsResponse(
+        'Too many friend requests. Please slow down.',
+        rl.retryAfterMs
+      );
 
     const body = await request.json().catch(() => ({}));
     const { username, userId: targetUserId } = body as {
@@ -82,7 +86,13 @@ export async function POST(request: NextRequest) {
             data: {
               userId: addressee.id,
               type: 'friend_accepted',
-              data: { friendshipId: updated.id, userId, username: (await db.user.findUnique({ where: { id: userId }, select: { username: true } }))?.username },
+              data: {
+                friendshipId: updated.id,
+                userId,
+                username: (
+                  await db.user.findUnique({ where: { id: userId }, select: { username: true } })
+                )?.username,
+              },
             },
           });
 
@@ -91,7 +101,11 @@ export async function POST(request: NextRequest) {
               id: updated.id,
               status: 'accepted',
               autoAccepted: true,
-              addressee: { id: addressee.id, username: addressee.username, avatarUrl: addressee.avatarUrl },
+              addressee: {
+                id: addressee.id,
+                username: addressee.username,
+                avatarUrl: addressee.avatarUrl,
+              },
             },
           });
         }
@@ -120,7 +134,13 @@ export async function POST(request: NextRequest) {
           data: {
             userId: addressee.id,
             type: 'friend_request',
-            data: { friendshipId: updated.id, userId, username: (await db.user.findUnique({ where: { id: userId }, select: { username: true } }))?.username },
+            data: {
+              friendshipId: updated.id,
+              userId,
+              username: (
+                await db.user.findUnique({ where: { id: userId }, select: { username: true } })
+              )?.username,
+            },
           },
         });
 
@@ -128,7 +148,11 @@ export async function POST(request: NextRequest) {
           friendship: {
             id: updated.id,
             status: 'pending',
-            addressee: { id: addressee.id, username: addressee.username, avatarUrl: addressee.avatarUrl },
+            addressee: {
+              id: addressee.id,
+              username: addressee.username,
+              avatarUrl: addressee.avatarUrl,
+            },
           },
         });
       }
@@ -167,7 +191,11 @@ export async function POST(request: NextRequest) {
       friendship: {
         id: friendship.id,
         status: 'pending',
-        addressee: { id: addressee.id, username: addressee.username, avatarUrl: addressee.avatarUrl },
+        addressee: {
+          id: addressee.id,
+          username: addressee.username,
+          avatarUrl: addressee.avatarUrl,
+        },
       },
     });
   } catch {

@@ -44,11 +44,11 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // Preserve the order from pageIds
     const orderedPages = pageIds
-      .map(pid => pages.find(p => p.id === pid))
+      .map((pid) => pages.find((p) => p.id === pid))
       .filter(Boolean) as typeof pages;
 
     // Generate full PDF from all pages
-    const pagesData = orderedPages.map(p => ({
+    const pagesData = orderedPages.map((p) => ({
       title: p.title,
       textContent: p.textContent || '',
     }));
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     for (let i = 0; i < ranges.length; i++) {
       const range = ranges[i];
       const rangePages = orderedPages.slice(range.start, range.end + 1);
-      const rangePagesData = rangePages.map(p => ({
+      const rangePagesData = rangePages.map((p) => ({
         title: p.title,
         textContent: p.textContent || '',
       }));

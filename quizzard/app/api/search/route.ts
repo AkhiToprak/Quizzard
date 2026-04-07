@@ -54,16 +54,17 @@ export async function GET(request: NextRequest) {
       });
 
       const userIds = users.map((u) => u.id);
-      const friendships = userIds.length > 0
-        ? await db.friendship.findMany({
-            where: {
-              OR: [
-                { requesterId: userId, addresseeId: { in: userIds } },
-                { requesterId: { in: userIds }, addresseeId: userId },
-              ],
-            },
-          })
-        : [];
+      const friendships =
+        userIds.length > 0
+          ? await db.friendship.findMany({
+              where: {
+                OR: [
+                  { requesterId: userId, addresseeId: { in: userIds } },
+                  { requesterId: { in: userIds }, addresseeId: userId },
+                ],
+              },
+            })
+          : [];
 
       const friendshipMap = new Map<string, { status: string; requesterId: string }>();
       for (const f of friendships) {
@@ -132,7 +133,11 @@ export async function GET(request: NextRequest) {
               OR: [
                 { notebook: { name: { contains: query, mode: 'insensitive' } } },
                 { title: { contains: query, mode: 'insensitive' } },
-                { tags: { some: { tag: { name: { contains: query.toLowerCase(), mode: 'insensitive' } } } } },
+                {
+                  tags: {
+                    some: { tag: { name: { contains: query.toLowerCase(), mode: 'insensitive' } } },
+                  },
+                },
               ],
             },
           ],

@@ -51,7 +51,12 @@ export async function POST(request: NextRequest) {
 
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { tier: true, subscriptionPeriodEnd: true, stripeSubscriptionId: true, stripeCustomerId: true },
+      select: {
+        tier: true,
+        subscriptionPeriodEnd: true,
+        stripeSubscriptionId: true,
+        stripeCustomerId: true,
+      },
     });
 
     if (!user) return unauthorizedResponse();

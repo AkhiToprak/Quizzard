@@ -109,10 +109,7 @@ export default function PageLockIndicator({
       )}
 
       {/* Lock icon */}
-      <span
-        className="material-symbols-outlined"
-        style={{ fontSize: 16, color: '#fb923c' }}
-      >
+      <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#fb923c' }}>
         lock
       </span>
 

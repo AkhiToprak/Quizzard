@@ -26,7 +26,16 @@ const COLORS = {
 
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
-const TAG_COLORS = ['#ff6b6b', '#ffde59', '#4ecdc4', '#ffb142', '#ae89ff', '#ff89ae', '#63cdff', '#48db9c'];
+const TAG_COLORS = [
+  '#ff6b6b',
+  '#ffde59',
+  '#4ecdc4',
+  '#ffb142',
+  '#ae89ff',
+  '#ff89ae',
+  '#63cdff',
+  '#48db9c',
+];
 
 interface NotebookDetail {
   shareId: string;
@@ -188,9 +197,15 @@ function CommentInput({
           <button
             onClick={onCancel}
             style={{
-              padding: '6px 14px', borderRadius: 8, border: `1px solid ${COLORS.borderSubtle}`,
-              background: 'transparent', color: COLORS.textSecondary, fontSize: 12,
-              fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '6px 14px',
+              borderRadius: 8,
+              border: `1px solid ${COLORS.borderSubtle}`,
+              background: 'transparent',
+              color: COLORS.textSecondary,
+              fontSize: 12,
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
             }}
           >
             Cancel
@@ -200,11 +215,16 @@ function CommentInput({
           onClick={handleSubmit}
           disabled={!text.trim() || submitting}
           style={{
-            padding: '6px 16px', borderRadius: 8, border: 'none',
+            padding: '6px 16px',
+            borderRadius: 8,
+            border: 'none',
             background: text.trim() ? COLORS.primary : COLORS.elevated,
             color: text.trim() ? '#fff' : COLORS.textMuted,
-            fontSize: 12, fontWeight: 600, cursor: text.trim() ? 'pointer' : 'default',
-            opacity: submitting ? 0.6 : 1, fontFamily: 'inherit',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: text.trim() ? 'pointer' : 'default',
+            opacity: submitting ? 0.6 : 1,
+            fontFamily: 'inherit',
           }}
         >
           {submitting ? 'Posting...' : 'Post'}
@@ -228,34 +248,57 @@ function VoteButtons({
       <button
         onClick={() => onVote(userVote === 1 ? 0 : 1)}
         style={{
-          border: 'none', background: 'none', padding: '2px 4px', cursor: 'pointer',
+          border: 'none',
+          background: 'none',
+          padding: '2px 4px',
+          cursor: 'pointer',
           color: userVote === 1 ? COLORS.primary : COLORS.textMuted,
-          fontSize: 14, lineHeight: 1, display: 'flex', alignItems: 'center',
+          fontSize: 14,
+          lineHeight: 1,
+          display: 'flex',
+          alignItems: 'center',
           transition: `color 0.1s ${EASING}`,
         }}
         title="Upvote"
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 16, fontVariationSettings: userVote === 1 ? "'FILL' 1" : "'FILL' 0" }}>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 16, fontVariationSettings: userVote === 1 ? "'FILL' 1" : "'FILL' 0" }}
+        >
           arrow_upward
         </span>
       </button>
-      <span style={{
-        fontSize: 12, fontWeight: 600, minWidth: 20, textAlign: 'center',
-        color: score > 0 ? COLORS.primary : score < 0 ? COLORS.error : COLORS.textMuted,
-      }}>
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          minWidth: 20,
+          textAlign: 'center',
+          color: score > 0 ? COLORS.primary : score < 0 ? COLORS.error : COLORS.textMuted,
+        }}
+      >
         {score}
       </span>
       <button
         onClick={() => onVote(userVote === -1 ? 0 : -1)}
         style={{
-          border: 'none', background: 'none', padding: '2px 4px', cursor: 'pointer',
+          border: 'none',
+          background: 'none',
+          padding: '2px 4px',
+          cursor: 'pointer',
           color: userVote === -1 ? COLORS.error : COLORS.textMuted,
-          fontSize: 14, lineHeight: 1, display: 'flex', alignItems: 'center',
+          fontSize: 14,
+          lineHeight: 1,
+          display: 'flex',
+          alignItems: 'center',
           transition: `color 0.1s ${EASING}`,
         }}
         title="Downvote"
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 16, fontVariationSettings: userVote === -1 ? "'FILL' 1" : "'FILL' 0" }}>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 16, fontVariationSettings: userVote === -1 ? "'FILL' 1" : "'FILL' 0" }}
+        >
           arrow_downward
         </span>
       </button>
@@ -276,7 +319,10 @@ function CommentThread({
   depth: number;
   shareId: string;
   onCommentAdded: (c: CommentData) => void;
-  onVoteUpdate: (commentId: string, data: { score: number; userVote: number; upvotes: number; downvotes: number }) => void;
+  onVoteUpdate: (
+    commentId: string,
+    data: { score: number; userVote: number; upvotes: number; downvotes: number }
+  ) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [showReply, setShowReply] = useState(false);
@@ -332,9 +378,19 @@ function CommentThread({
           <button
             onClick={() => setCollapsed(!collapsed)}
             style={{
-              width: 2, minHeight: '100%', padding: 0, border: 'none', cursor: 'pointer',
-              background: collapsed ? COLORS.primary : (hovered ? COLORS.textMuted : COLORS.borderSubtle),
-              borderRadius: 1, flexShrink: 0, transition: `background 0.15s ${EASING}`,
+              width: 2,
+              minHeight: '100%',
+              padding: 0,
+              border: 'none',
+              cursor: 'pointer',
+              background: collapsed
+                ? COLORS.primary
+                : hovered
+                  ? COLORS.textMuted
+                  : COLORS.borderSubtle,
+              borderRadius: 1,
+              flexShrink: 0,
+              transition: `background 0.15s ${EASING}`,
             }}
             title={collapsed ? 'Expand thread' : 'Collapse thread'}
           />
@@ -352,12 +408,21 @@ function CommentThread({
                 style={{ borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{
-                width: 22, height: 22, borderRadius: '50%',
-                background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple})`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0,
-              }}>
+              <div
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple})`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: '#fff',
+                  flexShrink: 0,
+                }}
+              >
                 {comment.author.username.charAt(0).toUpperCase()}
               </div>
             )}
@@ -372,35 +437,60 @@ function CommentThread({
           {/* Content */}
           {!collapsed && (
             <>
-              <p style={{
-                margin: '0 0 6px', fontSize: 13, lineHeight: 1.6,
-                color: COLORS.textSecondary, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-              }}>
+              <p
+                style={{
+                  margin: '0 0 6px',
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  color: COLORS.textSecondary,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
                 {comment.content}
               </p>
 
               {/* Actions */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <VoteButtons score={comment.score} userVote={comment.userVote} onVote={handleVote} />
+                <VoteButtons
+                  score={comment.score}
+                  userVote={comment.userVote}
+                  onVote={handleVote}
+                />
                 <button
                   onClick={() => setShowReply(!showReply)}
                   style={{
-                    border: 'none', background: 'none', padding: '2px 6px', cursor: 'pointer',
+                    border: 'none',
+                    background: 'none',
+                    padding: '2px 6px',
+                    cursor: 'pointer',
                     color: showReply ? COLORS.primary : COLORS.textMuted,
-                    fontSize: 12, fontWeight: 500, fontFamily: 'inherit',
-                    display: 'flex', alignItems: 'center', gap: 4,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    fontFamily: 'inherit',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
                     transition: `color 0.1s ${EASING}`,
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>reply</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    reply
+                  </span>
                   Reply
                 </button>
                 {replies.length > 0 && collapsed && (
                   <button
                     onClick={() => setCollapsed(false)}
                     style={{
-                      border: 'none', background: 'none', padding: '2px 6px', cursor: 'pointer',
-                      color: COLORS.primary, fontSize: 12, fontWeight: 500, fontFamily: 'inherit',
+                      border: 'none',
+                      background: 'none',
+                      padding: '2px 6px',
+                      cursor: 'pointer',
+                      color: COLORS.primary,
+                      fontSize: 12,
+                      fontWeight: 500,
+                      fontFamily: 'inherit',
                     }}
                   >
                     {replies.length} repl{replies.length === 1 ? 'y' : 'ies'}
@@ -427,8 +517,14 @@ function CommentThread({
             <button
               onClick={() => setCollapsed(false)}
               style={{
-                border: 'none', background: 'none', padding: 0, cursor: 'pointer',
-                color: COLORS.primary, fontSize: 12, fontWeight: 500, fontFamily: 'inherit',
+                border: 'none',
+                background: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                color: COLORS.primary,
+                fontSize: 12,
+                fontWeight: 500,
+                fontFamily: 'inherit',
               }}
             >
               Show {replies.length} repl{replies.length === 1 ? 'y' : 'ies'}
@@ -475,7 +571,9 @@ function CommentSection({ shareId }: { shareId: string }) {
     }
   }, [shareId]);
 
-  useEffect(() => { fetchComments(); }, [fetchComments]);
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleNewComment = async (text: string) => {
     const res = await fetch(`/api/community/notebooks/${shareId}/comments`, {
@@ -495,11 +593,20 @@ function CommentSection({ shareId }: { shareId: string }) {
     setComments((prev) => [...prev, c]);
   };
 
-  const handleVoteUpdate = (commentId: string, data: { score: number; userVote: number; upvotes: number; downvotes: number }) => {
+  const handleVoteUpdate = (
+    commentId: string,
+    data: { score: number; userVote: number; upvotes: number; downvotes: number }
+  ) => {
     setComments((prev) =>
       prev.map((c) =>
         c.id === commentId
-          ? { ...c, score: data.score, userVote: data.userVote, upvotes: data.upvotes, downvotes: data.downvotes }
+          ? {
+              ...c,
+              score: data.score,
+              userVote: data.userVote,
+              upvotes: data.upvotes,
+              downvotes: data.downvotes,
+            }
           : c
       )
     );
@@ -519,17 +626,19 @@ function CommentSection({ shareId }: { shareId: string }) {
       }}
     >
       {/* Header */}
-      <div style={{
-        padding: '18px 24px',
-        borderBottom: `1px solid ${COLORS.border}`,
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
+      <div
+        style={{
+          padding: '18px 24px',
+          borderBottom: `1px solid ${COLORS.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+        }}
+      >
         <span className="material-symbols-outlined" style={{ fontSize: 20, color: COLORS.primary }}>
           chat_bubble
         </span>
-        <span style={{ fontSize: 15, fontWeight: 700, color: COLORS.textPrimary }}>
-          Comments
-        </span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: COLORS.textPrimary }}>Comments</span>
         <span style={{ fontSize: 12, color: COLORS.textMuted, marginLeft: 'auto' }}>
           {commentCount} comment{commentCount !== 1 ? 's' : ''}
         </span>
@@ -550,7 +659,14 @@ function CommentSection({ shareId }: { shareId: string }) {
             </span>
           </div>
         ) : rootComments.length === 0 ? (
-          <div style={{ padding: '24px 0', textAlign: 'center', color: COLORS.textMuted, fontSize: 13 }}>
+          <div
+            style={{
+              padding: '24px 0',
+              textAlign: 'center',
+              color: COLORS.textMuted,
+              fontSize: 13,
+            }}
+          >
             No comments yet. Be the first to comment!
           </div>
         ) : (
@@ -657,7 +773,13 @@ export default function CommunityNotebookDetailPage() {
       if (!res.ok) throw new Error('Failed to download');
       setCopySuccess(true);
       setNotebook((prev) =>
-        prev ? { ...prev, downloadCount: prev.downloadCount + (prev.userDownloaded ? 0 : 1), userDownloaded: true } : prev
+        prev
+          ? {
+              ...prev,
+              downloadCount: prev.downloadCount + (prev.userDownloaded ? 0 : 1),
+              userDownloaded: true,
+            }
+          : prev
       );
     } catch {
       setError('Failed to download notebook. Please try again.');
@@ -736,7 +858,9 @@ export default function CommunityNotebookDetailPage() {
         <span className="material-symbols-outlined" style={{ fontSize: 48, color: COLORS.error }}>
           error_outline
         </span>
-        <p style={{ fontSize: 16, fontWeight: 600, color: COLORS.error }}>{error || 'Notebook not found'}</p>
+        <p style={{ fontSize: 16, fontWeight: 600, color: COLORS.error }}>
+          {error || 'Notebook not found'}
+        </p>
         <button
           onClick={() => router.push('/home')}
           style={{
@@ -949,7 +1073,10 @@ export default function CommunityNotebookDetailPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: COLORS.textMuted }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 18, color: COLORS.textMuted }}
+            >
               visibility
             </span>
             <span style={{ fontSize: 13, color: COLORS.textSecondary, fontWeight: 500 }}>
@@ -957,7 +1084,10 @@ export default function CommunityNotebookDetailPage() {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: COLORS.textMuted }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 18, color: COLORS.textMuted }}
+            >
               download
             </span>
             <span style={{ fontSize: 13, color: COLORS.textSecondary, fontWeight: 500 }}>
@@ -1060,7 +1190,9 @@ export default function CommunityNotebookDetailPage() {
 
         {/* Images (exclude cover image — inline images are embedded in content) */}
         {(() => {
-          const nonCoverImages = notebook.images.filter((img) => img.url !== notebook.coverImageUrl);
+          const nonCoverImages = notebook.images.filter(
+            (img) => img.url !== notebook.coverImageUrl
+          );
           if (nonCoverImages.length === 0) return null;
           return (
             <div
@@ -1119,7 +1251,10 @@ export default function CommunityNotebookDetailPage() {
               gap: 10,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: accentColor }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 20, color: accentColor }}
+            >
               menu_book
             </span>
             <span style={{ fontSize: 15, fontWeight: 700, color: COLORS.textPrimary }}>
@@ -1142,7 +1277,10 @@ export default function CommunityNotebookDetailPage() {
                   gap: 10,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 18, color: COLORS.textMuted }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, color: COLORS.textMuted }}
+                >
                   folder
                 </span>
                 <span style={{ fontSize: 14, color: COLORS.textPrimary, fontWeight: 500 }}>
@@ -1177,7 +1315,9 @@ export default function CommunityNotebookDetailPage() {
           }}
         >
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary, marginBottom: 4 }}>
+            <div
+              style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary, marginBottom: 4 }}
+            >
               {userRating ? 'Your Rating' : 'Rate this notebook'}
             </div>
             <div style={{ fontSize: 12, color: COLORS.textMuted }}>
@@ -1186,12 +1326,21 @@ export default function CommunityNotebookDetailPage() {
                 : 'Help others discover great notebooks'}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: ratingSubmitting ? 0.5 : 1 }}>
-            <StarRating rating={userRating || 0} onRate={handleRate} interactive={!ratingSubmitting} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              opacity: ratingSubmitting ? 0.5 : 1,
+            }}
+          >
+            <StarRating
+              rating={userRating || 0}
+              onRate={handleRate}
+              interactive={!ratingSubmitting}
+            />
             {userRating && (
-              <span style={{ fontSize: 12, color: COLORS.textMuted }}>
-                ({userRating}/5)
-              </span>
+              <span style={{ fontSize: 12, color: COLORS.textMuted }}>({userRating}/5)</span>
             )}
           </div>
         </div>
@@ -1213,8 +1362,8 @@ export default function CommunityNotebookDetailPage() {
             background: copySuccess
               ? COLORS.success
               : copyBtnHovered
-              ? `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`
-              : `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple})`,
+                ? `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`
+                : `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple})`,
             color: '#fff',
             fontSize: 16,
             fontWeight: 700,
@@ -1222,9 +1371,10 @@ export default function CommunityNotebookDetailPage() {
             opacity: copying ? 0.7 : 1,
             transition: `all 0.25s ${EASING}`,
             transform: copyBtnHovered && !copying && !copySuccess ? 'translateY(-2px)' : 'none',
-            boxShadow: copyBtnHovered && !copySuccess
-              ? '0 12px 32px rgba(174,137,255,0.3)'
-              : '0 6px 20px rgba(174,137,255,0.15)',
+            boxShadow:
+              copyBtnHovered && !copySuccess
+                ? '0 12px 32px rgba(174,137,255,0.3)'
+                : '0 6px 20px rgba(174,137,255,0.15)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1274,7 +1424,9 @@ export default function CommunityNotebookDetailPage() {
 
         {/* Delete button — only visible to the author */}
         {isAuthor && (
-          <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${COLORS.borderSubtle}` }}>
+          <div
+            style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${COLORS.borderSubtle}` }}
+          >
             {!showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
@@ -1293,21 +1445,34 @@ export default function CommunityNotebookDetailPage() {
                   fontFamily: 'inherit',
                   transition: `color 0.15s ${EASING}, border-color 0.15s ${EASING}`,
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.error; e.currentTarget.style.borderColor = COLORS.error; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textMuted; e.currentTarget.style.borderColor = COLORS.borderSubtle; }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = COLORS.error;
+                  e.currentTarget.style.borderColor = COLORS.error;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = COLORS.textMuted;
+                  e.currentTarget.style.borderColor = COLORS.borderSubtle;
+                }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                  delete
+                </span>
                 Delete Publication
               </button>
             ) : (
-              <div style={{
-                padding: '16px 20px',
-                borderRadius: 12,
-                background: 'rgba(253,111,133,0.08)',
-                border: `1px solid rgba(253,111,133,0.2)`,
-              }}>
-                <p style={{ margin: '0 0 12px', fontSize: 13, color: COLORS.error, fontWeight: 600 }}>
-                  Are you sure? This will remove the publication from the community. Your notebook will not be affected.
+              <div
+                style={{
+                  padding: '16px 20px',
+                  borderRadius: 12,
+                  background: 'rgba(253,111,133,0.08)',
+                  border: `1px solid rgba(253,111,133,0.2)`,
+                }}
+              >
+                <p
+                  style={{ margin: '0 0 12px', fontSize: 13, color: COLORS.error, fontWeight: 600 }}
+                >
+                  Are you sure? This will remove the publication from the community. Your notebook
+                  will not be affected.
                 </p>
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button

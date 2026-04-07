@@ -20,7 +20,20 @@ const CELL_GAP = 3;
 const TOTAL_WEEKS = 53;
 const DAYS_IN_WEEK = 7;
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
 function getColor(count: number): string {
   if (count === 0) return '#1a1a2e';
@@ -31,13 +44,24 @@ function getColor(count: number): string {
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  return d.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 export default function ActivityHeatmap() {
   const [dayMap, setDayMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [tooltip, setTooltip] = useState<TooltipState>({ visible: false, x: 0, y: 0, date: '', count: 0 });
+  const [tooltip, setTooltip] = useState<TooltipState>({
+    visible: false,
+    x: 0,
+    y: 0,
+    date: '',
+    count: 0,
+  });
 
   useEffect(() => {
     fetch('/api/user/activity-heatmap?days=365')
@@ -94,19 +118,24 @@ export default function ActivityHeatmap() {
     }
   }
 
-  const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>, date: string, count: number) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const wrapperRect = e.currentTarget.closest('[data-heatmap-wrapper]')?.getBoundingClientRect();
-    if (wrapperRect) {
-      setTooltip({
-        visible: true,
-        x: rect.left - wrapperRect.left + CELL_SIZE / 2,
-        y: rect.top - wrapperRect.top - 8,
-        date,
-        count,
-      });
-    }
-  }, []);
+  const handleMouseEnter = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>, date: string, count: number) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const wrapperRect = e.currentTarget
+        .closest('[data-heatmap-wrapper]')
+        ?.getBoundingClientRect();
+      if (wrapperRect) {
+        setTooltip({
+          visible: true,
+          x: rect.left - wrapperRect.left + CELL_SIZE / 2,
+          y: rect.top - wrapperRect.top - 8,
+          date,
+          count,
+        });
+      }
+    },
+    []
+  );
 
   const handleMouseLeave = useCallback(() => {
     setTooltip((prev) => ({ ...prev, visible: false }));
@@ -125,12 +154,31 @@ export default function ActivityHeatmap() {
         padding: '24px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '20px',
+        }}
+      >
         <div>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>Activity</h3>
-          <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>Your contributions over the last year</p>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>
+            Activity
+          </h3>
+          <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
+            Your contributions over the last year
+          </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#aaa8c8' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '11px',
+            color: '#aaa8c8',
+          }}
+        >
           <span>Less</span>
           {[0, 1, 3, 6].map((count) => (
             <div
@@ -148,7 +196,16 @@ export default function ActivityHeatmap() {
       </div>
 
       {loading ? (
-        <div style={{ height: `${gridHeight + topPadding + 8}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa8c8', fontSize: '13px' }}>
+        <div
+          style={{
+            height: `${gridHeight + topPadding + 8}px`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#aaa8c8',
+            fontSize: '13px',
+          }}
+        >
           Loading activity...
         </div>
       ) : (
@@ -186,7 +243,7 @@ export default function ActivityHeatmap() {
               ))}
 
               {/* Day labels */}
-              {DAY_LABELS.map((label, i) => (
+              {DAY_LABELS.map((label, i) =>
                 label ? (
                   <div
                     key={i}
@@ -204,7 +261,7 @@ export default function ActivityHeatmap() {
                     {label}
                   </div>
                 ) : null
-              ))}
+              )}
 
               {/* Grid cells */}
               {cells.map((cell) => (
@@ -223,8 +280,12 @@ export default function ActivityHeatmap() {
                     cursor: 'pointer',
                     transition: 'opacity 0.15s',
                   }}
-                  onMouseOver={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; }}
-                  onMouseOut={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; }}
+                  onMouseOver={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.opacity = '0.8';
+                  }}
+                  onMouseOut={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.opacity = '1';
+                  }}
                 />
               ))}
             </div>
@@ -250,7 +311,10 @@ export default function ActivityHeatmap() {
                 zIndex: 10,
               }}
             >
-              <strong>{tooltip.count} {tooltip.count === 1 ? 'action' : 'actions'}</strong> on {formatDate(tooltip.date)}
+              <strong>
+                {tooltip.count} {tooltip.count === 1 ? 'action' : 'actions'}
+              </strong>{' '}
+              on {formatDate(tooltip.date)}
             </div>
           )}
         </div>

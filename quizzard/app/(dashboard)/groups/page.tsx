@@ -41,27 +41,12 @@ function SkeletonCard() {
         gap: 12,
       }}
     >
-      <div
-        className="groups-skeleton"
-        style={{ width: '70%', height: 18, borderRadius: 8 }}
-      />
-      <div
-        className="groups-skeleton"
-        style={{ width: '90%', height: 14, borderRadius: 6 }}
-      />
-      <div
-        className="groups-skeleton"
-        style={{ width: '50%', height: 14, borderRadius: 6 }}
-      />
+      <div className="groups-skeleton" style={{ width: '70%', height: 18, borderRadius: 8 }} />
+      <div className="groups-skeleton" style={{ width: '90%', height: 14, borderRadius: 6 }} />
+      <div className="groups-skeleton" style={{ width: '50%', height: 14, borderRadius: 6 }} />
       <div style={{ marginTop: 'auto', display: 'flex', gap: 16 }}>
-        <div
-          className="groups-skeleton"
-          style={{ width: 50, height: 14, borderRadius: 6 }}
-        />
-        <div
-          className="groups-skeleton"
-          style={{ width: 50, height: 14, borderRadius: 6 }}
-        />
+        <div className="groups-skeleton" style={{ width: 50, height: 14, borderRadius: 6 }} />
+        <div className="groups-skeleton" style={{ width: 50, height: 14, borderRadius: 6 }} />
       </div>
     </div>
   );
@@ -204,10 +189,7 @@ export default function GroupsPage() {
               padding: '80px 16px',
             }}
           >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 48, color: '#fd6f85' }}
-            >
+            <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#fd6f85' }}>
               error
             </span>
             <span style={{ fontSize: 15, color: '#fd6f85' }}>{error}</span>

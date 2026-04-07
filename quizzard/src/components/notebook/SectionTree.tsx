@@ -80,7 +80,12 @@ interface SectionTreeProps {
   onRefresh: () => void;
 }
 
-export default function SectionTree({ sections, activePageId, notebookId, onRefresh }: SectionTreeProps) {
+export default function SectionTree({
+  sections,
+  activePageId,
+  notebookId,
+  onRefresh,
+}: SectionTreeProps) {
   if (sections.length === 0) {
     return (
       <div

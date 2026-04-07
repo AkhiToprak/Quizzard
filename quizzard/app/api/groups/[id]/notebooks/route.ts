@@ -13,10 +13,7 @@ import {
 } from '@/lib/api-response';
 
 // POST /api/groups/:id/notebooks — share a notebook with the group
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -88,10 +85,7 @@ export async function POST(
 }
 
 // DELETE /api/groups/:id/notebooks — unshare a notebook from the group
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -127,7 +121,9 @@ export async function DELETE(
     const isAdminOrOwner = ['owner', 'admin'].includes(membership.role);
 
     if (!isAdder && !isAdminOrOwner) {
-      return forbiddenResponse('Only the person who shared the notebook or an admin/owner can remove it');
+      return forbiddenResponse(
+        'Only the person who shared the notebook or an admin/owner can remove it'
+      );
     }
 
     await db.studyGroupNotebook.delete({

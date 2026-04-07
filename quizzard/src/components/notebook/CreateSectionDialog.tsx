@@ -10,7 +10,12 @@ interface CreateSectionDialogProps {
   onCancel: () => void;
 }
 
-export default function CreateSectionDialog({ notebookId, parentId, onCreated, onCancel }: CreateSectionDialogProps) {
+export default function CreateSectionDialog({
+  notebookId,
+  parentId,
+  onCreated,
+  onCancel,
+}: CreateSectionDialogProps) {
   const [title, setTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 

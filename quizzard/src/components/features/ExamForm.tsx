@@ -13,7 +13,9 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
   const [examDate, setExamDate] = useState('');
   const [notebookId, setNotebookId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ title?: string; examDate?: string; notebookId?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; examDate?: string; notebookId?: string }>(
+    {}
+  );
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -97,23 +99,27 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
           }}
         >
           {/* Header */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '20px 24px',
-            borderBottom: '1px solid rgba(174,137,255,0.1)',
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '20px 24px',
+              borderBottom: '1px solid rgba(174,137,255,0.1)',
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: 'rgba(174,137,255,0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  background: 'rgba(174,137,255,0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <span
                   className="material-symbols-outlined"
                   style={{ fontSize: '20px', color: '#ae89ff' }}
@@ -121,12 +127,14 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
                   event
                 </span>
               </div>
-              <h3 style={{
-                fontSize: '17px',
-                fontWeight: 700,
-                color: '#e5e3ff',
-                margin: 0,
-              }}>
+              <h3
+                style={{
+                  fontSize: '17px',
+                  fontWeight: 700,
+                  color: '#e5e3ff',
+                  margin: 0,
+                }}
+              >
                 Add Exam
               </h3>
             </div>
@@ -151,7 +159,9 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
                 (e.currentTarget as HTMLButtonElement).style.background = 'none';
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                close
+              </span>
             </button>
           </div>
 
@@ -160,53 +170,102 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Title */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#aaa8c8', marginBottom: '8px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#aaa8c8',
+                    marginBottom: '8px',
+                  }}
+                >
                   Exam Title
                 </label>
                 <input
                   type="text"
                   value={title}
-                  onChange={(e) => { setTitle(e.target.value); if (errors.title) setErrors((p) => ({ ...p, title: undefined })); }}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (errors.title) setErrors((p) => ({ ...p, title: undefined }));
+                  }}
                   placeholder="e.g. Midterm Exam, Final Quiz"
                   style={inputStyle(!!errors.title)}
-                  onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = '#ae89ff'; }}
-                  onBlur={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = errors.title ? '#f87171' : 'rgba(174,137,255,0.15)'; }}
+                  onFocus={(e) => {
+                    (e.currentTarget as HTMLInputElement).style.borderColor = '#ae89ff';
+                  }}
+                  onBlur={(e) => {
+                    (e.currentTarget as HTMLInputElement).style.borderColor = errors.title
+                      ? '#f87171'
+                      : 'rgba(174,137,255,0.15)';
+                  }}
                 />
                 {errors.title && (
-                  <p style={{ fontSize: '12px', color: '#f87171', margin: '6px 0 0' }}>{errors.title}</p>
+                  <p style={{ fontSize: '12px', color: '#f87171', margin: '6px 0 0' }}>
+                    {errors.title}
+                  </p>
                 )}
               </div>
 
               {/* Date */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#aaa8c8', marginBottom: '8px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#aaa8c8',
+                    marginBottom: '8px',
+                  }}
+                >
                   Exam Date
                 </label>
                 <input
                   type="date"
                   value={examDate}
                   min={minDate}
-                  onChange={(e) => { setExamDate(e.target.value); if (errors.examDate) setErrors((p) => ({ ...p, examDate: undefined })); }}
+                  onChange={(e) => {
+                    setExamDate(e.target.value);
+                    if (errors.examDate) setErrors((p) => ({ ...p, examDate: undefined }));
+                  }}
                   style={{
                     ...inputStyle(!!errors.examDate),
                     colorScheme: 'dark',
                   }}
-                  onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = '#ae89ff'; }}
-                  onBlur={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = errors.examDate ? '#f87171' : 'rgba(174,137,255,0.15)'; }}
+                  onFocus={(e) => {
+                    (e.currentTarget as HTMLInputElement).style.borderColor = '#ae89ff';
+                  }}
+                  onBlur={(e) => {
+                    (e.currentTarget as HTMLInputElement).style.borderColor = errors.examDate
+                      ? '#f87171'
+                      : 'rgba(174,137,255,0.15)';
+                  }}
                 />
                 {errors.examDate && (
-                  <p style={{ fontSize: '12px', color: '#f87171', margin: '6px 0 0' }}>{errors.examDate}</p>
+                  <p style={{ fontSize: '12px', color: '#f87171', margin: '6px 0 0' }}>
+                    {errors.examDate}
+                  </p>
                 )}
               </div>
 
               {/* Notebook */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#aaa8c8', marginBottom: '8px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#aaa8c8',
+                    marginBottom: '8px',
+                  }}
+                >
                   Notebook
                 </label>
                 <select
                   value={notebookId}
-                  onChange={(e) => { setNotebookId(e.target.value); if (errors.notebookId) setErrors((p) => ({ ...p, notebookId: undefined })); }}
+                  onChange={(e) => {
+                    setNotebookId(e.target.value);
+                    if (errors.notebookId) setErrors((p) => ({ ...p, notebookId: undefined }));
+                  }}
                   style={{
                     ...inputStyle(!!errors.notebookId),
                     appearance: 'none',
@@ -215,18 +274,32 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
                     backgroundPosition: 'right 14px center',
                     paddingRight: '36px',
                   }}
-                  onFocus={(e) => { (e.currentTarget as HTMLSelectElement).style.borderColor = '#ae89ff'; }}
-                  onBlur={(e) => { (e.currentTarget as HTMLSelectElement).style.borderColor = errors.notebookId ? '#f87171' : 'rgba(174,137,255,0.15)'; }}
+                  onFocus={(e) => {
+                    (e.currentTarget as HTMLSelectElement).style.borderColor = '#ae89ff';
+                  }}
+                  onBlur={(e) => {
+                    (e.currentTarget as HTMLSelectElement).style.borderColor = errors.notebookId
+                      ? '#f87171'
+                      : 'rgba(174,137,255,0.15)';
+                  }}
                 >
-                  <option value="" style={{ background: '#1c1c38', color: '#8888a8' }}>Select a notebook...</option>
+                  <option value="" style={{ background: '#1c1c38', color: '#8888a8' }}>
+                    Select a notebook...
+                  </option>
                   {notebooks.map((nb) => (
-                    <option key={nb.id} value={nb.id} style={{ background: '#1c1c38', color: '#e5e3ff' }}>
+                    <option
+                      key={nb.id}
+                      value={nb.id}
+                      style={{ background: '#1c1c38', color: '#e5e3ff' }}
+                    >
                       {nb.name}
                     </option>
                   ))}
                 </select>
                 {errors.notebookId && (
-                  <p style={{ fontSize: '12px', color: '#f87171', margin: '6px 0 0' }}>{errors.notebookId}</p>
+                  <p style={{ fontSize: '12px', color: '#f87171', margin: '6px 0 0' }}>
+                    {errors.notebookId}
+                  </p>
                 )}
               </div>
 
@@ -249,10 +322,12 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+                  transition:
+                    'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSubmitting) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
+                  if (!isSubmitting)
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
@@ -270,7 +345,9 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                      add
+                    </span>
                     Add Exam
                   </>
                 )}

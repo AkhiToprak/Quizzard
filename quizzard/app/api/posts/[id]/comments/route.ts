@@ -36,7 +36,11 @@ interface FormattedComment {
   replies: FormattedComment[];
 }
 
-function formatComment(c: CommentRow, voteScoreMap: Map<string, number>, userVoteMap: Map<string, number>): FormattedComment {
+function formatComment(
+  c: CommentRow,
+  voteScoreMap: Map<string, number>,
+  userVoteMap: Map<string, number>
+): FormattedComment {
   return {
     id: c.id,
     content: c.content,
@@ -51,10 +55,7 @@ function formatComment(c: CommentRow, voteScoreMap: Map<string, number>, userVot
 }
 
 // GET — get comments for a post (cursor-paginated)
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -117,22 +118,24 @@ export async function GET(
     }
 
     // Batch fetch vote scores
-    const voteScores = allCommentIds.length > 0
-      ? await db.commentVote.groupBy({
-          by: ['commentId'],
-          where: { commentId: { in: allCommentIds } },
-          _sum: { value: true },
-        })
-      : [];
+    const voteScores =
+      allCommentIds.length > 0
+        ? await db.commentVote.groupBy({
+            by: ['commentId'],
+            where: { commentId: { in: allCommentIds } },
+            _sum: { value: true },
+          })
+        : [];
     const voteScoreMap = new Map(voteScores.map((v) => [v.commentId, v._sum.value ?? 0]));
 
     // Batch fetch user's votes
-    const userVotes = allCommentIds.length > 0
-      ? await db.commentVote.findMany({
-          where: { commentId: { in: allCommentIds }, userId },
-          select: { commentId: true, value: true },
-        })
-      : [];
+    const userVotes =
+      allCommentIds.length > 0
+        ? await db.commentVote.findMany({
+            where: { commentId: { in: allCommentIds }, userId },
+            select: { commentId: true, value: true },
+          })
+        : [];
     const userVoteMap = new Map(userVotes.map((v) => [v.commentId, v.value]));
 
     return successResponse({
@@ -145,10 +148,7 @@ export async function GET(
 }
 
 // POST — create a comment on a post
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -210,7 +210,12 @@ export async function POST(
 
     // Notify post author or parent comment author
     const notifyUserId = parentCommentId
-      ? (await db.postComment.findUnique({ where: { id: parentCommentId }, select: { authorId: true } }))?.authorId
+      ? (
+          await db.postComment.findUnique({
+            where: { id: parentCommentId },
+            select: { authorId: true },
+          })
+        )?.authorId
       : post.authorId;
 
     if (notifyUserId && notifyUserId !== userId) {

@@ -27,7 +27,9 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // Host cannot leave — they must end the session (DELETE)
     if (session.hostId === userId) {
-      return forbiddenResponse('Host must end the session, not leave. Use DELETE on the session endpoint.');
+      return forbiddenResponse(
+        'Host must end the session, not leave. Use DELETE on the session endpoint.'
+      );
     }
 
     // Must be an active participant

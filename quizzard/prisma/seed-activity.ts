@@ -64,7 +64,9 @@ async function main() {
     }
   }
 
-  console.log(`Done! ${created} records created, ${updated} records updated (${records.length} total).`);
+  console.log(
+    `Done! ${created} records created, ${updated} records updated (${records.length} total).`
+  );
 }
 
 main()

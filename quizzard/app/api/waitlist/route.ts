@@ -1,6 +1,11 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
-import { successResponse, createdResponse, badRequestResponse, internalErrorResponse } from '@/lib/api-response';
+import {
+  successResponse,
+  createdResponse,
+  badRequestResponse,
+  internalErrorResponse,
+} from '@/lib/api-response';
 import { sendWaitlistConfirmation } from '@/lib/waitlist-email';
 
 export async function POST(request: Request) {

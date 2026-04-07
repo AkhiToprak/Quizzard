@@ -4,14 +4,40 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Editor } from '@tiptap/react';
 import {
-  Bold, Italic, Underline, Strikethrough,
-  Heading1, Heading2, Heading3,
-  List, ListOrdered, Quote, Code,
-  Palette, Highlighter, Undo, Redo, Pen,
-  ChevronDown, ALargeSmall, MessageSquareWarning,
-  Info, AlertTriangle, CheckCircle, Lightbulb,
-  MousePointer2, Eraser, Trash2, Ruler,
-  Table2, Rows3, Columns3, PanelTop, Merge, Plus, Minus,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Heading1,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Quote,
+  Code,
+  Palette,
+  Highlighter,
+  Undo,
+  Redo,
+  Pen,
+  ChevronDown,
+  ALargeSmall,
+  MessageSquareWarning,
+  Info,
+  AlertTriangle,
+  CheckCircle,
+  Lightbulb,
+  MousePointer2,
+  Eraser,
+  Trash2,
+  Ruler,
+  Table2,
+  Rows3,
+  Columns3,
+  PanelTop,
+  Merge,
+  Plus,
+  Minus,
   MoreHorizontal,
 } from 'lucide-react';
 import { useNotebookWorkspace } from './NotebookWorkspaceContext';
@@ -43,21 +69,41 @@ const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28', '32', '40', '48'];
 
 /* ── colour swatches ── */
 const TEXT_COLORS = [
-  '#ede9ff', '#ffffff', '#fca5a5', '#f87171',
-  '#fdba74', '#fde047', '#86efac', '#4ade80',
-  '#7dd3fc', '#38bdf8', '#c4b5fd', '#a78bfa',
-  '#f9a8d4', '#fb7185', '#94a3b8', '#64748b',
+  '#ede9ff',
+  '#ffffff',
+  '#fca5a5',
+  '#f87171',
+  '#fdba74',
+  '#fde047',
+  '#86efac',
+  '#4ade80',
+  '#7dd3fc',
+  '#38bdf8',
+  '#c4b5fd',
+  '#a78bfa',
+  '#f9a8d4',
+  '#fb7185',
+  '#94a3b8',
+  '#64748b',
 ];
 
 const HIGHLIGHT_COLORS = [
-  'rgba(140,82,255,0.30)', 'rgba(81,112,255,0.30)',
-  'rgba(239,68,68,0.25)', 'rgba(249,115,22,0.25)',
-  'rgba(234,179,8,0.30)', 'rgba(34,197,94,0.25)',
-  'rgba(14,165,233,0.25)', 'rgba(236,72,153,0.25)',
-  'rgba(168,85,247,0.25)', 'rgba(20,184,166,0.25)',
-  'rgba(245,158,11,0.30)', 'rgba(99,102,241,0.30)',
-  'rgba(239,68,68,0.15)', 'rgba(34,197,94,0.15)',
-  'rgba(14,165,233,0.15)', 'rgba(255,255,255,0.10)',
+  'rgba(140,82,255,0.30)',
+  'rgba(81,112,255,0.30)',
+  'rgba(239,68,68,0.25)',
+  'rgba(249,115,22,0.25)',
+  'rgba(234,179,8,0.30)',
+  'rgba(34,197,94,0.25)',
+  'rgba(14,165,233,0.25)',
+  'rgba(236,72,153,0.25)',
+  'rgba(168,85,247,0.25)',
+  'rgba(20,184,166,0.25)',
+  'rgba(245,158,11,0.30)',
+  'rgba(99,102,241,0.30)',
+  'rgba(239,68,68,0.15)',
+  'rgba(34,197,94,0.15)',
+  'rgba(14,165,233,0.15)',
+  'rgba(255,255,255,0.10)',
 ];
 
 /* ── inline heading scale levels ── */
@@ -144,7 +190,7 @@ function useSelectionGuard(editor: Editor | null) {
       chain = chain.focus();
       fn(chain);
     },
-    [editor],
+    [editor]
   );
 
   return withSelection;
@@ -166,7 +212,10 @@ function ToolbarButton({
 }) {
   return (
     <button
-      onMouseDown={(e) => { e.preventDefault(); onClick(); }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
       disabled={disabled}
       title={label}
       style={{
@@ -205,13 +254,25 @@ function ToolbarButton({
 /* ── separator ── */
 function Sep() {
   return (
-    <div style={{ width: '1px', height: '18px', background: 'rgba(237,233,255,0.08)', margin: '0 2px', flexShrink: 0 }} />
+    <div
+      style={{
+        width: '1px',
+        height: '18px',
+        background: 'rgba(237,233,255,0.08)',
+        margin: '0 2px',
+        flexShrink: 0,
+      }}
+    />
   );
 }
 
 /* ── color picker grid dropdown ── */
 function ColorPicker({
-  colors, activeColor, onPick, icon: Icon, label,
+  colors,
+  activeColor,
+  onPick,
+  icon: Icon,
+  label,
 }: {
   colors: string[];
   activeColor: string | undefined;
@@ -234,7 +295,10 @@ function ColorPicker({
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((p) => !p);
+        }}
         title={label}
         style={{
           width: '30px',
@@ -266,42 +330,57 @@ function ColorPicker({
         <Icon size={15} />
       </button>
       {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 6px)',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: '#131228',
-          border: '1px solid rgba(140,82,255,0.2)',
-          borderRadius: '10px',
-          padding: '10px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '5px',
-          zIndex: 100,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          width: '128px',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#131228',
+            border: '1px solid rgba(140,82,255,0.2)',
+            borderRadius: '10px',
+            padding: '10px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '5px',
+            zIndex: 100,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            width: '128px',
+          }}
+        >
           {colors.map((c) => (
             <button
               key={c}
-              onMouseDown={(e) => { e.preventDefault(); onPick(c); setOpen(false); }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onPick(c);
+                setOpen(false);
+              }}
               style={{
                 width: '24px',
                 height: '24px',
                 borderRadius: '6px',
                 background: c,
-                border: activeColor === c ? '2px solid #a47bff' : '1px solid rgba(237,233,255,0.12)',
+                border:
+                  activeColor === c ? '2px solid #a47bff' : '1px solid rgba(237,233,255,0.12)',
                 cursor: 'pointer',
                 transition: 'transform 0.1s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.18)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.18)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
               title={c}
             />
           ))}
           <button
-            onMouseDown={(e) => { e.preventDefault(); onPick(''); setOpen(false); }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onPick('');
+              setOpen(false);
+            }}
             style={{
               gridColumn: '1 / -1',
               height: '22px',
@@ -324,7 +403,13 @@ function ColorPicker({
 }
 
 /* ── font family dropdown ── */
-function FontFamilySelect({ editor, withSelection }: { editor: Editor; withSelection: ReturnType<typeof useSelectionGuard> }) {
+function FontFamilySelect({
+  editor,
+  withSelection,
+}: {
+  editor: Editor;
+  withSelection: ReturnType<typeof useSelectionGuard>;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -347,7 +432,10 @@ function FontFamilySelect({ editor, withSelection }: { editor: Editor; withSelec
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((p) => !p);
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -370,18 +458,20 @@ function FontFamilySelect({ editor, withSelection }: { editor: Editor; withSelec
         <ChevronDown size={11} style={{ flexShrink: 0, opacity: 0.5 }} />
       </button>
       {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 4px)',
-          left: 0,
-          background: '#131228',
-          border: '1px solid rgba(140,82,255,0.2)',
-          borderRadius: '8px',
-          padding: '4px',
-          zIndex: 100,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-          minWidth: '140px',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: '#131228',
+            border: '1px solid rgba(140,82,255,0.2)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            minWidth: '140px',
+          }}
+        >
           {FONT_FAMILIES.map((f) => (
             <button
               key={f.value}
@@ -407,8 +497,13 @@ function FontFamilySelect({ editor, withSelection }: { editor: Editor; withSelec
                 textAlign: 'left',
                 transition: 'background 0.1s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = current === f.label ? 'rgba(140,82,255,0.18)' : 'transparent'; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(237,233,255,0.06)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  current === f.label ? 'rgba(140,82,255,0.18)' : 'transparent';
+              }}
             >
               {f.label}
             </button>
@@ -420,7 +515,13 @@ function FontFamilySelect({ editor, withSelection }: { editor: Editor; withSelec
 }
 
 /* ── font size control ── */
-function FontSizeControl({ editor, withSelection }: { editor: Editor; withSelection: ReturnType<typeof useSelectionGuard> }) {
+function FontSizeControl({
+  editor,
+  withSelection,
+}: {
+  editor: Editor;
+  withSelection: ReturnType<typeof useSelectionGuard>;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -442,7 +543,10 @@ function FontSizeControl({ editor, withSelection }: { editor: Editor; withSelect
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((p) => !p);
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -464,18 +568,20 @@ function FontSizeControl({ editor, withSelection }: { editor: Editor; withSelect
         <ChevronDown size={10} style={{ flexShrink: 0, opacity: 0.5 }} />
       </button>
       {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 4px)',
-          left: 0,
-          background: '#131228',
-          border: '1px solid rgba(140,82,255,0.2)',
-          borderRadius: '8px',
-          padding: '4px',
-          zIndex: 100,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-          minWidth: '80px',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: '#131228',
+            border: '1px solid rgba(140,82,255,0.2)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            minWidth: '80px',
+          }}
+        >
           {FONT_SIZES.map((s) => (
             <button
               key={s}
@@ -501,8 +607,13 @@ function FontSizeControl({ editor, withSelection }: { editor: Editor; withSelect
                 textAlign: 'left',
                 transition: 'background 0.1s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = currentSize === s ? 'rgba(140,82,255,0.18)' : 'transparent'; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(237,233,255,0.06)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  currentSize === s ? 'rgba(140,82,255,0.18)' : 'transparent';
+              }}
             >
               {s}px
             </button>
@@ -514,7 +625,13 @@ function FontSizeControl({ editor, withSelection }: { editor: Editor; withSelect
 }
 
 /* ── inline heading scale dropdown ── */
-function InlineScaleDropdown({ editor, withSelection }: { editor: Editor; withSelection: ReturnType<typeof useSelectionGuard> }) {
+function InlineScaleDropdown({
+  editor,
+  withSelection,
+}: {
+  editor: Editor;
+  withSelection: ReturnType<typeof useSelectionGuard>;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -537,7 +654,10 @@ function InlineScaleDropdown({ editor, withSelection }: { editor: Editor; withSe
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((p) => !p);
+        }}
         title="Inline text scale — make selected text H1/H2/H3 sized without block heading"
         style={{
           display: 'flex',
@@ -547,7 +667,12 @@ function InlineScaleDropdown({ editor, withSelection }: { editor: Editor; withSe
           padding: '0 7px',
           borderRadius: '6px',
           border: '1px solid rgba(237,233,255,0.1)',
-          background: activeLevel !== null ? 'rgba(140,82,255,0.22)' : open ? 'rgba(140,82,255,0.12)' : 'rgba(237,233,255,0.04)',
+          background:
+            activeLevel !== null
+              ? 'rgba(140,82,255,0.22)'
+              : open
+                ? 'rgba(140,82,255,0.12)'
+                : 'rgba(237,233,255,0.04)',
           color: activeLevel !== null ? '#a47bff' : 'rgba(237,233,255,0.7)',
           fontFamily: 'inherit',
           fontSize: '12px',
@@ -570,18 +695,20 @@ function InlineScaleDropdown({ editor, withSelection }: { editor: Editor; withSe
         <ChevronDown size={10} style={{ flexShrink: 0, opacity: 0.5 }} />
       </button>
       {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 4px)',
-          left: 0,
-          background: '#131228',
-          border: '1px solid rgba(140,82,255,0.2)',
-          borderRadius: '8px',
-          padding: '4px',
-          zIndex: 100,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-          minWidth: '120px',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: '#131228',
+            border: '1px solid rgba(140,82,255,0.2)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            minWidth: '120px',
+          }}
+        >
           {INLINE_SCALE_LEVELS.map(({ level, label, size }) => (
             <button
               key={level}
@@ -609,8 +736,13 @@ function InlineScaleDropdown({ editor, withSelection }: { editor: Editor; withSe
                 textAlign: 'left',
                 transition: 'background 0.1s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = activeLevel === level ? 'rgba(140,82,255,0.18)' : 'transparent'; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(237,233,255,0.06)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  activeLevel === level ? 'rgba(140,82,255,0.18)' : 'transparent';
+              }}
             >
               <span>{label}</span>
               <span style={{ fontSize: '10px', opacity: 0.45, fontWeight: 400 }}>{size}</span>
@@ -640,8 +772,12 @@ function InlineScaleDropdown({ editor, withSelection }: { editor: Editor; withSe
               borderTop: '1px solid rgba(237,233,255,0.06)',
               paddingTop: '6px',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(237,233,255,0.06)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
           >
             Reset to normal
           </button>
@@ -671,7 +807,10 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((p) => !p);
+        }}
         title="Insert callout"
         style={{
           width: '30px',
@@ -703,18 +842,20 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
         <MessageSquareWarning size={15} />
       </button>
       {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 4px)',
-          left: 0,
-          background: '#131228',
-          border: '1px solid rgba(140,82,255,0.2)',
-          borderRadius: '8px',
-          padding: '4px',
-          zIndex: 100,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-          minWidth: '130px',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: '#131228',
+            border: '1px solid rgba(140,82,255,0.2)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            minWidth: '130px',
+          }}
+        >
           {CALLOUT_TYPES.map((t) => {
             const s = CALLOUT_STYLES[t];
             return (
@@ -741,20 +882,29 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
                   textAlign: 'left',
                   transition: 'background 0.1s',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(237,233,255,0.06)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', color: s.borderColor }}>
-                  {(() => { const Icon = CALLOUT_ICONS[s.icon]; return Icon ? <Icon size={14} /> : null; })()}
+                  {(() => {
+                    const Icon = CALLOUT_ICONS[s.icon];
+                    return Icon ? <Icon size={14} /> : null;
+                  })()}
                 </span>
                 <span>{s.label}</span>
-                <span style={{
-                  marginLeft: 'auto',
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: s.borderColor,
-                }} />
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: s.borderColor,
+                  }}
+                />
               </button>
             );
           })}
@@ -781,8 +931,12 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
                 borderTop: '1px solid rgba(237,233,255,0.06)',
                 paddingTop: '6px',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(237,233,255,0.06)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
             >
               Remove callout
             </button>
@@ -814,7 +968,10 @@ function TableGridPicker({ editor }: { editor: Editor }) {
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((p) => !p);
+        }}
         title="Insert table"
         style={{
           width: '30px',
@@ -860,7 +1017,9 @@ function TableGridPicker({ editor }: { editor: Editor }) {
           }}
           onMouseLeave={() => setHoverCell(null)}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${GRID}, 20px)`, gap: '2px' }}>
+          <div
+            style={{ display: 'grid', gridTemplateColumns: `repeat(${GRID}, 20px)`, gap: '2px' }}
+          >
             {Array.from({ length: GRID * GRID }, (_, i) => {
               const row = Math.floor(i / GRID) + 1;
               const col = (i % GRID) + 1;
@@ -871,7 +1030,11 @@ function TableGridPicker({ editor }: { editor: Editor }) {
                   onMouseEnter={() => setHoverCell({ row, col })}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    editor.chain().focus().insertTable({ rows: row, cols: col, withHeaderRow: true }).run();
+                    editor
+                      .chain()
+                      .focus()
+                      .insertTable({ rows: row, cols: col, withHeaderRow: true })
+                      .run();
                     setOpen(false);
                     setHoverCell(null);
                   }}
@@ -888,13 +1051,15 @@ function TableGridPicker({ editor }: { editor: Editor }) {
               );
             })}
           </div>
-          <div style={{
-            textAlign: 'center',
-            marginTop: '4px',
-            fontSize: '11px',
-            color: 'rgba(237,233,255,0.5)',
-            fontFamily: 'inherit',
-          }}>
+          <div
+            style={{
+              textAlign: 'center',
+              marginTop: '4px',
+              fontSize: '11px',
+              color: 'rgba(237,233,255,0.5)',
+              fontFamily: 'inherit',
+            }}
+          >
             {hoverCell ? `${hoverCell.col} × ${hoverCell.row}` : 'Select size'}
           </div>
         </div>
@@ -910,11 +1075,36 @@ function TableContextButtons({ editor }: { editor: Editor }) {
   return (
     <>
       <Sep />
-      <ToolbarButton icon={PanelTop} label="Toggle header row" isActive={false} onClick={() => editor.chain().focus().toggleHeaderRow().run()} />
-      <ToolbarButton icon={Rows3} label="Add row after" isActive={false} onClick={() => editor.chain().focus().addRowAfter().run()} />
-      <ToolbarButton icon={Columns3} label="Add column after" isActive={false} onClick={() => editor.chain().focus().addColumnAfter().run()} />
-      <ToolbarButton icon={Merge} label="Merge/split cells" isActive={false} onClick={() => editor.chain().focus().mergeOrSplit().run()} />
-      <ToolbarButton icon={Trash2} label="Delete table" isActive={false} onClick={() => editor.chain().focus().deleteTable().run()} />
+      <ToolbarButton
+        icon={PanelTop}
+        label="Toggle header row"
+        isActive={false}
+        onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+      />
+      <ToolbarButton
+        icon={Rows3}
+        label="Add row after"
+        isActive={false}
+        onClick={() => editor.chain().focus().addRowAfter().run()}
+      />
+      <ToolbarButton
+        icon={Columns3}
+        label="Add column after"
+        isActive={false}
+        onClick={() => editor.chain().focus().addColumnAfter().run()}
+      />
+      <ToolbarButton
+        icon={Merge}
+        label="Merge/split cells"
+        isActive={false}
+        onClick={() => editor.chain().focus().mergeOrSplit().run()}
+      />
+      <ToolbarButton
+        icon={Trash2}
+        label="Delete table"
+        isActive={false}
+        onClick={() => editor.chain().focus().deleteTable().run()}
+      />
     </>
   );
 }
@@ -954,7 +1144,10 @@ function LineStylePicker({
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onMouseDown={(e) => { e.preventDefault(); setOpen((p) => !p); }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((p) => !p);
+        }}
         title="Line Style"
         style={{
           display: 'flex',
@@ -975,7 +1168,10 @@ function LineStylePicker({
       >
         <svg width="28" height="12" viewBox="0 0 28 12">
           <line
-            x1="2" y1="6" x2="26" y2="6"
+            x1="2"
+            y1="6"
+            x2="26"
+            y2="6"
             stroke="rgba(237,233,255,0.7)"
             strokeWidth="2"
             strokeLinecap="round"
@@ -985,18 +1181,20 @@ function LineStylePicker({
         <ChevronDown size={10} style={{ flexShrink: 0, opacity: 0.5 }} />
       </button>
       {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 4px)',
-          left: 0,
-          background: '#131228',
-          border: '1px solid rgba(140,82,255,0.2)',
-          borderRadius: '8px',
-          padding: '4px',
-          zIndex: 100,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-          minWidth: '110px',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: '#131228',
+            border: '1px solid rgba(140,82,255,0.2)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            minWidth: '110px',
+          }}
+        >
           {LINE_STYLES.map((ls) => (
             <button
               key={ls.value}
@@ -1021,12 +1219,20 @@ function LineStylePicker({
                 textAlign: 'left',
                 transition: 'background 0.1s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(237,233,255,0.06)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = value === ls.value ? 'rgba(140,82,255,0.18)' : 'transparent'; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(237,233,255,0.06)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  value === ls.value ? 'rgba(140,82,255,0.18)' : 'transparent';
+              }}
             >
               <svg width="32" height="10" viewBox="0 0 32 10">
                 <line
-                  x1="2" y1="5" x2="30" y2="5"
+                  x1="2"
+                  y1="5"
+                  x2="30"
+                  y2="5"
                   stroke={value === ls.value ? '#a47bff' : 'rgba(237,233,255,0.6)'}
                   strokeWidth="2"
                   strokeLinecap="round"
@@ -1064,44 +1270,74 @@ function PageActionsMenu({ notebookId, pageId }: { notebookId: string; pageId: s
       await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`, { method: 'DELETE' });
       refreshSections();
       router.push(`/notebooks/${notebookId}`);
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
     setOpen(false);
   };
 
   return (
     <div ref={ref} style={{ position: 'relative', marginLeft: 'auto' }}>
       <button
-        onMouseDown={(e) => { e.preventDefault(); setOpen(p => !p); }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((p) => !p);
+        }}
         title="Page actions"
         style={{
-          width: 30, height: 28, borderRadius: 6, border: 'none',
+          width: 30,
+          height: 28,
+          borderRadius: 6,
+          border: 'none',
           background: open ? 'rgba(140,82,255,0.22)' : 'transparent',
           color: open ? '#a47bff' : 'rgba(237,233,255,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'background 0.1s, color 0.1s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 0.1s, color 0.1s',
         }}
       >
         <MoreHorizontal size={15} />
       </button>
       {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-          background: '#131228', border: '1px solid rgba(140,82,255,0.2)',
-          borderRadius: 10, padding: '4px',
-          zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          minWidth: 160,
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            right: 0,
+            background: '#131228',
+            border: '1px solid rgba(140,82,255,0.2)',
+            borderRadius: 10,
+            padding: '4px',
+            zIndex: 100,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            minWidth: 160,
+          }}
+        >
           <button
             onClick={handleDelete}
             style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-              padding: '8px 12px', borderRadius: 6, border: 'none',
-              background: 'transparent', color: '#fca5a5',
-              fontSize: 13, fontFamily: 'inherit', cursor: 'pointer',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 12px',
+              borderRadius: 6,
+              border: 'none',
+              background: 'transparent',
+              color: '#fca5a5',
+              fontSize: 13,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
               transition: 'background 0.1s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(252,165,165,0.1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(252,165,165,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
           >
             <Trash2 size={14} />
             Delete page
@@ -1149,22 +1385,44 @@ export default function EditorToolbar({
   if (!editor) return null;
 
   return (
-    <div style={{
-      background: '#09081a',
-      borderBottom: '1px solid rgba(140,82,255,0.1)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 10,
-    }}>
+    <div
+      style={{
+        background: '#09081a',
+        borderBottom: '1px solid rgba(140,82,255,0.1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+      }}
+    >
       {/* Row 1: Font controls + inline formatting */}
       <div style={{ ...ROW_STYLE, borderBottom: '1px solid rgba(237,233,255,0.04)', gap: '4px' }}>
         <FontFamilySelect editor={editor} withSelection={withSelection} />
         <FontSizeControl editor={editor} withSelection={withSelection} />
         <Sep />
-        <ToolbarButton icon={Bold} label="Bold (Cmd+B)" isActive={editor.isActive('bold')} onClick={() => withSelection((c) => c.toggleBold().run())} />
-        <ToolbarButton icon={Italic} label="Italic (Cmd+I)" isActive={editor.isActive('italic')} onClick={() => withSelection((c) => c.toggleItalic().run())} />
-        <ToolbarButton icon={Underline} label="Underline (Cmd+U)" isActive={editor.isActive('underline')} onClick={() => withSelection((c) => c.toggleUnderline().run())} />
-        <ToolbarButton icon={Strikethrough} label="Strikethrough" isActive={editor.isActive('strike')} onClick={() => withSelection((c) => c.toggleStrike().run())} />
+        <ToolbarButton
+          icon={Bold}
+          label="Bold (Cmd+B)"
+          isActive={editor.isActive('bold')}
+          onClick={() => withSelection((c) => c.toggleBold().run())}
+        />
+        <ToolbarButton
+          icon={Italic}
+          label="Italic (Cmd+I)"
+          isActive={editor.isActive('italic')}
+          onClick={() => withSelection((c) => c.toggleItalic().run())}
+        />
+        <ToolbarButton
+          icon={Underline}
+          label="Underline (Cmd+U)"
+          isActive={editor.isActive('underline')}
+          onClick={() => withSelection((c) => c.toggleUnderline().run())}
+        />
+        <ToolbarButton
+          icon={Strikethrough}
+          label="Strikethrough"
+          isActive={editor.isActive('strike')}
+          onClick={() => withSelection((c) => c.toggleStrike().run())}
+        />
         <Sep />
         <ColorPicker
           icon={Palette}
@@ -1196,28 +1454,88 @@ export default function EditorToolbar({
 
       {/* Row 2: Block formatting + utilities */}
       <div style={ROW_STYLE}>
-        <ToolbarButton icon={Heading1} label="Heading 1" isActive={editor.isActive('toggleHeading', { level: 1 })} onClick={() => editor.chain().focus().toggleToggleHeading({ level: 1 }).run()} />
-        <ToolbarButton icon={Heading2} label="Heading 2" isActive={editor.isActive('toggleHeading', { level: 2 })} onClick={() => editor.chain().focus().toggleToggleHeading({ level: 2 }).run()} />
-        <ToolbarButton icon={Heading3} label="Heading 3" isActive={editor.isActive('toggleHeading', { level: 3 })} onClick={() => editor.chain().focus().toggleToggleHeading({ level: 3 }).run()} />
+        <ToolbarButton
+          icon={Heading1}
+          label="Heading 1"
+          isActive={editor.isActive('toggleHeading', { level: 1 })}
+          onClick={() => editor.chain().focus().toggleToggleHeading({ level: 1 }).run()}
+        />
+        <ToolbarButton
+          icon={Heading2}
+          label="Heading 2"
+          isActive={editor.isActive('toggleHeading', { level: 2 })}
+          onClick={() => editor.chain().focus().toggleToggleHeading({ level: 2 }).run()}
+        />
+        <ToolbarButton
+          icon={Heading3}
+          label="Heading 3"
+          isActive={editor.isActive('toggleHeading', { level: 3 })}
+          onClick={() => editor.chain().focus().toggleToggleHeading({ level: 3 }).run()}
+        />
         <Sep />
-        <ToolbarButton icon={List} label="Bullet List" isActive={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} />
-        <ToolbarButton icon={ListOrdered} label="Ordered List" isActive={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
-        <ToolbarButton icon={Quote} label="Blockquote" isActive={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
-        <ToolbarButton icon={Code} label="Code Block" isActive={editor.isActive('codeBlock')} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
+        <ToolbarButton
+          icon={List}
+          label="Bullet List"
+          isActive={editor.isActive('bulletList')}
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+        />
+        <ToolbarButton
+          icon={ListOrdered}
+          label="Ordered List"
+          isActive={editor.isActive('orderedList')}
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        />
+        <ToolbarButton
+          icon={Quote}
+          label="Blockquote"
+          isActive={editor.isActive('blockquote')}
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        />
+        <ToolbarButton
+          icon={Code}
+          label="Code Block"
+          isActive={editor.isActive('codeBlock')}
+          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        />
         <CalloutDropdown editor={editor} />
         <TableGridPicker editor={editor} />
         <TableContextButtons editor={editor} />
 
         <Sep />
-        <ImageUploadButton editor={editor} notebookId={notebookId} sectionId={sectionId} pageId={pageId} />
+        <ImageUploadButton
+          editor={editor}
+          notebookId={notebookId}
+          sectionId={sectionId}
+          pageId={pageId}
+        />
         <GenerateDropdown notebookId={notebookId} pageId={pageId} />
         <Sep />
         {/* Cursor / Pen mode toggle */}
-        <ToolbarButton icon={MousePointer2} label="Cursor mode" isActive={editorMode === 'cursor'} onClick={() => onModeChange('cursor')} />
-        <ToolbarButton icon={Pen} label="Pen mode" isActive={editorMode === 'pen'} onClick={() => onModeChange('pen')} />
+        <ToolbarButton
+          icon={MousePointer2}
+          label="Cursor mode"
+          isActive={editorMode === 'cursor'}
+          onClick={() => onModeChange('cursor')}
+        />
+        <ToolbarButton
+          icon={Pen}
+          label="Pen mode"
+          isActive={editorMode === 'pen'}
+          onClick={() => onModeChange('pen')}
+        />
         <Sep />
-        <ToolbarButton icon={Undo} label="Undo (Cmd+Z)" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} />
-        <ToolbarButton icon={Redo} label="Redo (Cmd+Shift+Z)" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} />
+        <ToolbarButton
+          icon={Undo}
+          label="Undo (Cmd+Z)"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+        />
+        <ToolbarButton
+          icon={Redo}
+          label="Redo (Cmd+Shift+Z)"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+        />
         <PageActionsMenu notebookId={notebookId} pageId={pageId} />
       </div>
 
@@ -1225,8 +1543,18 @@ export default function EditorToolbar({
       {editorMode === 'pen' && (
         <div style={{ ...ROW_STYLE, borderTop: '1px solid rgba(237,233,255,0.04)', gap: '6px' }}>
           {/* Pen / Eraser sub-tool */}
-          <ToolbarButton icon={Pen} label="Pen" isActive={activeTool === 'pen'} onClick={() => onActiveToolChange('pen')} />
-          <ToolbarButton icon={Eraser} label="Eraser" isActive={activeTool === 'eraser'} onClick={() => onActiveToolChange('eraser')} />
+          <ToolbarButton
+            icon={Pen}
+            label="Pen"
+            isActive={activeTool === 'pen'}
+            onClick={() => onActiveToolChange('pen')}
+          />
+          <ToolbarButton
+            icon={Eraser}
+            label="Eraser"
+            isActive={activeTool === 'eraser'}
+            onClick={() => onActiveToolChange('eraser')}
+          />
 
           <Sep />
 
@@ -1244,12 +1572,18 @@ export default function EditorToolbar({
                 width: 20,
                 height: 20,
                 borderRadius: '50%',
-                border: penColor === color && activeTool === 'pen' ? '2px solid #ede9ff' : '2px solid transparent',
+                border:
+                  penColor === color && activeTool === 'pen'
+                    ? '2px solid #ede9ff'
+                    : '2px solid transparent',
                 background: color,
                 cursor: 'pointer',
                 padding: 0,
                 outline: 'none',
-                boxShadow: penColor === color && activeTool === 'pen' ? '0 0 0 2px rgba(140,82,255,0.4)' : 'none',
+                boxShadow:
+                  penColor === color && activeTool === 'pen'
+                    ? '0 0 0 2px rgba(140,82,255,0.4)'
+                    : 'none',
                 transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
                 flexShrink: 0,
               }}
@@ -1262,7 +1596,10 @@ export default function EditorToolbar({
           {PEN_WIDTHS.map((w) => (
             <button
               key={w.value}
-              onMouseDown={(e) => { e.preventDefault(); onPenWidthChange(w.value); }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onPenWidthChange(w.value);
+              }}
               title={`${w.label} (${w.value}px)`}
               style={{
                 height: 28,
@@ -1291,7 +1628,12 @@ export default function EditorToolbar({
           <Sep />
 
           {/* Ruler toggle */}
-          <ToolbarButton icon={Ruler} label="Ruler" isActive={ruler.active} onClick={onRulerToggle} />
+          <ToolbarButton
+            icon={Ruler}
+            label="Ruler"
+            isActive={ruler.active}
+            onClick={onRulerToggle}
+          />
 
           {/* Clear all drawings */}
           <ToolbarButton icon={Trash2} label="Clear All Drawings" onClick={onClearDrawing} />

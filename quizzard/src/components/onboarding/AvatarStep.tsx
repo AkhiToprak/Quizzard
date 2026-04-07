@@ -185,12 +185,12 @@ export default function AvatarStep({
           >
             photo_camera
           </span>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: '#e5e3ff', textAlign: 'center' }}>
+          <span
+            style={{ fontSize: '13px', fontWeight: 600, color: '#e5e3ff', textAlign: 'center' }}
+          >
             Upload Photo
           </span>
-          {uploading && (
-            <span style={{ fontSize: '11px', color: '#aaa8c8' }}>uploading...</span>
-          )}
+          {uploading && <span style={{ fontSize: '11px', color: '#aaa8c8' }}>uploading...</span>}
           <input
             ref={fileInputRef}
             type="file"
@@ -232,7 +232,9 @@ export default function AvatarStep({
           >
             face
           </span>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: '#e5e3ff', textAlign: 'center' }}>
+          <span
+            style={{ fontSize: '13px', fontWeight: 600, color: '#e5e3ff', textAlign: 'center' }}
+          >
             Create Avatar
           </span>
         </div>
@@ -246,7 +248,10 @@ export default function AvatarStep({
           style={{
             width: '100%',
             padding: '16px',
-            background: loading || uploading ? '#555578' : 'linear-gradient(135deg, #ae89ff 0%, #884efb 100%)',
+            background:
+              loading || uploading
+                ? '#555578'
+                : 'linear-gradient(135deg, #ae89ff 0%, #884efb 100%)',
             border: 'none',
             borderRadius: '16px',
             color: loading || uploading ? '#aaa8c8' : '#2a0066',
@@ -255,7 +260,8 @@ export default function AvatarStep({
             cursor: loading || uploading ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit',
             boxShadow: loading || uploading ? 'none' : '0 8px 24px rgba(174,137,255,0.3)',
-            transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
+            transition:
+              'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -281,7 +287,9 @@ export default function AvatarStep({
           }}
         >
           Continue
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>arrow_forward</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+            arrow_forward
+          </span>
         </button>
 
         <button

@@ -5,7 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import PageEditor from '@/components/notebook/PageEditor';
 import dynamic from 'next/dynamic';
 
-const InfiniteCanvas = dynamic(() => import('@/components/notebook/InfiniteCanvas'), { ssr: false });
+const InfiniteCanvas = dynamic(() => import('@/components/notebook/InfiniteCanvas'), {
+  ssr: false,
+});
 
 export default function PageEditorPage({
   params,
@@ -19,8 +21,8 @@ export default function PageEditorPage({
 
   useEffect(() => {
     fetch(`/api/notebooks/${notebookId}/pages/${pageId}`)
-      .then(r => r.json())
-      .then(json => {
+      .then((r) => r.json())
+      .then((json) => {
         if (json.success && json.data?.pageType) {
           setPageType(json.data.pageType);
         } else {
@@ -31,16 +33,24 @@ export default function PageEditorPage({
   }, [notebookId, pageId]);
 
   useEffect(() => {
-    try { localStorage.setItem(`notebook-${notebookId}-lastPage`, pageId); } catch {}
+    try {
+      localStorage.setItem(`notebook-${notebookId}-lastPage`, pageId);
+    } catch {}
   }, [notebookId, pageId]);
 
   if (!pageType) {
     return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100%', color: 'rgba(237,233,255,0.3)',
-        fontFamily: 'inherit', fontSize: '14px',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          color: 'rgba(237,233,255,0.3)',
+          fontFamily: 'inherit',
+          fontSize: '14px',
+        }}
+      >
         Loading...
       </div>
     );

@@ -51,7 +51,8 @@ export default function PricingCard({
   const accent = ACCENT[tier];
   const isPopular = tier === 'PLUS';
 
-  const displayPrice = formattedPrice ?? (config.priceCHF === 0 ? 'Free' : `CHF ${config.priceCHF}`);
+  const displayPrice =
+    formattedPrice ?? (config.priceCHF === 0 ? 'Free' : `CHF ${config.priceCHF}`);
 
   const cardStyle: React.CSSProperties = {
     position: 'relative',
@@ -67,7 +68,8 @@ export default function PricingCard({
     maxWidth: '320px',
     cursor: onSelect ? 'pointer' : 'default',
     boxShadow: selected ? `0 0 40px ${accent.text}33` : accent.glow,
-    transition: 'border-color 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s cubic-bezier(0.22,1,0.36,1), background 0.25s cubic-bezier(0.22,1,0.36,1)',
+    transition:
+      'border-color 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s cubic-bezier(0.22,1,0.36,1), background 0.25s cubic-bezier(0.22,1,0.36,1)',
   };
 
   const content = (
@@ -102,16 +104,25 @@ export default function PricingCard({
 
       {/* Price */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-        <span style={{ fontSize: '36px', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em' }}>
+        <span
+          style={{ fontSize: '36px', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em' }}
+        >
           {displayPrice}
         </span>
-        {config.priceCHF > 0 && (
-          <span style={{ fontSize: '14px', color: '#8888a8' }}>/month</span>
-        )}
+        {config.priceCHF > 0 && <span style={{ fontSize: '14px', color: '#8888a8' }}>/month</span>}
       </div>
 
       {/* Features list */}
-      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <ul
+        style={{
+          margin: 0,
+          padding: 0,
+          listStyle: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+        }}
+      >
         {(Object.entries(config.limits) as [FeatureType, number][]).map(([feature, limit]) => (
           <li
             key={feature}
@@ -129,7 +140,8 @@ export default function PricingCard({
             >
               check_circle
             </span>
-            {limit === -1 ? 'Unlimited' : limit} {FEATURE_LABELS[feature]}{limit === -1 ? '' : '/mo'}
+            {limit === -1 ? 'Unlimited' : limit} {FEATURE_LABELS[feature]}
+            {limit === -1 ? '' : '/mo'}
           </li>
         ))}
       </ul>
@@ -146,11 +158,12 @@ export default function PricingCard({
             fontWeight: 700,
             fontSize: '14px',
             textDecoration: 'none',
-            background: tier === 'PRO'
-              ? 'linear-gradient(135deg, #ffde59, #f5c542)'
-              : tier === 'PLUS'
-              ? 'linear-gradient(135deg, #ae89ff, #8b5cf6)'
-              : 'rgba(255,255,255,0.08)',
+            background:
+              tier === 'PRO'
+                ? 'linear-gradient(135deg, #ffde59, #f5c542)'
+                : tier === 'PLUS'
+                  ? 'linear-gradient(135deg, #ae89ff, #8b5cf6)'
+                  : 'rgba(255,255,255,0.08)',
             color: tier === 'FREE' ? '#cccae0' : tier === 'PRO' ? '#1a1a2e' : '#fff',
             transition: 'opacity 0.2s',
           }}
@@ -178,7 +191,18 @@ export default function PricingCard({
 
   if (onSelect) {
     return (
-      <div style={cardStyle} onClick={() => onSelect(tier)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(tier); } }}>
+      <div
+        style={cardStyle}
+        onClick={() => onSelect(tier)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onSelect(tier);
+          }
+        }}
+      >
         {content}
       </div>
     );

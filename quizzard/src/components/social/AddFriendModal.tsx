@@ -148,9 +148,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
 
       setResults((prev) =>
         prev.map((user) =>
-          user.username === username
-            ? { ...user, friendshipStatus: 'pending_sent' as const }
-            : user
+          user.username === username ? { ...user, friendshipStatus: 'pending_sent' as const } : user
         )
       );
     } catch (err) {
@@ -172,9 +170,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
 
       setResults((prev) =>
         prev.map((user) =>
-          user.username === username
-            ? { ...user, friendshipStatus: 'accepted' as const }
-            : user
+          user.username === username ? { ...user, friendshipStatus: 'accepted' as const } : user
         )
       );
     } catch (err) {
@@ -344,10 +340,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
               flexShrink: 0,
             }}
           >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 16 }}
-            >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               check_circle
             </span>
             Friends
@@ -415,15 +408,10 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
             gap: 8,
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 32, color: COLORS.error }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: 32, color: COLORS.error }}>
             error
           </span>
-          <span style={{ fontSize: 14, color: COLORS.error, textAlign: 'center' }}>
-            {error}
-          </span>
+          <span style={{ fontSize: 14, color: COLORS.error, textAlign: 'center' }}>{error}</span>
         </div>
       );
     }
@@ -471,9 +459,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
           >
             person_search
           </span>
-          <span style={{ fontSize: 14, color: COLORS.textSecondary }}>
-            No users found
-          </span>
+          <span style={{ fontSize: 14, color: COLORS.textSecondary }}>No users found</span>
         </div>
       );
     }

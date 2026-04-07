@@ -36,7 +36,10 @@ export async function generateFlashcardPdf(
       if (doc.y > 650) doc.addPage();
 
       // Card number
-      doc.fontSize(10).fillColor(BRAND.subtext).text(`Card ${i + 1}`);
+      doc
+        .fontSize(10)
+        .fillColor(BRAND.subtext)
+        .text(`Card ${i + 1}`);
       doc.moveDown(0.3);
 
       // Question
@@ -50,12 +53,7 @@ export async function generateFlashcardPdf(
       doc.moveDown(0.5);
 
       // Separator line
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(545, doc.y)
-        .strokeColor(BRAND.purple)
-        .lineWidth(0.5)
-        .stroke();
+      doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor(BRAND.purple).lineWidth(0.5).stroke();
       doc.moveDown(0.5);
     });
 
@@ -92,12 +90,7 @@ export async function generatePagesPdf(
       doc.moveDown(0.5);
 
       // Separator line
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(545, doc.y)
-        .strokeColor(BRAND.purple)
-        .lineWidth(0.5)
-        .stroke();
+      doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor(BRAND.purple).lineWidth(0.5).stroke();
       doc.moveDown(0.5);
 
       // Body text
@@ -152,22 +145,14 @@ export async function generateQuizPdf(
       doc.moveDown(0.3);
 
       q.options.forEach((opt, j) => {
-        doc
-          .fontSize(12)
-          .fillColor(BRAND.subtext)
-          .text(`   ${OPTION_LABELS[j]}.  ${opt}`);
+        doc.fontSize(12).fillColor(BRAND.subtext).text(`   ${OPTION_LABELS[j]}.  ${opt}`);
         doc.moveDown(0.15);
       });
 
       doc.moveDown(0.5);
 
       // Separator
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(545, doc.y)
-        .strokeColor(BRAND.purple)
-        .lineWidth(0.5)
-        .stroke();
+      doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor(BRAND.purple).lineWidth(0.5).stroke();
       doc.moveDown(0.5);
     });
 

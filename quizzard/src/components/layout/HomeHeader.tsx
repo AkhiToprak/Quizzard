@@ -42,13 +42,28 @@ function getAvatarGradient(id: string): string {
 
 export default function HomeHeader() {
   const { data: session } = useSession();
-  const user = session?.user as { id?: string; username?: string; name?: string; avatarUrl?: string; tier?: string; role?: string } | undefined;
+  const user = session?.user as
+    | {
+        id?: string;
+        username?: string;
+        name?: string;
+        avatarUrl?: string;
+        tier?: string;
+        role?: string;
+      }
+    | undefined;
 
   const [burgerOpen, setBurgerOpen] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const { query: searchQuery, setQuery: setSearchQuery, results, isLoading, clearResults } = useSearch('home');
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    results,
+    isLoading,
+    clearResults,
+  } = useSearch('home');
   const dropdownMouseRef = useRef(false);
 
   // Hover states
@@ -172,7 +187,10 @@ export default function HomeHeader() {
               placeholder="Search notebooks, users..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => { setSearchFocused(true); setDropdownVisible(true); }}
+              onFocus={() => {
+                setSearchFocused(true);
+                setDropdownVisible(true);
+              }}
               onBlur={() => {
                 setSearchFocused(false);
                 if (!dropdownMouseRef.current) setDropdownVisible(false);
@@ -191,15 +209,22 @@ export default function HomeHeader() {
               }}
             />
             <div
-              onMouseEnter={() => { dropdownMouseRef.current = true; }}
-              onMouseLeave={() => { dropdownMouseRef.current = false; }}
+              onMouseEnter={() => {
+                dropdownMouseRef.current = true;
+              }}
+              onMouseLeave={() => {
+                dropdownMouseRef.current = false;
+              }}
             >
               <SearchDropdown
                 query={searchQuery}
                 results={results}
                 isLoading={isLoading}
                 isVisible={dropdownVisible && searchQuery.length >= 2}
-                onClose={() => { setDropdownVisible(false); clearResults(); }}
+                onClose={() => {
+                  setDropdownVisible(false);
+                  clearResults();
+                }}
                 context="home"
               />
             </div>
@@ -280,8 +305,23 @@ export default function HomeHeader() {
                     }
                   `}</style>
                   {/* User info */}
-                  <div style={{ padding: '10px 12px 8px', borderBottom: `1px solid ${COLORS.border}`, marginBottom: 4 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div
+                    style={{
+                      padding: '10px 12px 8px',
+                      borderBottom: `1px solid ${COLORS.border}`,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: COLORS.textPrimary,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
                       {user?.name || user?.username}
                       <TierBadge tier={user?.tier || 'FREE'} role={user?.role} />
                     </div>
@@ -322,7 +362,9 @@ export default function HomeHeader() {
                     );
                   })}
 
-                  <div style={{ borderTop: `1px solid ${COLORS.border}`, marginTop: 4, paddingTop: 4 }}>
+                  <div
+                    style={{ borderTop: `1px solid ${COLORS.border}`, marginTop: 4, paddingTop: 4 }}
+                  >
                     <button
                       onClick={() => signOut({ callbackUrl: '/auth/login' })}
                       onMouseEnter={() => setHoveredMenuItem('logout')}
@@ -335,7 +377,8 @@ export default function HomeHeader() {
                         padding: '8px 12px',
                         borderRadius: 8,
                         border: 'none',
-                        background: hoveredMenuItem === 'logout' ? 'rgba(253,111,133,0.08)' : 'transparent',
+                        background:
+                          hoveredMenuItem === 'logout' ? 'rgba(253,111,133,0.08)' : 'transparent',
                         color: hoveredMenuItem === 'logout' ? COLORS.error : COLORS.textMuted,
                         fontSize: 13,
                         cursor: 'pointer',

@@ -131,8 +131,8 @@ export default function VisibilitySelector({ value, onChange }: VisibilitySelect
                   background: isActive
                     ? 'rgba(174,137,255,0.1)'
                     : isHovered
-                    ? 'rgba(255,255,255,0.06)'
-                    : 'transparent',
+                      ? 'rgba(255,255,255,0.06)'
+                      : 'transparent',
                   cursor: 'pointer',
                   transition: `all 0.15s ${EASING}`,
                   textAlign: 'left',

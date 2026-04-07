@@ -57,9 +57,7 @@ export function validateFile(file: File, purpose: string): string | null {
   if (!rules) return `Unknown upload purpose: ${purpose}`;
 
   if (!rules.accept.includes(file.type)) {
-    const friendly = rules.accept
-      .map((t) => t.split('/').pop()?.toUpperCase())
-      .join(', ');
+    const friendly = rules.accept.map((t) => t.split('/').pop()?.toUpperCase()).join(', ');
     return `Unsupported file type. Allowed: ${friendly}`;
   }
 

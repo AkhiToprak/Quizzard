@@ -21,7 +21,13 @@ const FETCH_TIMEOUT = 10_000; // 10s
  */
 function isPrivateIp(ip: string): boolean {
   // IPv6 loopback and private
-  if (ip === '::1' || ip === '::' || ip.startsWith('fc') || ip.startsWith('fd') || ip.startsWith('fe80')) {
+  if (
+    ip === '::1' ||
+    ip === '::' ||
+    ip.startsWith('fc') ||
+    ip.startsWith('fd') ||
+    ip.startsWith('fe80')
+  ) {
     return true;
   }
 
@@ -179,7 +185,9 @@ export async function importFromUrl(url: string): Promise<UrlImportResult> {
   const $ = cheerio.load(html);
 
   // Remove non-content elements
-  $('script, style, nav, footer, header, aside, iframe, form, noscript, svg, [role="navigation"], [role="banner"], [role="contentinfo"]').remove();
+  $(
+    'script, style, nav, footer, header, aside, iframe, form, noscript, svg, [role="navigation"], [role="banner"], [role="contentinfo"]'
+  ).remove();
 
   // Try to find main content area
   let contentEl = $('article');
@@ -199,9 +207,9 @@ export async function importFromUrl(url: string): Promise<UrlImportResult> {
   // Get text content with whitespace normalization
   const rawText = contentEl.text();
   const textContent = rawText
-    .replace(/[\t ]+/g, ' ')       // collapse horizontal whitespace
-    .replace(/ ?\n ?/g, '\n')      // clean spaces around newlines
-    .replace(/\n{3,}/g, '\n\n')    // collapse 3+ newlines to 2
+    .replace(/[\t ]+/g, ' ') // collapse horizontal whitespace
+    .replace(/ ?\n ?/g, '\n') // clean spaces around newlines
+    .replace(/\n{3,}/g, '\n\n') // collapse 3+ newlines to 2
     .trim();
 
   if (!textContent) {

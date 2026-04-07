@@ -19,7 +19,12 @@ const OPTIONS: { type: GenerateType; label: string; icon: typeof BookOpen }[] = 
   { type: 'mindmap', label: 'Generate Mind Map', icon: Network },
 ];
 
-export default function GenerateDropdown({ notebookId, pageId, disabled, onEssayCheck }: GenerateDropdownProps) {
+export default function GenerateDropdown({
+  notebookId,
+  pageId,
+  disabled,
+  onEssayCheck,
+}: GenerateDropdownProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingType, setLoadingType] = useState<GenerateType | null>(null);
@@ -119,7 +124,11 @@ export default function GenerateDropdown({ notebookId, pageId, disabled, onEssay
           }
         }}
       >
-        {loading ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={15} />}
+        {loading ? (
+          <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+        ) : (
+          <Sparkles size={15} />
+        )}
       </button>
       {open && (
         <div
@@ -173,7 +182,10 @@ export default function GenerateDropdown({ notebookId, pageId, disabled, onEssay
                 }}
               >
                 {isThisLoading ? (
-                  <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+                  <Loader2
+                    size={14}
+                    style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}
+                  />
                 ) : (
                   <Icon size={14} style={{ flexShrink: 0 }} />
                 )}
@@ -181,51 +193,53 @@ export default function GenerateDropdown({ notebookId, pageId, disabled, onEssay
               </button>
             );
           })}
-              {onEssayCheck && (
-                <>
-                  <div style={{
-                    height: '1px',
-                    background: 'rgba(140,82,255,0.1)',
-                    margin: '4px 8px',
-                  }} />
-                  <button
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setOpen(false);
-                      onEssayCheck();
-                    }}
-                    disabled={loading}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      width: '100%',
-                      height: '32px',
-                      padding: '0 12px',
-                      border: 'none',
-                      borderRadius: '6px',
-                      background: 'transparent',
-                      color: loading ? 'rgba(237,233,255,0.3)' : '#ede9ff',
-                      fontSize: '13px',
-                      fontFamily: 'inherit',
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      transition: 'background 0.1s',
-                      textAlign: 'left',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!loading) {
-                        e.currentTarget.style.background = 'rgba(140,82,255,0.12)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                    }}
-                  >
-                    <SpellCheck size={14} style={{ flexShrink: 0 }} />
-                    <span>Check Grammar & Spelling</span>
-                  </button>
-                </>
-              )}
+          {onEssayCheck && (
+            <>
+              <div
+                style={{
+                  height: '1px',
+                  background: 'rgba(140,82,255,0.1)',
+                  margin: '4px 8px',
+                }}
+              />
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setOpen(false);
+                  onEssayCheck();
+                }}
+                disabled={loading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  height: '32px',
+                  padding: '0 12px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  background: 'transparent',
+                  color: loading ? 'rgba(237,233,255,0.3)' : '#ede9ff',
+                  fontSize: '13px',
+                  fontFamily: 'inherit',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.1s',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.background = 'rgba(140,82,255,0.12)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <SpellCheck size={14} style={{ flexShrink: 0 }} />
+                <span>Check Grammar & Spelling</span>
+              </button>
+            </>
+          )}
         </div>
       )}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

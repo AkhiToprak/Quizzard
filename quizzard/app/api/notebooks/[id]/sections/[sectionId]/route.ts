@@ -64,7 +64,10 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (title !== undefined && title.trim().length > 100) {
       return badRequestResponse('Section title must be 100 characters or less');
     }
-    if (sortOrder !== undefined && (!Number.isInteger(sortOrder) || sortOrder < 0 || sortOrder > 1_000_000)) {
+    if (
+      sortOrder !== undefined &&
+      (!Number.isInteger(sortOrder) || sortOrder < 0 || sortOrder > 1_000_000)
+    ) {
       return badRequestResponse('sortOrder must be a non-negative integer');
     }
     if (color !== undefined && color && !/^#[0-9a-fA-F]{6}$/.test(color)) {

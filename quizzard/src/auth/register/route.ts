@@ -1,11 +1,7 @@
 import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
-import {
-  createdResponse,
-  badRequestResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { createdResponse, badRequestResponse, internalErrorResponse } from '@/lib/api-response';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,7 +23,9 @@ export async function POST(request: NextRequest) {
     username = String(username).toLowerCase();
 
     if (!USERNAME_REGEX.test(username)) {
-      return badRequestResponse('Username must be 3–20 characters: letters, numbers, underscores only');
+      return badRequestResponse(
+        'Username must be 3–20 characters: letters, numbers, underscores only'
+      );
     }
 
     if (!EMAIL_REGEX.test(String(email))) {
@@ -51,7 +49,12 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await db.user.create({
-      data: { email: String(email), name: name ? String(name).slice(0, 100) : null, password: hashedPassword, username },
+      data: {
+        email: String(email),
+        name: name ? String(name).slice(0, 100) : null,
+        password: hashedPassword,
+        username,
+      },
     });
 
     return createdResponse(

@@ -21,12 +21,14 @@ This requires changes to the data model, routing, layout, and component architec
 ## Current State (What Exists Today)
 
 ### Database Models
+
 - **User**: auth credentials, timestamps
 - **Notebook**: userId, name, description, subject, color
 - **Document**: notebookId, fileName, filePath, fileSize, fileType, textContent
 - **ChatMessage**: notebookId, userId, role, content
 
 ### Route Structure
+
 ```
 app/(dashboard)/layout.tsx              → [AppSidebar 256px] + [Header 64px] + {children}
 app/(dashboard)/dashboard/page.tsx      → welcome + stat cards
@@ -35,6 +37,7 @@ app/(dashboard)/notebooks/[id]/page.tsx → detail: file upload + document list 
 ```
 
 ### Key Files
+
 - `prisma/schema.prisma` — all models
 - `src/components/layout/Sidebar.tsx` — app-level navigation (Dashboard, Notebooks, Settings)
 - `src/components/layout/Header.tsx` — user avatar + logout
@@ -44,6 +47,7 @@ app/(dashboard)/notebooks/[id]/page.tsx → detail: file upload + document list 
 - `src/auth/config.ts` — NextAuth JWT config
 
 ### Styling Conventions
+
 - **All inline styles** — no CSS modules, no Tailwind classes in components
 - Colors: `#8c52ff` (purple), `#5170ff` (blue), `#09081a` (bg), `#0d0c20` (card bg), `#ede9ff` (text)
 - Fonts: `'Gliker', 'DM Sans', sans-serif` (body), `'Shrikhand', cursive` (display numbers)
@@ -117,6 +121,7 @@ model PageImage {
 ### Changes to Existing Models
 
 **Notebook** — add `sections` relation:
+
 ```prisma
 model Notebook {
   // ... all existing fields stay ...
@@ -128,15 +133,15 @@ model Notebook {
 
 ### Key Design Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| `Section.parentId` self-referential | Enables unlimited nesting (sections within sections) |
-| `Page.content` as `Json` | TipTap's native JSON format — lossless, queryable, versionable |
-| `Page.textContent` as plain text mirror | Auto-extracted on save; used for AI chat context and search |
-| `Page.drawingData` as separate `Json` field | Drawing overlay is independent from text content; loaded/saved separately |
-| `Page.sourceDocId` | Links imported pages back to original Documents for traceability |
-| `PageImage` as separate model | Enables cleanup when pages are deleted; images served via authenticated API |
-| Keep `Document` model | No breaking changes during development; migrate later |
+| Decision                                    | Rationale                                                                   |
+| ------------------------------------------- | --------------------------------------------------------------------------- |
+| `Section.parentId` self-referential         | Enables unlimited nesting (sections within sections)                        |
+| `Page.content` as `Json`                    | TipTap's native JSON format — lossless, queryable, versionable              |
+| `Page.textContent` as plain text mirror     | Auto-extracted on save; used for AI chat context and search                 |
+| `Page.drawingData` as separate `Json` field | Drawing overlay is independent from text content; loaded/saved separately   |
+| `Page.sourceDocId`                          | Links imported pages back to original Documents for traceability            |
+| `PageImage` as separate model               | Enables cleanup when pages are deleted; images served via authenticated API |
+| Keep `Document` model                       | No breaking changes during development; migrate later                       |
 
 ---
 
@@ -177,6 +182,7 @@ When a user opens a notebook at `/notebooks/[id]`, the layout stacks like this:
 3. `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx` (**new**) renders the PageEditor as the child
 
 The notebook sidebar:
+
 - Background `#0d0c20` with left border `rgba(140,82,255,0.12)` (matches app sidebar)
 - Shows notebook name at top, section/page tree below
 - "New Section" button, "Import File" button at bottom
@@ -184,11 +190,11 @@ The notebook sidebar:
 
 ### URL Patterns
 
-| URL | What it shows |
-|-----|---------------|
-| `/notebooks` | Notebook grid listing (unchanged) |
-| `/notebooks/abc123` | Notebook landing — redirects to first page, or empty state |
-| `/notebooks/abc123/pages/xyz789` | Editing page xyz789 in notebook abc123 |
+| URL                              | What it shows                                              |
+| -------------------------------- | ---------------------------------------------------------- |
+| `/notebooks`                     | Notebook grid listing (unchanged)                          |
+| `/notebooks/abc123`              | Notebook landing — redirects to first page, or empty state |
+| `/notebooks/abc123/pages/xyz789` | Editing page xyz789 in notebook abc123                     |
 
 ---
 
@@ -218,6 +224,7 @@ src/components/notebook/
 ### Component Specifications
 
 #### NotebookSidebar
+
 - **Props:** `{ notebookId: string }`
 - **State:** sections tree (fetched from API), collapsed sections (Set), loading
 - **Behavior:**
@@ -231,10 +238,12 @@ src/components/notebook/
 - **Style:** `background: '#0d0c20'`, `borderRight: '1px solid rgba(140,82,255,0.12)'`
 
 #### SectionTree
+
 - **Props:** `{ sections: SectionNode[], depth: number, activePageId?: string, notebookId: string, onRefresh: () => void }`
 - **Behavior:** Maps over sections, renders `SectionItem` for each. Handles nested children recursively.
 
 #### SectionItem
+
 - **Props:** `{ section: SectionNode, depth: number, activePageId?: string, notebookId: string, onRefresh: () => void }`
 - **State:** isExpanded, isRenaming, showCreatePage
 - **Behavior:**
@@ -247,6 +256,7 @@ src/components/notebook/
 - **Indentation:** `paddingLeft: ${12 + depth * 16}px`
 
 #### PageItem
+
 - **Props:** `{ page: PageSummary, notebookId: string, isActive: boolean, onRefresh: () => void }`
 - **Behavior:**
   - Renders as `<Link href={/notebooks/[notebookId]/pages/[page.id]}>`
@@ -256,6 +266,7 @@ src/components/notebook/
 - **Display:** Page title, last updated time (small, muted)
 
 #### PageEditor
+
 - **Props:** `{ pageId: string, notebookId: string }`
 - **State:** editor instance, page data (title, content, drawingData), isSaving, showDrawing
 - **Behavior:**
@@ -269,38 +280,40 @@ src/components/notebook/
   - **TipTap styling**: Inject a `<style>` tag for `.ProseMirror` rules (dark theme colors, font, link styles, placeholder, etc.)
 
 #### EditorToolbar
+
 - **Props:** `{ editor: Editor, onToggleDrawing: () => void, isDrawing: boolean, notebookId: string, pageId: string }`
 - **Buttons (using Lucide icons):**
 
-  | Button | Icon | TipTap command |
-  |--------|------|----------------|
-  | Bold | `Bold` | `toggleBold()` |
-  | Italic | `Italic` | `toggleItalic()` |
-  | Underline | `Underline` | `toggleUnderline()` |
-  | Strikethrough | `Strikethrough` | `toggleStrike()` |
-  | Separator | — | — |
-  | H1 | `Heading1` | `toggleHeading({level:1})` |
-  | H2 | `Heading2` | `toggleHeading({level:2})` |
-  | H3 | `Heading3` | `toggleHeading({level:3})` |
-  | Separator | — | — |
-  | Bullet List | `List` | `toggleBulletList()` |
-  | Ordered List | `ListOrdered` | `toggleOrderedList()` |
-  | Blockquote | `Quote` | `toggleBlockquote()` |
-  | Code Block | `Code` | `toggleCodeBlock()` |
-  | Separator | — | — |
-  | Text Color | `Palette` | custom color picker dropdown |
-  | Highlight | `Highlighter` | custom highlight picker dropdown |
-  | Separator | — | — |
-  | Image | `ImagePlus` | `ImageUploadButton` |
-  | Draw | `PenTool` | toggle DrawingCanvas |
-  | Separator | — | — |
-  | Undo | `Undo` | `undo()` |
-  | Redo | `Redo` | `redo()` |
+  | Button        | Icon            | TipTap command                   |
+  | ------------- | --------------- | -------------------------------- |
+  | Bold          | `Bold`          | `toggleBold()`                   |
+  | Italic        | `Italic`        | `toggleItalic()`                 |
+  | Underline     | `Underline`     | `toggleUnderline()`              |
+  | Strikethrough | `Strikethrough` | `toggleStrike()`                 |
+  | Separator     | —               | —                                |
+  | H1            | `Heading1`      | `toggleHeading({level:1})`       |
+  | H2            | `Heading2`      | `toggleHeading({level:2})`       |
+  | H3            | `Heading3`      | `toggleHeading({level:3})`       |
+  | Separator     | —               | —                                |
+  | Bullet List   | `List`          | `toggleBulletList()`             |
+  | Ordered List  | `ListOrdered`   | `toggleOrderedList()`            |
+  | Blockquote    | `Quote`         | `toggleBlockquote()`             |
+  | Code Block    | `Code`          | `toggleCodeBlock()`              |
+  | Separator     | —               | —                                |
+  | Text Color    | `Palette`       | custom color picker dropdown     |
+  | Highlight     | `Highlighter`   | custom highlight picker dropdown |
+  | Separator     | —               | —                                |
+  | Image         | `ImagePlus`     | `ImageUploadButton`              |
+  | Draw          | `PenTool`       | toggle DrawingCanvas             |
+  | Separator     | —               | —                                |
+  | Undo          | `Undo`          | `undo()`                         |
+  | Redo          | `Redo`          | `redo()`                         |
 
 - **Active state:** button gets `background: rgba(140,82,255,0.2)` + `color: #8c52ff` when its format is active
 - **Style:** Sticky bar, `background: '#0d0c20'`, `borderBottom: '1px solid rgba(140,82,255,0.12)'`, horizontal scroll on overflow
 
 #### DrawingCanvas
+
 - **Props:** `{ drawingData: StrokeData[], onSave: (data: StrokeData[]) => void, width: number, height: number }`
 - **StrokeData type:** `{ points: {x: number, y: number}[], color: string, width: number }`
 - **Behavior:**
@@ -312,6 +325,7 @@ src/components/notebook/
   - Replays existing strokes on mount from `drawingData` prop
 
 #### ImageUploadButton
+
 - **Props:** `{ editor: Editor, notebookId: string, pageId: string }`
 - **Behavior:**
   - Click → opens file picker (accept: `.png,.jpg,.jpeg,.gif,.webp`)
@@ -320,6 +334,7 @@ src/components/notebook/
   - On success, inserts image into TipTap: `editor.chain().focus().setImage({ src: returnedUrl }).run()`
 
 #### FileImportDialog
+
 - **Props:** `{ notebookId: string, sectionId: string, onImported: () => void, onClose: () => void }`
 - **Behavior:**
   - Modal with drag-drop zone (reuses FileUpload styling pattern)
@@ -340,9 +355,11 @@ All follow existing patterns: `getServerSession(authOptions)` for auth, `db` fro
 **`app/api/notebooks/[id]/sections/route.ts`**
 
 - **GET** — List all sections for notebook (with pages summaries)
+
   ```
   Response: { sections: [{ id, title, parentId, sortOrder, color, pages: [{ id, title, updatedAt, sortOrder }] }] }
   ```
+
   Client builds the tree from the flat parentId list.
 
 - **POST** — Create section
@@ -371,12 +388,14 @@ All follow existing patterns: `getServerSession(authOptions)` for auth, `db` fro
 **`app/api/notebooks/[id]/pages/[pageId]/route.ts`**
 
 - **GET** — Load page with full content, drawingData, images
+
   ```
   Ownership check: page → section → notebook → userId
   Returns: { id, title, content, textContent, drawingData, images: [...], sectionId, updatedAt }
   ```
 
 - **PUT** — Save page (auto-save target)
+
   ```
   Body: { title?: string, content?: object, textContent?: string, sortOrder?: number }
   On content save: also extracts plain text from TipTap JSON and stores in textContent
@@ -469,15 +488,18 @@ Each phase is independently testable. Complete one before starting the next.
 ---
 
 ### Phase 1: Schema + Migration
+
 **Goal:** Add Section, Page, PageImage models to the database.
 
 **Tasks:**
+
 1. Add Section, Page, PageImage models to `prisma/schema.prisma` (exactly as shown in Section A)
 2. Add `sections Section[]` relation to existing Notebook model
 3. Run `npx prisma migrate dev --name add-sections-pages`
 4. Verify migration succeeds, tables created
 
 **Files to modify:**
+
 - `prisma/schema.prisma`
 
 **Verify:** `npx prisma studio` — see new tables with correct columns and relations.
@@ -485,24 +507,30 @@ Each phase is independently testable. Complete one before starting the next.
 ---
 
 ### Phase 2: Section + Page CRUD API Routes
+
 **Goal:** All backend endpoints for sections and pages work.
 
 **Tasks:**
+
 1. Create `app/api/notebooks/[id]/sections/route.ts` (GET list, POST create)
 2. Create `app/api/notebooks/[id]/sections/[sectionId]/route.ts` (GET, PUT, DELETE)
 3. Create `app/api/notebooks/[id]/sections/[sectionId]/pages/route.ts` (POST create page)
 4. Create `app/api/notebooks/[id]/pages/[pageId]/route.ts` (GET, PUT, DELETE)
 
 **Auth pattern (copy from existing routes):**
+
 ```ts
 const session = await getServerSession(authOptions);
 if (!session?.user?.id) return unauthorizedResponse();
 // Verify notebook ownership:
-const notebook = await db.notebook.findFirst({ where: { id: notebookId, userId: session.user.id } });
+const notebook = await db.notebook.findFirst({
+  where: { id: notebookId, userId: session.user.id },
+});
 if (!notebook) return notFoundResponse('Notebook not found');
 ```
 
 **Page ownership check (traverse the chain):**
+
 ```ts
 const page = await db.page.findFirst({
   where: { id: pageId },
@@ -512,6 +540,7 @@ if (!page || page.section.notebook.userId !== session.user.id) return notFoundRe
 ```
 
 **Files to create:**
+
 - `app/api/notebooks/[id]/sections/route.ts`
 - `app/api/notebooks/[id]/sections/[sectionId]/route.ts`
 - `app/api/notebooks/[id]/sections/[sectionId]/pages/route.ts`
@@ -522,9 +551,11 @@ if (!page || page.section.notebook.userId !== session.user.id) return notFoundRe
 ---
 
 ### Phase 3: Notebook Workspace Layout + Sidebar
+
 **Goal:** Opening a notebook shows a workspace with a section/page tree sidebar.
 
 **Tasks:**
+
 1. Create `app/(dashboard)/notebooks/[id]/layout.tsx` — nested layout that adds NotebookSidebar
 2. Create `src/components/notebook/NotebookSidebar.tsx` — fetches sections, renders tree
 3. Create `src/components/notebook/SectionTree.tsx` — recursive renderer
@@ -537,6 +568,7 @@ if (!page || page.section.notebook.userId !== session.user.id) return notFoundRe
 10. Update `src/middleware.ts` — ensure `/notebooks/:path*` patterns still work
 
 **Key layout code for `[id]/layout.tsx`:**
+
 ```tsx
 'use client';
 import { use } from 'react';
@@ -553,9 +585,7 @@ export default function NotebookWorkspaceLayout({
   return (
     <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
       <NotebookSidebar notebookId={id} />
-      <div style={{ flex: 1, minWidth: 0, overflow: 'auto', padding: '0' }}>
-        {children}
-      </div>
+      <div style={{ flex: 1, minWidth: 0, overflow: 'auto', padding: '0' }}>{children}</div>
     </div>
   );
 }
@@ -564,6 +594,7 @@ export default function NotebookWorkspaceLayout({
 **Important:** The parent `(dashboard)/layout.tsx` already provides AppSidebar + Header. This nested layout ONLY adds the notebook sidebar. The `main` padding from the parent layout (32px) should be overridden to 0 for notebook workspace pages — either by the nested layout or by the page itself.
 
 **Files to create:**
+
 - `app/(dashboard)/notebooks/[id]/layout.tsx`
 - `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx`
 - `src/components/notebook/NotebookSidebar.tsx`
@@ -574,6 +605,7 @@ export default function NotebookWorkspaceLayout({
 - `src/components/notebook/CreatePageButton.tsx`
 
 **Files to modify:**
+
 - `app/(dashboard)/notebooks/[id]/page.tsx` (rewrite to landing/redirect)
 - `app/(dashboard)/layout.tsx` (may need to conditionally remove padding for notebook workspace)
 
@@ -582,9 +614,11 @@ export default function NotebookWorkspaceLayout({
 ---
 
 ### Phase 4: TipTap Rich Text Editor
+
 **Goal:** Users can write and format text in pages with auto-save.
 
 **Tasks:**
+
 1. Install TipTap packages:
    ```bash
    npm install @tiptap/react @tiptap/pm @tiptap/starter-kit \
@@ -609,18 +643,54 @@ export default function NotebookWorkspaceLayout({
        color: #ede9ff;
        line-height: 1.7;
      }
-     .ProseMirror h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; margin: 24px 0 8px; }
-     .ProseMirror h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 20px 0 6px; }
-     .ProseMirror h3 { font-size: 18px; font-weight: 600; margin: 16px 0 4px; }
-     .ProseMirror p { margin: 0 0 8px; }
-     .ProseMirror ul, .ProseMirror ol { padding-left: 24px; }
-     .ProseMirror blockquote { border-left: 3px solid #8c52ff; padding-left: 16px; color: rgba(237,233,255,0.6); }
-     .ProseMirror code { background: rgba(140,82,255,0.12); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-     .ProseMirror pre { background: rgba(140,82,255,0.08); padding: 16px; border-radius: 10px; }
-     .ProseMirror img { max-width: 100%; border-radius: 8px; margin: 12px 0; }
+     .ProseMirror h1 {
+       font-size: 28px;
+       font-weight: 700;
+       letter-spacing: -0.03em;
+       margin: 24px 0 8px;
+     }
+     .ProseMirror h2 {
+       font-size: 22px;
+       font-weight: 700;
+       letter-spacing: -0.02em;
+       margin: 20px 0 6px;
+     }
+     .ProseMirror h3 {
+       font-size: 18px;
+       font-weight: 600;
+       margin: 16px 0 4px;
+     }
+     .ProseMirror p {
+       margin: 0 0 8px;
+     }
+     .ProseMirror ul,
+     .ProseMirror ol {
+       padding-left: 24px;
+     }
+     .ProseMirror blockquote {
+       border-left: 3px solid #8c52ff;
+       padding-left: 16px;
+       color: rgba(237, 233, 255, 0.6);
+     }
+     .ProseMirror code {
+       background: rgba(140, 82, 255, 0.12);
+       padding: 2px 6px;
+       border-radius: 4px;
+       font-size: 13px;
+     }
+     .ProseMirror pre {
+       background: rgba(140, 82, 255, 0.08);
+       padding: 16px;
+       border-radius: 10px;
+     }
+     .ProseMirror img {
+       max-width: 100%;
+       border-radius: 8px;
+       margin: 12px 0;
+     }
      .ProseMirror p.is-editor-empty:first-child::before {
        content: attr(data-placeholder);
-       color: rgba(237,233,255,0.2);
+       color: rgba(237, 233, 255, 0.2);
        pointer-events: none;
        float: left;
        height: 0;
@@ -634,10 +704,12 @@ export default function NotebookWorkspaceLayout({
 4. Wire editor into `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx`
 
 **Files to create:**
+
 - `src/components/notebook/PageEditor.tsx`
 - `src/components/notebook/EditorToolbar.tsx`
 
 **Files to modify:**
+
 - `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx` (render PageEditor)
 - `package.json` (TipTap deps added by npm install)
 
@@ -646,14 +718,20 @@ export default function NotebookWorkspaceLayout({
 ---
 
 ### Phase 5: Inline Images
+
 **Goal:** Users can embed images in pages.
 
 **Tasks:**
+
 1. Create `app/api/notebooks/[id]/pages/[pageId]/images/route.ts` (POST upload)
 2. Create `app/api/uploads/images/[imageId]/route.ts` (GET serve)
 3. Add `saveImage()` function to `src/lib/storage.ts`:
    ```ts
-   export async function saveImage(pageId: string, filename: string, buffer: Buffer): Promise<{ filePath: string }> {
+   export async function saveImage(
+     pageId: string,
+     filename: string,
+     buffer: Buffer
+   ): Promise<{ filePath: string }> {
      const dir = path.join(process.cwd(), 'uploads', 'images', pageId);
      await fs.mkdir(dir, { recursive: true });
      const safeName = `${Date.now()}-${sanitizeFilename(filename)}`;
@@ -669,11 +747,13 @@ export default function NotebookWorkspaceLayout({
 5. Add image button to `EditorToolbar`
 
 **Files to create:**
+
 - `app/api/notebooks/[id]/pages/[pageId]/images/route.ts`
 - `app/api/uploads/images/[imageId]/route.ts`
 - `src/components/notebook/ImageUploadButton.tsx`
 
 **Files to modify:**
+
 - `src/lib/storage.ts` (add saveImage)
 - `src/components/notebook/EditorToolbar.tsx` (add image button)
 
@@ -682,9 +762,11 @@ export default function NotebookWorkspaceLayout({
 ---
 
 ### Phase 6: Drawing Canvas
+
 **Goal:** Users can draw on pages with pen/cursor.
 
 **Tasks:**
+
 1. Create `app/api/notebooks/[id]/pages/[pageId]/drawing/route.ts` (PUT save)
 2. Create `src/components/notebook/DrawingCanvas.tsx`:
    - HTML5 Canvas positioned absolutely over the editor content
@@ -699,10 +781,12 @@ export default function NotebookWorkspaceLayout({
 4. Integrate in `PageEditor`: toggle `showDrawing` state, render `DrawingCanvas` when active
 
 **Files to create:**
+
 - `app/api/notebooks/[id]/pages/[pageId]/drawing/route.ts`
 - `src/components/notebook/DrawingCanvas.tsx`
 
 **Files to modify:**
+
 - `src/components/notebook/EditorToolbar.tsx` (add draw toggle)
 - `src/components/notebook/PageEditor.tsx` (render DrawingCanvas overlay)
 
@@ -711,10 +795,13 @@ export default function NotebookWorkspaceLayout({
 ---
 
 ### Phase 7: File Import as Pages
+
 **Goal:** Users can import PDF/DOCX/TXT/MD files as editable pages.
 
 **Tasks:**
+
 1. Create `src/lib/contentConverter.ts`:
+
    ```ts
    // Convert plain text to TipTap JSON
    function textToTipTapJSON(text: string): object {
@@ -732,6 +819,7 @@ export default function NotebookWorkspaceLayout({
    // Use @tiptap/html's generateJSON() for this
    function htmlToTipTapJSON(html: string, extensions: Extensions): object { ... }
    ```
+
 2. Create `app/api/notebooks/[id]/sections/[sectionId]/import/route.ts`:
    - Accept file upload (same validation as existing document upload)
    - For DOCX: use `mammoth.convertToHtml()` for richer formatting, then convert to TipTap JSON
@@ -749,11 +837,13 @@ export default function NotebookWorkspaceLayout({
    ```
 
 **Files to create:**
+
 - `src/lib/contentConverter.ts`
 - `app/api/notebooks/[id]/sections/[sectionId]/import/route.ts`
 - `src/components/notebook/FileImportDialog.tsx`
 
 **Files to modify:**
+
 - `src/components/notebook/NotebookSidebar.tsx` (add Import File button)
 - `package.json` (@tiptap/html)
 
@@ -762,9 +852,11 @@ export default function NotebookWorkspaceLayout({
 ---
 
 ### Phase 8: Migration + Cleanup
+
 **Goal:** Migrate existing Documents to Pages and update the notebook listing.
 
 **Tasks:**
+
 1. Create `scripts/migrate-documents-to-pages.ts`:
    ```ts
    // For each notebook with documents:
@@ -782,9 +874,11 @@ export default function NotebookWorkspaceLayout({
 6. Add deprecation comments to `FileUpload`, `DocumentList`, and the document API routes
 
 **Files to create:**
+
 - `scripts/migrate-documents-to-pages.ts`
 
 **Files to modify:**
+
 - `app/api/notebooks/route.ts` (add pages count)
 - `app/api/notebooks/[id]/route.ts` (include sections)
 - `src/components/features/NotebookCard.tsx` (show pages count)
@@ -825,6 +919,7 @@ export default function NotebookWorkspaceLayout({
 ## G. Dependencies to Install
 
 ### Phase 4 (TipTap)
+
 ```bash
 npm install @tiptap/react @tiptap/pm @tiptap/starter-kit \
   @tiptap/extension-underline @tiptap/extension-text-style \
@@ -834,6 +929,7 @@ npm install @tiptap/react @tiptap/pm @tiptap/starter-kit \
 ```
 
 ### Phase 7 (HTML conversion)
+
 ```bash
 npm install @tiptap/html
 ```
@@ -844,42 +940,42 @@ No other external dependencies needed. Drawing uses native HTML5 Canvas API.
 
 ## H. File Map (Complete)
 
-| Phase | File | Action |
-|-------|------|--------|
-| 1 | `prisma/schema.prisma` | Modify — add Section, Page, PageImage models |
-| 2 | `app/api/notebooks/[id]/sections/route.ts` | Create |
-| 2 | `app/api/notebooks/[id]/sections/[sectionId]/route.ts` | Create |
-| 2 | `app/api/notebooks/[id]/sections/[sectionId]/pages/route.ts` | Create |
-| 2 | `app/api/notebooks/[id]/pages/[pageId]/route.ts` | Create |
-| 3 | `app/(dashboard)/notebooks/[id]/layout.tsx` | Create |
-| 3 | `app/(dashboard)/notebooks/[id]/page.tsx` | Rewrite |
-| 3 | `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx` | Create |
-| 3 | `src/components/notebook/NotebookSidebar.tsx` | Create |
-| 3 | `src/components/notebook/SectionTree.tsx` | Create |
-| 3 | `src/components/notebook/SectionItem.tsx` | Create |
-| 3 | `src/components/notebook/PageItem.tsx` | Create |
-| 3 | `src/components/notebook/CreateSectionDialog.tsx` | Create |
-| 3 | `src/components/notebook/CreatePageButton.tsx` | Create |
-| 3 | `app/(dashboard)/layout.tsx` | Modify — conditional padding |
-| 4 | `src/components/notebook/PageEditor.tsx` | Create |
-| 4 | `src/components/notebook/EditorToolbar.tsx` | Create |
-| 4 | `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx` | Modify — render PageEditor |
-| 5 | `app/api/notebooks/[id]/pages/[pageId]/images/route.ts` | Create |
-| 5 | `app/api/uploads/images/[imageId]/route.ts` | Create |
-| 5 | `src/components/notebook/ImageUploadButton.tsx` | Create |
-| 5 | `src/lib/storage.ts` | Modify — add saveImage |
-| 5 | `src/components/notebook/EditorToolbar.tsx` | Modify — add image button |
-| 6 | `app/api/notebooks/[id]/pages/[pageId]/drawing/route.ts` | Create |
-| 6 | `src/components/notebook/DrawingCanvas.tsx` | Create |
-| 6 | `src/components/notebook/EditorToolbar.tsx` | Modify — add draw toggle |
-| 6 | `src/components/notebook/PageEditor.tsx` | Modify — render DrawingCanvas |
-| 7 | `src/lib/contentConverter.ts` | Create |
-| 7 | `app/api/notebooks/[id]/sections/[sectionId]/import/route.ts` | Create |
-| 7 | `src/components/notebook/FileImportDialog.tsx` | Create |
-| 7 | `src/components/notebook/NotebookSidebar.tsx` | Modify — add import button |
-| 8 | `scripts/migrate-documents-to-pages.ts` | Create |
-| 8 | `app/api/notebooks/route.ts` | Modify — add pages count |
-| 8 | `app/api/notebooks/[id]/route.ts` | Modify — include sections |
-| 8 | `src/components/features/NotebookCard.tsx` | Modify — show pages count |
+| Phase | File                                                          | Action                                       |
+| ----- | ------------------------------------------------------------- | -------------------------------------------- |
+| 1     | `prisma/schema.prisma`                                        | Modify — add Section, Page, PageImage models |
+| 2     | `app/api/notebooks/[id]/sections/route.ts`                    | Create                                       |
+| 2     | `app/api/notebooks/[id]/sections/[sectionId]/route.ts`        | Create                                       |
+| 2     | `app/api/notebooks/[id]/sections/[sectionId]/pages/route.ts`  | Create                                       |
+| 2     | `app/api/notebooks/[id]/pages/[pageId]/route.ts`              | Create                                       |
+| 3     | `app/(dashboard)/notebooks/[id]/layout.tsx`                   | Create                                       |
+| 3     | `app/(dashboard)/notebooks/[id]/page.tsx`                     | Rewrite                                      |
+| 3     | `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx`      | Create                                       |
+| 3     | `src/components/notebook/NotebookSidebar.tsx`                 | Create                                       |
+| 3     | `src/components/notebook/SectionTree.tsx`                     | Create                                       |
+| 3     | `src/components/notebook/SectionItem.tsx`                     | Create                                       |
+| 3     | `src/components/notebook/PageItem.tsx`                        | Create                                       |
+| 3     | `src/components/notebook/CreateSectionDialog.tsx`             | Create                                       |
+| 3     | `src/components/notebook/CreatePageButton.tsx`                | Create                                       |
+| 3     | `app/(dashboard)/layout.tsx`                                  | Modify — conditional padding                 |
+| 4     | `src/components/notebook/PageEditor.tsx`                      | Create                                       |
+| 4     | `src/components/notebook/EditorToolbar.tsx`                   | Create                                       |
+| 4     | `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx`      | Modify — render PageEditor                   |
+| 5     | `app/api/notebooks/[id]/pages/[pageId]/images/route.ts`       | Create                                       |
+| 5     | `app/api/uploads/images/[imageId]/route.ts`                   | Create                                       |
+| 5     | `src/components/notebook/ImageUploadButton.tsx`               | Create                                       |
+| 5     | `src/lib/storage.ts`                                          | Modify — add saveImage                       |
+| 5     | `src/components/notebook/EditorToolbar.tsx`                   | Modify — add image button                    |
+| 6     | `app/api/notebooks/[id]/pages/[pageId]/drawing/route.ts`      | Create                                       |
+| 6     | `src/components/notebook/DrawingCanvas.tsx`                   | Create                                       |
+| 6     | `src/components/notebook/EditorToolbar.tsx`                   | Modify — add draw toggle                     |
+| 6     | `src/components/notebook/PageEditor.tsx`                      | Modify — render DrawingCanvas                |
+| 7     | `src/lib/contentConverter.ts`                                 | Create                                       |
+| 7     | `app/api/notebooks/[id]/sections/[sectionId]/import/route.ts` | Create                                       |
+| 7     | `src/components/notebook/FileImportDialog.tsx`                | Create                                       |
+| 7     | `src/components/notebook/NotebookSidebar.tsx`                 | Modify — add import button                   |
+| 8     | `scripts/migrate-documents-to-pages.ts`                       | Create                                       |
+| 8     | `app/api/notebooks/route.ts`                                  | Modify — add pages count                     |
+| 8     | `app/api/notebooks/[id]/route.ts`                             | Modify — include sections                    |
+| 8     | `src/components/features/NotebookCard.tsx`                    | Modify — show pages count                    |
 
 **Total: 22 new files, 11 modified files, across 8 phases.**

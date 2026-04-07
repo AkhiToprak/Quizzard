@@ -46,9 +46,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // Validate mime type
     if (!ALLOWED_MIME_TYPES.includes(fileType)) {
-      return badRequestResponse(
-        'Unsupported file type. Allowed: PDF, DOCX, TXT, MD'
-      );
+      return badRequestResponse('Unsupported file type. Allowed: PDF, DOCX, TXT, MD');
     }
 
     const buffer = await downloadFromStorage(storagePath);
@@ -56,8 +54,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     // Extract TipTap JSON content
     let content: object;
     const isDocx =
-      fileType ===
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
     if (isDocx) {
       // For DOCX, use mammoth to get HTML then convert to TipTap JSON for rich formatting

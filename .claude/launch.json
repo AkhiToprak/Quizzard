@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "quizzard-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "/Users/toprakdemirel/Entwicklung/Quizzard/quizzard", "run", "dev"],
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "export PATH=/usr/local/bin:$PATH && cd /Users/toprakdemirel/Entwicklung/Quizzard/quizzard && npm run dev"],
       "port": 3001,
       "autoPort": false
     }

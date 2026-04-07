@@ -51,7 +51,11 @@ export interface StudyPlanToolInput {
     title: string;
     description: string;
     durationDays: number;
-    materials: { type: 'page' | 'flashcard_set' | 'quiz_set' | 'document'; referenceId: string; title: string }[];
+    materials: {
+      type: 'page' | 'flashcard_set' | 'quiz_set' | 'document';
+      referenceId: string;
+      title: string;
+    }[];
   }[];
 }
 
@@ -66,7 +70,8 @@ export const FLASHCARD_TOOL: Anthropic.Messages.Tool = {
     properties: {
       title: {
         type: 'string',
-        description: 'A short, descriptive title for the flashcard set (e.g. "Cell Biology Key Terms")',
+        description:
+          'A short, descriptive title for the flashcard set (e.g. "Cell Biology Key Terms")',
       },
       flashcards: {
         type: 'array',
@@ -79,7 +84,8 @@ export const FLASHCARD_TOOL: Anthropic.Messages.Tool = {
             },
             answer: {
               type: 'string',
-              description: 'The answer on the back of the card. Can use bullet points or numbered lists for complex answers.',
+              description:
+                'The answer on the back of the card. Can use bullet points or numbered lists for complex answers.',
             },
           },
           required: ['question', 'answer'],
@@ -159,7 +165,8 @@ export const MINDMAP_TOOL: Anthropic.Messages.Tool = {
       },
       markdown: {
         type: 'string',
-        description: 'The mind map content as Markdown using heading levels (# root, ## branches, ### sub-branches, #### details). Use only headings (# ## ### ####) to define the hierarchy. Keep node text concise. Example:\n# Biology\n## Cells\n### Prokaryotic\n### Eukaryotic\n## Genetics\n### DNA\n### RNA',
+        description:
+          'The mind map content as Markdown using heading levels (# root, ## branches, ### sub-branches, #### details). Use only headings (# ## ### ####) to define the hierarchy. Keep node text concise. Example:\n# Biology\n## Cells\n### Prokaryotic\n### Eukaryotic\n## Genetics\n### DNA\n### RNA',
       },
     },
     required: ['title', 'markdown'],
@@ -245,22 +252,26 @@ export const PRESENTATION_TOOL: Anthropic.Messages.Tool = {
       },
       themeColor: {
         type: 'string',
-        description: 'A hex color (without #) that fits the topic, used as the accent color throughout the deck. E.g. "2E75B6" for science, "2D8653" for biology, "C0392B" for history.',
+        description:
+          'A hex color (without #) that fits the topic, used as the accent color throughout the deck. E.g. "2E75B6" for science, "2D8653" for biology, "C0392B" for history.',
       },
       slides: {
         type: 'array',
-        description: 'Array of slides. Use varied slideTypes for visual interest. Aim for 8-15 slides.',
+        description:
+          'Array of slides. Use varied slideTypes for visual interest. Aim for 8-15 slides.',
         items: {
           type: 'object',
           properties: {
             slideType: {
               type: 'string',
               enum: ['title', 'content', 'section_divider', 'two_column', 'conclusion'],
-              description: 'title: opening slide with title+subtitle. content: main slide with action title and bullets. section_divider: dark background with section name. two_column: side-by-side content. conclusion: dark background with key takeaways.',
+              description:
+                'title: opening slide with title+subtitle. content: main slide with action title and bullets. section_divider: dark background with section name. two_column: side-by-side content. conclusion: dark background with key takeaways.',
             },
             title: {
               type: 'string',
-              description: 'For content slides, use an ACTION TITLE — a complete sentence stating the takeaway (e.g. "Early interventions reduce dropout rates by 40%"), NOT a topic label.',
+              description:
+                'For content slides, use an ACTION TITLE — a complete sentence stating the takeaway (e.g. "Early interventions reduce dropout rates by 40%"), NOT a topic label.',
             },
             subtitle: {
               type: 'string',
@@ -269,13 +280,18 @@ export const PRESENTATION_TOOL: Anthropic.Messages.Tool = {
             bullets: {
               type: 'array',
               items: { type: 'string' },
-              description: 'Bullet points for content/conclusion slides. 3-5 bullets, max ~15 words each.',
+              description:
+                'Bullet points for content/conclusion slides. 3-5 bullets, max ~15 words each.',
             },
             leftColumn: {
               type: 'object',
               properties: {
                 heading: { type: 'string', description: 'Column heading' },
-                bullets: { type: 'array', items: { type: 'string' }, description: 'Column bullet points' },
+                bullets: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Column bullet points',
+                },
               },
               required: ['bullets'],
               description: 'Left column content (for two_column slides)',
@@ -284,14 +300,19 @@ export const PRESENTATION_TOOL: Anthropic.Messages.Tool = {
               type: 'object',
               properties: {
                 heading: { type: 'string', description: 'Column heading' },
-                bullets: { type: 'array', items: { type: 'string' }, description: 'Column bullet points' },
+                bullets: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Column bullet points',
+                },
               },
               required: ['bullets'],
               description: 'Right column content (for two_column slides)',
             },
             graphicDescription: {
               type: 'string',
-              description: 'Description of a visual element for this slide (e.g. "Bar chart showing growth from 2020-2024", "Diagram of cell mitosis stages"). Will be rendered as a labeled placeholder.',
+              description:
+                'Description of a visual element for this slide (e.g. "Bar chart showing growth from 2020-2024", "Diagram of cell mitosis stages"). Will be rendered as a labeled placeholder.',
             },
             notes: {
               type: 'string',
@@ -328,7 +349,14 @@ export const YOUTUBE_VIDEOS_TOOL: Anthropic.Messages.Tool = {
   },
 };
 
-export const ALL_TOOLS = [FLASHCARD_TOOL, QUIZ_TOOL, MINDMAP_TOOL, STUDY_PLAN_TOOL, PRESENTATION_TOOL, YOUTUBE_VIDEOS_TOOL];
+export const ALL_TOOLS = [
+  FLASHCARD_TOOL,
+  QUIZ_TOOL,
+  MINDMAP_TOOL,
+  STUDY_PLAN_TOOL,
+  PRESENTATION_TOOL,
+  YOUTUBE_VIDEOS_TOOL,
+];
 
 // ── Helper to extract tool uses from Anthropic response ──
 

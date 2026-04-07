@@ -51,7 +51,11 @@ export function tiptapJsonToPlainText(doc: unknown): string | null {
       }
 
       // toggleHeading stores visible text in attrs.summary
-      if (n.type === 'toggleHeading' && n.attrs && typeof (n.attrs as Record<string, unknown>).summary === 'string') {
+      if (
+        n.type === 'toggleHeading' &&
+        n.attrs &&
+        typeof (n.attrs as Record<string, unknown>).summary === 'string'
+      ) {
         parts.push((n.attrs as Record<string, unknown>).summary as string);
         parts.push('\n');
       }
@@ -62,7 +66,16 @@ export function tiptapJsonToPlainText(doc: unknown): string | null {
       }
 
       // Add newline after block-level nodes
-      const blockTypes = ['paragraph', 'heading', 'toggleHeading', 'blockquote', 'listItem', 'codeBlock', 'callout', 'tableRow'];
+      const blockTypes = [
+        'paragraph',
+        'heading',
+        'toggleHeading',
+        'blockquote',
+        'listItem',
+        'codeBlock',
+        'callout',
+        'tableRow',
+      ];
       if (typeof n.type === 'string' && blockTypes.includes(n.type)) {
         parts.push('\n');
       }
@@ -71,7 +84,10 @@ export function tiptapJsonToPlainText(doc: unknown): string | null {
 
   walk(d.content as unknown[]);
 
-  const result = parts.join('').replace(/\n{3,}/g, '\n\n').trim();
+  const result = parts
+    .join('')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
   return result || null;
 }
 
@@ -126,8 +142,7 @@ export function htmlToTipTapJSON(html: string): TipTapDoc {
 function parseTopLevelElements(html: string): TipTapNode[] {
   const nodes: TipTapNode[] = [];
   // Match top-level block tags. Mammoth output is fairly flat.
-  const blockTagRegex =
-    /<(p|h[1-6]|ul|ol|blockquote|table|div|hr)([\s>])/gi;
+  const blockTagRegex = /<(p|h[1-6]|ul|ol|blockquote|table|div|hr)([\s>])/gi;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -403,7 +418,12 @@ function tokenizeInline(html: string): Token[] {
 
     if (fullTag.startsWith('</')) {
       tokens.push({ type: 'close', value: fullTag, tag: tagName, attrs: '' });
-    } else if (fullTag.endsWith('/>') || tagName === 'br' || tagName === 'hr' || tagName === 'img') {
+    } else if (
+      fullTag.endsWith('/>') ||
+      tagName === 'br' ||
+      tagName === 'hr' ||
+      tagName === 'img'
+    ) {
       tokens.push({ type: 'selfclose', value: fullTag, tag: tagName, attrs });
     } else {
       tokens.push({ type: 'open', value: fullTag, tag: tagName, attrs });
@@ -585,10 +605,12 @@ export function xlsxToTipTapTableJSON(sheetsData: SheetData[]): TipTapDoc {
         cells.push({
           type: rowIndex === 0 ? 'tableHeader' : 'tableCell',
           attrs: { colspan: 1, rowspan: 1, colwidth: null },
-          content: [{
-            type: 'paragraph',
-            content: cellValue ? [{ type: 'text', text: cellValue }] : undefined,
-          }],
+          content: [
+            {
+              type: 'paragraph',
+              content: cellValue ? [{ type: 'text', text: cellValue }] : undefined,
+            },
+          ],
         });
       }
       return { type: 'tableRow', content: cells };
@@ -600,10 +622,12 @@ export function xlsxToTipTapTableJSON(sheetsData: SheetData[]): TipTapDoc {
     if (sheet.rows.length > MAX_ROWS_PER_SHEET) {
       content.push({
         type: 'paragraph',
-        content: [{
-          type: 'text',
-          text: `⚠ Sheet "${sheet.name}" truncated: showing ${MAX_ROWS_PER_SHEET} of ${sheet.rows.length} rows.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `⚠ Sheet "${sheet.name}" truncated: showing ${MAX_ROWS_PER_SHEET} of ${sheet.rows.length} rows.`,
+          },
+        ],
       });
     }
   }

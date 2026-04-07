@@ -23,9 +23,19 @@ export default function StepIndicator({ currentStep, totalSteps, labels }: StepI
           const isLast = stepNum === totalSteps;
 
           return (
-            <div key={stepNum} style={{ display: 'flex', alignItems: 'flex-start', flex: isLast ? '0 0 auto' : 1 }}>
+            <div
+              key={stepNum}
+              style={{ display: 'flex', alignItems: 'flex-start', flex: isLast ? '0 0 auto' : 1 }}
+            >
               {/* Step node + label */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
                 {/* Circle */}
                 <div
                   style={{
@@ -36,18 +46,15 @@ export default function StepIndicator({ currentStep, totalSteps, labels }: StepI
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
-                    background: isCompleted
-                      ? '#ae89ff'
-                      : isActive
-                      ? '#161630'
-                      : '#2a2a4c',
+                    background: isCompleted ? '#ae89ff' : isActive ? '#161630' : '#2a2a4c',
                     border: isCompleted
                       ? '2px solid #ae89ff'
                       : isActive
-                      ? '2px solid #ae89ff'
-                      : '2px solid #555578',
+                        ? '2px solid #ae89ff'
+                        : '2px solid #555578',
                     animation: isActive ? 'stepGlow 2s ease-in-out infinite' : 'none',
-                    transition: 'background 0.3s cubic-bezier(0.22,1,0.36,1), border-color 0.3s cubic-bezier(0.22,1,0.36,1)',
+                    transition:
+                      'background 0.3s cubic-bezier(0.22,1,0.36,1), border-color 0.3s cubic-bezier(0.22,1,0.36,1)',
                   }}
                 >
                   {isCompleted ? (

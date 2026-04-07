@@ -41,12 +41,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     });
     if (!flashcard) return notFoundResponse('Flashcard not found in this set');
 
-    const result = sm2(
-      quality,
-      flashcard.easeFactor,
-      flashcard.interval,
-      flashcard.repetitions
-    );
+    const result = sm2(quality, flashcard.easeFactor, flashcard.interval, flashcard.repetitions);
 
     const updated = await db.flashcard.update({
       where: { id: flashcardId },

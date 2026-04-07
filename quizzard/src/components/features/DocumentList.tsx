@@ -36,7 +36,12 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function DocumentList({ documents, notebookId, onDelete, deletingId }: DocumentListProps) {
+export default function DocumentList({
+  documents,
+  notebookId,
+  onDelete,
+  deletingId,
+}: DocumentListProps) {
   const [summaryDoc, setSummaryDoc] = useState<DocumentItem | null>(null);
   const [summaryContent, setSummaryContent] = useState('');
   const [summaryLength, setSummaryLength] = useState<'brief' | 'detailed'>('brief');
@@ -57,7 +62,9 @@ export default function DocumentList({ documents, notebookId, onDelete, deleting
       if (json.success && json.data?.summary) {
         setSummaryContent(json.data.summary);
       } else {
-        setSummaryContent('Failed to generate summary. The document may not have extractable text.');
+        setSummaryContent(
+          'Failed to generate summary. The document may not have extractable text.'
+        );
       }
     } catch {
       setSummaryContent('Network error. Please try again.');
@@ -111,10 +118,24 @@ export default function DocumentList({ documents, notebookId, onDelete, deleting
               >
                 {doc.fileName}
               </span>
-              <span style={{ fontFamily: 'inherit', fontSize: '11px', color: 'rgba(237,233,255,0.25)', flexShrink: 0 }}>
+              <span
+                style={{
+                  fontFamily: 'inherit',
+                  fontSize: '11px',
+                  color: 'rgba(237,233,255,0.25)',
+                  flexShrink: 0,
+                }}
+              >
                 {formatFileSize(doc.fileSize)}
               </span>
-              <span style={{ fontFamily: 'inherit', fontSize: '11px', color: 'rgba(237,233,255,0.22)', flexShrink: 0 }}>
+              <span
+                style={{
+                  fontFamily: 'inherit',
+                  fontSize: '11px',
+                  color: 'rgba(237,233,255,0.22)',
+                  flexShrink: 0,
+                }}
+              >
                 {formatDate(doc.createdAt)}
               </span>
 
@@ -170,9 +191,11 @@ export default function DocumentList({ documents, notebookId, onDelete, deleting
                 }}
                 onMouseEnter={(e) => {
                   if (!isDeleting) {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.12)';
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      'rgba(239,68,68,0.12)';
                     (e.currentTarget as HTMLButtonElement).style.color = '#fca5a5';
-                    (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.2)';
+                    (e.currentTarget as HTMLButtonElement).style.borderColor =
+                      'rgba(239,68,68,0.2)';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -182,10 +205,11 @@ export default function DocumentList({ documents, notebookId, onDelete, deleting
                 }}
                 title="Delete document"
               >
-                {isDeleting
-                  ? <Loader size={12} style={{ animation: 'spin 0.8s linear infinite' }} />
-                  : <Trash2 size={12} />
-                }
+                {isDeleting ? (
+                  <Loader size={12} style={{ animation: 'spin 0.8s linear infinite' }} />
+                ) : (
+                  <Trash2 size={12} />
+                )}
                 <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
               </button>
             </div>
@@ -198,35 +222,53 @@ export default function DocumentList({ documents, notebookId, onDelete, deleting
         <div
           onClick={() => setSummaryDoc(null)}
           style={{
-            position: 'fixed', inset: 0, zIndex: 1000,
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
             background: 'rgba(0,0,0,0.65)',
             backdropFilter: 'blur(4px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <div
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             style={{
-              width: '520px', maxHeight: '600px',
+              width: '520px',
+              maxHeight: '600px',
               background: '#1a1a36',
               border: '1px solid rgba(140,82,255,0.25)',
               borderRadius: '16px',
-              display: 'flex', flexDirection: 'column',
+              display: 'flex',
+              flexDirection: 'column',
               overflow: 'hidden',
               boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
             }}
           >
             {/* Header */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '16px 20px',
-              borderBottom: '1px solid rgba(140,82,255,0.15)',
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                borderBottom: '1px solid rgba(140,82,255,0.15)',
+              }}
+            >
               <div>
-                <h3 style={{
-                  fontSize: '15px', fontWeight: 700, color: '#ede9ff', margin: 0,
-                  fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px',
-                }}>
+                <h3
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    color: '#ede9ff',
+                    margin: 0,
+                    fontFamily: 'inherit',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
                   <Sparkles size={16} style={{ color: '#c4a9ff' }} /> AI Summary
                 </h3>
                 <p style={{ fontSize: '12px', color: 'rgba(237,233,255,0.35)', margin: '4px 0 0' }}>
@@ -236,8 +278,12 @@ export default function DocumentList({ documents, notebookId, onDelete, deleting
               <button
                 onClick={() => setSummaryDoc(null)}
                 style={{
-                  background: 'none', border: 'none', color: 'rgba(237,233,255,0.4)',
-                  cursor: 'pointer', padding: '4px', display: 'flex',
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(237,233,255,0.4)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
                 }}
               >
                 <X size={16} />
@@ -245,21 +291,32 @@ export default function DocumentList({ documents, notebookId, onDelete, deleting
             </div>
 
             {/* Length toggle */}
-            <div style={{
-              display: 'flex', gap: '4px', padding: '12px 20px 0',
-            }}>
-              {(['brief', 'detailed'] as const).map(len => (
+            <div
+              style={{
+                display: 'flex',
+                gap: '4px',
+                padding: '12px 20px 0',
+              }}
+            >
+              {(['brief', 'detailed'] as const).map((len) => (
                 <button
                   key={len}
                   onClick={() => switchLength(len)}
                   disabled={loadingSummary}
                   style={{
-                    padding: '6px 14px', borderRadius: '8px',
-                    border: summaryLength === len ? '1px solid rgba(140,82,255,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border:
+                      summaryLength === len
+                        ? '1px solid rgba(140,82,255,0.4)'
+                        : '1px solid rgba(255,255,255,0.06)',
                     background: summaryLength === len ? 'rgba(140,82,255,0.15)' : 'transparent',
                     color: summaryLength === len ? '#c4a9ff' : 'rgba(237,233,255,0.4)',
-                    fontSize: '12px', fontWeight: 600, cursor: loadingSummary ? 'not-allowed' : 'pointer',
-                    fontFamily: 'inherit', transition: 'background 0.12s',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: loadingSummary ? 'not-allowed' : 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'background 0.12s',
                     textTransform: 'capitalize',
                   }}
                 >
@@ -271,11 +328,20 @@ export default function DocumentList({ documents, notebookId, onDelete, deleting
             {/* Content */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
               {loadingSummary ? (
-                <div style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  padding: '48px 0', gap: '12px',
-                }}>
-                  <Loader size={24} style={{ color: '#c4a9ff', animation: 'spin 1s linear infinite' }} />
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '48px 0',
+                    gap: '12px',
+                  }}
+                >
+                  <Loader
+                    size={24}
+                    style={{ color: '#c4a9ff', animation: 'spin 1s linear infinite' }}
+                  />
                   <span style={{ fontSize: '13px', color: 'rgba(237,233,255,0.4)' }}>
                     Generating {summaryLength} summary...
                   </span>

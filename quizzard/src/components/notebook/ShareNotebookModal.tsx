@@ -93,7 +93,9 @@ export default function ShareNotebookModal({
   // Publish fields state
   const [publishTitle, setPublishTitle] = useState('');
   const [publishDescription, setPublishDescription] = useState('');
-  const [publishImagePreviews, setPublishImagePreviews] = useState<{ name: string; dataUrl: string }[]>([]);
+  const [publishImagePreviews, setPublishImagePreviews] = useState<
+    { name: string; dataUrl: string }[]
+  >([]);
   // uploadingImage state reserved for future use
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingFiles = useRef<File[]>([]);
@@ -336,7 +338,10 @@ export default function ShareNotebookModal({
       pendingFiles.current.push(file);
       const reader = new FileReader();
       reader.onload = () => {
-        setPublishImagePreviews((prev) => [...prev, { name: file.name, dataUrl: reader.result as string }]);
+        setPublishImagePreviews((prev) => [
+          ...prev,
+          { name: file.name, dataUrl: reader.result as string },
+        ]);
       };
       reader.readAsDataURL(file);
     }
@@ -404,7 +409,11 @@ export default function ShareNotebookModal({
                 borderRadius: 12,
                 border: `1.5px solid ${isActive ? COLORS.primary : isHovered ? COLORS.textMuted : COLORS.border}`,
                 background: isActive ? 'rgba(174,137,255,0.12)' : 'transparent',
-                color: isActive ? COLORS.primary : isHovered ? COLORS.textSecondary : COLORS.textMuted,
+                color: isActive
+                  ? COLORS.primary
+                  : isHovered
+                    ? COLORS.textSecondary
+                    : COLORS.textMuted,
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -429,7 +438,12 @@ export default function ShareNotebookModal({
   ) => {
     const options: { key: ShareType; label: string; icon: string; desc: string }[] = [
       { key: 'copy', label: 'Copy', icon: 'content_copy', desc: 'Recipients get their own copy' },
-      { key: 'live_view', label: 'Live View', icon: 'visibility', desc: 'Recipients see the original' },
+      {
+        key: 'live_view',
+        label: 'Live View',
+        icon: 'visibility',
+        desc: 'Recipients see the original',
+      },
     ];
     return (
       <div style={{ display: 'flex', gap: 10 }}>
@@ -453,7 +467,11 @@ export default function ShareNotebookModal({
                 borderRadius: 12,
                 border: `1.5px solid ${isActive ? COLORS.primary : isHovered ? COLORS.textMuted : COLORS.border}`,
                 background: isActive ? 'rgba(174,137,255,0.12)' : 'transparent',
-                color: isActive ? COLORS.primary : isHovered ? COLORS.textSecondary : COLORS.textMuted,
+                color: isActive
+                  ? COLORS.primary
+                  : isHovered
+                    ? COLORS.textSecondary
+                    : COLORS.textMuted,
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -574,7 +592,9 @@ export default function ShareNotebookModal({
           }}
         >
           Images
-          <span style={{ fontWeight: 400, color: COLORS.textMuted, marginLeft: 6 }}>optional, max 10</span>
+          <span style={{ fontWeight: 400, color: COLORS.textMuted, marginLeft: 6 }}>
+            optional, max 10
+          </span>
         </label>
 
         {/* Image previews */}
@@ -819,7 +839,10 @@ export default function ShareNotebookModal({
               color: COLORS.textSecondary,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: COLORS.success }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 16, color: COLORS.success }}
+            >
               check_circle
             </span>
             Currently shared as{' '}
@@ -961,8 +984,8 @@ export default function ShareNotebookModal({
                     background: isSelected
                       ? 'rgba(174,137,255,0.08)'
                       : isHovered
-                      ? 'rgba(255,255,255,0.07)'
-                      : 'transparent',
+                        ? 'rgba(255,255,255,0.07)'
+                        : 'transparent',
                     cursor: 'pointer',
                     transition: `all 0.2s ${EASING}`,
                     width: '100%',
@@ -1110,8 +1133,8 @@ export default function ShareNotebookModal({
                 selectedFriendIds.size === 0
                   ? COLORS.elevated
                   : hoveredSendBtn
-                  ? `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`
-                  : `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple})`,
+                    ? `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`
+                    : `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple})`,
               color: selectedFriendIds.size === 0 ? COLORS.textMuted : '#fff',
               fontSize: 14,
               fontWeight: 700,
@@ -1127,8 +1150,8 @@ export default function ShareNotebookModal({
                 selectedFriendIds.size > 0 && hoveredSendBtn
                   ? '0 8px 24px rgba(174,137,255,0.3)'
                   : selectedFriendIds.size > 0
-                  ? '0 4px 16px rgba(174,137,255,0.15)'
-                  : 'none',
+                    ? '0 4px 16px rgba(174,137,255,0.15)'
+                    : 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1212,8 +1235,8 @@ export default function ShareNotebookModal({
                 background: copied
                   ? COLORS.success
                   : hoveredCopyBtn
-                  ? COLORS.primary
-                  : COLORS.elevated,
+                    ? COLORS.primary
+                    : COLORS.elevated,
                 color: copied ? '#fff' : hoveredCopyBtn ? '#fff' : COLORS.textPrimary,
                 fontSize: 13,
                 fontWeight: 600,
@@ -1403,8 +1426,8 @@ export default function ShareNotebookModal({
                     color: isActive
                       ? COLORS.primary
                       : isHovered
-                      ? COLORS.textSecondary
-                      : COLORS.textMuted,
+                        ? COLORS.textSecondary
+                        : COLORS.textMuted,
                     fontSize: 13,
                     fontWeight: isActive ? 600 : 500,
                     cursor: 'pointer',

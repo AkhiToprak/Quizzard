@@ -13,7 +13,12 @@ interface Notebook {
 interface NotebookLinkPickerProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (notebook: { id: string; name: string; subject: string | null; color: string | null }) => void;
+  onSelect: (notebook: {
+    id: string;
+    name: string;
+    subject: string | null;
+    color: string | null;
+  }) => void;
 }
 
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
@@ -93,9 +98,10 @@ export default function NotebookLinkPicker({ open, onClose, onSelect }: Notebook
   if (!open) return null;
 
   const filtered = search
-    ? notebooks.filter((n) =>
-        n.name.toLowerCase().includes(search.toLowerCase()) ||
-        n.subject?.toLowerCase().includes(search.toLowerCase())
+    ? notebooks.filter(
+        (n) =>
+          n.name.toLowerCase().includes(search.toLowerCase()) ||
+          n.subject?.toLowerCase().includes(search.toLowerCase())
       )
     : notebooks;
 
@@ -182,7 +188,9 @@ export default function NotebookLinkPicker({ open, onClose, onSelect }: Notebook
                 transition: `all 0.2s ${EASING}`,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                close
+              </span>
             </button>
           </div>
 

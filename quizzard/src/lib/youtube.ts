@@ -30,9 +30,7 @@ export async function searchYouTubeVideos(
     key: apiKey,
   });
 
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/search?${params}`
-  );
+  const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
   if (!res.ok) {
     throw new Error(`YouTube API error: ${res.status}`);
   }

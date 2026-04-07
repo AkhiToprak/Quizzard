@@ -50,7 +50,16 @@ const AVATAR_COLORS = [
   'linear-gradient(135deg, #ffde59, #fbae4e)',
 ];
 
-const TAG_COLORS = ['#ff6b6b', '#ffde59', '#4ecdc4', '#ffb142', '#ae89ff', '#ff89ae', '#63cdff', '#48db9c'];
+const TAG_COLORS = [
+  '#ff6b6b',
+  '#ffde59',
+  '#4ecdc4',
+  '#ffb142',
+  '#ae89ff',
+  '#ff89ae',
+  '#63cdff',
+  '#48db9c',
+];
 
 function getAvatarGradient(id: string): string {
   let hash = 0;
@@ -138,14 +147,41 @@ export default function CommunitySidebar() {
         }}
       >
         {/* Decorative circles */}
-        <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
-        <div style={{ position: 'absolute', bottom: -10, left: -10, width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+        <div
+          style={{
+            position: 'absolute',
+            top: -20,
+            right: -20,
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: -10,
+            left: -10,
+            width: 50,
+            height: 50,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+          }}
+        />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
             Share Your Notebook
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5, marginBottom: 16 }}>
+          <div
+            style={{
+              fontSize: 12,
+              color: 'rgba(255,255,255,0.7)',
+              lineHeight: 1.5,
+              marginBottom: 16,
+            }}
+          >
             Help the community grow and earn rewards for every download.
           </div>
           <Link
@@ -170,7 +206,9 @@ export default function CommunitySidebar() {
               boxShadow: hoveredPublish ? '0 4px 16px rgba(255,222,89,0.3)' : 'none',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>publish</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              publish
+            </span>
             Publish Now
           </Link>
         </div>
@@ -185,14 +223,24 @@ export default function CommunitySidebar() {
           overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary }}>Friends Activity</span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 16px 10px',
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary }}>
+            Friends Activity
+          </span>
           <Link
             href="/community"
             onMouseEnter={() => setHoveredSeeAll(true)}
             onMouseLeave={() => setHoveredSeeAll(false)}
             style={{
-              fontSize: 11, fontWeight: 600,
+              fontSize: 11,
+              fontWeight: 600,
               color: hoveredSeeAll ? COLORS.primaryLight : COLORS.textMuted,
               textDecoration: 'none',
               transition: `color 0.15s ${EASING}`,
@@ -205,17 +253,52 @@ export default function CommunitySidebar() {
         <div style={{ padding: '0 10px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {loadingFriends ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 8px' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 12, background: COLORS.elevated, animation: 'communityPulse 1.5s ease-in-out infinite' }} />
+              <div
+                key={i}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 8px' }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
+                    background: COLORS.elevated,
+                    animation: 'communityPulse 1.5s ease-in-out infinite',
+                  }}
+                />
                 <div style={{ flex: 1 }}>
-                  <div style={{ width: 80, height: 12, borderRadius: 4, background: COLORS.elevated, marginBottom: 6, animation: 'communityPulse 1.5s ease-in-out infinite' }} />
-                  <div style={{ width: 120, height: 10, borderRadius: 4, background: COLORS.elevated, animation: 'communityPulse 1.5s ease-in-out infinite' }} />
+                  <div
+                    style={{
+                      width: 80,
+                      height: 12,
+                      borderRadius: 4,
+                      background: COLORS.elevated,
+                      marginBottom: 6,
+                      animation: 'communityPulse 1.5s ease-in-out infinite',
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: 120,
+                      height: 10,
+                      borderRadius: 4,
+                      background: COLORS.elevated,
+                      animation: 'communityPulse 1.5s ease-in-out infinite',
+                    }}
+                  />
                 </div>
               </div>
             ))
           ) : friends.length === 0 ? (
-            <div style={{ padding: 24, textAlign: 'center', color: COLORS.textMuted, fontSize: 12 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 24, display: 'block', marginBottom: 6, opacity: 0.4 }}>group</span>
+            <div
+              style={{ padding: 24, textAlign: 'center', color: COLORS.textMuted, fontSize: 12 }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 24, display: 'block', marginBottom: 6, opacity: 0.4 }}
+              >
+                group
+              </span>
               No friend activity yet
             </div>
           ) : (
@@ -227,8 +310,11 @@ export default function CommunitySidebar() {
                   onMouseEnter={() => setHoveredFriend(friend.id)}
                   onMouseLeave={() => setHoveredFriend(null)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '10px 8px', borderRadius: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '10px 8px',
+                    borderRadius: 10,
                     background: isHovered ? 'rgba(140,82,255,0.05)' : 'transparent',
                     cursor: friend.targetId ? 'pointer' : 'default',
                     transition: `background 0.1s`,
@@ -248,35 +334,64 @@ export default function CommunitySidebar() {
                         style={{ width: 36, height: 36, borderRadius: 12, objectFit: 'cover' }}
                       />
                     ) : (
-                      <div style={{
-                        width: 36, height: 36, borderRadius: 12,
-                        background: getAvatarGradient(friend.id),
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 14, fontWeight: 700, color: '#fff',
-                      }}>
+                      <div
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 12,
+                          background: getAvatarGradient(friend.id),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: '#fff',
+                        }}
+                      >
                         {friend.username[0].toUpperCase()}
                       </div>
                     )}
-                    <div style={{
-                      position: 'absolute', bottom: -1, right: -1,
-                      width: 10, height: 10, borderRadius: '50%',
-                      background: (onlineFriendIds.has(friend.userId) || friend.online) ? COLORS.success : COLORS.textMuted,
-                      border: `2px solid ${COLORS.cardBg}`,
-                    }} />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: -1,
+                        right: -1,
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        background:
+                          onlineFriendIds.has(friend.userId) || friend.online
+                            ? COLORS.success
+                            : COLORS.textMuted,
+                        border: `2px solid ${COLORS.cardBg}`,
+                      }}
+                    />
                   </div>
 
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 12, fontWeight: 700, color: COLORS.textPrimary,
-                      marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: COLORS.textPrimary,
+                        marginBottom: 2,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {friend.username}
                     </div>
                     <div style={{ fontSize: 11, color: COLORS.textMuted, lineHeight: 1.4 }}>
                       {friend.activity}{' '}
                       {friend.targetName && (
-                        <span style={{ color: friend.targetColor || COLORS.primaryLight, fontWeight: 600 }}>
+                        <span
+                          style={{
+                            color: friend.targetColor || COLORS.primaryLight,
+                            fontWeight: 600,
+                          }}
+                        >
                           {friend.targetName}
                         </span>
                       )}
@@ -284,10 +399,17 @@ export default function CommunitySidebar() {
                   </div>
 
                   {/* Time badge */}
-                  <span style={{
-                    fontSize: 10, color: COLORS.textMuted, background: COLORS.elevated,
-                    padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0,
-                  }}>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: COLORS.textMuted,
+                      background: COLORS.elevated,
+                      padding: '3px 8px',
+                      borderRadius: 6,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                  >
                     {friend.timeAgo}
                   </span>
                 </div>
@@ -312,10 +434,16 @@ export default function CommunitySidebar() {
         {loadingTags ? (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{
-                width: 80, height: 28, borderRadius: 8, background: COLORS.elevated,
-                animation: 'communityPulse 1.5s ease-in-out infinite',
-              }} />
+              <div
+                key={i}
+                style={{
+                  width: 80,
+                  height: 28,
+                  borderRadius: 8,
+                  background: COLORS.elevated,
+                  animation: 'communityPulse 1.5s ease-in-out infinite',
+                }}
+              />
             ))}
           </div>
         ) : trendingTags.length === 0 ? (

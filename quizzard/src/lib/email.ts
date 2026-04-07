@@ -26,7 +26,7 @@ export async function sendSignupNotification(email: string, plan: string) {
       {
         publicKey: EMAILJS_PUBLIC_KEY,
         privateKey: EMAILJS_PRIVATE_KEY,
-      },
+      }
     );
   } catch (error) {
     console.error('Failed to send signup notification email:', error);

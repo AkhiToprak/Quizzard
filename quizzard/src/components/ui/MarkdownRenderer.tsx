@@ -12,9 +12,10 @@ const lowlight = createLowlight(all);
 /** Highlight code via lowlight → HTML string */
 function highlightCode(code: string, lang: string | null): string {
   try {
-    const tree = lang && lowlight.registered(lang)
-      ? lowlight.highlight(lang, code)
-      : lowlight.highlightAuto(code);
+    const tree =
+      lang && lowlight.registered(lang)
+        ? lowlight.highlight(lang, code)
+        : lowlight.highlightAuto(code);
     return toHtml(tree);
   } catch {
     // Fallback: escape HTML and return plain
@@ -30,85 +31,115 @@ interface MarkdownRendererProps {
 
 const bubbleComponents: Components = {
   h1: ({ children }) => (
-    <h1 style={{
-      fontFamily: 'var(--font-chat)',
-      fontSize: '2em',
-      fontWeight: 700,
-      color: '#ede9ff',
-      margin: '1em 0 0.5em',
-      lineHeight: 1.2,
-      letterSpacing: '-0.01em',
-    }}>{children}</h1>
+    <h1
+      style={{
+        fontFamily: 'var(--font-chat)',
+        fontSize: '2em',
+        fontWeight: 700,
+        color: '#ede9ff',
+        margin: '1em 0 0.5em',
+        lineHeight: 1.2,
+        letterSpacing: '-0.01em',
+      }}
+    >
+      {children}
+    </h1>
   ),
   h2: ({ children }) => (
-    <h2 style={{
-      fontFamily: 'var(--font-chat)',
-      fontSize: '1.55em',
-      fontWeight: 700,
-      color: '#e0d8ff',
-      margin: '0.9em 0 0.4em',
-      lineHeight: 1.25,
-      letterSpacing: '-0.01em',
-      paddingBottom: '0.25em',
-      borderBottom: '1px solid rgba(174,137,255,0.15)',
-    }}>{children}</h2>
+    <h2
+      style={{
+        fontFamily: 'var(--font-chat)',
+        fontSize: '1.55em',
+        fontWeight: 700,
+        color: '#e0d8ff',
+        margin: '0.9em 0 0.4em',
+        lineHeight: 1.25,
+        letterSpacing: '-0.01em',
+        paddingBottom: '0.25em',
+        borderBottom: '1px solid rgba(174,137,255,0.15)',
+      }}
+    >
+      {children}
+    </h2>
   ),
   h3: ({ children }) => (
-    <h3 style={{
-      fontSize: '1.25em',
-      fontWeight: 700,
-      color: '#c4a9ff',
-      margin: '0.75em 0 0.35em',
-      lineHeight: 1.3,
-    }}>{children}</h3>
+    <h3
+      style={{
+        fontSize: '1.25em',
+        fontWeight: 700,
+        color: '#c4a9ff',
+        margin: '0.75em 0 0.35em',
+        lineHeight: 1.3,
+      }}
+    >
+      {children}
+    </h3>
   ),
   h4: ({ children }) => (
-    <h4 style={{
-      fontSize: '1.1em',
-      fontWeight: 700,
-      color: '#ae89ff',
-      margin: '0.6em 0 0.3em',
-      textTransform: 'uppercase',
-      letterSpacing: '0.06em',
-    }}>{children}</h4>
+    <h4
+      style={{
+        fontSize: '1.1em',
+        fontWeight: 700,
+        color: '#ae89ff',
+        margin: '0.6em 0 0.3em',
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+      }}
+    >
+      {children}
+    </h4>
   ),
   p: ({ children }) => (
-    <p style={{
-      margin: '0.5em 0',
-      lineHeight: 1.72,
-      color: 'inherit',
-    }}>{children}</p>
+    <p
+      style={{
+        margin: '0.5em 0',
+        lineHeight: 1.72,
+        color: 'inherit',
+      }}
+    >
+      {children}
+    </p>
   ),
   strong: ({ children }) => (
     <strong style={{ fontWeight: 700, color: '#ede9ff' }}>{children}</strong>
   ),
-  em: ({ children }) => (
-    <em style={{ fontStyle: 'italic', color: '#d4caff' }}>{children}</em>
-  ),
+  em: ({ children }) => <em style={{ fontStyle: 'italic', color: '#d4caff' }}>{children}</em>,
   ul: ({ children }) => (
-    <ul style={{
-      margin: '0.5em 0',
-      paddingLeft: '1.4em',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.3em',
-    }}>{children}</ul>
+    <ul
+      style={{
+        margin: '0.5em 0',
+        paddingLeft: '1.4em',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.3em',
+      }}
+    >
+      {children}
+    </ul>
   ),
   ol: ({ children }) => (
-    <ol style={{
-      margin: '0.5em 0',
-      paddingLeft: '1.6em',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.3em',
-    }}>{children}</ol>
+    <ol
+      style={{
+        margin: '0.5em 0',
+        paddingLeft: '1.6em',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.3em',
+      }}
+    >
+      {children}
+    </ol>
   ),
   li: ({ children }) => (
-    <li style={{
-      lineHeight: 1.65,
-      color: 'inherit',
-      paddingLeft: '0.2em',
-    }}>{children}</li>
+    <li
+      style={{
+        lineHeight: 1.65,
+        color: 'inherit',
+        paddingLeft: '0.2em',
+      }}
+    >
+      {children}
+    </li>
   ),
   code: ({ children, className }) => {
     const match = className?.match(/language-(\w+)/);
@@ -134,45 +165,59 @@ const bubbleComponents: Components = {
 
     // Inline code
     return (
-      <code style={{
-        background: 'rgba(140,82,255,0.15)',
-        border: '1px solid rgba(140,82,255,0.22)',
-        borderRadius: '5px',
-        padding: '2px 7px',
-        fontSize: '0.85em',
-        fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", monospace',
-        color: '#c4a9ff',
-      }}>{children}</code>
+      <code
+        style={{
+          background: 'rgba(140,82,255,0.15)',
+          border: '1px solid rgba(140,82,255,0.22)',
+          borderRadius: '5px',
+          padding: '2px 7px',
+          fontSize: '0.85em',
+          fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", monospace',
+          color: '#c4a9ff',
+        }}
+      >
+        {children}
+      </code>
     );
   },
   pre: ({ children }) => (
-    <pre style={{
-      margin: '0.6em 0',
-      background: 'rgba(0,0,0,0.4)',
-      border: '1px solid rgba(140,82,255,0.18)',
-      borderRadius: '8px',
-      padding: '14px 16px',
-      overflow: 'hidden',
-      fontSize: '0.82em',
-      lineHeight: 1.6,
-      color: '#e0daf8',
-    }}>{children}</pre>
+    <pre
+      style={{
+        margin: '0.6em 0',
+        background: 'rgba(0,0,0,0.4)',
+        border: '1px solid rgba(140,82,255,0.18)',
+        borderRadius: '8px',
+        padding: '14px 16px',
+        overflow: 'hidden',
+        fontSize: '0.82em',
+        lineHeight: 1.6,
+        color: '#e0daf8',
+      }}
+    >
+      {children}
+    </pre>
   ),
   blockquote: ({ children }) => (
-    <blockquote style={{
-      borderLeft: '3px solid rgba(174,137,255,0.5)',
-      paddingLeft: '1em',
-      margin: '0.6em 0',
-      color: 'rgba(229,227,255,0.65)',
-      fontStyle: 'italic',
-    }}>{children}</blockquote>
+    <blockquote
+      style={{
+        borderLeft: '3px solid rgba(174,137,255,0.5)',
+        paddingLeft: '1em',
+        margin: '0.6em 0',
+        color: 'rgba(229,227,255,0.65)',
+        fontStyle: 'italic',
+      }}
+    >
+      {children}
+    </blockquote>
   ),
   hr: () => (
-    <hr style={{
-      border: 'none',
-      borderTop: '1px solid rgba(140,82,255,0.2)',
-      margin: '0.75em 0',
-    }} />
+    <hr
+      style={{
+        border: 'none',
+        borderTop: '1px solid rgba(140,82,255,0.2)',
+        margin: '0.75em 0',
+      }}
+    />
   ),
   a: ({ href, children }) => (
     <a
@@ -185,37 +230,51 @@ const bubbleComponents: Components = {
         textDecorationColor: 'rgba(174,137,255,0.4)',
         textUnderlineOffset: '2px',
       }}
-    >{children}</a>
+    >
+      {children}
+    </a>
   ),
   table: ({ children }) => (
     <div style={{ overflowX: 'auto', margin: '0.6em 0' }}>
-      <table style={{
-        borderCollapse: 'collapse',
-        width: '100%',
-        fontSize: '0.9em',
-      }}>{children}</table>
+      <table
+        style={{
+          borderCollapse: 'collapse',
+          width: '100%',
+          fontSize: '0.9em',
+        }}
+      >
+        {children}
+      </table>
     </div>
   ),
   thead: ({ children }) => (
     <thead style={{ borderBottom: '2px solid rgba(140,82,255,0.3)' }}>{children}</thead>
   ),
   th: ({ children }) => (
-    <th style={{
-      padding: '8px 12px',
-      textAlign: 'left',
-      color: '#c4a9ff',
-      fontWeight: 700,
-      fontSize: '0.85em',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-    }}>{children}</th>
+    <th
+      style={{
+        padding: '8px 12px',
+        textAlign: 'left',
+        color: '#c4a9ff',
+        fontWeight: 700,
+        fontSize: '0.85em',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+      }}
+    >
+      {children}
+    </th>
   ),
   td: ({ children }) => (
-    <td style={{
-      padding: '8px 12px',
-      borderBottom: '1px solid rgba(140,82,255,0.1)',
-      color: 'rgba(229,227,255,0.8)',
-    }}>{children}</td>
+    <td
+      style={{
+        padding: '8px 12px',
+        borderBottom: '1px solid rgba(140,82,255,0.1)',
+        color: 'rgba(229,227,255,0.8)',
+      }}
+    >
+      {children}
+    </td>
   ),
 };
 
@@ -254,11 +313,12 @@ const HLJS_STYLES = `
 
 export default function MarkdownRenderer({ content, variant = 'bubble' }: MarkdownRendererProps) {
   return (
-    <div style={{
-      lineHeight: 1.7,
-      fontSize: 'inherit',
-      color: 'inherit',
-    }}
+    <div
+      style={{
+        lineHeight: 1.7,
+        fontSize: 'inherit',
+        color: 'inherit',
+      }}
       className="md-renderer"
     >
       <style>{`

@@ -37,7 +37,7 @@ export function useSearch(context: SearchContext, notebookId?: string) {
           if (err.name !== 'AbortError') setIsLoading(false);
         });
     },
-    [context, notebookId],
+    [context, notebookId]
   );
 
   useEffect(() => {

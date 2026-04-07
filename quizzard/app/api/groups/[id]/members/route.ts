@@ -13,10 +13,7 @@ import {
 } from '@/lib/api-response';
 
 // POST /api/groups/:id/members — add a member (owner/admin only, must be friends)
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const authUserId = await getAuthUserId(request);
     if (!authUserId) return unauthorizedResponse();
@@ -110,10 +107,7 @@ export async function POST(
 }
 
 // DELETE /api/groups/:id/members — remove a member or leave the group
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const authUserId = await getAuthUserId(request);
     if (!authUserId) return unauthorizedResponse();

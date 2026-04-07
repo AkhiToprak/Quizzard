@@ -69,6 +69,14 @@
 - **Ask questions** when things are uncertain or big decisions need to be made — don't assume.
 - **Follow plans strictly** when a plan document is provided (e.g. `tierplan.md`).
 
+## Figma Workflow
+
+- When a Figma URL (`figma.com/design/...`) is provided, invoke the `figma-implement-design` skill to read and implement the design.
+- Always adapt Figma MCP output to Neon Scholar conventions: inline style objects with CSS custom properties, Material Symbols Outlined icons, project font variables.
+- For partial updates (e.g., "update just the header"), read the design context, diff against the existing component, and apply only the changed parts. Preserve all existing logic.
+- On Education plan — conserve `get_design_context` calls. Use `get_screenshot` for minor visual tweaks and describe changes verbally when possible.
+- See `quizzard/.claude/rules/figma-design-system.md` for the full translation rules.
+
 ## Hard Rules
 
 - Do not add sections, features, or content not in the reference

@@ -22,7 +22,13 @@ function containsPage(section: SectionNode, pageId: string): boolean {
   return section.children.some((child) => containsPage(child, pageId));
 }
 
-export default function SectionItem({ section, depth, activePageId, notebookId, onRefresh }: SectionItemProps) {
+export default function SectionItem({
+  section,
+  depth,
+  activePageId,
+  notebookId,
+  onRefresh,
+}: SectionItemProps) {
   const hasActivePage = activePageId ? containsPage(section, activePageId) : false;
   const [expanded, setExpanded] = useState(hasActivePage);
   const [headerHovered, setHeaderHovered] = useState(false);
@@ -172,107 +178,120 @@ export default function SectionItem({ section, depth, activePageId, notebookId, 
               <Plus size={14} />
             </button>
             <div ref={importMenuRef} style={{ position: 'relative' }}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowImportMenu((v) => !v);
-              }}
-              title="Import"
-              style={{
-                width: '20px',
-                height: '20px',
-                borderRadius: '4px',
-                border: 'none',
-                background: 'transparent',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'rgba(237,233,255,0.4)',
-                padding: 0,
-                transition: 'color 0.12s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#5170ff';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'rgba(237,233,255,0.4)';
-              }}
-            >
-              <FileUp size={12} />
-            </button>
-            {showImportMenu && (
-              <div
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowImportMenu((v) => !v);
+                }}
+                title="Import"
                 style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: 0,
-                  marginTop: '4px',
-                  background: '#1a1a2e',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(140,82,255,0.15)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                  zIndex: 50,
-                  minWidth: '180px',
-                  padding: '4px',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  background: 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: 'rgba(237,233,255,0.4)',
+                  padding: 0,
+                  transition: 'color 0.12s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#5170ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(237,233,255,0.4)';
                 }}
               >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowImportMenu(false);
-                    setShowImport(true);
-                  }}
+                <FileUp size={12} />
+              </button>
+              {showImportMenu && (
+                <div
                   style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#ede9ff',
-                    fontSize: '13px',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                    transition: 'background 0.15s ease',
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '4px',
+                    background: '#1a1a2e',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(140,82,255,0.15)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                    zIndex: 50,
+                    minWidth: '180px',
+                    padding: '4px',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(140,82,255,0.1)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <FileUp size={14} style={{ color: '#8c52ff', flexShrink: 0 }} />
-                  Upload File
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowImportMenu(false);
-                    setShowUrlImport(true);
-                  }}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#ede9ff',
-                    fontSize: '13px',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                    transition: 'background 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(140,82,255,0.1)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#ff0000', flexShrink: 0 }}>smart_display</span>
-                  URL / YouTube
-                </button>
-              </div>
-            )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowImportMenu(false);
+                      setShowImport(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 12px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#ede9ff',
+                      fontSize: '13px',
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(140,82,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <FileUp size={14} style={{ color: '#8c52ff', flexShrink: 0 }} />
+                    Upload File
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowImportMenu(false);
+                      setShowUrlImport(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 12px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#ede9ff',
+                      fontSize: '13px',
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(140,82,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: '14px', color: '#ff0000', flexShrink: 0 }}
+                    >
+                      smart_display
+                    </span>
+                    URL / YouTube
+                  </button>
+                </div>
+              )}
             </div>
             <button
               onClick={(e) => {
@@ -417,7 +436,13 @@ export default function SectionItem({ section, depth, activePageId, notebookId, 
 }
 
 /** Sidebar item for a flashcard set linked to a section */
-function FlashcardSetItem({ fc, notebookId }: { fc: { id: string; title: string }; notebookId: string }) {
+function FlashcardSetItem({
+  fc,
+  notebookId,
+}: {
+  fc: { id: string; title: string };
+  notebookId: string;
+}) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -462,7 +487,13 @@ function FlashcardSetItem({ fc, notebookId }: { fc: { id: string; title: string 
 }
 
 /** Sidebar item for a quiz set linked to a section */
-function QuizSetItem({ qs, notebookId }: { qs: { id: string; title: string }; notebookId: string }) {
+function QuizSetItem({
+  qs,
+  notebookId,
+}: {
+  qs: { id: string; title: string };
+  notebookId: string;
+}) {
   const [hovered, setHovered] = useState(false);
 
   return (

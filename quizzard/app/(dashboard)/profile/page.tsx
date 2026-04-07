@@ -146,14 +146,23 @@ export default function ProfilePage() {
         setProfile(updated);
         setEditing(false);
       }
-    } catch { /* ignore */ } finally {
+    } catch {
+      /* ignore */
+    } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '400px',
+        }}
+      >
         <span
           className="material-symbols-outlined"
           style={{ fontSize: '48px', color: '#ae89ff', animation: 'spin 1s linear infinite' }}
@@ -167,7 +176,10 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div style={{ textAlign: 'center', padding: '64px 24px', color: '#aaa8c8' }}>
-        <span className="material-symbols-outlined" style={{ fontSize: '48px', display: 'block', marginBottom: '16px', opacity: 0.4 }}>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: '48px', display: 'block', marginBottom: '16px', opacity: 0.4 }}
+        >
           error
         </span>
         <p style={{ fontSize: '16px', margin: 0 }}>Could not load profile.</p>
@@ -178,7 +190,15 @@ export default function ProfilePage() {
   const hasDetails = DETAIL_ITEMS.some((item) => profile[item.key] != null);
 
   return (
-    <div style={{ maxWidth: '720px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div
+      style={{
+        maxWidth: '720px',
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '32px',
+      }}
+    >
       {/* Profile Header */}
       <div
         style={{
@@ -236,13 +256,31 @@ export default function ProfilePage() {
         </p>
 
         {/* Member Since */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#aaa8c8', fontSize: '13px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_month</span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            color: '#aaa8c8',
+            fontSize: '13px',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+            calendar_month
+          </span>
           Member since {formatDate(profile.createdAt)}
         </div>
 
         {/* Privacy badges */}
-        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            marginTop: '12px',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
           {profile.profilePrivate && (
             <div
               style={{
@@ -257,7 +295,9 @@ export default function ProfilePage() {
                 color: '#8888a8',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>lock</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                lock
+              </span>
               Private Profile
             </div>
           )}
@@ -275,7 +315,9 @@ export default function ProfilePage() {
                 color: '#8888a8',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility_off</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                visibility_off
+              </span>
               Achievements Hidden
             </div>
           )}
@@ -298,7 +340,8 @@ export default function ProfilePage() {
             fontWeight: 600,
             cursor: 'pointer',
             fontFamily: 'inherit',
-            transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s cubic-bezier(0.22,1,0.36,1)',
+            transition:
+              'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s cubic-bezier(0.22,1,0.36,1)',
           }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.25)';
@@ -309,7 +352,9 @@ export default function ProfilePage() {
             (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+            edit
+          </span>
           Edit Profile
         </button>
       </div>
@@ -339,12 +384,19 @@ export default function ProfilePage() {
                   {item.icon}
                 </span>
                 <div>
-                  <p style={{ fontSize: '11px', color: '#8888a8', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                  <p
+                    style={{
+                      fontSize: '11px',
+                      color: '#8888a8',
+                      margin: '0 0 2px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      fontWeight: 600,
+                    }}
+                  >
                     {item.label}
                   </p>
-                  <p style={{ fontSize: '14px', color: '#e5e3ff', margin: 0 }}>
-                    {String(value)}
-                  </p>
+                  <p style={{ fontSize: '14px', color: '#e5e3ff', margin: 0 }}>{String(value)}</p>
                 </div>
               </div>
             );
@@ -364,7 +416,9 @@ export default function ProfilePage() {
             gap: '20px',
           }}
         >
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>Edit Profile</h3>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
+            Edit Profile
+          </h3>
 
           {/* Name */}
           <div>
@@ -376,8 +430,12 @@ export default function ProfilePage() {
               maxLength={100}
               placeholder="Your full name"
               style={INPUT_STYLE}
-              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)'; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)'; }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)';
+              }}
             />
           </div>
 
@@ -395,10 +453,16 @@ export default function ProfilePage() {
                 resize: 'vertical',
                 minHeight: '72px',
               }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)'; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)'; }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)';
+              }}
             />
-            <p style={{ fontSize: '11px', color: '#6a6a8c', margin: '4px 0 0', textAlign: 'right' }}>
+            <p
+              style={{ fontSize: '11px', color: '#6a6a8c', margin: '4px 0 0', textAlign: 'right' }}
+            >
               {form.bio.length}/160
             </p>
           </div>
@@ -415,8 +479,12 @@ export default function ProfilePage() {
                 max={150}
                 placeholder="Your age"
                 style={INPUT_STYLE}
-                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)'; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)'; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)';
+                }}
               />
             </div>
             <div>
@@ -428,8 +496,12 @@ export default function ProfilePage() {
                 maxLength={100}
                 placeholder="City, Country"
                 style={INPUT_STYLE}
-                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)'; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)'; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)';
+                }}
               />
             </div>
             <div>
@@ -441,8 +513,12 @@ export default function ProfilePage() {
                 maxLength={100}
                 placeholder="Your school or university"
                 style={INPUT_STYLE}
-                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)'; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)'; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)';
+                }}
               />
             </div>
             <div>
@@ -454,15 +530,21 @@ export default function ProfilePage() {
                 maxLength={100}
                 placeholder="Your profession"
                 style={INPUT_STYLE}
-                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)'; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)'; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)';
+                }}
               />
             </div>
           </div>
 
           {/* Privacy Toggles */}
           <div style={{ borderTop: '1px solid rgba(170,168,200,0.1)', paddingTop: '20px' }}>
-            <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 16px' }}>Privacy</h4>
+            <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 16px' }}>
+              Privacy
+            </h4>
 
             {/* Private Profile Toggle */}
             <div
@@ -477,10 +559,19 @@ export default function ProfilePage() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#ae89ff' }}>lock</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '20px', color: '#ae89ff' }}
+                >
+                  lock
+                </span>
                 <div>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#e5e3ff', margin: 0 }}>Private Profile</p>
-                  <p style={{ fontSize: '11px', color: '#8888a8', margin: '2px 0 0' }}>Only friends can see your full profile</p>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#e5e3ff', margin: 0 }}>
+                    Private Profile
+                  </p>
+                  <p style={{ fontSize: '11px', color: '#8888a8', margin: '2px 0 0' }}>
+                    Only friends can see your full profile
+                  </p>
                 </div>
               </div>
               <button
@@ -523,10 +614,19 @@ export default function ProfilePage() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#ae89ff' }}>visibility_off</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '20px', color: '#ae89ff' }}
+                >
+                  visibility_off
+                </span>
                 <div>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#e5e3ff', margin: 0 }}>Hide Achievements</p>
-                  <p style={{ fontSize: '11px', color: '#8888a8', margin: '2px 0 0' }}>Others cannot see your achievements</p>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#e5e3ff', margin: 0 }}>
+                    Hide Achievements
+                  </p>
+                  <p style={{ fontSize: '11px', color: '#8888a8', margin: '2px 0 0' }}>
+                    Others cannot see your achievements
+                  </p>
                 </div>
               </div>
               <button
@@ -575,8 +675,12 @@ export default function ProfilePage() {
                 fontFamily: 'inherit',
                 transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(170,168,200,0.08)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(170,168,200,0.08)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+              }}
             >
               Cancel
             </button>
@@ -594,10 +698,15 @@ export default function ProfilePage() {
                 cursor: saving ? 'wait' : 'pointer',
                 fontFamily: 'inherit',
                 opacity: saving ? 0.7 : 1,
-                transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.2s cubic-bezier(0.22,1,0.36,1)',
+                transition:
+                  'transform 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.2s cubic-bezier(0.22,1,0.36,1)',
               }}
-              onMouseEnter={(e) => { if (!saving) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+              onMouseEnter={(e) => {
+                if (!saving) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+              }}
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>

@@ -61,16 +61,18 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
       {/* Top row: title + notebook + delete */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <h4 style={{
-            fontSize: '15px',
-            fontWeight: 700,
-            color: '#e5e3ff',
-            margin: 0,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            flex: 1,
-          }}>
+          <h4
+            style={{
+              fontSize: '15px',
+              fontWeight: 700,
+              color: '#e5e3ff',
+              margin: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flex: 1,
+            }}
+          >
             {exam.title}
           </h4>
           {onDelete && (
@@ -83,11 +85,18 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
               }}
               title="Delete exam"
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: '24px', height: '24px', borderRadius: '6px',
-                border: 'none', background: 'transparent',
-                color: 'rgba(237,233,255,0.25)', cursor: 'pointer',
-                flexShrink: 0, padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '24px',
+                height: '24px',
+                borderRadius: '6px',
+                border: 'none',
+                background: 'transparent',
+                color: 'rgba(237,233,255,0.25)',
+                cursor: 'pointer',
+                flexShrink: 0,
+                padding: 0,
                 transition: 'color 0.15s ease, background 0.15s ease',
               }}
               onMouseEnter={(e) => {
@@ -99,7 +108,9 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                delete
+              </span>
             </button>
           )}
         </div>
@@ -126,19 +137,19 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
             >
               event_available
             </span>
-            <span style={{ fontSize: '14px', color: '#8888a8', fontWeight: 600 }}>
-              Exam passed
-            </span>
+            <span style={{ fontSize: '14px', color: '#8888a8', fontWeight: 600 }}>Exam passed</span>
           </div>
         ) : (
           <>
-            <span style={{
-              fontFamily: 'var(--font-brand)',
-              fontSize: '36px',
-              fontWeight: 400,
-              color: urgencyColor,
-              lineHeight: 1,
-            }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-brand)',
+                fontSize: '36px',
+                fontWeight: 400,
+                color: urgencyColor,
+                lineHeight: 1,
+              }}
+            >
               {days}
             </span>
             <span style={{ fontSize: '13px', color: '#aaa8c8', fontWeight: 600 }}>
@@ -167,7 +178,8 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
                 fontWeight: 700,
                 textDecoration: 'none',
                 cursor: 'pointer',
-                transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+                transition:
+                  'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(174,137,255,0.2)';
@@ -199,7 +211,8 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
                 fontWeight: 700,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
-                transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+                transition:
+                  'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = `${urgencyColor}28`;

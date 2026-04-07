@@ -12,10 +12,7 @@ import {
   internalErrorResponse,
 } from '@/lib/api-response';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -49,13 +46,17 @@ export async function POST(
 
     const systemPrompt = `You are an academic writing assistant. Analyze the provided text and return a JSON response.
 
-${checkMode === 'grammar' ? `Check for:
+${
+  checkMode === 'grammar'
+    ? `Check for:
 1. Spelling errors (list each with correction)
-2. Grammar issues (list each with explanation and fix)` : `Check for:
+2. Grammar issues (list each with explanation and fix)`
+    : `Check for:
 1. Spelling errors (list each with correction)
 2. Grammar issues (list each with explanation and fix)
 3. Clarity improvements (suggest rewording for unclear sentences)
-4. Structure feedback (paragraph organization, transitions)`}
+4. Structure feedback (paragraph organization, transitions)`
+}
 
 You MUST respond with valid JSON only, no other text. Use this exact format:
 {
@@ -90,8 +91,8 @@ If there are no issues, return { "issues": [], "overallScore": 100, "summary": "
     });
 
     const responseText = response.content
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
       .join('');
 
     // Parse JSON response

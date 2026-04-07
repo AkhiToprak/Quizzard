@@ -60,9 +60,17 @@ export default function Header() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
         {session?.user && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '14px', fontWeight: '500', color: '#aaa8c8', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              Hello,{' '}
-              <span style={{ color: '#e5e3ff' }}>{session.user.name}</span>
+            <span
+              style={{
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#aaa8c8',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              Hello, <span style={{ color: '#e5e3ff' }}>{session.user.name}</span>
               <TierBadge tier={session.user.tier || 'FREE'} role={session.user.role} />
             </span>
             {session.user.avatarUrl ? (

@@ -66,34 +66,26 @@ export async function savePublicFile(
 
   if (error) throw new Error(`Failed to upload public file: ${error.message}`);
 
-  const { data } = supabase.storage
-    .from(BUCKET_PUBLIC)
-    .getPublicUrl(storagePath);
+  const { data } = supabase.storage.from(BUCKET_PUBLIC).getPublicUrl(storagePath);
 
   return { filePath: storagePath, publicUrl: data.publicUrl };
 }
 
 export async function readFile(filePath: string): Promise<Buffer> {
-  const { data, error } = await supabase.storage
-    .from(BUCKET_PRIVATE)
-    .download(filePath);
+  const { data, error } = await supabase.storage.from(BUCKET_PRIVATE).download(filePath);
 
   if (error || !data) throw new Error(`Failed to download file: ${error?.message}`);
   return Buffer.from(await data.arrayBuffer());
 }
 
 export async function deleteFile(filePath: string): Promise<void> {
-  const { error } = await supabase.storage
-    .from(BUCKET_PRIVATE)
-    .remove([filePath]);
+  const { error } = await supabase.storage.from(BUCKET_PRIVATE).remove([filePath]);
 
   if (error) console.error(`Failed to delete file: ${error.message}`);
 }
 
 export async function deleteDirectory(dirPath: string): Promise<void> {
-  const { data: files } = await supabase.storage
-    .from(BUCKET_PRIVATE)
-    .list(dirPath);
+  const { data: files } = await supabase.storage.from(BUCKET_PRIVATE).list(dirPath);
 
   if (files && files.length > 0) {
     const paths = files.map((f) => `${dirPath}/${f.name}`);
@@ -132,10 +124,7 @@ export async function downloadFromStorage(
  * Validate that a storage path starts with the expected prefix
  * and contains no path traversal sequences.
  */
-export function validateStoragePath(
-  path: string,
-  expectedPrefix: string
-): boolean {
+export function validateStoragePath(path: string, expectedPrefix: string): boolean {
   if (!path || path.includes('..') || path.includes('//')) return false;
   return path.startsWith(expectedPrefix);
 }

@@ -108,7 +108,9 @@ export default function PollCreator({ value, onChange, onRemove }: PollCreatorPr
             transition: `all 0.2s ${EASING}`,
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            close
+          </span>
         </button>
       </div>
 
@@ -187,8 +189,7 @@ export default function PollCreator({ value, onChange, onRemove }: PollCreatorPr
                   height: 28,
                   borderRadius: 6,
                   border: 'none',
-                  background:
-                    hoveredRemoveIdx === idx ? 'rgba(253,111,133,0.12)' : 'transparent',
+                  background: hoveredRemoveIdx === idx ? 'rgba(253,111,133,0.12)' : 'transparent',
                   color: hoveredRemoveIdx === idx ? COLORS.error : COLORS.textMuted,
                   cursor: 'pointer',
                   display: 'flex',
@@ -230,7 +231,9 @@ export default function PollCreator({ value, onChange, onRemove }: PollCreatorPr
             justifyContent: 'center',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>add</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            add
+          </span>
           Add Option
         </button>
       )}

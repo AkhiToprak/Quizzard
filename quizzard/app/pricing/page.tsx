@@ -23,7 +23,9 @@ export default function PricingPage() {
   ];
 
   return (
-    <main style={{ background: '#09081a', color: '#ede9ff', minHeight: '100vh', overflowX: 'hidden' }}>
+    <main
+      style={{ background: '#09081a', color: '#ede9ff', minHeight: '100vh', overflowX: 'hidden' }}
+    >
       {/* ── GLOBAL STYLES ── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Gliker:wght@400;500;600;700&display=swap');
@@ -77,31 +79,60 @@ export default function PricingPage() {
       {/* ── NAVBAR ── */}
       <nav
         style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-          padding: '0 40px', height: 64,
-          display: 'flex', alignItems: 'center',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          padding: '0 40px',
+          height: 64,
+          display: 'flex',
+          alignItems: 'center',
           background: scrolled ? 'rgba(9,8,26,0.88)' : 'transparent',
           backdropFilter: scrolled ? 'blur(24px)' : 'none',
           borderBottom: scrolled ? '1px solid rgba(140,82,255,0.12)' : '1px solid transparent',
           transition: 'background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease',
         }}
       >
-        <div style={{ maxWidth: 1200, width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            maxWidth: 1200,
+            width: '100%',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           {/* Logo */}
           <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo_trimmed.png" alt="Quizzard" style={{ height: 40, width: 'auto', display: 'block' }} />
+            <img
+              src="/logo_trimmed.png"
+              alt="Quizzard"
+              style={{ height: 40, width: 'auto', display: 'block' }}
+            />
           </Link>
 
           {/* Right side: links + auth */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 36 }}>
             <div className="nav-links" style={{ display: 'flex', gap: 36 }}>
-              <Link href="/pricing" className="nlink">Pricing</Link>
-              <Link href="/#how-it-works" className="nlink">How It Works</Link>
+              <Link href="/pricing" className="nlink">
+                Pricing
+              </Link>
+              <Link href="/#how-it-works" className="nlink">
+                How It Works
+              </Link>
             </div>
             <div className="nav-auth" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <Link href="/auth/login" className="nlink">Log in</Link>
-              <Link href="/auth/register" className="btn-yellow" style={{ padding: '9px 20px', fontSize: 14 }}>
+              <Link href="/auth/login" className="nlink">
+                Log in
+              </Link>
+              <Link
+                href="/auth/register"
+                className="btn-yellow"
+                style={{ padding: '9px 20px', fontSize: 14 }}
+              >
                 Get Started
               </Link>
             </div>
@@ -123,9 +154,43 @@ export default function PricingPage() {
         }}
       >
         {/* Radial glow blobs */}
-        <div style={{ position: 'absolute', width: 800, height: 800, borderRadius: '50%', background: 'radial-gradient(circle, rgba(140,82,255,0.11) 0%, transparent 70%)', top: '-10%', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(81,112,255,0.07) 0%, transparent 70%)', top: '60%', right: '10%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,222,89,0.04) 0%, transparent 70%)', bottom: '10%', left: '15%', pointerEvents: 'none' }} />
+        <div
+          style={{
+            position: 'absolute',
+            width: 800,
+            height: 800,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(140,82,255,0.11) 0%, transparent 70%)',
+            top: '-10%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            width: 400,
+            height: 400,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(81,112,255,0.07) 0%, transparent 70%)',
+            top: '60%',
+            right: '10%',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            width: 300,
+            height: 300,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,222,89,0.04) 0%, transparent 70%)',
+            bottom: '10%',
+            left: '15%',
+            pointerEvents: 'none',
+          }}
+        />
 
         <p
           style={{
@@ -163,8 +228,8 @@ export default function PricingPage() {
             zIndex: 1,
           }}
         >
-          Start free, upgrade when you need more. Every plan includes the core
-          Quizzard experience — AI flashcards, study plans, and Scholar Chat.
+          Start free, upgrade when you need more. Every plan includes the core Quizzard experience —
+          AI flashcards, study plans, and Scholar Chat.
         </p>
       </section>
 
@@ -206,13 +271,21 @@ export default function PricingPage() {
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo_trimmed.png" alt="Quizzard" style={{ height: '32px', width: 'auto', opacity: 0.75 }} />
+        <img
+          src="/logo_trimmed.png"
+          alt="Quizzard"
+          style={{ height: '32px', width: 'auto', opacity: 0.75 }}
+        />
         <p style={{ fontSize: 13, color: 'rgba(237,233,255,0.28)' }}>
           © 2026 Quizzard — Built for students, by students.
         </p>
         <div style={{ display: 'flex', gap: 24 }}>
-          <Link href="/auth/login" className="nlink" style={{ fontSize: 14 }}>Log In</Link>
-          <Link href="/auth/register" className="nlink" style={{ fontSize: 14 }}>Sign Up</Link>
+          <Link href="/auth/login" className="nlink" style={{ fontSize: 14 }}>
+            Log In
+          </Link>
+          <Link href="/auth/register" className="nlink" style={{ fontSize: 14 }}>
+            Sign Up
+          </Link>
         </div>
       </footer>
     </main>

@@ -17,10 +17,7 @@ const VALID_TYPES = ['copy', 'live_view'] as const;
 const VALID_VISIBILITIES = ['public', 'friends', 'specific'] as const;
 
 // POST — share a notebook
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -55,7 +52,10 @@ export async function POST(
       return badRequestResponse('type must be "copy" or "live_view"');
     }
 
-    if (!visibility || !VALID_VISIBILITIES.includes(visibility as (typeof VALID_VISIBILITIES)[number])) {
+    if (
+      !visibility ||
+      !VALID_VISIBILITIES.includes(visibility as (typeof VALID_VISIBILITIES)[number])
+    ) {
       return badRequestResponse('visibility must be "public", "friends", or "specific"');
     }
 
@@ -75,7 +75,9 @@ export async function POST(
 
     if (visibility === 'specific' && sharedWithIds) {
       // Validate all recipient IDs are strings
-      if (sharedWithIds.some((id: unknown) => typeof id !== 'string' || (id as string).length === 0)) {
+      if (
+        sharedWithIds.some((id: unknown) => typeof id !== 'string' || (id as string).length === 0)
+      ) {
         return badRequestResponse('All sharedWithIds must be non-empty strings');
       }
 
@@ -108,9 +110,7 @@ export async function POST(
         },
       });
       const friendIds = new Set(
-        friendships.map((f) =>
-          f.requesterId === userId ? f.addresseeId : f.requesterId
-        )
+        friendships.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId))
       );
       const nonFriendIds = uniqueIds.filter((id) => !friendIds.has(id));
       if (nonFriendIds.length > 0) {
@@ -259,10 +259,7 @@ export async function POST(
 }
 
 // GET — get share status of a notebook
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
@@ -310,7 +307,8 @@ export async function DELETE(
       // Delete specific share
       const share = await db.sharedNotebook.findUnique({ where: { id: shareId } });
       if (!share) return notFoundResponse('Share not found');
-      if (share.notebookId !== notebookId) return notFoundResponse('Share not found for this notebook');
+      if (share.notebookId !== notebookId)
+        return notFoundResponse('Share not found for this notebook');
       if (share.sharedById !== userId) return forbiddenResponse('You did not create this share');
 
       await db.sharedNotebook.delete({ where: { id: shareId } });

@@ -163,7 +163,14 @@ export default function RecentNotebooksPanel() {
 
         <div style={{ padding: '0 8px 8px' }}>
           {loading ? (
-            <div style={{ padding: '20px 0', textAlign: 'center', color: COLORS.textMuted, fontSize: 12 }}>
+            <div
+              style={{
+                padding: '20px 0',
+                textAlign: 'center',
+                color: COLORS.textMuted,
+                fontSize: 12,
+              }}
+            >
               Loading...
             </div>
           ) : notebooks.length === 0 ? (
@@ -175,7 +182,10 @@ export default function RecentNotebooksPanel() {
                 fontSize: 12,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 28, opacity: 0.4, display: 'block', marginBottom: 6 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 28, opacity: 0.4, display: 'block', marginBottom: 6 }}
+              >
                 menu_book
               </span>
               No notebooks yet
@@ -255,7 +265,9 @@ export default function RecentNotebooksPanel() {
               transition: `all 0.15s ${EASING}`,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>add</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              add
+            </span>
             New Notebook
           </Link>
         </div>

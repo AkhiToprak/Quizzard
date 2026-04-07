@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
-import {
-  createdResponse,
-  badRequestResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { createdResponse, badRequestResponse, internalErrorResponse } from '@/lib/api-response';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -24,7 +20,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Hard limit: max 3 accounts per IP address within the last 12 months
-    const whitelistedIps = (process.env.IP_WHITELIST ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    const whitelistedIps = (process.env.IP_WHITELIST ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (!whitelistedIps.includes(ip)) {
       const twelveMonthsAgo = new Date();
       twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
@@ -38,7 +37,10 @@ export async function POST(request: NextRequest) {
 
       if (ipRegistrationCount >= 3) {
         return NextResponse.json(
-          { success: false, error: 'Maximum number of accounts reached for this network. Please try again later.' },
+          {
+            success: false,
+            error: 'Maximum number of accounts reached for this network. Please try again later.',
+          },
           { status: 403 }
         );
       }
@@ -60,7 +62,9 @@ export async function POST(request: NextRequest) {
     username = String(username).toLowerCase();
 
     if (!USERNAME_REGEX.test(username)) {
-      return badRequestResponse('Username must be 3–20 characters: letters, numbers, underscores only');
+      return badRequestResponse(
+        'Username must be 3–20 characters: letters, numbers, underscores only'
+      );
     }
 
     if (!EMAIL_REGEX.test(String(email))) {
@@ -85,7 +89,12 @@ export async function POST(request: NextRequest) {
 
     const [user] = await db.$transaction([
       db.user.create({
-        data: { email: String(email), name: name ? String(name).slice(0, 100) : null, password: hashedPassword, username },
+        data: {
+          email: String(email),
+          name: name ? String(name).slice(0, 100) : null,
+          password: hashedPassword,
+          username,
+        },
       }),
       db.ipRegistration.create({
         data: { ip },

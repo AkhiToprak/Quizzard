@@ -22,7 +22,11 @@ export function xpForLevel(level: number): number {
   return Math.floor(100 * Math.pow(1.5, level - 1));
 }
 
-export function getLevelFromXP(totalXP: number): { level: number; currentXP: number; nextLevelXP: number } {
+export function getLevelFromXP(totalXP: number): {
+  level: number;
+  currentXP: number;
+  nextLevelXP: number;
+} {
   let level = 1;
   let remaining = totalXP;
   while (remaining >= xpForLevel(level)) {

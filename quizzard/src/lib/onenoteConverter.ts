@@ -129,7 +129,9 @@ async function convertElement(
 
     case 'div': {
       // OneNote uses divs as wrappers. Recurse into children.
-      const hasBlockChildren = $el.children('p, h1, h2, h3, h4, h5, h6, ul, ol, table, blockquote, div, hr, img').length > 0;
+      const hasBlockChildren =
+        $el.children('p, h1, h2, h3, h4, h5, h6, ul, ol, table, blockquote, div, hr, img').length >
+        0;
       if (hasBlockChildren) {
         return await convertChildren($, $el, imageDownloader);
       }
@@ -192,7 +194,9 @@ async function convertListItems(
       }
     } else {
       const inlineContent = await parseInlineContent($, $li, imageDownloader);
-      content = [{ type: 'paragraph', content: inlineContent.length > 0 ? inlineContent : undefined }];
+      content = [
+        { type: 'paragraph', content: inlineContent.length > 0 ? inlineContent : undefined },
+      ];
     }
 
     items.push({ type: 'listItem', content });
@@ -215,7 +219,9 @@ async function convertTable(
       const inlineContent = await parseInlineContent($, $cell, imageDownloader);
       cells.push({
         type: isHeader ? 'tableHeader' : 'tableCell',
-        content: [{ type: 'paragraph', content: inlineContent.length > 0 ? inlineContent : undefined }],
+        content: [
+          { type: 'paragraph', content: inlineContent.length > 0 ? inlineContent : undefined },
+        ],
       });
     }
     if (cells.length > 0) {

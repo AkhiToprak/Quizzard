@@ -126,7 +126,10 @@ export default function DashboardPage() {
 
     fetch('/api/dashboard')
       .then((r) => r.json())
-      .then((res) => { const d = res?.data ?? res; if (d?.dailyGoal !== undefined) setDashboard(d); })
+      .then((res) => {
+        const d = res?.data ?? res;
+        if (d?.dailyGoal !== undefined) setDashboard(d);
+      })
       .catch(() => {});
 
     fetch('/api/flashcard-sets')
@@ -175,7 +178,11 @@ export default function DashboardPage() {
       .catch(() => {});
   };
 
-  const handleCreateExam = async (data: { title: string; examDate: string; notebookId: string }) => {
+  const handleCreateExam = async (data: {
+    title: string;
+    examDate: string;
+    notebookId: string;
+  }) => {
     const res = await fetch('/api/user/exams', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -191,7 +198,9 @@ export default function DashboardPage() {
     try {
       const res = await fetch(`/api/user/exams/${examId}`, { method: 'DELETE' });
       if (res.ok) fetchExams();
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   };
 
   const handleGeneratePlan = async (examId: string) => {
@@ -285,8 +294,15 @@ export default function DashboardPage() {
   const recentActivity = dashboard?.recentActivity ?? [];
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-
+    <div
+      style={{
+        maxWidth: '1280px',
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '32px',
+      }}
+    >
       {/* Stats Row */}
       <section
         style={{
@@ -295,162 +311,234 @@ export default function DashboardPage() {
           gap: '24px',
         }}
       >
-        {statCards.map(({ label, value, icon, iconFilled, iconColor, iconBg, badge, arrowColor, href, onClick }) => {
-          const isFlashcard = label === 'Flashcards';
-          const inner = (
-            <div
-              style={{
-                background: '#161630',
-                padding: '24px',
-                borderRadius: '24px',
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: (href || onClick) ? 'pointer' : 'default',
-                transition: 'background 0.3s cubic-bezier(0.22,1,0.36,1)',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background = '#1c1c38';
-                const arrow = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.stat-arrow');
-                if (arrow) arrow.style.transform = 'translateX(4px)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background = '#161630';
-                const arrow = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>('.stat-arrow');
-                if (arrow) arrow.style.transform = 'translateX(0)';
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        {statCards.map(
+          ({
+            label,
+            value,
+            icon,
+            iconFilled,
+            iconColor,
+            iconBg,
+            badge,
+            arrowColor,
+            href,
+            onClick,
+          }) => {
+            const isFlashcard = label === 'Flashcards';
+            const inner = (
+              <div
+                style={{
+                  background: '#161630',
+                  padding: '24px',
+                  borderRadius: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  cursor: href || onClick ? 'pointer' : 'default',
+                  transition: 'background 0.3s cubic-bezier(0.22,1,0.36,1)',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.background = '#1c1c38';
+                  const arrow = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>(
+                    '.stat-arrow'
+                  );
+                  if (arrow) arrow.style.transform = 'translateX(4px)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.background = '#161630';
+                  const arrow = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>(
+                    '.stat-arrow'
+                  );
+                  if (arrow) arrow.style.transform = 'translateX(0)';
+                }}
+              >
                 <div
                   style={{
-                    width: '48px', height: '48px', borderRadius: '16px',
-                    background: iconBg,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '16px',
                   }}
                 >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{
-                      fontSize: '28px',
-                      color: iconColor,
-                      fontVariationSettings: iconFilled ? "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" : undefined,
-                    }}
-                  >
-                    {icon}
-                  </span>
-                </div>
-                {badge || (
-                  <span
-                    className="material-symbols-outlined stat-arrow"
-                    style={{ color: arrowColor, fontSize: '22px', transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)' }}
-                  >
-                    arrow_forward
-                  </span>
-                )}
-              </div>
-              <h3 style={{ fontFamily: 'var(--font-brand)', fontSize: '30px', fontWeight: 400, color: '#e5e3ff', margin: '0 0 4px', lineHeight: 1 }}>
-                {value}
-              </h3>
-              <p style={{ fontSize: '15px', fontWeight: 500, color: '#aaa8c8', margin: 0 }}>{label}</p>
-            </div>
-          );
-
-          if (isFlashcard) {
-            return (
-              <div key={label} ref={flashcardRef} style={{ position: 'relative' }}>
-                <div onClick={onClick} style={{ cursor: 'pointer' }}>{inner}</div>
-                {showFlashcardDropdown && (
                   <div
                     style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 8px)',
-                      left: 0,
-                      right: 0,
-                      background: '#1a1a2e',
+                      width: '48px',
+                      height: '48px',
                       borderRadius: '16px',
-                      border: '1px solid rgba(174,137,255,0.15)',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                      zIndex: 50,
-                      maxHeight: '320px',
-                      overflowY: 'auto',
-                      padding: '8px',
+                      background: iconBg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
-                    {flashcardSets.length === 0 ? (
-                      <div style={{ padding: '24px 16px', textAlign: 'center', color: '#aaa8c8' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '32px', display: 'block', marginBottom: '8px', opacity: 0.4 }}>bolt</span>
-                        <p style={{ fontSize: '13px', margin: 0 }}>No flashcard sets yet.</p>
-                        <p style={{ fontSize: '12px', margin: '4px 0 0', opacity: 0.6 }}>Create them from a notebook chat.</p>
-                      </div>
-                    ) : (
-                      flashcardSets.map((set) => (
-                        <div
-                          key={set.id}
-                          onClick={() => {
-                            setShowFlashcardDropdown(false);
-                            router.push(`/notebooks/${set.notebookId}/flashcards/${set.id}`);
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            padding: '12px',
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
-                          }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#2a2a4c'; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
-                        >
-                          <div
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              borderRadius: '10px',
-                              background: set.notebook.color ? `${set.notebook.color}20` : 'rgba(240,208,76,0.15)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0,
-                            }}
-                          >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: '18px', color: set.notebook.color || '#f0d04c' }}
-                            >
-                              bolt
-                            </span>
-                          </div>
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <p style={{
-                              fontSize: '13px',
-                              fontWeight: 600,
-                              color: '#e5e3ff',
-                              margin: 0,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}>
-                              {set.title}
-                            </p>
-                            <p style={{ fontSize: '11px', color: '#aaa8c8', margin: '2px 0 0' }}>
-                              {set.notebook.name} · {set._count.flashcards} {set._count.flashcards === 1 ? 'card' : 'cards'}
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    )}
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '28px',
+                        color: iconColor,
+                        fontVariationSettings: iconFilled
+                          ? "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24"
+                          : undefined,
+                      }}
+                    >
+                      {icon}
+                    </span>
                   </div>
-                )}
+                  {badge || (
+                    <span
+                      className="material-symbols-outlined stat-arrow"
+                      style={{
+                        color: arrowColor,
+                        fontSize: '22px',
+                        transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+                      }}
+                    >
+                      arrow_forward
+                    </span>
+                  )}
+                </div>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-brand)',
+                    fontSize: '30px',
+                    fontWeight: 400,
+                    color: '#e5e3ff',
+                    margin: '0 0 4px',
+                    lineHeight: 1,
+                  }}
+                >
+                  {value}
+                </h3>
+                <p style={{ fontSize: '15px', fontWeight: 500, color: '#aaa8c8', margin: 0 }}>
+                  {label}
+                </p>
               </div>
             );
-          }
 
-          return href ? (
-            <Link key={label} href={href} style={{ textDecoration: 'none' }}>{inner}</Link>
-          ) : (
-            <div key={label}>{inner}</div>
-          );
-        })}
+            if (isFlashcard) {
+              return (
+                <div key={label} ref={flashcardRef} style={{ position: 'relative' }}>
+                  <div onClick={onClick} style={{ cursor: 'pointer' }}>
+                    {inner}
+                  </div>
+                  {showFlashcardDropdown && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 8px)',
+                        left: 0,
+                        right: 0,
+                        background: '#1a1a2e',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(174,137,255,0.15)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                        zIndex: 50,
+                        maxHeight: '320px',
+                        overflowY: 'auto',
+                        padding: '8px',
+                      }}
+                    >
+                      {flashcardSets.length === 0 ? (
+                        <div
+                          style={{ padding: '24px 16px', textAlign: 'center', color: '#aaa8c8' }}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{
+                              fontSize: '32px',
+                              display: 'block',
+                              marginBottom: '8px',
+                              opacity: 0.4,
+                            }}
+                          >
+                            bolt
+                          </span>
+                          <p style={{ fontSize: '13px', margin: 0 }}>No flashcard sets yet.</p>
+                          <p style={{ fontSize: '12px', margin: '4px 0 0', opacity: 0.6 }}>
+                            Create them from a notebook chat.
+                          </p>
+                        </div>
+                      ) : (
+                        flashcardSets.map((set) => (
+                          <div
+                            key={set.id}
+                            onClick={() => {
+                              setShowFlashcardDropdown(false);
+                              router.push(`/notebooks/${set.notebookId}/flashcards/${set.id}`);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '12px',
+                              borderRadius: '12px',
+                              cursor: 'pointer',
+                              transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
+                            }}
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLDivElement).style.background = '#2a2a4c';
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLDivElement).style.background = 'transparent';
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '10px',
+                                background: set.notebook.color
+                                  ? `${set.notebook.color}20`
+                                  : 'rgba(240,208,76,0.15)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: '18px', color: set.notebook.color || '#f0d04c' }}
+                              >
+                                bolt
+                              </span>
+                            </div>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <p
+                                style={{
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  color: '#e5e3ff',
+                                  margin: 0,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {set.title}
+                              </p>
+                              <p style={{ fontSize: '11px', color: '#aaa8c8', margin: '2px 0 0' }}>
+                                {set.notebook.name} · {set._count.flashcards}{' '}
+                                {set._count.flashcards === 1 ? 'card' : 'cards'}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return href ? (
+              <Link key={label} href={href} style={{ textDecoration: 'none' }}>
+                {inner}
+              </Link>
+            ) : (
+              <div key={label}>{inner}</div>
+            );
+          }
+        )}
       </section>
 
       {/* XP Progress */}
@@ -489,7 +577,14 @@ export default function DashboardPage() {
           padding: '24px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '20px',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span
               className="material-symbols-outlined"
@@ -516,7 +611,8 @@ export default function DashboardPage() {
               fontWeight: 700,
               cursor: 'pointer',
               fontFamily: 'inherit',
-              transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
+              transition:
+                'background 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.2)';
@@ -527,7 +623,9 @@ export default function DashboardPage() {
               (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+              add
+            </span>
             Add Exam
           </button>
         </div>
@@ -573,7 +671,6 @@ export default function DashboardPage() {
       {/* Bento grid */}
       <section>
         <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '24px' }}>
-
           {/* Recent Activity */}
           <div
             style={{
@@ -584,10 +681,23 @@ export default function DashboardPage() {
               overflow: 'hidden',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                marginBottom: '32px',
+              }}
+            >
               <div>
-                <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>Recent Activity</h2>
-                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>Pick up where you left off</p>
+                <h2
+                  style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}
+                >
+                  Recent Activity
+                </h2>
+                <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
+                  Pick up where you left off
+                </p>
               </div>
               <Link
                 href="/notebooks"
@@ -605,17 +715,24 @@ export default function DashboardPage() {
                 }}
               >
                 View all
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chevron_right</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                  chevron_right
+                </span>
               </Link>
             </div>
 
             {recentActivity.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '32px 0', color: '#aaa8c8' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '48px', display: 'block', marginBottom: '12px', opacity: 0.4 }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '48px', display: 'block', marginBottom: '12px', opacity: 0.4 }}
+                >
                   history
                 </span>
                 <p style={{ fontSize: '14px', margin: 0 }}>
-                  {dashboard === null ? 'Loading…' : 'No notebooks yet — create one to get started.'}
+                  {dashboard === null
+                    ? 'Loading…'
+                    : 'No notebooks yet — create one to get started.'}
                 </p>
               </div>
             ) : (
@@ -641,32 +758,70 @@ export default function DashboardPage() {
                         }}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLDivElement).style.background = '#2a2a4c';
-                          const btn = (e.currentTarget as HTMLDivElement).querySelector<HTMLButtonElement>('.activity-btn');
-                          if (btn) { btn.style.background = '#ae89ff'; btn.style.color = '#2a0066'; }
+                          const btn = (
+                            e.currentTarget as HTMLDivElement
+                          ).querySelector<HTMLButtonElement>('.activity-btn');
+                          if (btn) {
+                            btn.style.background = '#ae89ff';
+                            btn.style.color = '#2a0066';
+                          }
                         }}
                         onMouseLeave={(e) => {
                           (e.currentTarget as HTMLDivElement).style.background = '#161630';
-                          const btn = (e.currentTarget as HTMLDivElement).querySelector<HTMLButtonElement>('.activity-btn');
-                          if (btn) { btn.style.background = '#2a2a4c'; btn.style.color = '#ae89ff'; }
+                          const btn = (
+                            e.currentTarget as HTMLDivElement
+                          ).querySelector<HTMLButtonElement>('.activity-btn');
+                          if (btn) {
+                            btn.style.background = '#2a2a4c';
+                            btn.style.color = '#ae89ff';
+                          }
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0 }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '16px',
+                            minWidth: 0,
+                          }}
+                        >
                           <div
                             style={{
-                              width: '48px', height: '48px', borderRadius: '14px',
+                              width: '48px',
+                              height: '48px',
+                              borderRadius: '14px',
                               background: style.iconBg,
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              flexShrink: 0, color: style.iconColor,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              color: style.iconColor,
                             }}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>{style.icon}</span>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ fontSize: '22px' }}
+                            >
+                              {style.icon}
+                            </span>
                           </div>
                           <div style={{ minWidth: 0 }}>
-                            <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <h4
+                              style={{
+                                fontSize: '14px',
+                                fontWeight: 700,
+                                color: '#e5e3ff',
+                                margin: '0 0 2px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
                               {item.name}
                             </h4>
                             <p style={{ fontSize: '12px', color: '#aaa8c8', margin: 0 }}>
-                              {timeAgo(item.updatedAt)} · {item.pageCount} {item.pageCount === 1 ? 'page' : 'pages'}
+                              {timeAgo(item.updatedAt)} · {item.pageCount}{' '}
+                              {item.pageCount === 1 ? 'page' : 'pages'}
                             </p>
                           </div>
                         </div>
@@ -684,7 +839,8 @@ export default function DashboardPage() {
                             fontFamily: 'inherit',
                             flexShrink: 0,
                             marginLeft: '16px',
-                            transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1)',
+                            transition:
+                              'background 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1)',
                           }}
                         >
                           Open
@@ -735,12 +891,19 @@ export default function DashboardPage() {
               >
                 {goalProgress >= 100 ? 'Goal Complete!' : 'Keep Writing'}
               </h2>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.7', margin: '0 0 32px' }}>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: 'rgba(255,255,255,0.8)',
+                  lineHeight: '1.7',
+                  margin: '0 0 32px',
+                }}
+              >
                 {dashboard === null
                   ? 'Loading your progress…'
                   : goalProgress >= 100
-                  ? `You wrote ${dashboard.todayPages} pages today. Amazing work — you hit your daily target!`
-                  : `${dashboard.todayPages} of ${dashboard.dailyGoal} pages written today. ${dashboard.dailyGoal - dashboard.todayPages} more to reach your goal.`}
+                    ? `You wrote ${dashboard.todayPages} pages today. Amazing work — you hit your daily target!`
+                    : `${dashboard.todayPages} of ${dashboard.dailyGoal} pages written today. ${dashboard.dailyGoal - dashboard.todayPages} more to reach your goal.`}
               </p>
             </div>
 
@@ -798,7 +961,8 @@ export default function DashboardPage() {
                   textAlign: 'center',
                   textDecoration: 'none',
                   boxSizing: 'border-box',
-                  transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1)',
+                  transition:
+                    'background 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1)',
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLAnchorElement).style.background = '#ffde59';
@@ -811,9 +975,19 @@ export default function DashboardPage() {
               >
                 {goalProgress >= 100 ? 'Keep Going' : 'Start Writing'}
               </Link>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' }}>
+              <p
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.5)',
+                  margin: 0,
+                  textAlign: 'center',
+                }}
+              >
                 Change target in{' '}
-                <Link href="/settings" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'underline' }}>
+                <Link
+                  href="/settings"
+                  style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'underline' }}
+                >
                   Settings
                 </Link>
               </p>
@@ -838,32 +1012,62 @@ export default function DashboardPage() {
         >
           <div
             style={{
-              width: '80px', height: '80px',
+              width: '80px',
+              height: '80px',
               background: '#232342',
               borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               marginBottom: '24px',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '36px', color: '#aaa8c8' }}>library_add</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '36px', color: '#aaa8c8' }}
+            >
+              library_add
+            </span>
           </div>
-          <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>Feeling Inspired?</h3>
-          <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 32px', maxWidth: '380px', lineHeight: '1.7' }}>
+          <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
+            Feeling Inspired?
+          </h3>
+          <p
+            style={{
+              fontSize: '14px',
+              color: '#aaa8c8',
+              margin: '0 0 32px',
+              maxWidth: '380px',
+              lineHeight: '1.7',
+            }}
+          >
             No notebooks yet. Create your first one to get started on your neon scholar journey.
           </p>
           <Link
             href="/notebooks"
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
               padding: '12px 32px',
-              background: '#ae89ff', color: '#2a0066',
-              borderRadius: '12px', fontWeight: 700, fontSize: '15px', textDecoration: 'none',
+              background: '#ae89ff',
+              color: '#2a0066',
+              borderRadius: '12px',
+              fontWeight: 700,
+              fontSize: '15px',
+              textDecoration: 'none',
               transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.05)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1)'; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1)';
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+              add
+            </span>
             Create Notebook
           </Link>
         </section>

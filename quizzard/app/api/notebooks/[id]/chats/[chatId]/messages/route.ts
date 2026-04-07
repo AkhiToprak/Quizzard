@@ -144,7 +144,11 @@ export async function POST(request: NextRequest, { params }: Params) {
         if (text) {
           contextParts.push(`[Page: ${page.title}]\n${text}`);
         } else {
-          skippedSources.push({ type: 'page', name: page.title, reason: page.pageType === 'canvas' ? 'canvas_page' : 'no_text' });
+          skippedSources.push({
+            type: 'page',
+            name: page.title,
+            reason: page.pageType === 'canvas' ? 'canvas_page' : 'no_text',
+          });
         }
       }
     }
@@ -177,7 +181,11 @@ export async function POST(request: NextRequest, { params }: Params) {
         if (text) {
           contextParts.push(`[Document: ${doc.fileName}]\n${text}`);
         } else {
-          skippedSources.push({ type: 'document', name: doc.fileName, reason: 'extraction_failed' });
+          skippedSources.push({
+            type: 'document',
+            name: doc.fileName,
+            reason: 'extraction_failed',
+          });
         }
       }
     }
@@ -242,7 +250,10 @@ export async function POST(request: NextRequest, { params }: Params) {
     const chatUsage = await checkUsageLimit(userId, 'scholar_chat');
     if (!chatUsage.allowed) {
       return NextResponse.json(
-        { error: 'Monthly chat limit reached. Upgrade your plan for more messages.', limitReached: true },
+        {
+          error: 'Monthly chat limit reached. Upgrade your plan for more messages.',
+          limitReached: true,
+        },
         { status: 429 }
       );
     }
@@ -258,26 +269,64 @@ export async function POST(request: NextRequest, { params }: Params) {
     const narrowedChatId = chatId;
 
     // Helper to save messages + optional tool artifacts and return done payload
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async function saveAndBuildDone(assistantContent: string, inputTokens: number, outputTokens: number, extras: Record<string, any> = {}) {
+    async function saveAndBuildDone(
+      assistantContent: string,
+      inputTokens: number,
+      outputTokens: number,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      extras: Record<string, any> = {}
+    ) {
       const totalTokens = inputTokens + outputTokens;
 
       const [userMsg, assistantMsg] = await db.$transaction([
         db.chatMessage.create({
-          data: { notebookId: narrowedNotebookId, userId: narrowedUserId, chatId: narrowedChatId, role: 'user', content: userMessage, tokens: inputTokens },
+          data: {
+            notebookId: narrowedNotebookId,
+            userId: narrowedUserId,
+            chatId: narrowedChatId,
+            role: 'user',
+            content: userMessage,
+            tokens: inputTokens,
+          },
         }),
         db.chatMessage.create({
-          data: { notebookId: narrowedNotebookId, userId: narrowedUserId, chatId: narrowedChatId, role: 'assistant', content: assistantContent, tokens: outputTokens },
+          data: {
+            notebookId: narrowedNotebookId,
+            userId: narrowedUserId,
+            chatId: narrowedChatId,
+            role: 'assistant',
+            content: assistantContent,
+            tokens: outputTokens,
+          },
         }),
       ]);
 
-      await db.notebookChat.update({ where: { id: narrowedChatId }, data: { updatedAt: new Date() } });
+      await db.notebookChat.update({
+        where: { id: narrowedChatId },
+        data: { updatedAt: new Date() },
+      });
 
       return {
-        userMessage: { id: userMsg.id, role: userMsg.role, content: userMsg.content, createdAt: userMsg.createdAt },
-        assistantMessage: { id: assistantMsg.id, role: assistantMsg.role, content: assistantMsg.content, createdAt: assistantMsg.createdAt },
+        userMessage: {
+          id: userMsg.id,
+          role: userMsg.role,
+          content: userMsg.content,
+          createdAt: userMsg.createdAt,
+        },
+        assistantMessage: {
+          id: assistantMsg.id,
+          role: assistantMsg.role,
+          content: assistantMsg.content,
+          createdAt: assistantMsg.createdAt,
+        },
         ...extras,
-        usage: { inputTokens, outputTokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
+        usage: {
+          inputTokens,
+          outputTokens,
+          totalTokens,
+          monthlyUsed: usedTokens + totalTokens,
+          monthlyLimit: MONTHLY_TOKEN_LIMIT,
+        },
         contextStatus,
       };
     }
@@ -287,13 +336,16 @@ export async function POST(request: NextRequest, { params }: Params) {
     const onAbort = () => abortController.abort();
     request.signal.addEventListener('abort', onAbort);
 
-    const stream = anthropic.messages.stream({
-      model: AI_MODEL,
-      max_tokens: 4096,
-      system: systemParts.join('\n'),
-      messages: conversationMessages,
-      tools: ALL_TOOLS,
-    }, { signal: abortController.signal });
+    const stream = anthropic.messages.stream(
+      {
+        model: AI_MODEL,
+        max_tokens: 4096,
+        system: systemParts.join('\n'),
+        messages: conversationMessages,
+        tools: ALL_TOOLS,
+      },
+      { signal: abortController.signal }
+    );
 
     return new Response(
       new ReadableStream({
@@ -316,7 +368,15 @@ export async function POST(request: NextRequest, { params }: Params) {
             const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
 
             // ── Extract tool_use blocks from response ──
-            const { text: extractedText, flashcard: flashcardToolUse, quiz: quizToolUse, mindmap: mindmapToolUse, studyPlan: studyPlanToolUse, presentation: presentationToolUse, youtubeVideos: youtubeVideosToolUse } = extractToolUses(response.content);
+            const {
+              text: extractedText,
+              flashcard: flashcardToolUse,
+              quiz: quizToolUse,
+              mindmap: mindmapToolUse,
+              studyPlan: studyPlanToolUse,
+              presentation: presentationToolUse,
+              youtubeVideos: youtubeVideosToolUse,
+            } = extractToolUses(response.content);
             let assistantText = extractedText;
 
             // ── If tool_use: create flashcards in DB ──
@@ -324,23 +384,47 @@ export async function POST(request: NextRequest, { params }: Params) {
               const { title: setTitle, flashcards } = flashcardToolUse.input;
 
               if (!setTitle || !Array.isArray(flashcards) || flashcards.length === 0) {
-                assistantText = assistantText || 'I tried to create flashcards but the format was invalid. Please try again.';
+                assistantText =
+                  assistantText ||
+                  'I tried to create flashcards but the format was invalid. Please try again.';
               } else {
                 const fcUsage = await checkUsageLimit(userId, 'ai_flashcards');
                 if (!fcUsage.allowed) {
-                  controller.enqueue(sseEvent('error', { error: 'Monthly flashcard generation limit reached. Upgrade your plan for more.' }));
+                  controller.enqueue(
+                    sseEvent('error', {
+                      error:
+                        'Monthly flashcard generation limit reached. Upgrade your plan for more.',
+                    })
+                  );
                   controller.close();
                   return;
                 }
 
                 const result = await db.$transaction(async (tx) => {
                   const userMsg = await tx.chatMessage.create({
-                    data: { notebookId, userId, chatId, role: 'user', content: userMessage, tokens: response.usage.input_tokens },
+                    data: {
+                      notebookId,
+                      userId,
+                      chatId,
+                      role: 'user',
+                      content: userMessage,
+                      tokens: response.usage.input_tokens,
+                    },
                   });
                   const fSet = await tx.flashcardSet.create({
                     data: {
-                      notebookId, chatId, messageId: '', title: setTitle, source: 'ai',
-                      flashcards: { create: flashcards.map((fc, i) => ({ question: fc.question, answer: fc.answer, sortOrder: i })) },
+                      notebookId,
+                      chatId,
+                      messageId: '',
+                      title: setTitle,
+                      source: 'ai',
+                      flashcards: {
+                        create: flashcards.map((fc, i) => ({
+                          question: fc.question,
+                          answer: fc.answer,
+                          sortOrder: i,
+                        })),
+                      },
                     },
                     include: { flashcards: true },
                   });
@@ -348,22 +432,57 @@ export async function POST(request: NextRequest, { params }: Params) {
                     ? `${assistantText}\n\n[flashcard_set:${fSet.id}]`
                     : `I've created a flashcard set "${setTitle}" with ${flashcards.length} cards.\n\n[flashcard_set:${fSet.id}]`;
                   const assistantMsg = await tx.chatMessage.create({
-                    data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
+                    data: {
+                      notebookId,
+                      userId,
+                      chatId,
+                      role: 'assistant',
+                      content: markerText,
+                      tokens: response.usage.output_tokens,
+                    },
                   });
-                  await tx.flashcardSet.update({ where: { id: fSet.id }, data: { messageId: assistantMsg.id } });
-                  await tx.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+                  await tx.flashcardSet.update({
+                    where: { id: fSet.id },
+                    data: { messageId: assistantMsg.id },
+                  });
+                  await tx.notebookChat.update({
+                    where: { id: chatId },
+                    data: { updatedAt: new Date() },
+                  });
                   return { userMsg, assistantMsg, fSet };
                 });
 
                 await incrementUsage(userId, 'ai_flashcards');
 
-                controller.enqueue(sseEvent('done', {
-                  userMessage: { id: result.userMsg.id, role: result.userMsg.role, content: result.userMsg.content, createdAt: result.userMsg.createdAt },
-                  assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
-                  flashcardSet: { id: result.fSet.id, title: result.fSet.title, cardCount: result.fSet.flashcards.length },
-                  usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
-                  contextStatus,
-                }));
+                controller.enqueue(
+                  sseEvent('done', {
+                    userMessage: {
+                      id: result.userMsg.id,
+                      role: result.userMsg.role,
+                      content: result.userMsg.content,
+                      createdAt: result.userMsg.createdAt,
+                    },
+                    assistantMessage: {
+                      id: result.assistantMsg.id,
+                      role: result.assistantMsg.role,
+                      content: result.assistantMsg.content,
+                      createdAt: result.assistantMsg.createdAt,
+                    },
+                    flashcardSet: {
+                      id: result.fSet.id,
+                      title: result.fSet.title,
+                      cardCount: result.fSet.flashcards.length,
+                    },
+                    usage: {
+                      inputTokens: response.usage.input_tokens,
+                      outputTokens: response.usage.output_tokens,
+                      totalTokens,
+                      monthlyUsed: usedTokens + totalTokens,
+                      monthlyLimit: MONTHLY_TOKEN_LIMIT,
+                    },
+                    contextStatus,
+                  })
+                );
                 controller.close();
                 return;
               }
@@ -384,19 +503,36 @@ export async function POST(request: NextRequest, { params }: Params) {
               }
 
               if (!quizTitle || !Array.isArray(questions) || questions.length === 0) {
-                assistantText = assistantText || 'I tried to create a quiz but the format was invalid. Please try again.';
+                assistantText =
+                  assistantText ||
+                  'I tried to create a quiz but the format was invalid. Please try again.';
               } else {
                 const result = await db.$transaction(async (tx) => {
                   const userMsg = await tx.chatMessage.create({
-                    data: { notebookId, userId, chatId, role: 'user', content: userMessage, tokens: response.usage.input_tokens },
+                    data: {
+                      notebookId,
+                      userId,
+                      chatId,
+                      role: 'user',
+                      content: userMessage,
+                      tokens: response.usage.input_tokens,
+                    },
                   });
                   const qSet = await tx.quizSet.create({
                     data: {
-                      notebookId, chatId, messageId: '', title: quizTitle,
+                      notebookId,
+                      chatId,
+                      messageId: '',
+                      title: quizTitle,
                       questions: {
                         create: questions.map((q, i) => ({
-                          question: q.question, options: q.options, correctIndex: q.correctIndex,
-                          hint: q.hint ?? null, correctExplanation: q.correctExplanation ?? null, wrongExplanation: q.wrongExplanation ?? null, sortOrder: i,
+                          question: q.question,
+                          options: q.options,
+                          correctIndex: q.correctIndex,
+                          hint: q.hint ?? null,
+                          correctExplanation: q.correctExplanation ?? null,
+                          wrongExplanation: q.wrongExplanation ?? null,
+                          sortOrder: i,
                         })),
                       },
                     },
@@ -406,20 +542,55 @@ export async function POST(request: NextRequest, { params }: Params) {
                     ? `${assistantText}\n\n[quiz_set:${qSet.id}]`
                     : `I've created a quiz "${quizTitle}" with ${questions.length} questions.\n\n[quiz_set:${qSet.id}]`;
                   const assistantMsg = await tx.chatMessage.create({
-                    data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
+                    data: {
+                      notebookId,
+                      userId,
+                      chatId,
+                      role: 'assistant',
+                      content: markerText,
+                      tokens: response.usage.output_tokens,
+                    },
                   });
-                  await tx.quizSet.update({ where: { id: qSet.id }, data: { messageId: assistantMsg.id } });
-                  await tx.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+                  await tx.quizSet.update({
+                    where: { id: qSet.id },
+                    data: { messageId: assistantMsg.id },
+                  });
+                  await tx.notebookChat.update({
+                    where: { id: chatId },
+                    data: { updatedAt: new Date() },
+                  });
                   return { userMsg, assistantMsg, qSet };
                 });
 
-                controller.enqueue(sseEvent('done', {
-                  userMessage: { id: result.userMsg.id, role: result.userMsg.role, content: result.userMsg.content, createdAt: result.userMsg.createdAt },
-                  assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
-                  quizSet: { id: result.qSet.id, title: result.qSet.title, questionCount: result.qSet.questions.length },
-                  usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
-                  contextStatus,
-                }));
+                controller.enqueue(
+                  sseEvent('done', {
+                    userMessage: {
+                      id: result.userMsg.id,
+                      role: result.userMsg.role,
+                      content: result.userMsg.content,
+                      createdAt: result.userMsg.createdAt,
+                    },
+                    assistantMessage: {
+                      id: result.assistantMsg.id,
+                      role: result.assistantMsg.role,
+                      content: result.assistantMsg.content,
+                      createdAt: result.assistantMsg.createdAt,
+                    },
+                    quizSet: {
+                      id: result.qSet.id,
+                      title: result.qSet.title,
+                      questionCount: result.qSet.questions.length,
+                    },
+                    usage: {
+                      inputTokens: response.usage.input_tokens,
+                      outputTokens: response.usage.output_tokens,
+                      totalTokens,
+                      monthlyUsed: usedTokens + totalTokens,
+                      monthlyLimit: MONTHLY_TOKEN_LIMIT,
+                    },
+                    contextStatus,
+                  })
+                );
                 controller.close();
                 return;
               }
@@ -447,21 +618,50 @@ export async function POST(request: NextRequest, { params }: Params) {
 
                 const result = await db.$transaction(async (tx) => {
                   const userMsg = await tx.chatMessage.create({
-                    data: { notebookId, userId, chatId, role: 'user', content: userMessage, tokens: response.usage.input_tokens },
+                    data: {
+                      notebookId,
+                      userId,
+                      chatId,
+                      role: 'user',
+                      content: userMessage,
+                      tokens: response.usage.input_tokens,
+                    },
                   });
                   const plan = await tx.studyPlan.create({
-                    data: { notebookId, title: planTitle, description: planDesc || null, startDate: today, endDate: planEndDate, source: 'ai' },
+                    data: {
+                      notebookId,
+                      title: planTitle,
+                      description: planDesc || null,
+                      startDate: today,
+                      endDate: planEndDate,
+                      source: 'ai',
+                    },
                   });
                   for (let i = 0; i < phasesWithDates.length; i++) {
                     const p = phasesWithDates[i];
-                    const validMaterials = (p.materials || []).filter(m => m.referenceId && m.title);
+                    const validMaterials = (p.materials || []).filter(
+                      (m) => m.referenceId && m.title
+                    );
                     await tx.studyPhase.create({
                       data: {
-                        planId: plan.id, title: p.title, description: p.description || null, sortOrder: i,
-                        startDate: p.startDate, endDate: p.endDate, status: i === 0 ? 'active' : 'upcoming',
-                        materials: validMaterials.length > 0
-                          ? { create: validMaterials.map((m, j) => ({ type: m.type, referenceId: m.referenceId, title: m.title, sortOrder: j })) }
-                          : undefined,
+                        planId: plan.id,
+                        title: p.title,
+                        description: p.description || null,
+                        sortOrder: i,
+                        startDate: p.startDate,
+                        endDate: p.endDate,
+                        status: i === 0 ? 'active' : 'upcoming',
+                        materials:
+                          validMaterials.length > 0
+                            ? {
+                                create: validMaterials.map((m, j) => ({
+                                  type: m.type,
+                                  referenceId: m.referenceId,
+                                  title: m.title,
+                                  sortOrder: j,
+                                })),
+                              }
+                            : undefined,
                       },
                     });
                   }
@@ -469,19 +669,51 @@ export async function POST(request: NextRequest, { params }: Params) {
                     ? `${assistantText}\n\n[study_plan:${plan.id}]`
                     : `I've created a study plan "${planTitle}" with ${phases.length} phases.\n\n[study_plan:${plan.id}]`;
                   const assistantMsg = await tx.chatMessage.create({
-                    data: { notebookId, userId, chatId, role: 'assistant', content: markerText, tokens: response.usage.output_tokens },
+                    data: {
+                      notebookId,
+                      userId,
+                      chatId,
+                      role: 'assistant',
+                      content: markerText,
+                      tokens: response.usage.output_tokens,
+                    },
                   });
-                  await tx.notebookChat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+                  await tx.notebookChat.update({
+                    where: { id: chatId },
+                    data: { updatedAt: new Date() },
+                  });
                   return { userMsg, assistantMsg, plan };
                 });
 
-                controller.enqueue(sseEvent('done', {
-                  userMessage: { id: result.userMsg.id, role: result.userMsg.role, content: result.userMsg.content, createdAt: result.userMsg.createdAt },
-                  assistantMessage: { id: result.assistantMsg.id, role: result.assistantMsg.role, content: result.assistantMsg.content, createdAt: result.assistantMsg.createdAt },
-                  studyPlan: { id: result.plan.id, title: result.plan.title, phaseCount: phases.length },
-                  usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens, totalTokens, monthlyUsed: usedTokens + totalTokens, monthlyLimit: MONTHLY_TOKEN_LIMIT },
-                  contextStatus,
-                }));
+                controller.enqueue(
+                  sseEvent('done', {
+                    userMessage: {
+                      id: result.userMsg.id,
+                      role: result.userMsg.role,
+                      content: result.userMsg.content,
+                      createdAt: result.userMsg.createdAt,
+                    },
+                    assistantMessage: {
+                      id: result.assistantMsg.id,
+                      role: result.assistantMsg.role,
+                      content: result.assistantMsg.content,
+                      createdAt: result.assistantMsg.createdAt,
+                    },
+                    studyPlan: {
+                      id: result.plan.id,
+                      title: result.plan.title,
+                      phaseCount: phases.length,
+                    },
+                    usage: {
+                      inputTokens: response.usage.input_tokens,
+                      outputTokens: response.usage.output_tokens,
+                      totalTokens,
+                      monthlyUsed: usedTokens + totalTokens,
+                      monthlyLimit: MONTHLY_TOKEN_LIMIT,
+                    },
+                    contextStatus,
+                  })
+                );
                 controller.close();
                 return;
               }
@@ -491,9 +723,14 @@ export async function POST(request: NextRequest, { params }: Params) {
             if (mindmapToolUse) {
               const { title: mapTitle, markdown: mapMarkdown } = mindmapToolUse.input;
               if (mapTitle && mapMarkdown) {
-                const markerText = (assistantText ? `${assistantText}\n\n` : '')
-                  + `[mindmap_start:${mapTitle}]\n${mapMarkdown}\n[mindmap_end]`;
-                const done = await saveAndBuildDone(markerText, response.usage.input_tokens, response.usage.output_tokens);
+                const markerText =
+                  (assistantText ? `${assistantText}\n\n` : '') +
+                  `[mindmap_start:${mapTitle}]\n${mapMarkdown}\n[mindmap_end]`;
+                const done = await saveAndBuildDone(
+                  markerText,
+                  response.usage.input_tokens,
+                  response.usage.output_tokens
+                );
                 controller.enqueue(sseEvent('done', done));
                 controller.close();
                 return;
@@ -502,18 +739,32 @@ export async function POST(request: NextRequest, { params }: Params) {
 
             // ── If tool_use: embed presentation slides inline in message ──
             if (presentationToolUse) {
-              const { title: presTitle, themeColor, slides: presSlides } = presentationToolUse.input;
+              const {
+                title: presTitle,
+                themeColor,
+                slides: presSlides,
+              } = presentationToolUse.input;
               if (presTitle && Array.isArray(presSlides) && presSlides.length > 0) {
                 const pptxUsage = await checkUsageLimit(userId, 'ai_pptx');
                 if (!pptxUsage.allowed) {
-                  controller.enqueue(sseEvent('error', { error: 'Monthly presentation generation limit reached. Upgrade your plan for more.' }));
+                  controller.enqueue(
+                    sseEvent('error', {
+                      error:
+                        'Monthly presentation generation limit reached. Upgrade your plan for more.',
+                    })
+                  );
                   controller.close();
                   return;
                 }
                 const presJson = JSON.stringify({ themeColor, slides: presSlides });
-                const markerText = (assistantText ? `${assistantText}\n\n` : '')
-                  + `[presentation_start:${presTitle}]\n${presJson}\n[presentation_end]`;
-                const done = await saveAndBuildDone(markerText, response.usage.input_tokens, response.usage.output_tokens);
+                const markerText =
+                  (assistantText ? `${assistantText}\n\n` : '') +
+                  `[presentation_start:${presTitle}]\n${presJson}\n[presentation_end]`;
+                const done = await saveAndBuildDone(
+                  markerText,
+                  response.usage.input_tokens,
+                  response.usage.output_tokens
+                );
                 await incrementUsage(userId, 'ai_pptx');
                 controller.enqueue(sseEvent('done', done));
                 controller.close();
@@ -529,9 +780,14 @@ export async function POST(request: NextRequest, { params }: Params) {
                   const videos = await searchYouTubeVideos(search_query, max_results ?? 3);
                   if (videos.length > 0) {
                     const videosJson = JSON.stringify(videos);
-                    const markerText = (assistantText ? `${assistantText}\n\n` : '')
-                      + `[youtube_videos_start:${search_query}]\n${videosJson}\n[youtube_videos_end]`;
-                    const done = await saveAndBuildDone(markerText, response.usage.input_tokens, response.usage.output_tokens);
+                    const markerText =
+                      (assistantText ? `${assistantText}\n\n` : '') +
+                      `[youtube_videos_start:${search_query}]\n${videosJson}\n[youtube_videos_end]`;
+                    const done = await saveAndBuildDone(
+                      markerText,
+                      response.usage.input_tokens,
+                      response.usage.output_tokens
+                    );
                     controller.enqueue(sseEvent('done', done));
                     controller.close();
                     return;
@@ -544,7 +800,11 @@ export async function POST(request: NextRequest, { params }: Params) {
             }
 
             // ── Standard text-only response path ──
-            const done = await saveAndBuildDone(assistantText, response.usage.input_tokens, response.usage.output_tokens);
+            const done = await saveAndBuildDone(
+              assistantText,
+              response.usage.input_tokens,
+              response.usage.output_tokens
+            );
             controller.enqueue(sseEvent('done', done));
             controller.close();
           } catch (error: unknown) {
@@ -604,16 +864,22 @@ export async function POST(request: NextRequest, { params }: Params) {
       const msg = apiError.error?.message ?? 'AI service error';
 
       if (apiError.status === 400 && msg.includes('credit balance')) {
-        return badRequestResponse('AI service billing issue. Please check your Anthropic API credits.');
+        return badRequestResponse(
+          'AI service billing issue. Please check your Anthropic API credits.'
+        );
       }
       if (apiError.status === 401) {
         return badRequestResponse('Invalid Anthropic API key. Please check your configuration.');
       }
       if (apiError.status === 429) {
-        return tooManyRequestsResponse('AI service rate limit reached. Please wait a moment and try again.');
+        return tooManyRequestsResponse(
+          'AI service rate limit reached. Please wait a moment and try again.'
+        );
       }
       if (apiError.status === 529 || apiError.status === 503) {
-        return internalErrorResponse('AI service is temporarily overloaded. Please try again in a moment.');
+        return internalErrorResponse(
+          'AI service is temporarily overloaded. Please try again in a moment.'
+        );
       }
     }
 

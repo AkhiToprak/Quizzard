@@ -43,7 +43,9 @@ export default function NotebookEmbed({ notebookId }: NotebookEmbedProps) {
         // silently fail
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [notebookId]);
 
   if (!notebook) return null;

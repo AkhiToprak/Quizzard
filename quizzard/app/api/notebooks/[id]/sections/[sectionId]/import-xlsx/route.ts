@@ -56,7 +56,10 @@ export async function POST(request: NextRequest, { params }: Params) {
     const content = xlsxToTipTapTableJSON(sheetsData) as unknown as Prisma.InputJsonValue;
 
     // Extract plain text for search index
-    const textContent = await extractText(buffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    const textContent = await extractText(
+      buffer,
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
 
     // Determine sort order
     const maxOrder = await db.page.aggregate({
@@ -66,7 +69,11 @@ export async function POST(request: NextRequest, { params }: Params) {
     const sortOrder = (maxOrder._max.sortOrder ?? -1) + 1;
 
     // Derive title from storage path filename
-    const fileName = storagePath.split('/').pop()?.replace(/\.(xlsx|xls)$/i, '') || 'Excel Import';
+    const fileName =
+      storagePath
+        .split('/')
+        .pop()
+        ?.replace(/\.(xlsx|xls)$/i, '') || 'Excel Import';
 
     const page = await db.page.create({
       data: {

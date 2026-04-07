@@ -16,7 +16,7 @@ interface TreeNode {
 
 // Parse markdown headings into a tree structure
 function parseMarkdownToTree(markdown: string, rootTitle: string): TreeNode {
-  const lines = markdown.split('\n').filter(l => l.trim());
+  const lines = markdown.split('\n').filter((l) => l.trim());
   const root: TreeNode = { name: rootTitle, children: [] };
   const stack: { node: TreeNode; level: number }[] = [{ node: root, level: 0 }];
 
@@ -40,17 +40,15 @@ function parseMarkdownToTree(markdown: string, rootTitle: string): TreeNode {
 
 // Node colors by depth (pastel palette for dark background)
 const NODE_COLORS = [
-  { bg: 'rgba(140, 82, 255, 0.35)', border: 'rgba(140, 82, 255, 0.6)' },   // root purple
-  { bg: 'rgba(81, 112, 255, 0.25)', border: 'rgba(81, 112, 255, 0.5)' },    // blue
-  { bg: 'rgba(147, 168, 255, 0.2)', border: 'rgba(147, 168, 255, 0.45)' },   // light blue
-  { bg: 'rgba(196, 169, 255, 0.2)', border: 'rgba(196, 169, 255, 0.45)' },   // light purple
-  { bg: 'rgba(99, 179, 237, 0.2)', border: 'rgba(99, 179, 237, 0.45)' },     // cyan
-  { bg: 'rgba(167, 139, 250, 0.2)', border: 'rgba(167, 139, 250, 0.45)' },   // violet
+  { bg: 'rgba(140, 82, 255, 0.35)', border: 'rgba(140, 82, 255, 0.6)' }, // root purple
+  { bg: 'rgba(81, 112, 255, 0.25)', border: 'rgba(81, 112, 255, 0.5)' }, // blue
+  { bg: 'rgba(147, 168, 255, 0.2)', border: 'rgba(147, 168, 255, 0.45)' }, // light blue
+  { bg: 'rgba(196, 169, 255, 0.2)', border: 'rgba(196, 169, 255, 0.45)' }, // light purple
+  { bg: 'rgba(99, 179, 237, 0.2)', border: 'rgba(99, 179, 237, 0.45)' }, // cyan
+  { bg: 'rgba(167, 139, 250, 0.2)', border: 'rgba(167, 139, 250, 0.45)' }, // violet
 ];
 
-const LINE_COLORS = [
-  '#8c52ff', '#5170ff', '#93a8ff', '#c4a9ff', '#63b3ed', '#a78bfa',
-];
+const LINE_COLORS = ['#8c52ff', '#5170ff', '#93a8ff', '#c4a9ff', '#63b3ed', '#a78bfa'];
 
 export default function MindmapRenderer({ title, markdown }: MindmapRendererProps) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -95,7 +93,7 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
       angleStart: number,
       angleEnd: number,
       parentX?: number,
-      parentY?: number,
+      parentY?: number
     ) {
       let x: number, y: number;
 
@@ -104,9 +102,10 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
         y = cy;
       } else {
         const angle = (angleStart + angleEnd) / 2;
-        const radius = depth === 1
-          ? Math.min(width, height) * 0.3
-          : Math.min(width, height) * (0.3 + depth * 0.14);
+        const radius =
+          depth === 1
+            ? Math.min(width, height) * 0.3
+            : Math.min(width, height) * (0.3 + depth * 0.14);
         x = cx + radius * Math.cos(angle);
         y = cy + radius * Math.sin(angle);
       }
@@ -150,9 +149,7 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
       // Measure text to size ellipse
       const fontSize = isRoot ? 14 : Math.max(10, 13 - node.depth);
       const textLen = node.name.length;
-      const rx = isRoot
-        ? Math.max(50, textLen * 5 + 24)
-        : Math.max(35, textLen * 3.5 + 16);
+      const rx = isRoot ? Math.max(50, textLen * 5 + 24) : Math.max(35, textLen * 3.5 + 16);
       const ry = isRoot ? 28 : Math.max(18, 22 - node.depth * 2);
 
       // Ellipse
@@ -179,9 +176,8 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
 
       // Truncate long text
       const maxChars = isRoot ? 20 : Math.floor(rx / 3.5);
-      const displayText = node.name.length > maxChars
-        ? node.name.slice(0, maxChars - 1) + '…'
-        : node.name;
+      const displayText =
+        node.name.length > maxChars ? node.name.slice(0, maxChars - 1) + '…' : node.name;
       text.textContent = displayText;
 
       // Tooltip for truncated text
@@ -232,9 +228,7 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
 
       canvas.toBlob(async (pngBlob) => {
         if (pngBlob) {
-          await navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': pngBlob }),
-          ]);
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
           setCopiedType('image');
           setTimeout(() => setCopiedType(null), 2000);
         }
@@ -252,7 +246,9 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
       await navigator.clipboard.writeText(markdown);
       setCopiedType('markdown');
       setTimeout(() => setCopiedType(null), 2000);
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }, [markdown]);
 
   const downloadHtml = useCallback(() => {
@@ -374,35 +370,51 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
   const containerHeight = expanded ? '600px' : '360px';
 
   return (
-    <div style={{
-      width: '100%',
-      borderRadius: '12px',
-      border: '1px solid rgba(81,112,255,0.25)',
-      background: 'linear-gradient(145deg, #1a1833 0%, #1a1a36 50%, #120f24 100%)',
-      overflow: 'hidden',
-      margin: '8px 0',
-    }}>
+    <div
+      style={{
+        width: '100%',
+        borderRadius: '12px',
+        border: '1px solid rgba(81,112,255,0.25)',
+        background: 'linear-gradient(145deg, #1a1833 0%, #1a1a36 50%, #120f24 100%)',
+        overflow: 'hidden',
+        margin: '8px 0',
+      }}
+    >
       {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 14px',
-        borderBottom: '1px solid rgba(81,112,255,0.12)',
-        background: 'rgba(81,112,255,0.04)',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 14px',
+          borderBottom: '1px solid rgba(81,112,255,0.12)',
+          background: 'rgba(81,112,255,0.04)',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{
-            display: 'flex', alignItems: 'center', color: '#93a8ff',
-          }}><Brain size={16} /></span>
-          <span style={{
-            fontSize: '13px', fontWeight: 600, color: '#93a8ff',
-            fontFamily: 'inherit',
-          }}>
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              color: '#93a8ff',
+            }}
+          >
+            <Brain size={16} />
+          </span>
+          <span
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#93a8ff',
+              fontFamily: 'inherit',
+            }}
+          >
             {title}
           </span>
         </div>
         <div style={{ display: 'flex', gap: '4px' }}>
           <ToolbarButton
-            onClick={() => setExpanded(v => !v)}
+            onClick={() => setExpanded((v) => !v)}
             icon={expanded ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
             tooltip={expanded ? 'Collapse' : 'Expand'}
           />
@@ -435,12 +447,18 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
         }}
       >
         {!loaded && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'rgba(237,233,255,0.3)', fontSize: '13px',
-            fontFamily: 'inherit',
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'rgba(237,233,255,0.3)',
+              fontSize: '13px',
+              fontFamily: 'inherit',
+            }}
+          >
             Rendering mind map...
           </div>
         )}
@@ -457,7 +475,11 @@ export default function MindmapRenderer({ title, markdown }: MindmapRendererProp
   );
 }
 
-function ToolbarButton({ onClick, icon, tooltip }: {
+function ToolbarButton({
+  onClick,
+  icon,
+  tooltip,
+}: {
   onClick: () => void;
   icon: React.ReactNode;
   tooltip: string;
@@ -470,8 +492,12 @@ function ToolbarButton({ onClick, icon, tooltip }: {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: '26px', height: '26px', borderRadius: '6px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '26px',
+        height: '26px',
+        borderRadius: '6px',
         border: '1px solid rgba(81,112,255,0.15)',
         background: hovered ? 'rgba(81,112,255,0.12)' : 'transparent',
         color: hovered ? '#93a8ff' : 'rgba(237,233,255,0.4)',

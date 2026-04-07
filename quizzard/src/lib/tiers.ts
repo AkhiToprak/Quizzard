@@ -40,7 +40,8 @@ export const TIERS: Record<TierKey, TierConfig> = {
     },
     badge: {
       label: 'Plus',
-      className: 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_8px_rgba(168,85,247,0.3)]',
+      className:
+        'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_8px_rgba(168,85,247,0.3)]',
     },
   },
   PRO: {
@@ -54,7 +55,8 @@ export const TIERS: Record<TierKey, TierConfig> = {
     },
     badge: {
       label: 'Pro',
-      className: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shadow-[0_0_8px_rgba(255,222,89,0.3)]',
+      className:
+        'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shadow-[0_0_8px_rgba(255,222,89,0.3)]',
     },
   },
 };

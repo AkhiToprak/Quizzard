@@ -10,10 +10,7 @@ import {
 } from '@/lib/api-response';
 
 // POST — deep-clone a shared notebook for the authenticated user
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();

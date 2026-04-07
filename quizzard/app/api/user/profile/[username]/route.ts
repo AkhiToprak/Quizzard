@@ -63,7 +63,8 @@ export async function GET(
       } else if (friendship.status === 'accepted') {
         friendshipStatus = 'accepted';
       } else if (friendship.status === 'pending') {
-        friendshipStatus = friendship.requesterId === viewerId ? 'pending_sent' : 'pending_received';
+        friendshipStatus =
+          friendship.requesterId === viewerId ? 'pending_sent' : 'pending_received';
       } else if (friendship.status === 'declined') {
         friendshipStatus = 'none';
       }

@@ -69,11 +69,9 @@ export default function AchievementToast({
           background: '#1c1c38',
           borderRadius: '16px',
           border: '1px solid rgba(255,222,89,0.3)',
-          boxShadow:
-            '0 0 24px rgba(255,222,89,0.1), 0 8px 32px rgba(0,0,0,0.4)',
+          boxShadow: '0 0 24px rgba(255,222,89,0.1), 0 8px 32px rgba(0,0,0,0.4)',
           maxWidth: '360px',
-          animation:
-            'achievement-slide-in 0.4s cubic-bezier(0.22,1,0.36,1) forwards',
+          animation: 'achievement-slide-in 0.4s cubic-bezier(0.22,1,0.36,1) forwards',
         }}
       >
         {/* Icon */}
@@ -94,8 +92,7 @@ export default function AchievementToast({
             style={{
               fontSize: '24px',
               color: '#ffde59',
-              fontVariationSettings:
-                "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
+              fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
             }}
           >
             {materialIcon}
@@ -167,10 +164,7 @@ export default function AchievementToast({
             e.currentTarget.style.background = 'none';
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: '18px' }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
             close
           </span>
         </button>

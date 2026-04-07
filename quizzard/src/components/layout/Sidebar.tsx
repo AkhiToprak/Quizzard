@@ -20,12 +20,12 @@ function getInitials(name?: string | null): string {
 }
 
 const navLinks = [
-  { href: '/home',      label: 'Home',       icon: 'home' },
-  { href: '/dashboard', label: 'Dashboard',  icon: 'dashboard' },
-  { href: '/profile',   label: 'Profile',    icon: 'person' },
-  { href: '/notebooks', label: 'Notebooks',  icon: 'auto_stories' },
-  { href: '/groups',    label: 'Study Groups', icon: 'groups' },
-  { href: '/settings',  label: 'Settings',   icon: 'settings' },
+  { href: '/home', label: 'Home', icon: 'home' },
+  { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { href: '/profile', label: 'Profile', icon: 'person' },
+  { href: '/notebooks', label: 'Notebooks', icon: 'auto_stories' },
+  { href: '/groups', label: 'Study Groups', icon: 'groups' },
+  { href: '/settings', label: 'Settings', icon: 'settings' },
 ];
 
 export default function Sidebar() {
@@ -66,8 +66,7 @@ export default function Sidebar() {
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {navLinks.map(({ href, label, icon }) => {
           const isActive =
-            pathname === href ||
-            (href !== '/dashboard' && pathname.startsWith(href + '/'));
+            pathname === href || (href !== '/dashboard' && pathname.startsWith(href + '/'));
           return (
             <Link
               key={href}

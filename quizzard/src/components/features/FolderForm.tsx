@@ -10,7 +10,16 @@ interface FolderFormProps {
   isLoading: boolean;
 }
 
-const COLOR_SWATCHES = ['#8c52ff', '#5170ff', '#ffde59', '#ff7043', '#4ade80', '#38bdf8', '#f472b6', '#a78bfa'];
+const COLOR_SWATCHES = [
+  '#8c52ff',
+  '#5170ff',
+  '#ffde59',
+  '#ff7043',
+  '#4ade80',
+  '#38bdf8',
+  '#f472b6',
+  '#a78bfa',
+];
 
 export default function FolderForm({ folder, onSubmit, onCancel, isLoading }: FolderFormProps) {
   const [name, setName] = useState(folder?.name ?? '');
@@ -45,7 +54,9 @@ export default function FolderForm({ folder, onSubmit, onCancel, isLoading }: Fo
         zIndex: 1000,
         padding: '20px',
       }}
-      onClick={() => { if (!isLoading) onCancel(); }}
+      onClick={() => {
+        if (!isLoading) onCancel();
+      }}
     >
       <div
         style={{
@@ -70,7 +81,15 @@ export default function FolderForm({ folder, onSubmit, onCancel, isLoading }: Fo
         <form onSubmit={handleSubmit}>
           {/* Name */}
           <label style={{ display: 'block', marginBottom: '16px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#aaa8c8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#aaa8c8',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+              }}
+            >
               Folder Name
             </span>
             <input
@@ -95,14 +114,26 @@ export default function FolderForm({ folder, onSubmit, onCancel, isLoading }: Fo
                 transition: 'border-color 0.15s',
                 boxSizing: 'border-box',
               }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(174,137,255,0.4)'; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(174,137,255,0.15)'; }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(174,137,255,0.4)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(174,137,255,0.15)';
+              }}
             />
           </label>
 
           {/* Color */}
           <label style={{ display: 'block', marginBottom: '24px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#aaa8c8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#aaa8c8',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+              }}
+            >
               Color
             </span>
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
@@ -165,7 +196,7 @@ export default function FolderForm({ folder, onSubmit, onCancel, isLoading }: Fo
                 fontFamily: 'inherit',
               }}
             >
-              {isLoading ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Save' : 'Create')}
+              {isLoading ? (isEdit ? 'Saving…' : 'Creating…') : isEdit ? 'Save' : 'Create'}
             </button>
           </div>
         </form>

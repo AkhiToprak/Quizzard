@@ -161,9 +161,7 @@ export default function FriendRequestCard({
             height: 34,
             borderRadius: 8,
             border: '1px solid rgba(74,222,128,0.3)',
-            background: acceptHovered
-              ? 'rgba(74,222,128,0.25)'
-              : 'rgba(74,222,128,0.15)',
+            background: acceptHovered ? 'rgba(74,222,128,0.25)' : 'rgba(74,222,128,0.15)',
             color: '#4ade80',
             cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.6 : 1,
@@ -200,9 +198,7 @@ export default function FriendRequestCard({
             height: 34,
             borderRadius: 8,
             border: '1px solid rgba(253,111,133,0.3)',
-            background: declineHovered
-              ? 'rgba(253,111,133,0.25)'
-              : 'rgba(253,111,133,0.15)',
+            background: declineHovered ? 'rgba(253,111,133,0.25)' : 'rgba(253,111,133,0.15)',
             color: '#fd6f85',
             cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.6 : 1,

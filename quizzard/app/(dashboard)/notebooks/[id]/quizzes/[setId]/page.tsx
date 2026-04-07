@@ -22,7 +22,11 @@ interface QuizSetData {
   }[];
 }
 
-export default function QuizViewerPage({ params }: { params: Promise<{ id: string; setId: string }> }) {
+export default function QuizViewerPage({
+  params,
+}: {
+  params: Promise<{ id: string; setId: string }>;
+}) {
   const { id: notebookId, setId } = use(params);
   const router = useRouter();
   const [data, setData] = useState<QuizSetData | null>(null);
@@ -50,11 +54,16 @@ export default function QuizViewerPage({ params }: { params: Promise<{ id: strin
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100%', color: 'rgba(237,233,255,0.3)',
-        fontFamily: 'inherit',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          color: 'rgba(237,233,255,0.3)',
+          fontFamily: 'inherit',
+        }}
+      >
         Loading quiz...
       </div>
     );
@@ -62,19 +71,28 @@ export default function QuizViewerPage({ params }: { params: Promise<{ id: strin
 
   if (error || !data) {
     return (
-      <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        height: '100%', gap: '12px',
-        fontFamily: 'inherit',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          gap: '12px',
+          fontFamily: 'inherit',
+        }}
+      >
         <p style={{ color: 'rgba(252,165,165,0.8)', fontSize: '14px' }}>{error}</p>
         <button
           onClick={() => router.back()}
           style={{
-            padding: '8px 16px', borderRadius: '8px',
+            padding: '8px 16px',
+            borderRadius: '8px',
             border: '1px solid rgba(140,82,255,0.3)',
-            background: 'transparent', color: '#c4a9ff',
-            fontSize: '13px', cursor: 'pointer',
+            background: 'transparent',
+            color: '#c4a9ff',
+            fontSize: '13px',
+            cursor: 'pointer',
             fontFamily: 'inherit',
           }}
         >

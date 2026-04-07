@@ -75,7 +75,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       if (!qCol && headers.length >= 1) qCol = headers[0];
       if (!aCol && headers.length >= 2) aCol = headers[1];
 
-      if (!qCol || !aCol) return badRequestResponse('Could not determine question and answer columns');
+      if (!qCol || !aCol)
+        return badRequestResponse('Could not determine question and answer columns');
 
       cards = rows
         .map((row) => ({
@@ -84,7 +85,9 @@ export async function POST(request: NextRequest, { params }: Params) {
         }))
         .filter((c) => c.question && c.answer);
     } else {
-      return badRequestResponse(`Unsupported file format: .${ext}. Use .csv, .xlsx, .xls, or .apkg`);
+      return badRequestResponse(
+        `Unsupported file format: .${ext}. Use .csv, .xlsx, .xls, or .apkg`
+      );
     }
 
     if (cards.length === 0) return badRequestResponse('No valid flashcards found in file');

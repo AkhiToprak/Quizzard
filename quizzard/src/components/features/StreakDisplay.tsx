@@ -110,7 +110,13 @@ export default function StreakDisplay({ onStreakLoaded }: StreakDisplayProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '12px', color: '#aaa8c8' }}>Freezes left</span>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: streak.freezesLeft > 0 ? '#4ade80' : '#f87171' }}>
+              <span
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: streak.freezesLeft > 0 ? '#4ade80' : '#f87171',
+                }}
+              >
                 {streak.freezesLeft}
               </span>
             </div>

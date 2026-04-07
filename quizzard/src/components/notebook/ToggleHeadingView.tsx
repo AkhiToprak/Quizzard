@@ -37,7 +37,7 @@ export default function ToggleHeadingView({ node, updateAttributes }: NodeViewPr
     (e: React.ChangeEvent<HTMLInputElement>) => {
       updateAttributes({ summary: e.target.value });
     },
-    [updateAttributes],
+    [updateAttributes]
   );
 
   const handleSummaryKeyDown = useCallback(
@@ -50,7 +50,7 @@ export default function ToggleHeadingView({ node, updateAttributes }: NodeViewPr
         }
       }
     },
-    [collapsed, updateAttributes],
+    [collapsed, updateAttributes]
   );
 
   return (

@@ -25,10 +25,34 @@ interface GoalConfig {
 }
 
 const GOAL_CONFIGS: GoalConfig[] = [
-  { type: 'hours',     icon: 'schedule',     label: 'Study Hours / Week',   unit: 'hrs',  presets: [5, 10, 15, 20] },
-  { type: 'pages',     icon: 'description',  label: 'Pages Written / Week', unit: 'pgs',  presets: [5, 10, 20, 50] },
-  { type: 'quizzes',   icon: 'psychology',   label: 'Quizzes / Week',       unit: 'quiz', presets: [3, 5, 10, 20] },
-  { type: 'notebooks', icon: 'auto_stories', label: 'Notebooks / Week',     unit: 'nb',   presets: [1, 2, 3, 5] },
+  {
+    type: 'hours',
+    icon: 'schedule',
+    label: 'Study Hours / Week',
+    unit: 'hrs',
+    presets: [5, 10, 15, 20],
+  },
+  {
+    type: 'pages',
+    icon: 'description',
+    label: 'Pages Written / Week',
+    unit: 'pgs',
+    presets: [5, 10, 20, 50],
+  },
+  {
+    type: 'quizzes',
+    icon: 'psychology',
+    label: 'Quizzes / Week',
+    unit: 'quiz',
+    presets: [3, 5, 10, 20],
+  },
+  {
+    type: 'notebooks',
+    icon: 'auto_stories',
+    label: 'Notebooks / Week',
+    unit: 'nb',
+    presets: [1, 2, 3, 5],
+  },
 ];
 
 export default function StudyGoalsStep({
@@ -120,11 +144,12 @@ export default function StudyGoalsStep({
                 border: isSelected
                   ? '2px solid #ae89ff'
                   : isHovered
-                  ? '1px solid rgba(174,137,255,0.3)'
-                  : '1px solid #555578',
+                    ? '1px solid rgba(174,137,255,0.3)'
+                    : '1px solid #555578',
                 boxShadow: isSelected ? '0 0 0 4px rgba(174,137,255,0.1)' : 'none',
                 cursor: 'pointer',
-                transition: 'border-color 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
+                transition:
+                  'border-color 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
                 userSelect: 'none',
               }}
             >
@@ -217,9 +242,7 @@ export default function StudyGoalsStep({
                     style={{
                       width: '52px',
                       background: '#2a2a4c',
-                      border: customInputs[config.type]
-                        ? '1px solid #ae89ff'
-                        : '1px solid #555578',
+                      border: customInputs[config.type] ? '1px solid #ae89ff' : '1px solid #555578',
                       borderRadius: '8px',
                       padding: '4px 8px',
                       color: '#e5e3ff',
@@ -252,7 +275,8 @@ export default function StudyGoalsStep({
             cursor: loading ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit',
             boxShadow: loading ? 'none' : '0 8px 24px rgba(174,137,255,0.3)',
-            transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
+            transition:
+              'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
