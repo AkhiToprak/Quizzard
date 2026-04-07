@@ -1,5 +1,7 @@
 import { db } from '@/lib/db';
-import { successResponse, badRequestResponse, internalErrorResponse } from '@/lib/api-response';
+import { Prisma } from '@prisma/client';
+import { successResponse, createdResponse, badRequestResponse, internalErrorResponse } from '@/lib/api-response';
+import { sendWaitlistConfirmation } from '@/lib/waitlist-email';
 
 export async function POST(request: Request) {
   try {
@@ -14,14 +16,25 @@ export async function POST(request: Request) {
       return badRequestResponse('Invalid email address');
     }
 
-    // Upsert — if already on waitlist, just return success
-    await db.waitlist.upsert({
-      where: { email: trimmed },
-      update: {},
-      create: { email: trimmed },
-    });
+    const existing = await db.waitlist.findUnique({ where: { email: trimmed } });
+    if (existing) {
+      return successResponse({ email: trimmed }, 'You are already on the waitlist!');
+    }
 
-    return successResponse({ email: trimmed }, 'Successfully joined the waitlist!');
+    try {
+      await db.waitlist.create({ data: { email: trimmed } });
+    } catch (err) {
+      // Race condition: another request created the same email between findUnique and create
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        return successResponse({ email: trimmed }, 'You are already on the waitlist!');
+      }
+      throw err;
+    }
+
+    // Fire-and-forget confirmation email
+    sendWaitlistConfirmation(trimmed);
+
+    return createdResponse({ email: trimmed }, 'Successfully joined the waitlist!');
   } catch (error) {
     console.error('Waitlist signup error:', error);
     return internalErrorResponse();
