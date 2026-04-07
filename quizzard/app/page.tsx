@@ -482,7 +482,7 @@ export default function LandingPage() {
           display: "flex", alignItems: "center",
           background: scrolled ? "rgba(9,8,26,0.88)" : "rgba(9,8,26,0.55)",
           backdropFilter: scrolled ? "blur(24px)" : "blur(12px)",
-          borderBottom: scrolled ? "1px solid rgba(140,82,255,0.12)" : "1px solid transparent",
+          borderBottom: scrolled ? "1px solid transparent" : "1px solid rgba(140,82,255,0.25)",
           transition: "background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease",
         }}
       >
