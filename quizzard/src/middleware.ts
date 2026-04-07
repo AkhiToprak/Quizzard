@@ -20,14 +20,14 @@ export async function middleware(request: NextRequest) {
     if (!token) return withSecurityHeaders(NextResponse.next()); // Allow unauthenticated registration (temporarily re-enabled)
     if (token.onboardingComplete) {
       // Completed onboarding — block re-registration
-      return withSecurityHeaders(NextResponse.redirect(new URL('/home', request.url)));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
     }
     return withSecurityHeaders(NextResponse.next()); // Incomplete onboarding — allow access to finish
   }
 
-  // Authenticated users hitting "/" → redirect to /home
+  // Authenticated users hitting "/" → redirect to /dashboard
   if (pathname === '/' && token) {
-    return withSecurityHeaders(NextResponse.redirect(new URL('/home', request.url)));
+    return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
   }
 
   // Public pricing page — allow unauthenticated access
@@ -62,8 +62,8 @@ export const config = {
     '/notebooks/:path*',
     '/settings/:path*',
     '/settings',
-    '/home/:path*',
-    '/home',
+    '/dashboard/:path*',
+    '/dashboard',
     '/pricing',
   ],
 };

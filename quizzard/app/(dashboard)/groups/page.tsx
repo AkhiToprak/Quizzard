@@ -53,8 +53,41 @@ function SkeletonCard() {
   );
 }
 
+type CoWorkTab = 'groups' | 'classes' | 'dms';
+
+const TABS: { key: CoWorkTab; label: string; icon: string }[] = [
+  { key: 'groups', label: 'Study Groups', icon: 'groups' },
+  { key: 'classes', label: 'Classes', icon: 'school' },
+  { key: 'dms', label: 'Direct Messages', icon: 'chat' },
+];
+
+function ComingSoon({ icon, title, description }: { icon: string; title: string; description: string }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      gap: 12, padding: '100px 16px',
+    }}>
+      <span className="material-symbols-outlined" style={{ fontSize: 56, color: COLORS.textMuted, opacity: 0.5 }}>
+        {icon}
+      </span>
+      <span style={{ fontSize: 20, fontWeight: 700, color: COLORS.textPrimary }}>{title}</span>
+      <span style={{ fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', maxWidth: 360 }}>
+        {description}
+      </span>
+      <span style={{
+        marginTop: 8, padding: '6px 16px', borderRadius: 9999,
+        background: `${COLORS.primary}1a`, color: COLORS.primary,
+        fontSize: 12, fontWeight: 700, letterSpacing: '0.05em',
+      }}>
+        COMING SOON
+      </span>
+    </div>
+  );
+}
+
 export default function GroupsPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<CoWorkTab>('groups');
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -162,7 +195,7 @@ export default function GroupsPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: 32,
+            marginBottom: 24,
           }}
         >
           <div>
@@ -175,7 +208,7 @@ export default function GroupsPage() {
                 letterSpacing: '-0.02em',
               }}
             >
-              Study Groups
+              Co-Work
             </h1>
             <p
               style={{
@@ -184,38 +217,94 @@ export default function GroupsPage() {
                 margin: '6px 0 0',
               }}
             >
-              Collaborate and learn together
+              Study groups, classes, and direct messages
             </p>
           </div>
 
-          <button
-            onClick={() => setShowCreateModal(true)}
-            onMouseEnter={() => setHoveredCreate(true)}
-            onMouseLeave={() => setHoveredCreate(false)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: hoveredCreate ? COLORS.deepPurple : COLORS.primary,
-              color: '#1a0040',
-              fontSize: 14,
-              fontWeight: 700,
-              borderRadius: 12,
-              padding: '12px 20px',
-              border: 'none',
-              cursor: 'pointer',
-              transition: `background 0.2s ${EASING}, transform 0.15s ${EASING}`,
-              transform: hoveredCreate ? 'scale(1.02)' : 'scale(1)',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-              add
-            </span>
-            Create Group
-          </button>
+          {activeTab === 'groups' && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              onMouseEnter={() => setHoveredCreate(true)}
+              onMouseLeave={() => setHoveredCreate(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: hoveredCreate ? COLORS.deepPurple : COLORS.primary,
+                color: '#1a0040',
+                fontSize: 14,
+                fontWeight: 700,
+                borderRadius: 12,
+                padding: '12px 20px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: `background 0.2s ${EASING}, transform 0.15s ${EASING}`,
+                transform: hoveredCreate ? 'scale(1.02)' : 'scale(1)',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                add
+              </span>
+              Create Group
+            </button>
+          )}
         </div>
 
+        {/* Tab bar */}
+        <div style={{
+          display: 'flex', gap: 8, marginBottom: 32,
+          borderBottom: `1px solid ${COLORS.border}1a`,
+          paddingBottom: 0,
+        }}>
+          {TABS.map((tab) => {
+            const active = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                style={{
+                  position: 'relative',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '12px 20px', paddingBottom: 14,
+                  background: 'none', border: 'none',
+                  fontSize: 14, fontWeight: active ? 700 : 500,
+                  color: active ? COLORS.primary : COLORS.textMuted,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                  transition: `color 0.2s ${EASING}`,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{tab.icon}</span>
+                {tab.label}
+                {active && (
+                  <span style={{
+                    position: 'absolute', bottom: -1, left: 0, width: '100%', height: 2,
+                    background: COLORS.primary, borderRadius: 1,
+                  }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab content */}
+        {activeTab === 'classes' && (
+          <ComingSoon
+            icon="school"
+            title="Classes"
+            description="Organize entire classes with teachers and students. Teachers get special permissions to manage content and control sharing."
+          />
+        )}
+
+        {activeTab === 'dms' && (
+          <ComingSoon
+            icon="chat"
+            title="Direct Messages"
+            description="Share content and chat 1-on-1 with friends. All the power of study groups, in a private conversation."
+          />
+        )}
+
+        {activeTab === 'groups' && <>
         {/* Pending Invitations */}
         {invitations.length > 0 && (
           <div style={{ marginBottom: 32 }}>
@@ -359,6 +448,7 @@ export default function GroupsPage() {
             ))}
           </div>
         )}
+        </>}
       </div>
 
       <CreateGroupModal
