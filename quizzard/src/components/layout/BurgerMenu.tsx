@@ -42,9 +42,10 @@ function getAvatarGradient(id: string): string {
 }
 
 const NAV_ITEMS = [
-  { href: '/home', label: 'Home', icon: 'home' },
   { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { href: '/profile', label: 'Profile', icon: 'person' },
   { href: '/notebooks', label: 'Notebooks', icon: 'menu_book' },
+  { href: '/groups', label: 'Co-Work', icon: 'workspaces' },
   { href: '/settings', label: 'Settings', icon: 'settings' },
 ];
 
