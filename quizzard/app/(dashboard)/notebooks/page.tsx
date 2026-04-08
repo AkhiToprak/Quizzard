@@ -1212,54 +1212,6 @@ function NotebooksPageContent() {
         </div>
       )}
 
-      {/* FAB */}
-      <button
-        onClick={() => {
-          setEditingNotebook(null);
-          setShowForm(true);
-        }}
-        title="Quick Note"
-        style={{
-          position: 'fixed',
-          bottom: responsiveValue(bp, { phone: '20px', tablet: '24px', desktop: '32px' }),
-          right: responsiveValue(bp, { phone: '16px', tablet: '24px', desktop: '32px' }),
-          width: responsiveValue(bp, { phone: '56px', tablet: '60px', desktop: '64px' }),
-          height: responsiveValue(bp, { phone: '56px', tablet: '60px', desktop: '64px' }),
-          borderRadius: '50%',
-          background: '#ffde59',
-          border: 'none',
-          color: '#5f4f00',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: '0 8px 32px rgba(255,222,89,0.3)',
-          zIndex: 50,
-          transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)';
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-        }}
-        onMouseDown={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.9)';
-        }}
-        onMouseUp={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)';
-        }}
-      >
-        <span
-          className="material-symbols-outlined"
-          style={{
-            fontSize: '28px',
-            fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-          }}
-        >
-          edit_note
-        </span>
-      </button>
     </div>
   );
 }
