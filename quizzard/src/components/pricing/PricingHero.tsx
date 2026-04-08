@@ -1,14 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import PricingToggle from './PricingToggle';
 
-interface PricingHeroProps {
-  billingPeriod: 'monthly' | 'annual';
-  onBillingChange: (period: 'monthly' | 'annual') => void;
-}
-
-export default function PricingHero({ billingPeriod, onBillingChange }: PricingHeroProps) {
+export default function PricingHero() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -39,7 +33,6 @@ export default function PricingHero({ billingPeriod, onBillingChange }: PricingH
           pointerEvents: 'none',
         }}
       >
-        {/* Primary orb */}
         <div
           className="aurora-orb-1"
           style={{
@@ -54,7 +47,6 @@ export default function PricingHero({ billingPeriod, onBillingChange }: PricingH
             filter: 'blur(60px)',
           }}
         />
-        {/* Secondary orb */}
         <div
           className="aurora-orb-2"
           style={{
@@ -68,7 +60,6 @@ export default function PricingHero({ billingPeriod, onBillingChange }: PricingH
             filter: 'blur(40px)',
           }}
         />
-        {/* Tertiary/gold orb */}
         <div
           className="aurora-orb-3"
           style={{
@@ -85,7 +76,6 @@ export default function PricingHero({ billingPeriod, onBillingChange }: PricingH
       </div>
 
       {/* ── Content ── */}
-      {/* Kicker */}
       <p
         style={{
           fontSize: 11,
@@ -105,7 +95,6 @@ export default function PricingHero({ billingPeriod, onBillingChange }: PricingH
         Pricing
       </p>
 
-      {/* Headline */}
       <h1
         style={{
           fontFamily: 'var(--font-display)',
@@ -136,7 +125,6 @@ export default function PricingHero({ billingPeriod, onBillingChange }: PricingH
         </span>
       </h1>
 
-      {/* Subtitle */}
       <p
         style={{
           fontSize: 'clamp(15px, 2vw, 18px)',
@@ -154,21 +142,6 @@ export default function PricingHero({ billingPeriod, onBillingChange }: PricingH
         Start free, upgrade when you need more. Every plan includes the core Quizzard
         experience — AI flashcards, study plans, and Scholar Chat.
       </p>
-
-      {/* Toggle */}
-      <div
-        style={{
-          marginTop: 36,
-          position: 'relative',
-          zIndex: 1,
-          opacity: mounted ? 1 : 0,
-          transform: mounted ? 'translateY(0)' : 'translateY(16px)',
-          transition: 'opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1)',
-          transitionDelay: '240ms',
-        }}
-      >
-        <PricingToggle value={billingPeriod} onChange={onBillingChange} />
-      </div>
     </section>
   );
 }

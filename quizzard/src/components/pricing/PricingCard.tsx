@@ -10,7 +10,6 @@ interface PricingCardProps {
   ctaText?: string;
   ctaHref?: string;
   formattedPrice?: string;
-  billingPeriod?: 'monthly' | 'annual';
   isRevealed?: boolean;
   delay?: number;
 }
@@ -64,23 +63,18 @@ export default function PricingCard({
   ctaText,
   ctaHref,
   formattedPrice,
-  billingPeriod = 'monthly',
   isRevealed = true,
   delay = 0,
 }: PricingCardProps) {
   const config = TIERS[tier];
   const accent = ACCENT[tier];
-  const isPopular = tier === 'PLUS';
+  const isPopular = tier === 'PRO';
   const isPro = tier === 'PRO';
   const [hovered, setHovered] = useState(false);
   const [ctaHovered, setCtaHovered] = useState(false);
 
-  const basePriceDisplay =
+  const displayPrice =
     formattedPrice ?? (config.priceCHF === 0 ? 'Free' : `CHF ${config.priceCHF}`);
-
-  const annualPrice =
-    config.priceCHF > 0 ? Math.round(config.priceCHF * 0.8 * 100) / 100 : 0;
-  const showAnnual = billingPeriod === 'annual' && config.priceCHF > 0;
 
   const cardStyle: React.CSSProperties = {
     position: 'relative',
@@ -114,7 +108,7 @@ export default function PricingCard({
       box-shadow 0.35s cubic-bezier(0.22,1,0.36,1),
       border-color 0.25s cubic-bezier(0.22,1,0.36,1)
     `.trim(),
-    overflow: 'hidden',
+    overflow: 'visible',
   };
 
   // Hover highlight gradient at top edge
@@ -148,30 +142,6 @@ export default function PricingCard({
             top: -13,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'linear-gradient(135deg, var(--primary), var(--primary-container))',
-            color: '#fff',
-            fontSize: 11,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            padding: '5px 16px',
-            borderRadius: 'var(--radius-full)',
-            whiteSpace: 'nowrap',
-            boxShadow: '0 4px 16px rgba(174,137,255,0.25)',
-          }}
-        >
-          Most Popular
-        </div>
-      )}
-
-      {/* PRO badge */}
-      {isPro && (
-        <div
-          style={{
-            position: 'absolute',
-            top: -13,
-            left: '50%',
-            transform: 'translateX(-50%)',
             background: 'linear-gradient(135deg, var(--tertiary-container), #f5c542)',
             color: '#1a1a2e',
             fontSize: 11,
@@ -181,12 +151,13 @@ export default function PricingCard({
             padding: '5px 16px',
             borderRadius: 'var(--radius-full)',
             whiteSpace: 'nowrap',
-            boxShadow: '0 4px 16px rgba(255,222,89,0.2)',
+            boxShadow: '0 4px 16px rgba(255,222,89,0.25)',
           }}
         >
-          Best Value
+          Most Popular
         </div>
       )}
+
 
       {/* Tier name */}
       <h3
@@ -203,44 +174,21 @@ export default function PricingCard({
       </h3>
 
       {/* Price */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {showAnnual && (
-          <span
-            style={{
-              fontSize: 14,
-              color: 'var(--outline)',
-              textDecoration: 'line-through',
-              opacity: 0.6,
-            }}
-          >
-            {basePriceDisplay}/mo
-          </span>
-        )}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-          <span
-            style={{
-              fontSize: 40,
-              fontWeight: 800,
-              color: 'var(--on-surface)',
-              letterSpacing: '-0.03em',
-              fontFamily: 'var(--font-display)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {showAnnual
-              ? formattedPrice
-                ? `CHF ${annualPrice}`
-                : `CHF ${annualPrice}`
-              : basePriceDisplay}
-          </span>
-          {config.priceCHF > 0 && (
-            <span style={{ fontSize: 14, color: 'var(--outline)', fontWeight: 500 }}>/mo</span>
-          )}
-        </div>
-        {showAnnual && (
-          <span style={{ fontSize: 12, color: 'var(--tertiary-container)', fontWeight: 600 }}>
-            Billed annually
-          </span>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+        <span
+          style={{
+            fontSize: 40,
+            fontWeight: 800,
+            color: 'var(--on-surface)',
+            letterSpacing: '-0.03em',
+            fontFamily: 'var(--font-display)',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {displayPrice}
+        </span>
+        {config.priceCHF > 0 && (
+          <span style={{ fontSize: 14, color: 'var(--outline)', fontWeight: 500 }}>/mo</span>
         )}
       </div>
 

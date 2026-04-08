@@ -12,7 +12,6 @@ import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 export default function PricingPage() {
   const [scrolled, setScrolled] = useState(false);
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const { formatPrice } = useCurrency();
   const { ref: cardsRef, isRevealed: cardsRevealed } = useScrollReveal();
   const { ref: ctaRef, isRevealed: ctaRevealed } = useScrollReveal();
@@ -255,7 +254,7 @@ export default function PricingPage() {
       </nav>
 
       {/* ── HERO ── */}
-      <PricingHero billingPeriod={billingPeriod} onBillingChange={setBillingPeriod} />
+      <PricingHero />
 
       {/* ── PRICING CARDS ── */}
       <section
@@ -281,7 +280,6 @@ export default function PricingPage() {
               formattedPrice={formatPrice(TIERS[key].priceCHF)}
               ctaHref={`/auth/register?tier=${key}`}
               ctaText={ctaText}
-              billingPeriod={billingPeriod}
               isRevealed={cardsRevealed}
               delay={idx * 120}
             />
