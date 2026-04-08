@@ -92,6 +92,7 @@ model User {
   xp                     Int                @default(0)
   level                  Int                @default(1)
   exams                  Exam[]
+  todos                  Todo[]
   usageRecords           UsageRecord[]
   adminAuditLogs         AdminAuditLog[] @relation("AdminAuditLogs")
 
@@ -1106,6 +1107,24 @@ model Exam {
 
   @@index([userId, examDate])
   @@map("exams")
+}
+
+// ============================================================================
+// TODOS
+// ============================================================================
+
+model Todo {
+  id        String   @id @default(cuid())
+  userId    String
+  text      String   @db.VarChar(200)
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, completed])
+  @@map("todos")
 }
 
 // ============================================================================

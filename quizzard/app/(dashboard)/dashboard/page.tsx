@@ -3,7 +3,6 @@
 import { useSession } from 'next-auth/react';
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import ActivityHeatmap from '@/components/features/ActivityHeatmap';
 import StreakDisplay from '@/components/features/StreakDisplay';
 import XPProgressBar from '@/components/features/XPProgressBar';
@@ -26,13 +25,11 @@ interface DashboardData {
   recentActivity: RecentItem[];
 }
 
-interface FlashcardSetItem {
+interface TodoItem {
   id: string;
-  title: string;
-  notebookId: string;
-  updatedAt: string;
-  _count: { flashcards: number };
-  notebook: { name: string; color: string | null };
+  text: string;
+  completed: boolean;
+  createdAt: string;
 }
 
 interface XPData {
@@ -96,12 +93,11 @@ function getActivityStyle(subject?: string | null) {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const router = useRouter();
   const [notebookCount, setNotebookCount] = useState<number | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [flashcardSets, setFlashcardSets] = useState<FlashcardSetItem[]>([]);
-  const [flashcardCount, setFlashcardCount] = useState<number | null>(null);
-  const [showFlashcardDropdown, setShowFlashcardDropdown] = useState(false);
+  const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [todoInput, setTodoInput] = useState('');
+  const [todoLoading, setTodoLoading] = useState(false);
   const [streakValue, setStreakValue] = useState<string>('—');
   const [streakIsActive, setStreakIsActive] = useState(false);
   const [freezesLeft, setFreezeesLeft] = useState(0);
@@ -110,7 +106,9 @@ export default function DashboardPage() {
   const [notebooks, setNotebooks] = useState<NotebookOption[]>([]);
   const [showExamForm, setShowExamForm] = useState(false);
   const [generatingPlanId, setGeneratingPlanId] = useState<string | null>(null);
-  const flashcardRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [activeCard, setActiveCard] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     fetch('/api/notebooks?folderId=all')
@@ -132,16 +130,7 @@ export default function DashboardPage() {
       })
       .catch(() => {});
 
-    fetch('/api/flashcard-sets')
-      .then((r) => r.json())
-      .then((res) => {
-        const d = res?.data ?? res;
-        if (Array.isArray(d)) {
-          setFlashcardSets(d);
-          setFlashcardCount(d.length);
-        }
-      })
-      .catch(() => {});
+    fetchTodos();
 
     fetch('/api/user/streak')
       .then((r) => r.json())
@@ -213,18 +202,77 @@ export default function DashboardPage() {
     }
   };
 
-  // Close dropdown on outside click
+  // Mobile detection for carousel
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (flashcardRef.current && !flashcardRef.current.contains(e.target as Node)) {
-        setShowFlashcardDropdown(false);
+    const mq = window.matchMedia('(max-width: 768px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  const fetchTodos = () => {
+    fetch('/api/user/todos')
+      .then((r) => r.json())
+      .then((res) => {
+        const d = res?.data ?? res;
+        if (Array.isArray(d)) setTodos(d);
+      })
+      .catch(() => {});
+  };
+
+  const handleAddTodo = async () => {
+    const text = todoInput.trim();
+    if (!text) return;
+    setTodoLoading(true);
+    try {
+      const res = await fetch('/api/user/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (res.ok) {
+        setTodoInput('');
+        fetchTodos();
       }
+    } finally {
+      setTodoLoading(false);
     }
-    if (showFlashcardDropdown) {
-      document.addEventListener('mousedown', handleClick);
-      return () => document.removeEventListener('mousedown', handleClick);
+  };
+
+  const handleToggleTodo = async (id: string, completed: boolean) => {
+    setTodos((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: !completed } : t))
+    );
+    try {
+      await fetch(`/api/user/todos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: !completed }),
+      });
+      fetchTodos();
+    } catch {
+      setTodos((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, completed } : t))
+      );
     }
-  }, [showFlashcardDropdown]);
+  };
+
+  const handleDeleteTodo = async (id: string) => {
+    setTodos((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await fetch(`/api/user/todos/${id}`, { method: 'DELETE' });
+    } catch {
+      fetchTodos();
+    }
+  };
+
+  const handleCarouselScroll = () => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const cardWidth = el.scrollWidth / 3;
+    setActiveCard(Math.round(el.scrollLeft / cardWidth));
+  };
 
   const goalProgress = dashboard
     ? Math.min(100, Math.round((dashboard.todayPages / dashboard.dailyGoal) * 100))
@@ -241,13 +289,12 @@ export default function DashboardPage() {
       href: '/notebooks',
     },
     {
-      label: 'Flashcards',
-      value: flashcardCount !== null ? String(flashcardCount) : '—',
-      icon: 'bolt',
+      label: 'Todos',
+      value: String(todos.filter((t) => !t.completed).length),
+      icon: 'checklist',
       iconColor: '#f0d04c',
       iconBg: 'rgba(240,208,76,0.1)',
       arrowColor: 'rgba(240,208,76,0.4)',
-      onClick: () => setShowFlashcardDropdown((v) => !v),
     },
     {
       label: 'Day Streak',
@@ -303,13 +350,31 @@ export default function DashboardPage() {
         gap: '32px',
       }}
     >
-      {/* Stats Row */}
+      {/* Stats Row — carousel on mobile, grid on desktop */}
+      {isMobile && (
+        <style>{`.stat-carousel::-webkit-scrollbar { display: none; }`}</style>
+      )}
       <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '24px',
-        }}
+        ref={isMobile ? carouselRef : undefined}
+        className={isMobile ? 'stat-carousel' : undefined}
+        onScroll={isMobile ? handleCarouselScroll : undefined}
+        style={
+          isMobile
+            ? {
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch',
+                gap: '16px',
+                paddingBottom: '4px',
+                scrollbarWidth: 'none',
+              }
+            : {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '24px',
+              }
+        }
       >
         {statCards.map(
           ({
@@ -322,10 +387,11 @@ export default function DashboardPage() {
             badge,
             arrowColor,
             href,
-            onClick,
           }) => {
-            const isFlashcard = label === 'Flashcards';
-            const inner = (
+            const isTodo = label === 'Todos';
+            const pendingTodos = todos.filter((t) => !t.completed);
+
+            const cardContent = (
               <div
                 style={{
                   background: '#161630',
@@ -333,8 +399,9 @@ export default function DashboardPage() {
                   borderRadius: '24px',
                   display: 'flex',
                   flexDirection: 'column',
-                  cursor: href || onClick ? 'pointer' : 'default',
+                  cursor: href ? 'pointer' : 'default',
                   transition: 'background 0.3s cubic-bezier(0.22,1,0.36,1)',
+                  height: '100%',
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLDivElement).style.background = '#1c1c38';
@@ -351,6 +418,7 @@ export default function DashboardPage() {
                   if (arrow) arrow.style.transform = 'translateX(0)';
                 }}
               >
+                {/* Card header */}
                 <div
                   style={{
                     display: 'flex',
@@ -396,6 +464,8 @@ export default function DashboardPage() {
                     </span>
                   )}
                 </div>
+
+                {/* Value + label */}
                 <h3
                   style={{
                     fontFamily: 'var(--font-brand)',
@@ -411,135 +481,193 @@ export default function DashboardPage() {
                 <p style={{ fontSize: '15px', fontWeight: 500, color: '#aaa8c8', margin: 0 }}>
                   {label}
                 </p>
+
+                {/* Todo mini-list (only on Todos card) */}
+                {isTodo && (
+                  <div style={{ marginTop: '16px', borderTop: '1px solid rgba(174,137,255,0.08)', paddingTop: '12px' }}>
+                    {/* Todo items */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto', scrollbarWidth: 'none' }}>
+                      {pendingTodos.length === 0 && (
+                        <p style={{ fontSize: '12px', color: '#555578', margin: 0, textAlign: 'center', padding: '8px 0' }}>
+                          No pending todos
+                        </p>
+                      )}
+                      {pendingTodos.slice(0, 4).map((todo) => (
+                        <div
+                          key={todo.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '4px 0',
+                            position: 'relative',
+                          }}
+                          className="todo-row"
+                        >
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleToggleTodo(todo.id, todo.completed); }}
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '6px',
+                              border: '2px solid #555578',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              padding: 0,
+                              flexShrink: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'border-color 0.2s cubic-bezier(0.22,1,0.36,1)',
+                            }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#ae89ff'; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#555578'; }}
+                          >
+                            &nbsp;
+                          </button>
+                          <span
+                            style={{
+                              fontSize: '13px',
+                              color: '#c0bed8',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              flex: 1,
+                              minWidth: 0,
+                            }}
+                          >
+                            {todo.text}
+                          </span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteTodo(todo.id); }}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: 0,
+                              opacity: 0.4,
+                              transition: 'opacity 0.2s cubic-bezier(0.22,1,0.36,1)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              flexShrink: 0,
+                            }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.4'; }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#fd6f85' }}>
+                              close
+                            </span>
+                          </button>
+                        </div>
+                      ))}
+                      {pendingTodos.length > 4 && (
+                        <p style={{ fontSize: '11px', color: '#555578', margin: '2px 0 0' }}>
+                          +{pendingTodos.length - 4} more
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Add todo input */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '8px',
+                        marginTop: '10px',
+                      }}
+                    >
+                      <input
+                        type="text"
+                        value={todoInput}
+                        onChange={(e) => setTodoInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleAddTodo(); }}
+                        onClick={(e) => e.stopPropagation()}
+                        placeholder="Add a todo..."
+                        maxLength={200}
+                        style={{
+                          flex: 1,
+                          background: '#1c1c38',
+                          border: '1px solid rgba(174,137,255,0.1)',
+                          borderRadius: '10px',
+                          padding: '8px 12px',
+                          fontSize: '12px',
+                          color: '#e5e3ff',
+                          outline: 'none',
+                          minWidth: 0,
+                        }}
+                        onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(174,137,255,0.3)'; }}
+                        onBlur={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(174,137,255,0.1)'; }}
+                      />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleAddTodo(); }}
+                        disabled={todoLoading || !todoInput.trim()}
+                        style={{
+                          background: 'rgba(174,137,255,0.15)',
+                          border: 'none',
+                          borderRadius: '10px',
+                          width: '36px',
+                          height: '36px',
+                          cursor: todoLoading || !todoInput.trim() ? 'default' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          opacity: todoLoading || !todoInput.trim() ? 0.4 : 1,
+                          transition: 'opacity 0.2s cubic-bezier(0.22,1,0.36,1)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ae89ff' }}>
+                          add
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
 
-            if (isFlashcard) {
-              return (
-                <div key={label} ref={flashcardRef} style={{ position: 'relative' }}>
-                  <div onClick={onClick} style={{ cursor: 'pointer' }}>
-                    {inner}
-                  </div>
-                  {showFlashcardDropdown && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 8px)',
-                        left: 0,
-                        right: 0,
-                        background: '#1a1a2e',
-                        borderRadius: '16px',
-                        border: '1px solid rgba(174,137,255,0.15)',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                        zIndex: 50,
-                        maxHeight: '320px',
-                        overflowY: 'auto',
-                        padding: '8px',
-                      }}
-                    >
-                      {flashcardSets.length === 0 ? (
-                        <div
-                          style={{ padding: '24px 16px', textAlign: 'center', color: '#aaa8c8' }}
-                        >
-                          <span
-                            className="material-symbols-outlined"
-                            style={{
-                              fontSize: '32px',
-                              display: 'block',
-                              marginBottom: '8px',
-                              opacity: 0.4,
-                            }}
-                          >
-                            bolt
-                          </span>
-                          <p style={{ fontSize: '13px', margin: 0 }}>No flashcard sets yet.</p>
-                          <p style={{ fontSize: '12px', margin: '4px 0 0', opacity: 0.6 }}>
-                            Create them from a notebook chat.
-                          </p>
-                        </div>
-                      ) : (
-                        flashcardSets.map((set) => (
-                          <div
-                            key={set.id}
-                            onClick={() => {
-                              setShowFlashcardDropdown(false);
-                              router.push(`/notebooks/${set.notebookId}/flashcards/${set.id}`);
-                            }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '12px',
-                              padding: '12px',
-                              borderRadius: '12px',
-                              cursor: 'pointer',
-                              transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
-                            }}
-                            onMouseEnter={(e) => {
-                              (e.currentTarget as HTMLDivElement).style.background = '#2a2a4c';
-                            }}
-                            onMouseLeave={(e) => {
-                              (e.currentTarget as HTMLDivElement).style.background = 'transparent';
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '10px',
-                                background: set.notebook.color
-                                  ? `${set.notebook.color}20`
-                                  : 'rgba(240,208,76,0.15)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                              }}
-                            >
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: '18px', color: set.notebook.color || '#f0d04c' }}
-                              >
-                                bolt
-                              </span>
-                            </div>
-                            <div style={{ minWidth: 0, flex: 1 }}>
-                              <p
-                                style={{
-                                  fontSize: '13px',
-                                  fontWeight: 600,
-                                  color: '#e5e3ff',
-                                  margin: 0,
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {set.title}
-                              </p>
-                              <p style={{ fontSize: '11px', color: '#aaa8c8', margin: '2px 0 0' }}>
-                                {set.notebook.name} · {set._count.flashcards}{' '}
-                                {set._count.flashcards === 1 ? 'card' : 'cards'}
-                              </p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
+            const wrapper = (child: React.ReactNode) => (
+              <div
+                key={label}
+                style={
+                  isMobile
+                    ? { flex: '0 0 85%', scrollSnapAlign: 'center', minWidth: 0 }
+                    : undefined
+                }
+              >
+                {child}
+              </div>
+            );
+
+            if (href) {
+              return wrapper(
+                <Link href={href} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+                  {cardContent}
+                </Link>
               );
             }
 
-            return href ? (
-              <Link key={label} href={href} style={{ textDecoration: 'none' }}>
-                {inner}
-              </Link>
-            ) : (
-              <div key={label}>{inner}</div>
-            );
+            return wrapper(cardContent);
           }
         )}
       </section>
+
+      {/* Carousel dot indicators (mobile only) */}
+      {isMobile && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '-20px' }}>
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                width: i === activeCard ? '24px' : '8px',
+                height: '8px',
+                borderRadius: '4px',
+                background: i === activeCard ? '#ae89ff' : 'rgba(174,137,255,0.2)',
+                transition: 'width 0.3s cubic-bezier(0.22,1,0.36,1), background 0.3s cubic-bezier(0.22,1,0.36,1)',
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* XP Progress */}
       {xpData && (
