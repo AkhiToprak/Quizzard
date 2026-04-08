@@ -473,14 +473,6 @@ body {
     margin: 0 !important;
   }
 
-  /* Minimum touch target for interactive elements */
-  button,
-  a,
-  [role='button'] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
   /* Ensure no text is smaller than 14px on phone */
   body {
     font-size: max(14px, 1em);
