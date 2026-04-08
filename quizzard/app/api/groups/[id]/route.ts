@@ -36,6 +36,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
           select: { id: true, name: true, username: true, avatarUrl: true },
         },
         members: {
+          where: { status: 'accepted' },
           include: {
             user: {
               select: { id: true, name: true, username: true, avatarUrl: true },
