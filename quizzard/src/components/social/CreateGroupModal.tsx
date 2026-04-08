@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface CreateGroupModalProps {
   open: boolean;
@@ -33,6 +34,7 @@ const COLORS = {
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
 export default function CreateGroupModal({ open, onClose, onCreated }: CreateGroupModalProps) {
+  const { isPhone } = useBreakpoint();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [groupType, setGroupType] = useState<'study_group' | 'class'>('study_group');
@@ -224,16 +226,20 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
           aria-label="Create Study Group"
           onKeyDown={handleKeyDown}
           style={{
-            maxWidth: 480,
-            width: 'calc(100% - 32px)',
+            maxWidth: isPhone ? 'none' : 480,
+            width: isPhone ? '100vw' : 'calc(100% - 32px)',
+            height: isPhone ? '100dvh' : undefined,
+            maxHeight: isPhone ? 'none' : undefined,
             background: COLORS.cardBg,
-            borderRadius: 24,
-            padding: 32,
-            boxShadow: '0 32px 64px rgba(0, 0, 0, 0.5)',
-            animation: `cgmSlideUp 0.3s ${EASING}`,
+            borderRadius: isPhone ? 0 : 24,
+            padding: isPhone ? 20 : 32,
+            boxShadow: isPhone ? 'none' : '0 32px 64px rgba(0, 0, 0, 0.5)',
+            animation: isPhone ? undefined : `cgmSlideUp 0.3s ${EASING}`,
             display: 'flex',
             flexDirection: 'column',
-            gap: 24,
+            gap: isPhone ? 20 : 24,
+            margin: isPhone ? 0 : undefined,
+            overflow: isPhone ? 'auto' : undefined,
           }}
         >
           {/* Header */}

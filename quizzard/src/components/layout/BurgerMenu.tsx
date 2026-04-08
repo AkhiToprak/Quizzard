@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import TierBadge from '@/components/ui/TierBadge';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface BurgerMenuProps {
   open: boolean;
@@ -51,6 +52,7 @@ const NAV_ITEMS = [
 export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const { isPhone } = useBreakpoint();
   const user = session?.user as
     | {
         id?: string;
@@ -124,7 +126,7 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
           top: 0,
           left: 0,
           bottom: 0,
-          width: 280,
+          width: isPhone ? '100vw' : 280,
           background: COLORS.cardBg,
           borderRight: `1px solid ${COLORS.border}`,
           zIndex: 201,

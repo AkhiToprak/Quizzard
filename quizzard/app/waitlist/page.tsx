@@ -144,6 +144,7 @@ export default function WaitlistPage() {
 
   return (
     <div
+      className="waitlist-outer"
       style={{
         minHeight: '100vh',
         background: '#0d0d1a',
@@ -226,6 +227,7 @@ export default function WaitlistPage() {
 
         {/* Glass card */}
         <div
+          className="waitlist-card"
           style={{
             background: 'rgba(22, 22, 48, 0.6)',
             backdropFilter: 'blur(24px)',
@@ -295,6 +297,7 @@ export default function WaitlistPage() {
             /* Form state */
             <>
               <h1
+                className="waitlist-heading"
                 style={{
                   fontFamily: 'var(--font-epilogue), sans-serif',
                   fontSize: '28px',
@@ -424,7 +427,7 @@ export default function WaitlistPage() {
         </p>
       </div>
 
-      {/* Keyframes */}
+      {/* Keyframes + Responsive */}
       <style jsx>{`
         @keyframes fadeInUp {
           from {
@@ -435,6 +438,19 @@ export default function WaitlistPage() {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+      `}</style>
+      <style>{`
+        /* ── Responsive: Tablet (768–1023px) ── */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .waitlist-outer { padding: 24px 24px !important; }
+        }
+
+        /* ── Responsive: Phone (max-width 767px) ── */
+        @media (max-width: 767px) {
+          .waitlist-outer { padding: 24px 16px !important; }
+          .waitlist-card { padding: 32px 20px !important; }
+          .waitlist-heading { font-size: 24px !important; }
         }
       `}</style>
     </div>

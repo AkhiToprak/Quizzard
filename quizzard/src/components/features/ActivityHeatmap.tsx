@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface DayData {
   date: string;
@@ -15,9 +16,6 @@ interface TooltipState {
   count: number;
 }
 
-const CELL_SIZE = 13;
-const CELL_GAP = 3;
-const TOTAL_WEEKS = 53;
 const DAYS_IN_WEEK = 7;
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 const MONTH_NAMES = [
@@ -53,6 +51,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function ActivityHeatmap() {
+  const { isPhone, isPhoneOrTablet } = useBreakpoint();
   const [dayMap, setDayMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -62,6 +61,11 @@ export default function ActivityHeatmap() {
     date: '',
     count: 0,
   });
+
+  // Derive grid constants from breakpoint
+  const CELL_SIZE = isPhone ? 10 : 13;
+  const CELL_GAP = isPhone ? 2 : 3;
+  const TOTAL_WEEKS = isPhone ? 26 : 53;
 
   useEffect(() => {
     fetch('/api/user/activity-heatmap?days=365')
@@ -134,7 +138,7 @@ export default function ActivityHeatmap() {
         });
       }
     },
-    []
+    [CELL_SIZE]
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -151,7 +155,7 @@ export default function ActivityHeatmap() {
       style={{
         background: '#161630',
         borderRadius: '24px',
-        padding: '24px',
+        padding: isPhone ? '16px' : '24px',
       }}
     >
       <div
@@ -167,7 +171,7 @@ export default function ActivityHeatmap() {
             Activity
           </h3>
           <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
-            Your contributions over the last year
+            Your contributions over the last {isPhone ? '6 months' : 'year'}
           </p>
         </div>
         <div
@@ -212,8 +216,9 @@ export default function ActivityHeatmap() {
         <div data-heatmap-wrapper style={{ position: 'relative', overflow: 'visible' }}>
           <div
             style={{
-              overflowX: 'auto',
+              overflowX: isPhoneOrTablet ? 'auto' : 'visible',
               overflowY: 'visible',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             <div

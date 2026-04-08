@@ -12,6 +12,8 @@ import FolderBreadcrumbs from '@/components/features/FolderBreadcrumbs';
 import { PRESETS, getPresetForSubject } from '@/lib/presets';
 import { useSearch } from '@/hooks/useSearch';
 import SearchDropdown from '@/components/search/SearchDropdown';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { responsiveValue } from '@/lib/responsive';
 
 const ALL_LABEL = 'All Subjects';
 
@@ -79,6 +81,7 @@ function SkeletonCard() {
 function NotebooksPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isPhone, isTablet, bp } = useBreakpoint();
   const currentFolderId = searchParams.get('folder') || null;
 
   const [notebooks, setNotebooks] = useState<NotebookData[]>([]);
@@ -320,7 +323,7 @@ function NotebooksPageContent() {
       : notebooks.filter((nb) => getPresetForSubject(nb.subject)?.label === activeFilter);
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: responsiveValue(bp, { phone: '0 16px', tablet: '0 20px', desktop: '0' }) }}>
       {/* Breadcrumbs */}
       {(currentFolderId || breadcrumbs.length > 0) && (
         <FolderBreadcrumbs
@@ -346,9 +349,10 @@ function NotebooksPageContent() {
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: isPhone ? 'stretch' : 'center',
+          flexDirection: isPhone ? 'column' : 'row',
           gap: '12px',
-          marginBottom: '32px',
+          marginBottom: responsiveValue(bp, { phone: '20px', tablet: '24px', desktop: '32px' }),
           flexWrap: 'wrap',
         }}
       >
@@ -579,7 +583,7 @@ function NotebooksPageContent() {
         )}
 
         {/* Search bar */}
-        <div style={{ position: 'relative', flex: 1, maxWidth: 320 }}>
+        <div style={{ position: 'relative', flex: 1, maxWidth: isPhone ? '100%' : 320 }}>
           <span
             className="material-symbols-outlined"
             style={{
@@ -646,7 +650,7 @@ function NotebooksPageContent() {
         </div>
 
         {/* Right-side buttons */}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+        <div style={{ marginLeft: isPhone ? undefined : 'auto', display: 'flex', gap: '10px', width: isPhone ? '100%' : undefined }}>
           {/* New Folder button */}
           <button
             onClick={() => {
@@ -656,6 +660,7 @@ function NotebooksPageContent() {
             style={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
               padding: '8px 20px',
               borderRadius: '9999px',
@@ -666,6 +671,7 @@ function NotebooksPageContent() {
               fontWeight: 700,
               cursor: 'pointer',
               fontFamily: 'inherit',
+              flex: isPhone ? 1 : undefined,
               transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s',
             }}
             onMouseEnter={(e) => {
@@ -698,6 +704,7 @@ function NotebooksPageContent() {
             style={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
               padding: '8px 24px',
               borderRadius: '9999px',
@@ -708,6 +715,7 @@ function NotebooksPageContent() {
               fontWeight: 700,
               cursor: 'pointer',
               fontFamily: 'inherit',
+              flex: isPhone ? 1 : undefined,
               boxShadow: '0 4px 16px rgba(174,137,255,0.25)',
               transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
             }}
@@ -737,8 +745,8 @@ function NotebooksPageContent() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '24px',
+            gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: 'repeat(auto-fill, minmax(240px, 1fr))', desktop: 'repeat(auto-fill, minmax(280px, 1fr))' }),
+            gap: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
           }}
         >
           {[0, 1, 2].map((i) => (
@@ -752,8 +760,8 @@ function NotebooksPageContent() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '24px',
+            gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: 'repeat(auto-fill, minmax(240px, 1fr))', desktop: 'repeat(auto-fill, minmax(280px, 1fr))' }),
+            gap: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
           }}
         >
           {/* Folders first */}
@@ -978,10 +986,10 @@ function NotebooksPageContent() {
       {!isLoading && (
         <div
           style={{
-            marginTop: '48px',
+            marginTop: responsiveValue(bp, { phone: '32px', tablet: '40px', desktop: '48px' }),
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: '24px',
+            gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: 'repeat(auto-fill, minmax(200px, 1fr))', desktop: 'repeat(auto-fill, minmax(220px, 1fr))' }),
+            gap: responsiveValue(bp, { phone: '12px', tablet: '16px', desktop: '24px' }),
           }}
         >
           {[
@@ -1281,10 +1289,10 @@ function NotebooksPageContent() {
         title="Quick Note"
         style={{
           position: 'fixed',
-          bottom: '32px',
-          right: '32px',
-          width: '64px',
-          height: '64px',
+          bottom: responsiveValue(bp, { phone: '20px', tablet: '24px', desktop: '32px' }),
+          right: responsiveValue(bp, { phone: '16px', tablet: '24px', desktop: '32px' }),
+          width: responsiveValue(bp, { phone: '56px', tablet: '60px', desktop: '64px' }),
+          height: responsiveValue(bp, { phone: '56px', tablet: '60px', desktop: '64px' }),
           borderRadius: '50%',
           background: '#ffde59',
           border: 'none',
@@ -1328,11 +1336,11 @@ export default function NotebooksPage() {
   return (
     <Suspense
       fallback={
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
               gap: '24px',
             }}
           >

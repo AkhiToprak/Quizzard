@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { X, Plus, Trash2, Download, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import SlidePreview from './SlidePreview';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 export interface SlideData {
   title: string;
@@ -62,6 +63,7 @@ export default function SlideEditorModal({
   presentationSlides,
   themeColor,
 }: SlideEditorModalProps) {
+  const { isPhone, isTablet } = useBreakpoint();
   const [slides, setSlides] = useState<SlideData[]>(
     presentationSlides ? presentationToSlideData(presentationSlides) : initialSlides
   );
@@ -162,16 +164,18 @@ export default function SlideEditorModal({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: '90vw',
-          maxWidth: '1000px',
-          height: '80vh',
+          width: isPhone ? '100vw' : '90vw',
+          maxWidth: isPhone ? 'none' : '1000px',
+          height: isPhone ? '100dvh' : '80vh',
+          maxHeight: isPhone ? 'none' : undefined,
           background: '#111126',
-          borderRadius: '16px',
-          border: '1px solid rgba(140,82,255,0.18)',
+          borderRadius: isPhone ? 0 : '16px',
+          border: isPhone ? 'none' : '1px solid rgba(140,82,255,0.18)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          boxShadow: isPhone ? 'none' : '0 20px 60px rgba(0,0,0,0.5)',
+          margin: isPhone ? 0 : undefined,
         }}
       >
         {/* Header */}
@@ -180,7 +184,7 @@ export default function SlideEditorModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '16px 24px',
+            padding: isPhone ? '12px 16px' : '16px 24px',
             borderBottom: '1px solid rgba(140,82,255,0.12)',
             flexShrink: 0,
           }}
@@ -188,7 +192,7 @@ export default function SlideEditorModal({
           <h2
             style={{
               margin: 0,
-              fontSize: '18px',
+              fontSize: isPhone ? '16px' : '18px',
               fontWeight: 700,
               color: '#ede9ff',
               fontFamily: 'inherit',
@@ -200,43 +204,103 @@ export default function SlideEditorModal({
         </div>
 
         {/* Body */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* Left sidebar — slide thumbnails */}
-          <div
-            style={{
-              width: '200px',
-              borderRight: '1px solid rgba(140,82,255,0.12)',
-              overflowY: 'auto',
-              padding: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-              flexShrink: 0,
-            }}
-          >
-            {slides.map((slide, i) => (
-              <SlidePreview
-                key={i}
-                title={slide.title}
-                content={slide.content}
-                index={i}
-                isActive={i === activeIndex}
-                onClick={() => setActiveIndex(i)}
-              />
-            ))}
-
-            {/* Add Slide button */}
-            <AddSlideButton onClick={addSlide} />
-          </div>
+        <div style={{ display: 'flex', flexDirection: isPhone ? 'column' : 'row', flex: 1, overflow: 'hidden' }}>
+          {/* Phone: horizontal thumbnail strip at top */}
+          {isPhone ? (
+            <div
+              style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '8px 12px',
+                overflowX: 'auto',
+                borderBottom: '1px solid rgba(140,82,255,0.12)',
+                flexShrink: 0,
+                alignItems: 'center',
+              }}
+            >
+              {slides.map((slide, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveIndex(i)}
+                  style={{
+                    flexShrink: 0,
+                    width: '56px',
+                    height: '36px',
+                    borderRadius: '6px',
+                    border: i === activeIndex ? '2px solid #8c52ff' : '1px solid rgba(140,82,255,0.15)',
+                    background: i === activeIndex ? 'rgba(140,82,255,0.12)' : 'rgba(140,82,255,0.04)',
+                    color: i === activeIndex ? '#c4a9ff' : 'rgba(237,233,255,0.4)',
+                    fontSize: '9px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'inherit',
+                    padding: '2px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={addSlide}
+                style={{
+                  flexShrink: 0,
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '6px',
+                  border: '1px dashed rgba(140,82,255,0.25)',
+                  background: 'transparent',
+                  color: 'rgba(237,233,255,0.35)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          ) : (
+            /* Desktop/Tablet: vertical sidebar */
+            <div
+              style={{
+                width: isTablet ? '160px' : '200px',
+                borderRight: '1px solid rgba(140,82,255,0.12)',
+                overflowY: 'auto',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                flexShrink: 0,
+              }}
+            >
+              {slides.map((slide, i) => (
+                <SlidePreview
+                  key={i}
+                  title={slide.title}
+                  content={slide.content}
+                  index={i}
+                  isActive={i === activeIndex}
+                  onClick={() => setActiveIndex(i)}
+                />
+              ))}
+              <AddSlideButton onClick={addSlide} />
+            </div>
+          )}
 
           {/* Main editor area */}
           <div
             style={{
               flex: 1,
-              padding: '24px',
+              padding: isPhone ? '16px' : '24px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: isPhone ? '12px' : '16px',
               overflow: 'auto',
             }}
           >
@@ -387,9 +451,11 @@ export default function SlideEditorModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 24px',
+            padding: isPhone ? '10px 12px' : '14px 24px',
             borderTop: '1px solid rgba(140,82,255,0.12)',
             flexShrink: 0,
+            gap: isPhone ? '6px' : undefined,
+            flexWrap: isPhone ? 'wrap' : undefined,
           }}
         >
           {/* Left — slide count */}
@@ -437,12 +503,12 @@ export default function SlideEditorModal({
             <button
               onClick={onClose}
               style={{
-                padding: '8px 16px',
+                padding: isPhone ? '8px 10px' : '8px 16px',
                 borderRadius: '8px',
                 border: '1px solid rgba(237,233,255,0.1)',
                 background: 'transparent',
                 color: 'rgba(237,233,255,0.5)',
-                fontSize: '13px',
+                fontSize: isPhone ? '12px' : '13px',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 transition: 'background 0.12s ease',
@@ -465,7 +531,7 @@ export default function SlideEditorModal({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '8px 18px',
+                padding: isPhone ? '8px 12px' : '8px 18px',
                 borderRadius: '8px',
                 border: 'none',
                 background: exporting ? 'rgba(140,82,255,0.4)' : '#8c52ff',

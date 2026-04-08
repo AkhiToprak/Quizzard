@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import StudyGroupCard from '@/components/social/StudyGroupCard';
 import CreateGroupModal from '@/components/social/CreateGroupModal';
 import GroupInvitationCard from '@/components/groups/GroupInvitationCard';
@@ -100,6 +101,7 @@ function ComingSoon({ icon, title, description }: { icon: string; title: string;
 export default function GroupsPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { isPhone, isTablet } = useBreakpoint();
   const currentUserId = session?.user?.id || '';
   const [activeTab, setActiveTab] = useState<CoWorkTab>('groups');
   const [groups, setGroups] = useState<Group[]>([]);
@@ -232,7 +234,7 @@ export default function GroupsPage() {
 
       <div
         style={{
-          padding: '32px 40px',
+          padding: isPhone ? '16px' : isTablet ? '20px' : '32px 40px',
           maxWidth: 1200,
           margin: '0 auto',
           fontFamily: 'inherit',
@@ -242,15 +244,17 @@ export default function GroupsPage() {
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
+            alignItems: isPhone ? 'flex-start' : 'center',
             justifyContent: 'space-between',
-            marginBottom: 24,
+            marginBottom: isPhone ? 16 : 24,
+            flexDirection: isPhone ? 'column' : 'row',
+            gap: isPhone ? 12 : 0,
           }}
         >
           <div>
             <h1
               style={{
-                fontSize: 28,
+                fontSize: isPhone ? 22 : 28,
                 fontWeight: 700,
                 color: COLORS.textPrimary,
                 margin: 0,
@@ -281,10 +285,10 @@ export default function GroupsPage() {
                 gap: 8,
                 background: hoveredCreate ? COLORS.deepPurple : COLORS.primary,
                 color: '#1a0040',
-                fontSize: 14,
+                fontSize: isPhone ? 13 : 14,
                 fontWeight: 700,
                 borderRadius: 12,
-                padding: '12px 20px',
+                padding: isPhone ? '10px 16px' : '12px 20px',
                 border: 'none',
                 cursor: 'pointer',
                 transition: `background 0.2s ${EASING}, transform 0.15s ${EASING}`,
@@ -302,9 +306,12 @@ export default function GroupsPage() {
 
         {/* Tab bar */}
         <div style={{
-          display: 'flex', gap: 8, marginBottom: 32,
+          display: 'flex', gap: 8, marginBottom: isPhone ? 20 : 32,
           borderBottom: `1px solid ${COLORS.border}1a`,
           paddingBottom: 0,
+          overflowX: isPhone ? 'auto' : undefined,
+          WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
+          scrollbarWidth: isPhone ? 'none' : undefined,
         }}>
           {TABS.map((tab) => {
             const active = activeTab === tab.key;
@@ -315,12 +322,14 @@ export default function GroupsPage() {
                 style={{
                   position: 'relative',
                   display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '12px 20px', paddingBottom: 14,
+                  padding: isPhone ? '10px 14px' : '12px 20px', paddingBottom: isPhone ? 12 : 14,
                   background: 'none', border: 'none',
-                  fontSize: 14, fontWeight: active ? 700 : 500,
+                  fontSize: isPhone ? 13 : 14, fontWeight: active ? 700 : 500,
                   color: active ? COLORS.primary : COLORS.textMuted,
                   cursor: 'pointer', fontFamily: 'inherit',
                   transition: `color 0.2s ${EASING}`,
+                  whiteSpace: isPhone ? 'nowrap' : undefined,
+                  flexShrink: isPhone ? 0 : undefined,
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{tab.icon}</span>
@@ -431,8 +440,8 @@ export default function GroupsPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: 20,
+              gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))',
+              gap: isPhone ? 14 : 20,
             }}
           >
             {Array.from({ length: 6 }).map((_, i) => (
@@ -533,8 +542,8 @@ export default function GroupsPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: 20,
+              gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))',
+              gap: isPhone ? 14 : 20,
             }}
           >
             {groups.map((group) => (

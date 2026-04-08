@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import HomeHeader from '@/components/layout/HomeHeader';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 /** Matches /notebooks/<uuid-or-id> and anything nested below it */
 const NOTEBOOK_WORKSPACE_RE = /^\/notebooks\/[^/]+/;
@@ -14,6 +15,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { isPhone, isTablet } = useBreakpoint();
 
   // Redirect to onboarding wizard if not completed
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        height: '100dvh',
         overflow: 'hidden',
         background: '#111126',
       }}
@@ -41,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           flex: 1,
           minHeight: 0,
           overflow: isFullHeight ? 'hidden' : 'auto',
-          padding: isFullHeight ? '0' : '32px',
+          padding: isFullHeight ? '0' : isPhone ? '16px' : isTablet ? '20px' : '32px',
           color: '#e5e3ff',
           display: isFullHeight ? 'flex' : undefined,
           flexDirection: isFullHeight ? 'column' : undefined,

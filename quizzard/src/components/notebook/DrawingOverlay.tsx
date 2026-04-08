@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 /* ── Types ── */
 export type LineStyle = 'solid' | 'dashed' | 'dotted';
@@ -110,7 +111,8 @@ function projectToRulerLine(
   return { x: origin.x + t * dir.x, y: origin.y + t * dir.y };
 }
 
-const ERASER_HIT_RADIUS = 16;
+const ERASER_HIT_RADIUS_DEFAULT = 16;
+const ERASER_HIT_RADIUS_PHONE = 24;
 
 export default function DrawingOverlay({
   strokes,
@@ -123,6 +125,7 @@ export default function DrawingOverlay({
   ruler,
   onRulerChange,
 }: DrawingOverlayProps) {
+  const { isPhone } = useBreakpoint();
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentStroke, setCurrentStroke] = useState<StrokeData | null>(null);
@@ -199,7 +202,8 @@ export default function DrawingOverlay({
           for (const pt of s.points) {
             const dx = pt.x + ox - point.x;
             const dy = pt.y + oy - point.y;
-            if (dx * dx + dy * dy <= ERASER_HIT_RADIUS * ERASER_HIT_RADIUS) {
+            const eraserR = isPhone ? ERASER_HIT_RADIUS_PHONE : ERASER_HIT_RADIUS_DEFAULT;
+            if (dx * dx + dy * dy <= eraserR * eraserR) {
               onStrokesChange(strokes.filter((_, idx) => idx !== i));
               return;
             }
@@ -225,7 +229,7 @@ export default function DrawingOverlay({
       setCurrentStroke(newStroke);
       (e.target as SVGSVGElement).setPointerCapture?.(e.pointerId);
     },
-    [mode, activeTool, getSvgPoint, strokes, onStrokesChange, penColor, penWidth, lineStyle, ruler]
+    [mode, activeTool, getSvgPoint, strokes, onStrokesChange, penColor, penWidth, lineStyle, ruler, isPhone]
   );
 
   const handlePointerMove = useCallback(
@@ -448,7 +452,7 @@ export default function DrawingOverlay({
                 d={d}
                 fill="none"
                 stroke="transparent"
-                strokeWidth={stroke.width + 16}
+                strokeWidth={stroke.width + (isPhone ? 28 : 16)}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 style={{
@@ -528,7 +532,7 @@ export default function DrawingOverlay({
               x2={rulerX2}
               y2={rulerY2}
               stroke="transparent"
-              strokeWidth={20}
+              strokeWidth={isPhone ? 44 : 20}
               style={{ pointerEvents: 'stroke', cursor: 'move' }}
               onPointerDown={(e) => handleRulerPointerDown(e, 'move')}
               onPointerMove={handleRulerPointerMove}
@@ -538,7 +542,7 @@ export default function DrawingOverlay({
             <circle
               cx={ruler.position.x}
               cy={ruler.position.y}
-              r={6}
+              r={isPhone ? 12 : 6}
               fill="rgba(164,123,255,0.5)"
               stroke="rgba(164,123,255,0.8)"
               strokeWidth={1.5}
@@ -551,7 +555,7 @@ export default function DrawingOverlay({
             <circle
               cx={handleX}
               cy={handleY}
-              r={5}
+              r={isPhone ? 11 : 5}
               fill="rgba(140,82,255,0.4)"
               stroke="rgba(140,82,255,0.7)"
               strokeWidth={1.5}
@@ -564,7 +568,7 @@ export default function DrawingOverlay({
             <circle
               cx={handleX2}
               cy={handleY2}
-              r={5}
+              r={isPhone ? 11 : 5}
               fill="rgba(140,82,255,0.4)"
               stroke="rgba(140,82,255,0.7)"
               strokeWidth={1.5}

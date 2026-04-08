@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Epilogue, Oswald, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
@@ -24,6 +24,13 @@ const oswald = Oswald({
   weight: ['200', '300', '400', '500', '600', '700'],
   display: 'swap',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   title: 'Quizzard',

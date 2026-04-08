@@ -21,6 +21,7 @@ import {
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import dynamic from 'next/dynamic';
 
 const MindmapRenderer = dynamic(() => import('@/components/notebook/MindmapRenderer'), {
@@ -77,6 +78,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
   const { id: notebookId, chatId } = use(params);
   const { notebook, flatSections, refreshChats } = useNotebookWorkspace();
   const { upload: directUpload } = useDirectUpload();
+  const { isPhone } = useBreakpoint();
 
   const [chat, setChat] = useState<ChatData | null>(null);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -327,12 +329,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       {/* Chat header */}
       <div
         style={{
-          padding: '18px 28px',
+          padding: isPhone ? '12px 14px' : '18px 28px',
           borderBottom: '1px solid rgba(140,82,255,0.08)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '16px',
+          gap: isPhone ? '8px' : '16px',
           background: 'rgba(17,17,38,0.6)',
           flexShrink: 0,
         }}
@@ -386,7 +388,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '9px 18px',
+            padding: isPhone ? '9px 12px' : '9px 18px',
             borderRadius: '10px',
             border: '1px solid rgba(140,82,255,0.3)',
             background: 'rgba(140,82,255,0.1)',
@@ -413,7 +415,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
           >
             cloud_upload
           </span>
-          Feed the Scholar
+          {!isPhone && 'Feed the Scholar'}
           {totalContext > 0 && (
             <span
               style={{
@@ -435,7 +437,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       {contextWarning && (
         <div
           style={{
-            padding: '10px 28px',
+            padding: isPhone ? '10px 14px' : '10px 28px',
             background: 'rgba(255, 180, 50, 0.1)',
             borderBottom: '1px solid rgba(255, 180, 50, 0.2)',
             display: 'flex',
@@ -474,10 +476,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '32px 28px',
+          padding: isPhone ? '16px 10px' : '32px 28px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
+          gap: isPhone ? '12px' : '16px',
         }}
       >
         {(!chat || chat.messages.length === 0) && (
@@ -579,9 +581,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                   msg.role === 'assistant' &&
                   (msg.content.includes('[mindmap_start:') ||
                     msg.content.includes('[presentation_start:'))
-                    ? '90%'
-                    : '70%',
-                padding: '12px 16px',
+                    ? isPhone ? '100%' : '90%'
+                    : isPhone ? '88%' : '70%',
+                padding: isPhone ? '10px 12px' : '12px 16px',
                 borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                 background:
                   msg.role === 'user'
@@ -629,8 +631,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
             {streamingText ? (
               <div
                 style={{
-                  maxWidth: '70%',
-                  padding: '12px 16px',
+                  maxWidth: isPhone ? '88%' : '70%',
+                  padding: isPhone ? '10px 12px' : '12px 16px',
                   borderRadius: '16px 16px 16px 4px',
                   background: 'rgba(255,255,255,0.07)',
                   border: '1px solid rgba(255,255,255,0.08)',
@@ -695,7 +697,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       {displayError && (
         <div
           style={{
-            margin: '0 28px',
+            margin: isPhone ? '0 10px' : '0 28px',
             padding: '10px 14px',
             borderRadius: '10px',
             background: 'rgba(253,111,133,0.08)',
@@ -728,7 +730,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
       {/* Chat input */}
       <div
         style={{
-          padding: '16px 28px 24px',
+          padding: isPhone ? '10px 10px 16px' : '16px 28px 24px',
           borderTop: '1px solid rgba(140,82,255,0.06)',
           flexShrink: 0,
         }}
@@ -778,8 +780,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
             <button
               onClick={streamAbort}
               style={{
-                width: '34px',
-                height: '34px',
+                width: isPhone ? '44px' : '34px',
+                height: isPhone ? '44px' : '34px',
                 borderRadius: '9px',
                 border: 'none',
                 flexShrink: 0,
@@ -804,8 +806,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
               onClick={handleSendMessage}
               disabled={!inputValue.trim()}
               style={{
-                width: '34px',
-                height: '34px',
+                width: isPhone ? '44px' : '34px',
+                height: isPhone ? '44px' : '34px',
                 borderRadius: '9px',
                 border: 'none',
                 flexShrink: 0,
@@ -853,7 +855,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
               top: 0,
               right: 0,
               bottom: 0,
-              width: '380px',
+              width: isPhone ? '100%' : '380px',
               zIndex: 11,
               background: 'linear-gradient(160deg, #1a1a36 0%, #151530 100%)',
               borderLeft: '1px solid rgba(140,82,255,0.2)',

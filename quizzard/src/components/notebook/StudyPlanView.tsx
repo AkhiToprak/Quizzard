@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2, Edit3, Plus, CalendarDays, Sparkles } from 'lucide-react';
 import StudyPhaseCard from '@/components/notebook/StudyPhaseCard';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface StudyMaterialData {
   id: string;
@@ -45,6 +46,7 @@ interface StudyPlanViewProps {
 
 export default function StudyPlanView({ notebookId, planId, initialData }: StudyPlanViewProps) {
   const router = useRouter();
+  const { isPhone } = useBreakpoint();
   const [plan, setPlan] = useState<StudyPlanData>(initialData);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(plan.title);
@@ -150,12 +152,12 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
       style={{
         height: '100%',
         overflow: 'auto',
-        padding: '32px 40px',
+        padding: isPhone ? '20px 14px' : '32px 40px',
         fontFamily: 'inherit',
       }}
     >
       {/* Header */}
-      <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      <div style={{ maxWidth: isPhone ? '100%' : '720px', margin: '0 auto' }}>
         <div
           style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '8px' }}
         >
@@ -174,7 +176,7 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
                 }}
                 autoFocus
                 style={{
-                  fontSize: '24px',
+                  fontSize: isPhone ? '20px' : '24px',
                   fontWeight: 700,
                   color: '#ede9ff',
                   background: 'rgba(140,82,255,0.08)',
@@ -193,7 +195,7 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
                   setTitleDraft(plan.title);
                 }}
                 style={{
-                  fontSize: '24px',
+                  fontSize: isPhone ? '20px' : '24px',
                   fontWeight: 700,
                   color: '#ede9ff',
                   margin: 0,
@@ -298,10 +300,11 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '16px',
-            margin: '12px 0 24px',
-            fontSize: '12px',
+            gap: isPhone ? '8px 12px' : '16px',
+            margin: isPhone ? '12px 0 18px' : '12px 0 24px',
+            fontSize: isPhone ? '11px' : '12px',
             color: 'rgba(196,169,255,0.4)',
+            flexWrap: isPhone ? 'wrap' : undefined,
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -389,13 +392,13 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
           <div
             style={{
               marginTop: '16px',
-              padding: '16px',
+              padding: isPhone ? '12px' : '16px',
               background: 'rgba(30,29,53,0.6)',
               border: '1px solid rgba(140,82,255,0.15)',
               borderRadius: '12px',
             }}
           >
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', flexWrap: isPhone ? 'wrap' : undefined, gap: '10px', marginBottom: '10px' }}>
               <input
                 value={newPhaseTitle}
                 onChange={(e) => setNewPhaseTitle(e.target.value)}

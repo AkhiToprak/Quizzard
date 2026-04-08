@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface Friend {
   id: string;
@@ -38,6 +39,7 @@ export default function CoWorkInviteModal({
   notebookId,
   sessionId,
 }: CoWorkInviteModalProps) {
+  const { isPhone } = useBreakpoint();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -136,17 +138,22 @@ export default function CoWorkInviteModal({
       <div
         style={{
           position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '100%',
-          maxWidth: 440,
+          top: isPhone ? 0 : '50%',
+          left: isPhone ? 0 : '50%',
+          transform: isPhone ? 'none' : 'translate(-50%, -50%)',
+          width: isPhone ? '100vw' : '100%',
+          height: isPhone ? '100dvh' : undefined,
+          maxWidth: isPhone ? 'none' : 440,
+          maxHeight: isPhone ? 'none' : undefined,
           background: '#161630',
-          borderRadius: 24,
-          boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+          borderRadius: isPhone ? 0 : 24,
+          boxShadow: isPhone ? 'none' : '0 32px 64px rgba(0,0,0,0.5)',
           zIndex: 10000,
           overflow: 'hidden',
-          animation: 'coworkModalSlideUp 0.25s cubic-bezier(0.22,1,0.36,1)',
+          animation: isPhone ? undefined : 'coworkModalSlideUp 0.25s cubic-bezier(0.22,1,0.36,1)',
+          margin: isPhone ? 0 : undefined,
+          display: isPhone ? 'flex' : undefined,
+          flexDirection: isPhone ? 'column' : undefined,
         }}
       >
         {/* Top gradient line */}
@@ -164,7 +171,7 @@ export default function CoWorkInviteModal({
         {/* Header */}
         <div
           style={{
-            padding: '24px 24px 16px',
+            padding: isPhone ? '20px 16px 12px' : '24px 24px 16px',
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
@@ -222,9 +229,10 @@ export default function CoWorkInviteModal({
         {/* Friends List */}
         <div
           style={{
-            maxHeight: 320,
+            maxHeight: isPhone ? undefined : 320,
+            flex: isPhone ? 1 : undefined,
             overflowY: 'auto',
-            padding: '0 16px',
+            padding: isPhone ? '0 12px' : '0 16px',
           }}
         >
           {loadingFriends ? (
@@ -383,7 +391,7 @@ export default function CoWorkInviteModal({
         {/* Footer */}
         <div
           style={{
-            padding: '16px 24px 24px',
+            padding: isPhone ? '12px 16px 20px' : '16px 24px 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',

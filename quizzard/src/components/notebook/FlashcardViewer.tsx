@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import { useDirectUpload } from '@/hooks/useDirectUpload';
 
@@ -73,6 +74,7 @@ export default function FlashcardViewer({
   assignedSectionId,
 }: FlashcardViewerProps) {
   const { upload } = useDirectUpload();
+  const { isPhone } = useBreakpoint();
   const [cards, setCards] = useState<Flashcard[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -580,10 +582,10 @@ export default function FlashcardViewer({
             style={{
               background: '#1a1833',
               borderRadius: '24px',
-              padding: '48px 40px',
+              padding: isPhone ? '32px 20px' : '48px 40px',
               border: '1px solid rgba(140,82,255,0.2)',
               textAlign: 'center',
-              maxWidth: '400px',
+              maxWidth: isPhone ? '100%' : '400px',
               width: '100%',
             }}
           >
@@ -776,7 +778,7 @@ export default function FlashcardViewer({
             alignItems: 'center',
             justifyContent: 'space-between',
             width: '100%',
-            maxWidth: '400px',
+            maxWidth: isPhone ? '100%' : '400px',
             marginBottom: '16px',
           }}
         >
@@ -804,7 +806,7 @@ export default function FlashcardViewer({
         </div>
 
         {/* Progress bar */}
-        <div style={{ width: '100%', maxWidth: '400px', marginBottom: '20px' }}>
+        <div style={{ width: '100%', maxWidth: isPhone ? '100%' : '400px', marginBottom: '20px' }}>
           <div
             style={{
               display: 'flex',
@@ -848,10 +850,10 @@ export default function FlashcardViewer({
             onTouchEnd={handleTouchEnd}
             style={{
               width: '100%',
-              maxWidth: '360px',
-              minHeight: '400px',
+              maxWidth: isPhone ? '100%' : '360px',
+              minHeight: isPhone ? '320px' : '400px',
               borderRadius: '16px',
-              padding: '32px 24px',
+              padding: isPhone ? '24px 16px' : '32px 24px',
               background:
                 swipingDirection === 'right'
                   ? 'linear-gradient(135deg, rgba(74,222,128,0.15), #1a1833)'
@@ -1017,8 +1019,8 @@ export default function FlashcardViewer({
         style={{
           position: 'relative',
           width: '100%',
-          maxWidth: '360px',
-          height: '520px',
+          maxWidth: isPhone ? '100%' : '360px',
+          height: isPhone ? '420px' : '520px',
           perspective: '1000px',
           marginBottom: '24px',
           flexShrink: 0,
@@ -1285,7 +1287,7 @@ export default function FlashcardViewer({
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: '40px',
+                padding: isPhone ? '24px 20px' : '40px',
                 boxShadow: '0 8px 32px rgba(140,82,255,0.15), 0 2px 8px rgba(0,0,0,0.3)',
                 background: 'linear-gradient(145deg, #1a1833 0%, #1a1a36 50%, #120f24 100%)',
                 border: '1px solid rgba(140,82,255,0.25)',
@@ -1357,7 +1359,7 @@ export default function FlashcardViewer({
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: '40px',
+                padding: isPhone ? '24px 20px' : '40px',
                 boxShadow: '0 8px 32px rgba(81,112,255,0.12), 0 2px 8px rgba(0,0,0,0.3)',
                 background: 'linear-gradient(145deg, #1e1a3a 0%, #1a1a36 50%, #131128 100%)',
                 border: '1px solid rgba(81,112,255,0.2)',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { ACHIEVEMENTS } from '@/lib/achievements';
 
 const ICON_MAP: Record<string, string> = {
@@ -59,6 +60,7 @@ interface TrophyShelfProps {
 }
 
 export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
+  const { isPhone } = useBreakpoint();
   const [activeTab, setActiveTab] = useState<Category>('all');
   const [data, setData] = useState<AchievementsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -155,7 +157,15 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        flexWrap: isPhone ? 'nowrap' : 'wrap',
+        overflowX: isPhone ? 'auto' : undefined,
+        WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
+        scrollbarWidth: isPhone ? 'none' : undefined,
+        paddingBottom: isPhone ? 2 : undefined,
+      }}>
         {CATEGORIES.map((cat) => {
           const isActive = activeTab === cat.key;
           return (
@@ -166,18 +176,20 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '8px 16px',
+                padding: isPhone ? '6px 12px' : '8px 16px',
                 borderRadius: '12px',
                 border: isActive
                   ? '1px solid rgba(174,137,255,0.4)'
                   : '1px solid rgba(170,168,200,0.15)',
                 background: isActive ? 'rgba(174,137,255,0.15)' : 'rgba(22,22,48,0.6)',
                 color: isActive ? '#ae89ff' : '#aaa8c8',
-                fontSize: '13px',
+                fontSize: isPhone ? '12px' : '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition:
                   'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s cubic-bezier(0.22,1,0.36,1)',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
@@ -207,8 +219,8 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '14px',
+          gridTemplateColumns: isPhone ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+          gap: isPhone ? '10px' : '14px',
         }}
       >
         {filtered.map((achievement) => {
@@ -224,13 +236,13 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
               onClick={() => setExpandedBadge(isExpanded ? null : achievement.badge)}
               style={{
                 background: isUnlocked ? '#161630' : '#1a1a30',
-                borderRadius: '16px',
-                padding: '20px',
+                borderRadius: isPhone ? '12px' : '16px',
+                padding: isPhone ? '14px 10px' : '20px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
-                gap: '10px',
+                gap: isPhone ? '8px' : '10px',
                 cursor: 'pointer',
                 border: isUnlocked
                   ? '1px solid rgba(174,137,255,0.2)'
@@ -255,9 +267,9 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
               {/* Icon */}
               <div
                 style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '14px',
+                  width: isPhone ? '40px' : '48px',
+                  height: isPhone ? '40px' : '48px',
+                  borderRadius: isPhone ? '10px' : '14px',
                   background: isUnlocked ? 'rgba(174,137,255,0.15)' : '#3a3a5c',
                   display: 'flex',
                   alignItems: 'center',
@@ -267,7 +279,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                 <span
                   className="material-symbols-outlined"
                   style={{
-                    fontSize: '24px',
+                    fontSize: isPhone ? '20px' : '24px',
                     color: isUnlocked ? '#ae89ff' : '#6a6a8c',
                     fontVariationSettings: isUnlocked
                       ? "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24"
@@ -281,7 +293,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
               {/* Name */}
               <span
                 style={{
-                  fontSize: '14px',
+                  fontSize: isPhone ? '12px' : '14px',
                   fontWeight: 700,
                   color: isUnlocked ? '#e5e3ff' : '#6a6a8c',
                   lineHeight: 1.3,

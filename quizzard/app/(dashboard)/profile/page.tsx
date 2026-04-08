@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import TrophyShelf from '@/components/features/TrophyShelf';
 import AvatarEditor from '@/components/ui/AvatarEditor';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 type UsernameStatus = 'idle' | 'typing' | 'checking' | 'available' | 'taken' | 'invalid';
@@ -86,6 +87,7 @@ const DETAIL_ITEMS: { key: keyof ProfileData; label: string; icon: string }[] = 
 
 export default function ProfilePage() {
   const { data: session, update: updateSession } = useSession();
+  const { isPhone } = useBreakpoint();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -308,17 +310,18 @@ export default function ProfilePage() {
       style={{
         maxWidth: '720px',
         margin: '0 auto',
+        padding: isPhone ? '0 16px' : undefined,
         display: 'flex',
         flexDirection: 'column',
-        gap: '32px',
+        gap: isPhone ? '24px' : '32px',
       }}
     >
       {/* Profile Header */}
       <div
         style={{
           background: '#161630',
-          borderRadius: '24px',
-          padding: '40px',
+          borderRadius: isPhone ? '20px' : '24px',
+          padding: isPhone ? '28px 20px' : '40px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -332,8 +335,8 @@ export default function ProfilePage() {
             src={profile.avatarUrl}
             alt={profile.name || profile.username}
             style={{
-              width: '96px',
-              height: '96px',
+              width: isPhone ? '80px' : '96px',
+              height: isPhone ? '80px' : '96px',
               borderRadius: '50%',
               objectFit: 'cover',
               marginBottom: '16px',
@@ -343,14 +346,14 @@ export default function ProfilePage() {
         ) : (
           <div
             style={{
-              width: '96px',
-              height: '96px',
+              width: isPhone ? '80px' : '96px',
+              height: isPhone ? '80px' : '96px',
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '32px',
+              fontSize: isPhone ? '28px' : '32px',
               fontWeight: 700,
               color: '#ffffff',
               marginBottom: '16px',
@@ -362,10 +365,10 @@ export default function ProfilePage() {
         )}
 
         {/* Name & Username */}
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>
+        <h1 style={{ fontSize: isPhone ? '20px' : '24px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>
           {profile.name || profile.username}
         </h1>
-        <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 12px' }}>
+        <p style={{ fontSize: isPhone ? '13px' : '14px', color: '#aaa8c8', margin: '0 0 12px' }}>
           @{profile.username}
         </p>
 
@@ -478,8 +481,8 @@ export default function ProfilePage() {
         <div
           style={{
             background: '#161630',
-            borderRadius: '24px',
-            padding: '28px 32px',
+            borderRadius: isPhone ? '20px' : '24px',
+            padding: isPhone ? '20px' : '28px 32px',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
@@ -552,11 +555,11 @@ export default function ProfilePage() {
         <div
           style={{
             background: '#161630',
-            borderRadius: '24px',
-            padding: '32px',
+            borderRadius: isPhone ? '20px' : '24px',
+            padding: isPhone ? '20px' : '32px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px',
+            gap: isPhone ? '16px' : '20px',
           }}
         >
           <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
@@ -611,7 +614,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Two-column grid for short fields */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr', gap: '16px' }}>
             <div>
               <label style={LABEL_STYLE}>Age</label>
               <input
@@ -880,11 +883,11 @@ export default function ProfilePage() {
           <div
             style={{
               background: '#1c1c38',
-              borderRadius: '24px',
-              padding: '32px',
+              borderRadius: isPhone ? '20px' : '24px',
+              padding: isPhone ? '24px 20px' : '32px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '24px',
+              gap: isPhone ? '20px' : '24px',
               maxWidth: '420px',
               width: '90%',
               boxShadow: '0 24px 64px rgba(0,0,0,0.5)',

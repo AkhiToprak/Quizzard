@@ -9,6 +9,8 @@ import XPProgressBar from '@/components/features/XPProgressBar';
 import ExamCountdown from '@/components/features/ExamCountdown';
 import ExamForm from '@/components/features/ExamForm';
 import DashboardAchievements from '@/components/features/DashboardAchievements';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { responsiveValue } from '@/lib/responsive';
 
 interface RecentItem {
   id: string;
@@ -108,7 +110,7 @@ export default function DashboardPage() {
   const [generatingPlanId, setGeneratingPlanId] = useState<string | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [activeCard, setActiveCard] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const { isPhone, isTablet, isDesktop, bp } = useBreakpoint();
 
   useEffect(() => {
     fetch('/api/notebooks?folderId=all')
@@ -201,15 +203,6 @@ export default function DashboardPage() {
       setGeneratingPlanId(null);
     }
   };
-
-  // Mobile detection for carousel
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
 
   const fetchTodos = () => {
     fetch('/api/user/todos')
@@ -347,19 +340,19 @@ export default function DashboardPage() {
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: '32px',
+        gap: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '32px' }),
       }}
     >
-      {/* Stats Row — carousel on mobile, grid on desktop */}
-      {isMobile && (
+      {/* Stats Row — carousel on phone, grid on tablet/desktop */}
+      {isPhone && (
         <style>{`.stat-carousel::-webkit-scrollbar { display: none; }`}</style>
       )}
       <section
-        ref={isMobile ? carouselRef : undefined}
-        className={isMobile ? 'stat-carousel' : undefined}
-        onScroll={isMobile ? handleCarouselScroll : undefined}
+        ref={isPhone ? carouselRef : undefined}
+        className={isPhone ? 'stat-carousel' : undefined}
+        onScroll={isPhone ? handleCarouselScroll : undefined}
         style={
-          isMobile
+          isPhone
             ? {
                 display: 'flex',
                 overflowX: 'auto',
@@ -629,7 +622,7 @@ export default function DashboardPage() {
               <div
                 key={label}
                 style={
-                  isMobile
+                  isPhone
                     ? { flex: '0 0 85%', scrollSnapAlign: 'center', minWidth: 0 }
                     : undefined
                 }
@@ -651,8 +644,8 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* Carousel dot indicators (mobile only) */}
-      {isMobile && (
+      {/* Carousel dot indicators (phone only) */}
+      {isPhone && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '-20px' }}>
           {[0, 1, 2].map((i) => (
             <div
@@ -675,7 +668,7 @@ export default function DashboardPage() {
           style={{
             background: '#161630',
             borderRadius: '20px',
-            padding: '24px',
+            padding: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
           }}
         >
           <XPProgressBar
@@ -702,7 +695,7 @@ export default function DashboardPage() {
         style={{
           background: '#161630',
           borderRadius: '20px',
-          padding: '24px',
+          padding: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
         }}
       >
         <div
@@ -720,7 +713,7 @@ export default function DashboardPage() {
             >
               event
             </span>
-            <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
+            <h2 style={{ fontSize: responsiveValue(bp, { phone: '16px', tablet: '17px', desktop: '18px' }), fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
               Upcoming Exams
             </h2>
           </div>
@@ -774,7 +767,7 @@ export default function DashboardPage() {
             </p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: 'repeat(2, 1fr)', desktop: 'repeat(3, 1fr)' }), gap: '16px' }}>
             {exams.slice(0, 3).map((exam) => (
               <ExamCountdown
                 key={exam.id}
@@ -798,13 +791,13 @@ export default function DashboardPage() {
 
       {/* Bento grid */}
       <section>
-        <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: '2fr 1fr', desktop: '3fr 1fr' }), gap: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }) }}>
           {/* Recent Activity */}
           <div
             style={{
               background: '#1c1c38',
-              borderRadius: '32px',
-              padding: '32px',
+              borderRadius: responsiveValue(bp, { phone: '20px', tablet: '24px', desktop: '32px' }),
+              padding: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '32px' }),
               position: 'relative',
               overflow: 'hidden',
             }}
@@ -814,12 +807,12 @@ export default function DashboardPage() {
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                marginBottom: '32px',
+                marginBottom: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '32px' }),
               }}
             >
               <div>
                 <h2
-                  style={{ fontSize: '18px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}
+                  style={{ fontSize: responsiveValue(bp, { phone: '16px', tablet: '17px', desktop: '18px' }), fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}
                 >
                   Recent Activity
                 </h2>
@@ -985,8 +978,8 @@ export default function DashboardPage() {
           <div
             style={{
               background: 'linear-gradient(135deg, #8348f6 0%, #001971 100%)',
-              borderRadius: '32px',
-              padding: '32px',
+              borderRadius: responsiveValue(bp, { phone: '20px', tablet: '24px', desktop: '32px' }),
+              padding: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '32px' }),
               color: '#ffffff',
               display: 'flex',
               flexDirection: 'column',
@@ -1011,7 +1004,7 @@ export default function DashboardPage() {
               <h2
                 style={{
                   fontFamily: 'var(--font-brand)',
-                  fontSize: '30px',
+                  fontSize: responsiveValue(bp, { phone: '22px', tablet: '26px', desktop: '30px' }),
                   fontWeight: 400,
                   margin: '0 0 16px',
                   lineHeight: 1.1,
@@ -1129,8 +1122,8 @@ export default function DashboardPage() {
         <section
           style={{
             border: '2px dashed rgba(70,69,96,0.2)',
-            borderRadius: '32px',
-            padding: '48px',
+            borderRadius: responsiveValue(bp, { phone: '20px', tablet: '24px', desktop: '32px' }),
+            padding: responsiveValue(bp, { phone: '24px', tablet: '32px', desktop: '48px' }),
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -1157,7 +1150,7 @@ export default function DashboardPage() {
               library_add
             </span>
           </div>
-          <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
+          <h3 style={{ fontSize: responsiveValue(bp, { phone: '18px', tablet: '19px', desktop: '20px' }), fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
             Feeling Inspired?
           </h3>
           <p

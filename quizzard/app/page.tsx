@@ -315,6 +315,7 @@ function PASSection({
   return (
     <section
       id={id}
+      className="landing-pas"
       style={{
         padding: '100px 40px',
         borderTop: '1px solid rgba(140,82,255,0.08)',
@@ -548,14 +549,37 @@ export default function LandingPage() {
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* ── Responsive ── */
-        @media (max-width: 768px) {
-          .hero-grid { grid-template-columns: 1fr !important; }
-          .hero-btns { flex-direction: column; align-items: center; }
+        /* ── Responsive: Tablet (768–1023px) ── */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .hero-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          .pas-grid { grid-template-columns: 1fr !important; direction: ltr !important; }
+          .steps-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 32px !important; }
+          .landing-nav { padding: 0 24px !important; }
+          .landing-hero { padding: 120px 24px 60px !important; }
+          .landing-pas { padding: 80px 24px !important; }
+          .landing-hiw { padding: 80px 24px !important; }
+          .landing-cta { padding: 100px 24px !important; }
+          .landing-footer { padding: 32px 24px !important; }
+          .landing-pricing-section { padding: 20px 24px 80px !important; }
+        }
+
+        /* ── Responsive: Phone (max-width 767px) ── */
+        @media (max-width: 767px) {
+          .hero-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
+          .hero-btns { flex-direction: column; align-items: stretch; width: 100%; }
+          .hero-btns .btn-yellow,
+          .hero-btns .btn-ghost { width: 100%; justify-content: center; text-align: center; }
           .nav-links { display: none !important; }
           .nav-auth { gap: 8px !important; }
-          .pas-grid { grid-template-columns: 1fr !important; direction: ltr !important; }
+          .landing-nav { padding: 0 16px !important; }
+          .pas-grid { grid-template-columns: 1fr !important; direction: ltr !important; gap: 36px !important; }
           .steps-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          .landing-hero { padding: 100px 16px 48px !important; }
+          .landing-pas { padding: 60px 16px !important; }
+          .landing-hiw { padding: 80px 16px !important; }
+          .landing-cta { padding: 80px 16px !important; }
+          .landing-footer { padding: 28px 16px !important; flex-direction: column !important; text-align: center !important; }
+          .landing-pricing-section { padding: 20px 16px 80px !important; }
         }
       `}</style>
 
@@ -564,6 +588,7 @@ export default function LandingPage() {
 
       {/* ── NAVBAR ── */}
       <nav
+        className="landing-nav"
         style={{
           position: 'fixed',
           top: 0,
@@ -628,6 +653,7 @@ export default function LandingPage() {
 
       {/* ── HERO ── */}
       <section
+        className="landing-hero"
         style={{
           position: 'relative',
           minHeight: '100vh',
@@ -833,6 +859,7 @@ export default function LandingPage() {
       {/* ── HOW IT WORKS ── */}
       <section
         id="how-it-works"
+        className="landing-hiw"
         style={{
           padding: '120px 40px',
           background: 'rgba(140,82,255,0.04)',
@@ -950,6 +977,7 @@ export default function LandingPage() {
 
       {/* ── FINAL CTA ── */}
       <section
+        className="landing-cta"
         style={{
           padding: '140px 40px',
           textAlign: 'center',
@@ -1011,6 +1039,7 @@ export default function LandingPage() {
 
       {/* ── FOOTER ── */}
       <footer
+        className="landing-footer"
         style={{
           padding: '40px 48px',
           borderTop: '1px solid rgba(140,82,255,0.1)',

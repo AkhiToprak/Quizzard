@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import TrophyShelf from '@/components/features/TrophyShelf';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface PublicProfileData {
   id: string;
@@ -51,6 +52,7 @@ const DETAIL_ITEMS: { key: keyof PublicProfileData; label: string; icon: string 
 
 export default function PublicProfilePage() {
   const { data: session } = useSession();
+  const { isPhone } = useBreakpoint();
   const params = useParams();
   const username = params.username as string;
 
@@ -198,17 +200,18 @@ export default function PublicProfilePage() {
       style={{
         maxWidth: '720px',
         margin: '0 auto',
+        padding: isPhone ? '0 16px' : undefined,
         display: 'flex',
         flexDirection: 'column',
-        gap: '32px',
+        gap: isPhone ? '24px' : '32px',
       }}
     >
       {/* Profile Header */}
       <div
         style={{
           background: '#161630',
-          borderRadius: '24px',
-          padding: '40px',
+          borderRadius: isPhone ? '20px' : '24px',
+          padding: isPhone ? '28px 20px' : '40px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -222,8 +225,8 @@ export default function PublicProfilePage() {
             src={profile.avatarUrl}
             alt={profile.name || profile.username}
             style={{
-              width: '96px',
-              height: '96px',
+              width: isPhone ? '80px' : '96px',
+              height: isPhone ? '80px' : '96px',
               borderRadius: '50%',
               objectFit: 'cover',
               marginBottom: '16px',
@@ -233,14 +236,14 @@ export default function PublicProfilePage() {
         ) : (
           <div
             style={{
-              width: '96px',
-              height: '96px',
+              width: isPhone ? '80px' : '96px',
+              height: isPhone ? '80px' : '96px',
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '32px',
+              fontSize: isPhone ? '28px' : '32px',
               fontWeight: 700,
               color: '#ffffff',
               marginBottom: '16px',
@@ -252,10 +255,10 @@ export default function PublicProfilePage() {
         )}
 
         {/* Name & Username */}
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>
+        <h1 style={{ fontSize: isPhone ? '20px' : '24px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>
           {profile.name || profile.username}
         </h1>
-        <p style={{ fontSize: '14px', color: '#aaa8c8', margin: '0 0 12px' }}>
+        <p style={{ fontSize: isPhone ? '13px' : '14px', color: '#aaa8c8', margin: '0 0 12px' }}>
           @{profile.username}
         </p>
 
@@ -455,8 +458,8 @@ export default function PublicProfilePage() {
         <div
           style={{
             background: '#161630',
-            borderRadius: '24px',
-            padding: '40px',
+            borderRadius: isPhone ? '20px' : '24px',
+            padding: isPhone ? '28px 20px' : '40px',
             textAlign: 'center',
           }}
         >
@@ -486,8 +489,8 @@ export default function PublicProfilePage() {
         <div
           style={{
             background: '#161630',
-            borderRadius: '24px',
-            padding: '28px 32px',
+            borderRadius: isPhone ? '20px' : '24px',
+            padding: isPhone ? '20px' : '28px 32px',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',

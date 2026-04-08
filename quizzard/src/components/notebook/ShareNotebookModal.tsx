@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDirectUpload } from '@/hooks/useDirectUpload';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface ShareNotebookModalProps {
   open: boolean;
@@ -69,6 +70,7 @@ export default function ShareNotebookModal({
   notebookName,
 }: ShareNotebookModalProps) {
   const { upload } = useDirectUpload();
+  const { isPhone } = useBreakpoint();
   const [activeTab, setActiveTab] = useState<Tab>('community');
   const [visibility, setVisibility] = useState<Visibility>('public');
   const [shareType, setShareType] = useState<ShareType>('copy');
@@ -1318,20 +1320,22 @@ export default function ShareNotebookModal({
         <div
           ref={modalRef}
           style={{
-            maxWidth: 520,
-            width: 'calc(100% - 32px)',
+            maxWidth: isPhone ? 'none' : 520,
+            width: isPhone ? '100vw' : 'calc(100% - 32px)',
+            height: isPhone ? '100dvh' : undefined,
             background: COLORS.cardBg,
-            borderRadius: 24,
-            boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
-            animation: 'modalSlideUp 0.3s cubic-bezier(0.22,1,0.36,1)',
-            maxHeight: 'calc(100vh - 48px)',
+            borderRadius: isPhone ? 0 : 24,
+            boxShadow: isPhone ? 'none' : '0 32px 64px rgba(0,0,0,0.5)',
+            animation: isPhone ? undefined : 'modalSlideUp 0.3s cubic-bezier(0.22,1,0.36,1)',
+            maxHeight: isPhone ? 'none' : 'calc(100vh - 48px)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
+            margin: isPhone ? 0 : undefined,
           }}
         >
           {/* Header */}
-          <div style={{ padding: '28px 28px 0' }}>
+          <div style={{ padding: isPhone ? '20px 16px 0' : '28px 28px 0' }}>
             <div
               style={{
                 display: 'flex',
@@ -1396,7 +1400,7 @@ export default function ShareNotebookModal({
           <div
             style={{
               display: 'flex',
-              padding: '20px 28px 0',
+              padding: isPhone ? '16px 16px 0' : '20px 28px 0',
               gap: 0,
               borderBottom: `1px solid ${COLORS.border}`,
             }}
@@ -1418,8 +1422,8 @@ export default function ShareNotebookModal({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 6,
-                    padding: '10px 8px 14px',
+                    gap: isPhone ? 4 : 6,
+                    padding: isPhone ? '8px 4px 12px' : '10px 8px 14px',
                     border: 'none',
                     borderBottom: `2px solid ${isActive ? COLORS.primary : 'transparent'}`,
                     background: 'transparent',
@@ -1428,14 +1432,14 @@ export default function ShareNotebookModal({
                       : isHovered
                         ? COLORS.textSecondary
                         : COLORS.textMuted,
-                    fontSize: 13,
+                    fontSize: isPhone ? 12 : 13,
                     fontWeight: isActive ? 600 : 500,
                     cursor: 'pointer',
                     transition: `all 0.2s ${EASING}`,
                     marginBottom: -1,
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: isPhone ? 16 : 18 }}>
                     {tab.icon}
                   </span>
                   {tab.label}
@@ -1447,7 +1451,7 @@ export default function ShareNotebookModal({
           {/* Tab content */}
           <div
             style={{
-              padding: 28,
+              padding: isPhone ? 16 : 28,
               overflowY: 'auto',
               flex: 1,
             }}
@@ -1482,7 +1486,7 @@ export default function ShareNotebookModal({
           </div>
 
           {/* Bottom close button */}
-          <div style={{ padding: '0 28px 28px' }}>
+          <div style={{ padding: isPhone ? '0 16px 20px' : '0 28px 28px' }}>
             <button
               onClick={onClose}
               onMouseEnter={() => setHoveredCloseBottom(true)}

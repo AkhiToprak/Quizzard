@@ -7,6 +7,7 @@ import Link from 'next/link';
 import BurgerMenu from './BurgerMenu';
 import NotificationBell from './NotificationBell';
 import { useSearch } from '@/hooks/useSearch';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import SearchDropdown from '@/components/search/SearchDropdown';
 import TierBadge from '@/components/ui/TierBadge';
 
@@ -52,6 +53,8 @@ export default function HomeHeader() {
         role?: string;
       }
     | undefined;
+
+  const { isPhone, isTablet, isDesktop } = useBreakpoint();
 
   const [burgerOpen, setBurgerOpen] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
@@ -107,11 +110,11 @@ export default function HomeHeader() {
           style={{
             maxWidth: 1400,
             margin: '0 auto',
-            padding: '0 20px',
-            height: 64,
+            padding: isPhone ? '0 12px' : isTablet ? '0 16px' : '0 20px',
+            height: isPhone ? 56 : 64,
             display: 'flex',
             alignItems: 'center',
-            gap: 16,
+            gap: isPhone ? 8 : 16,
           }}
         >
           {/* Burger button */}
@@ -143,7 +146,7 @@ export default function HomeHeader() {
           <Link
             href="/home"
             style={{
-              display: 'flex',
+              display: isPhone ? 'none' : 'flex',
               alignItems: 'center',
               textDecoration: 'none',
               flexShrink: 0,
@@ -152,7 +155,7 @@ export default function HomeHeader() {
             <Image
               src="/logo_trimmed.png"
               alt="Quizzard"
-              width={120}
+              width={isTablet ? 100 : 120}
               height={32}
               style={{ objectFit: 'contain' }}
             />
@@ -162,7 +165,7 @@ export default function HomeHeader() {
           <div
             style={{
               flex: 1,
-              maxWidth: 500,
+              maxWidth: isPhone ? undefined : isTablet ? 400 : 500,
               margin: '0 auto',
               position: 'relative',
             }}

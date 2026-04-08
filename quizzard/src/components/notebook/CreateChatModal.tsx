@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { X, Upload, BookOpen, Check, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useDirectUpload } from '@/hooks/useDirectUpload';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface PageRef {
   id: string;
@@ -50,6 +51,7 @@ export default function CreateChatModal({
   onCreate,
 }: Props) {
   const { upload } = useDirectUpload();
+  const { isPhone } = useBreakpoint();
   const [title, setTitle] = useState('');
   const [activeTab, setActiveTab] = useState<'notebook' | 'upload'>('notebook');
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set());
@@ -164,24 +166,29 @@ export default function CreateChatModal({
       <div
         style={{
           position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          top: isPhone ? 0 : '50%',
+          left: isPhone ? 0 : '50%',
+          transform: isPhone ? 'none' : 'translate(-50%, -50%)',
           zIndex: 1001,
-          width: '540px',
-          maxWidth: 'calc(100vw - 40px)',
+          width: isPhone ? '100vw' : '540px',
+          height: isPhone ? '100dvh' : undefined,
+          maxWidth: isPhone ? 'none' : 'calc(100vw - 40px)',
+          maxHeight: isPhone ? 'none' : undefined,
           background: 'linear-gradient(160deg, #1a1a36 0%, #151530 100%)',
-          border: '1px solid rgba(140,82,255,0.2)',
-          borderRadius: '20px',
-          boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07) inset',
+          border: isPhone ? 'none' : '1px solid rgba(140,82,255,0.2)',
+          borderRadius: isPhone ? 0 : '20px',
+          boxShadow: isPhone ? 'none' : '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07) inset',
           fontFamily: 'inherit',
-          overflow: 'hidden',
+          overflow: isPhone ? 'auto' : 'hidden',
+          margin: isPhone ? 0 : undefined,
+          display: isPhone ? 'flex' : undefined,
+          flexDirection: isPhone ? 'column' : undefined,
         }}
       >
         {/* Header */}
         <div
           style={{
-            padding: '22px 24px 18px',
+            padding: isPhone ? '16px 16px 14px' : '22px 24px 18px',
             borderBottom: '1px solid rgba(140,82,255,0.1)',
             display: 'flex',
             alignItems: 'flex-start',
@@ -257,10 +264,11 @@ export default function CreateChatModal({
 
         <div
           style={{
-            padding: '20px 24px 24px',
+            padding: isPhone ? '16px 16px 20px' : '20px 24px 24px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px',
+            gap: isPhone ? '16px' : '20px',
+            flex: isPhone ? 1 : undefined,
           }}
         >
           {/* Title input */}

@@ -1,30 +1,84 @@
 'use client';
 
-import { use } from 'react';
+import { use, useEffect } from 'react';
 import { ChevronsRight } from 'lucide-react';
 import {
   NotebookWorkspaceProvider,
   useNotebookWorkspace,
 } from '@/components/notebook/NotebookWorkspaceContext';
 import UnifiedSidebar from '@/components/notebook/UnifiedSidebar';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 function NotebookWorkspaceInner({ children }: { children: React.ReactNode }) {
   const { sidebarCollapsed, setSidebarCollapsed } = useNotebookWorkspace();
+  const { isPhone, isPhoneOrTablet } = useBreakpoint();
+
+  // Auto-collapse sidebar on phone/tablet
+  useEffect(() => {
+    if (isPhoneOrTablet) {
+      setSidebarCollapsed(true);
+    }
+  }, [isPhoneOrTablet, setSidebarCollapsed]);
 
   return (
     <div style={{ display: 'flex', flex: 1, height: '100%', overflow: 'hidden' }}>
-      <div
-        style={{
-          width: sidebarCollapsed ? '0px' : '280px',
-          minWidth: sidebarCollapsed ? '0px' : '280px',
-          transition:
-            'width 0.25s cubic-bezier(0.4,0,0.2,1), min-width 0.25s cubic-bezier(0.4,0,0.2,1)',
-          overflow: 'hidden',
-          flexShrink: 0,
-        }}
-      >
-        <UnifiedSidebar />
-      </div>
+      {/* Desktop: inline sidebar with width transition */}
+      {!isPhoneOrTablet && (
+        <div
+          style={{
+            width: sidebarCollapsed ? '0px' : '280px',
+            minWidth: sidebarCollapsed ? '0px' : '280px',
+            transition:
+              'width 0.25s cubic-bezier(0.4,0,0.2,1), min-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          <UnifiedSidebar />
+        </div>
+      )}
+      {/* Phone/Tablet: overlay sidebar */}
+      {isPhoneOrTablet && !sidebarCollapsed && (
+        <>
+          <style>{`
+            @keyframes burgerSlideIn {
+              from { transform: translateX(-100%); }
+              to { transform: translateX(0); }
+            }
+            @keyframes burgerBackdropIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+          `}</style>
+          {/* Backdrop */}
+          <div
+            onClick={() => setSidebarCollapsed(true)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.55)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+              zIndex: 200,
+              animation: 'burgerBackdropIn 0.2s ease-out',
+            }}
+          />
+          {/* Sidebar panel */}
+          <div
+            style={{
+              position: 'fixed',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: isPhone ? '100vw' : 280,
+              zIndex: 201,
+              animation: 'burgerSlideIn 0.3s cubic-bezier(0.22,1,0.36,1)',
+            }}
+          >
+            <UnifiedSidebar />
+          </div>
+        </>
+      )}
       <div
         style={{
           flex: 1,

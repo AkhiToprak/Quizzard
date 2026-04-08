@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import StarterKit from '@tiptap/starter-kit';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
@@ -86,6 +87,7 @@ export default function PageEditor({
   currentUserId,
   highlightTerm,
 }: PageEditorProps) {
+  const { isPhone, isTablet } = useBreakpoint();
   const [page, setPage] = useState<PageData | null>(null);
   const [title, setTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -350,7 +352,7 @@ export default function PageEditor({
   /* ── Loading skeleton ── */
   if (isLoading) {
     return (
-      <div style={{ padding: '40px 56px' }}>
+      <div style={{ padding: isPhone ? '24px 16px' : isTablet ? '32px 28px' : '40px 56px' }}>
         <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
         <div
           style={{
@@ -520,7 +522,7 @@ export default function PageEditor({
       )}
 
       {/* ── Title + save status ── */}
-      <div style={{ padding: '32px 56px 0', flexShrink: 0 }}>
+      <div style={{ padding: isPhone ? '20px 16px 0' : isTablet ? '24px 28px 0' : '32px 56px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
           <input
             value={title}
@@ -533,7 +535,7 @@ export default function PageEditor({
               border: 'none',
               outline: 'none',
               fontFamily: 'inherit',
-              fontSize: '32px',
+              fontSize: isPhone ? '24px' : '32px',
               fontWeight: 700,
               color: '#ede9ff',
               letterSpacing: '-0.04em',
@@ -609,7 +611,7 @@ export default function PageEditor({
 
       {/* ── Editor canvas (full width, infinite scroll) ── */}
       <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-        <div style={{ padding: '28px 56px 80px', minHeight: '100%', position: 'relative' }}>
+        <div style={{ padding: isPhone ? '16px 16px 60px' : isTablet ? '20px 28px 80px' : '28px 56px 80px', minHeight: '100%', position: 'relative' }}>
           <EditorContent editor={editor} />
           <DrawingOverlay
             strokes={strokes}

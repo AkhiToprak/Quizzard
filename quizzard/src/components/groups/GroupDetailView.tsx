@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import GroupChat from './GroupChat';
 import GroupSharedContent from './GroupSharedContent';
 import GroupMemberList from './GroupMemberList';
@@ -66,6 +67,7 @@ interface Props {
 export default function GroupDetailView({ groupId }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
+  const { isPhone } = useBreakpoint();
   const [group, setGroup] = useState<GroupData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>('chat');
@@ -133,8 +135,8 @@ export default function GroupDetailView({ groupId }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       {/* Group header */}
       <div style={{
-        padding: '8px 24px',
-        display: 'flex', alignItems: 'center', gap: 10,
+        padding: isPhone ? '8px 12px' : '8px 24px',
+        display: 'flex', alignItems: 'center', gap: isPhone ? 8 : 10,
         borderBottom: `1px solid ${COLORS.border}1a`,
         background: `${COLORS.pageBg}cc`,
         backdropFilter: 'blur(20px)',
@@ -197,14 +199,17 @@ export default function GroupDetailView({ groupId }: Props) {
       {/* Tab bar */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 0,
-        padding: '0 24px',
+        padding: isPhone ? '0 12px' : '0 24px',
         background: `${COLORS.cardBg}80`,
         backdropFilter: 'blur(12px)',
         borderBottom: `1px solid ${COLORS.border}1a`,
         flexShrink: 0,
+        overflowX: isPhone ? 'auto' : undefined,
+        WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
+        scrollbarWidth: isPhone ? 'none' : undefined,
       }}>
         {/* Left tabs */}
-        <div style={{ display: 'flex', gap: 32 }}>
+        <div style={{ display: 'flex', gap: isPhone ? 16 : 32 }}>
           {leftTabs.map((tab) => {
             const active = activeTab === tab.key;
             return (
@@ -212,13 +217,15 @@ export default function GroupDetailView({ groupId }: Props) {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 style={{
-                  position: 'relative', padding: '18px 0',
+                  position: 'relative', padding: isPhone ? '14px 0' : '18px 0',
                   background: 'none', border: 'none',
-                  fontSize: 15, fontWeight: active ? 700 : 600,
+                  fontSize: isPhone ? 13 : 15, fontWeight: active ? 700 : 600,
                   color: active ? COLORS.primary : COLORS.textMuted,
                   cursor: 'pointer', fontFamily: 'inherit',
-                  display: 'flex', alignItems: 'center', gap: 8,
+                  display: 'flex', alignItems: 'center', gap: isPhone ? 4 : 8,
                   transition: `color 0.2s ${EASING}`,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
               >
                 {tab.icon && <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{tab.icon}</span>}
@@ -237,7 +244,7 @@ export default function GroupDetailView({ groupId }: Props) {
         <div style={{ flex: 1 }} />
 
         {/* Right tabs */}
-        <div style={{ display: 'flex', gap: 32 }}>
+        <div style={{ display: 'flex', gap: isPhone ? 16 : 32 }}>
           {rightTabs.map((tab) => {
             // Hide settings from non-admin
             if (tab.key === 'settings' && !isAdminOrOwner) return null;
@@ -247,13 +254,15 @@ export default function GroupDetailView({ groupId }: Props) {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 style={{
-                  position: 'relative', padding: '18px 0',
+                  position: 'relative', padding: isPhone ? '14px 0' : '18px 0',
                   background: 'none', border: 'none',
-                  fontSize: 15, fontWeight: active ? 700 : 600,
+                  fontSize: isPhone ? 13 : 15, fontWeight: active ? 700 : 600,
                   color: active ? COLORS.primary : COLORS.textMuted,
                   cursor: 'pointer', fontFamily: 'inherit',
-                  display: 'flex', alignItems: 'center', gap: 8,
+                  display: 'flex', alignItems: 'center', gap: isPhone ? 4 : 8,
                   transition: `color 0.2s ${EASING}`,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
               >
                 {tab.icon && <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{tab.icon}</span>}

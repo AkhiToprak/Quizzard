@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Editor } from '@tiptap/react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import {
   Bold,
   Italic,
@@ -1371,6 +1372,20 @@ export default function EditorToolbar({
   const [, setTick] = useState(0);
   const bump = useCallback(() => setTick((t) => t + 1), []);
   const withSelection = useSelectionGuard(editor);
+  const { isPhone } = useBreakpoint();
+
+  const responsiveRowStyle: React.CSSProperties = {
+    ...ROW_STYLE,
+    ...(isPhone
+      ? {
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          padding: '4px 8px',
+          gap: '2px',
+          scrollbarWidth: 'none',
+        }
+      : {}),
+  };
 
   useEffect(() => {
     if (!editor) return;
@@ -1394,8 +1409,12 @@ export default function EditorToolbar({
         zIndex: 10,
       }}
     >
+      {isPhone && (
+        <style>{`.editor-toolbar-row::-webkit-scrollbar { display: none; }`}</style>
+      )}
+
       {/* Row 1: Font controls + inline formatting */}
-      <div style={{ ...ROW_STYLE, borderBottom: '1px solid rgba(237,233,255,0.04)', gap: '4px' }}>
+      <div className={isPhone ? 'editor-toolbar-row' : undefined} style={{ ...responsiveRowStyle, borderBottom: '1px solid rgba(237,233,255,0.04)', gap: '4px' }}>
         <FontFamilySelect editor={editor} withSelection={withSelection} />
         <FontSizeControl editor={editor} withSelection={withSelection} />
         <Sep />
@@ -1453,7 +1472,7 @@ export default function EditorToolbar({
       </div>
 
       {/* Row 2: Block formatting + utilities */}
-      <div style={ROW_STYLE}>
+      <div className={isPhone ? 'editor-toolbar-row' : undefined} style={responsiveRowStyle}>
         <ToolbarButton
           icon={Heading1}
           label="Heading 1"
@@ -1541,7 +1560,7 @@ export default function EditorToolbar({
 
       {/* Row 3: Pen settings (visible only in pen mode) */}
       {editorMode === 'pen' && (
-        <div style={{ ...ROW_STYLE, borderTop: '1px solid rgba(237,233,255,0.04)', gap: '6px' }}>
+        <div className={isPhone ? 'editor-toolbar-row' : undefined} style={{ ...responsiveRowStyle, borderTop: '1px solid rgba(237,233,255,0.04)', gap: '6px' }}>
           {/* Pen / Eraser sub-tool */}
           <ToolbarButton
             icon={Pen}

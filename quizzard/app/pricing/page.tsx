@@ -66,10 +66,30 @@ export default function PricingPage() {
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        @media (max-width: 768px) {
+        /* ── Responsive: Tablet (768–1023px) ── */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .nav-links { display: none !important; }
+          .pricing-nav { padding: 0 24px !important; }
+          .pricing-hero { padding: 140px 24px 60px !important; }
+          .pricing-cards-grid {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+          }
+          .pricing-cards-grid > * { flex: 0 0 calc(50% - 12px) !important; max-width: calc(50% - 12px) !important; }
+          .pricing-cards-section { padding: 20px 24px 80px !important; }
+          .pricing-footer { padding: 32px 24px !important; }
+        }
+
+        /* ── Responsive: Phone (max-width 767px) ── */
+        @media (max-width: 767px) {
           .nav-links { display: none !important; }
           .nav-auth { gap: 8px !important; }
+          .pricing-nav { padding: 0 16px !important; }
+          .pricing-hero { padding: 120px 16px 40px !important; }
           .pricing-cards-grid { flex-direction: column !important; align-items: center !important; }
+          .pricing-cards-grid > * { width: 100% !important; max-width: 400px !important; }
+          .pricing-cards-section { padding: 20px 16px 60px !important; }
+          .pricing-footer { padding: 28px 16px !important; flex-direction: column !important; text-align: center !important; }
         }
       `}</style>
 
@@ -78,6 +98,7 @@ export default function PricingPage() {
 
       {/* ── NAVBAR ── */}
       <nav
+        className="pricing-nav"
         style={{
           position: 'fixed',
           top: 0,
@@ -142,6 +163,7 @@ export default function PricingPage() {
 
       {/* ── HERO ── */}
       <section
+        className="pricing-hero"
         style={{
           position: 'relative',
           display: 'flex',
@@ -234,7 +256,7 @@ export default function PricingPage() {
       </section>
 
       {/* ── PRICING CARDS ── */}
-      <section style={{ padding: '20px 40px 120px', position: 'relative', zIndex: 1 }}>
+      <section className="pricing-cards-section" style={{ padding: '20px 40px 120px', position: 'relative', zIndex: 1 }}>
         <div
           className="pricing-cards-grid"
           style={{
@@ -260,6 +282,7 @@ export default function PricingPage() {
 
       {/* ── FOOTER ── */}
       <footer
+        className="pricing-footer"
         style={{
           padding: '40px 48px',
           borderTop: '1px solid rgba(140,82,255,0.1)',

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotebookWorkspace } from '@/components/notebook/NotebookWorkspaceContext';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import SlideEditorModal, { SlideData } from './SlideEditorModal';
 
@@ -62,6 +63,7 @@ export default function QuizViewer({
   initialQuestions,
   assignedSectionId,
 }: QuizViewerProps) {
+  const { isPhone, isTablet } = useBreakpoint();
   const [questions, setQuestions] = useState<QuizQuestion[]>(initialQuestions);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<number, number>>(new Map());
@@ -501,10 +503,10 @@ export default function QuizViewer({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '12px',
+            gridTemplateColumns: isPhone ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+            gap: isPhone ? '8px' : '12px',
             width: '100%',
-            maxWidth: '400px',
+            maxWidth: isPhone ? '100%' : '400px',
             marginBottom: '32px',
           }}
         >
@@ -670,11 +672,11 @@ export default function QuizViewer({
         <div
           style={{
             width: '100%',
-            maxWidth: '480px',
+            maxWidth: isPhone ? '100%' : '480px',
             borderRadius: '16px',
             background: '#1a1833',
             border: '1px solid rgba(140,82,255,0.3)',
-            padding: '24px',
+            padding: isPhone ? '16px' : '24px',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
@@ -767,7 +769,7 @@ export default function QuizViewer({
         <div
           style={{
             width: '100%',
-            maxWidth: '480px',
+            maxWidth: isPhone ? '100%' : '480px',
             marginBottom: '20px',
           }}
         >
@@ -777,7 +779,7 @@ export default function QuizViewer({
               background: 'linear-gradient(145deg, #1a1833 0%, #1a1a36 50%, #120f24 100%)',
               border: '1px solid rgba(140,82,255,0.25)',
               borderRadius: '16px',
-              padding: '28px 24px',
+              padding: isPhone ? '20px 16px' : '28px 24px',
               marginBottom: '16px',
               boxShadow: '0 8px 32px rgba(140,82,255,0.1), 0 2px 8px rgba(0,0,0,0.3)',
             }}
@@ -827,8 +829,9 @@ export default function QuizViewer({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
-                    padding: '14px 16px',
+                    gap: isPhone ? '10px' : '12px',
+                    padding: isPhone ? '12px 14px' : '14px 16px',
+                    minHeight: '44px',
                     borderRadius: '12px',
                     border: `1px solid ${borderColor}`,
                     background: bg,
@@ -836,6 +839,7 @@ export default function QuizViewer({
                     textAlign: 'left',
                     fontFamily: 'inherit',
                     transition: 'background 0.15s, border-color 0.15s',
+                    width: '100%',
                   }}
                 >
                   <span

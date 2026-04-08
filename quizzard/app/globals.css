@@ -351,3 +351,151 @@ body {
     opacity: 0;
   }
 }
+
+/* ─── Responsive Utilities ───────────────────────────────────────────── */
+/* Breakpoints: phone 0–767px · tablet 768–1023px · desktop 1024px+     */
+
+/* Responsive padding: 32px desktop, 20px tablet, 16px phone */
+.responsive-padding {
+  padding: 32px;
+}
+
+/* Responsive grids */
+.responsive-grid-3 {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.responsive-grid-2 {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.responsive-grid-auto {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Visibility utilities */
+.hide-phone,
+.show-tablet-only,
+.show-desktop-only {
+  display: revert;
+}
+
+.show-phone-only {
+  display: none;
+}
+
+.hide-tablet-down {
+  display: revert;
+}
+
+/* ─── Tablet (768–1023px) ────────────────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .responsive-padding {
+    padding: 20px;
+  }
+
+  .responsive-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .responsive-grid-auto {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .hide-tablet-down {
+    display: none !important;
+  }
+}
+
+/* ─── Phone (0–767px) ────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .responsive-padding {
+    padding: 16px;
+  }
+
+  .responsive-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .responsive-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .responsive-grid-auto {
+    grid-template-columns: 1fr;
+  }
+
+  .hide-phone {
+    display: none !important;
+  }
+
+  .show-phone-only {
+    display: revert !important;
+  }
+
+  .hide-tablet-down {
+    display: none !important;
+  }
+
+  .full-width-phone {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Ensure modal backdrops work with dvh */
+  .modal-fullscreen-phone {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Minimum touch target for interactive elements */
+  button,
+  a,
+  [role='button'] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Ensure no text is smaller than 14px on phone */
+  body {
+    font-size: max(14px, 1em);
+  }
+}
+
+/* ─── Safe Area Insets (notched phones) ──────────────────────────────── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-all {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+}
+
+/* ─── Touch-friendly scrollbar hiding (for horizontal scroll strips) ── */
+.scroll-hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scroll-hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

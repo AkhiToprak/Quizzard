@@ -3,6 +3,7 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import AvatarEditor from '@/components/ui/AvatarEditor';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 function getInitials(name?: string | null): string {
   if (!name) return '?';
@@ -68,6 +69,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
+  const { isPhone } = useBreakpoint();
   const [activeSection, setActiveSection] = useState<Section>('account');
 
   const [notifications, setNotifications] = useState({
@@ -391,7 +393,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', position: 'relative' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', position: 'relative', padding: isPhone ? '0 16px' : undefined }}>
       {/* Ambient bg blobs */}
       <div
         style={{
@@ -425,11 +427,11 @@ export default function SettingsPage() {
       />
 
       {/* Page header */}
-      <header style={{ marginBottom: '48px' }}>
+      <header style={{ marginBottom: isPhone ? '24px' : '48px' }}>
         <h2
           style={{
             fontFamily: 'var(--font-brand)',
-            fontSize: '48px',
+            fontSize: isPhone ? '32px' : '48px',
             fontWeight: 400,
             color: '#ae89ff',
             margin: '0 0 8px',
@@ -438,32 +440,33 @@ export default function SettingsPage() {
         >
           Settings
         </h2>
-        <p style={{ fontSize: '17px', color: '#aaa8c8', margin: 0 }}>
+        <p style={{ fontSize: isPhone ? '14px' : '17px', color: '#aaa8c8', margin: 0 }}>
           Manage your digital study sanctum and preferences.
         </p>
       </header>
 
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 2fr',
-          gap: '32px',
+          display: isPhone ? 'flex' : 'grid',
+          flexDirection: isPhone ? 'column' : undefined,
+          gridTemplateColumns: isPhone ? undefined : '1fr 2fr',
+          gap: isPhone ? '20px' : '32px',
           alignItems: 'start',
           position: 'relative',
           zIndex: 1,
         }}
       >
         {/* Left column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isPhone ? '16px' : '24px' }}>
           {/* Profile card */}
           <div
             style={{
               background: '#161630',
-              borderRadius: '32px',
-              padding: '32px',
+              borderRadius: isPhone ? '20px' : '32px',
+              padding: isPhone ? '20px' : '32px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '24px',
+              gap: isPhone ? '16px' : '24px',
             }}
           >
             {/* Avatar + name */}
@@ -552,7 +555,15 @@ export default function SettingsPage() {
             </div>
 
             {/* Settings nav */}
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <nav style={{
+              display: 'flex',
+              flexDirection: isPhone ? 'row' : 'column',
+              gap: isPhone ? '8px' : '4px',
+              overflowX: isPhone ? 'auto' : undefined,
+              WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
+              scrollbarWidth: isPhone ? 'none' : undefined,
+              paddingBottom: isPhone ? '4px' : undefined,
+            }}>
               {navItems.map(({ section, icon, label }) => {
                 const active = activeSection === section;
                 return (
@@ -562,17 +573,19 @@ export default function SettingsPage() {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '12px',
-                      padding: '12px 16px',
+                      gap: isPhone ? '6px' : '12px',
+                      padding: isPhone ? '8px 14px' : '12px 16px',
                       borderRadius: '12px',
                       border: 'none',
                       background: active ? 'rgba(174,137,255,0.1)' : 'transparent',
                       color: active ? '#ae89ff' : '#aaa8c8',
                       fontWeight: active ? 700 : 500,
-                      fontSize: '15px',
+                      fontSize: isPhone ? '13px' : '15px',
                       cursor: 'pointer',
                       fontFamily: 'inherit',
                       textAlign: 'left',
+                      whiteSpace: isPhone ? 'nowrap' : undefined,
+                      flexShrink: isPhone ? 0 : undefined,
                       transition: 'background 0.15s, color 0.15s',
                     }}
                     onMouseEnter={(e) => {
@@ -587,7 +600,7 @@ export default function SettingsPage() {
                       }
                     }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: isPhone ? '18px' : '20px' }}>
                       {icon}
                     </span>
                     {label}
@@ -599,13 +612,13 @@ export default function SettingsPage() {
         </div>
 
         {/* Right column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isPhone ? '16px' : '24px' }}>
           {/* Account Security */}
           <section
             style={{
               background: '#1c1c38',
-              borderRadius: '32px',
-              padding: '32px',
+              borderRadius: isPhone ? '20px' : '32px',
+              padding: isPhone ? '20px' : '32px',
               display: activeSection === 'account' || activeSection === 'privacy' ? 'flex' : 'none',
               flexDirection: 'column',
               gap: '32px',
@@ -639,9 +652,9 @@ export default function SettingsPage() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr auto',
+                gridTemplateColumns: isPhone ? '1fr' : '1fr auto',
                 gap: '16px',
-                alignItems: 'end',
+                alignItems: isPhone ? 'stretch' : 'end',
               }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -727,7 +740,7 @@ export default function SettingsPage() {
                     e.target.style.boxShadow = 'none';
                   }}
                 />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr', gap: '16px' }}>
                   <input
                     type="password"
                     placeholder="New Password"
@@ -795,8 +808,8 @@ export default function SettingsPage() {
           <section
             style={{
               background: '#1c1c38',
-              borderRadius: '32px',
-              padding: '32px',
+              borderRadius: isPhone ? '20px' : '32px',
+              padding: isPhone ? '20px' : '32px',
               display:
                 activeSection === 'notifications' || activeSection === 'account' ? 'flex' : 'none',
               flexDirection: 'column',
@@ -890,8 +903,8 @@ export default function SettingsPage() {
           <section
             style={{
               background: '#1c1c38',
-              borderRadius: '32px',
-              padding: '32px',
+              borderRadius: isPhone ? '20px' : '32px',
+              padding: isPhone ? '20px' : '32px',
               display: activeSection === 'goals' ? 'flex' : 'none',
               flexDirection: 'column',
               gap: '32px',
@@ -945,9 +958,10 @@ export default function SettingsPage() {
                 <div
                   style={{
                     display: 'flex',
-                    alignItems: 'flex-start',
+                    flexDirection: isPhone ? 'column' : 'row',
+                    alignItems: isPhone ? 'stretch' : 'flex-start',
                     justifyContent: 'space-between',
-                    gap: '24px',
+                    gap: isPhone ? '16px' : '24px',
                   }}
                 >
                   <div>
@@ -1164,8 +1178,8 @@ export default function SettingsPage() {
           <section
             style={{
               background: '#1c1c38',
-              borderRadius: '32px',
-              padding: '32px',
+              borderRadius: isPhone ? '20px' : '32px',
+              padding: isPhone ? '20px' : '32px',
               display: activeSection === 'subscription' ? 'flex' : 'none',
               flexDirection: 'column',
               gap: '32px',
@@ -1277,14 +1291,15 @@ export default function SettingsPage() {
               {subPendingTier && (
                 <div
                   style={{
-                    padding: '14px 18px',
+                    padding: isPhone ? '14px' : '14px 18px',
                     borderRadius: '14px',
                     background:
                       subPendingTier === 'FREE' ? 'rgba(253,111,133,0.1)' : 'rgba(174,137,255,0.1)',
                     border: `1px solid ${subPendingTier === 'FREE' ? 'rgba(253,111,133,0.25)' : 'rgba(174,137,255,0.25)'}`,
                     display: 'flex',
+                    flexDirection: isPhone ? 'column' : 'row',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
+                    alignItems: isPhone ? 'flex-start' : 'center',
                     gap: '12px',
                   }}
                 >
@@ -1354,7 +1369,7 @@ export default function SettingsPage() {
                 >
                   {subTier === 'FREE' ? 'Upgrade your plan' : 'Change plan'}
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr 1fr', gap: '12px' }}>
                   {(['FREE', 'PLUS', 'PRO'] as const).map((tier) => {
                     const isCurrent = tier === subTier;
                     const color = tierColors[tier];
@@ -1685,8 +1700,8 @@ export default function SettingsPage() {
             <section
               style={{
                 background: '#1c1c38',
-                borderRadius: '32px',
-                padding: '32px',
+                borderRadius: isPhone ? '20px' : '32px',
+                padding: isPhone ? '20px' : '32px',
                 display: activeSection === 'admin' ? 'flex' : 'none',
                 flexDirection: 'column',
                 gap: '24px',
@@ -1838,10 +1853,11 @@ export default function SettingsPage() {
                         style={{
                           background: user.banned ? 'rgba(253,111,133,0.05)' : '#161630',
                           borderRadius: '16px',
-                          padding: '16px 20px',
+                          padding: isPhone ? '14px' : '16px 20px',
                           display: 'flex',
-                          alignItems: 'center',
-                          gap: '16px',
+                          flexDirection: isPhone ? 'column' : 'row',
+                          alignItems: isPhone ? 'flex-start' : 'center',
+                          gap: isPhone ? '12px' : '16px',
                           border: user.banned
                             ? '1px solid rgba(253,111,133,0.15)'
                             : '1px solid transparent',
@@ -2347,8 +2363,8 @@ export default function SettingsPage() {
           <section
             style={{
               background: 'rgba(138,22,50,0.05)',
-              borderRadius: '32px',
-              padding: '32px',
+              borderRadius: isPhone ? '20px' : '32px',
+              padding: isPhone ? '20px' : '32px',
               border: '1px solid rgba(253,111,133,0.2)',
               display: 'flex',
               flexDirection: 'column',
