@@ -47,6 +47,17 @@ export default function TimerWidget({ compact }: Props) {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [hoveredBtn, setHoveredBtn] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [fixedPos, setFixedPos] = useState<{ top: number; left: number } | null>(null);
+
+  // Compute fixed position for compact (sidebar) mode
+  useEffect(() => {
+    if (open && compact && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setFixedPos({ top: rect.top, left: rect.right + 8 });
+    }
+    if (!open) setFixedPos(null);
+  }, [open, compact]);
 
   // Close on outside click
   useEffect(() => {
@@ -70,6 +81,7 @@ export default function TimerWidget({ compact }: Props) {
     <div ref={ref} style={{ position: 'relative' }}>
       {/* ── Trigger button ──────────────────────────────────────── */}
       <button
+        ref={btnRef}
         onClick={() => setOpen(!open)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -164,10 +176,12 @@ export default function TimerWidget({ compact }: Props) {
       {open && (
         <div
           style={{
-            position: 'absolute',
-            ...(compact
-              ? { left: '100%', marginLeft: 8, top: 0 }
-              : { top: '100%', marginTop: 8, right: 0 }),
+            position: compact ? 'fixed' : 'absolute',
+            ...(compact && fixedPos
+              ? { top: fixedPos.top, left: fixedPos.left }
+              : !compact
+                ? { top: '100%', marginTop: 8, right: 0 }
+                : {}),
             width: isPhone ? 'calc(100vw - 24px)' : 310,
             maxWidth: 340,
             background: C.cardBg,
