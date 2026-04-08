@@ -23,7 +23,7 @@ export const TIERS: Record<TierKey, TierConfig> = {
       ai_pptx: 1,
       ai_study_plan: 2,
       ai_quizzes: 2,
-      scholar_chat: 20,
+      scholar_chat: 50,
     },
     badge: {
       label: 'Free',
