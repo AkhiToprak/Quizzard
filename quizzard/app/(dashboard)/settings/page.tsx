@@ -516,14 +516,14 @@ export default function SettingsPage() {
                   onClick={() => setAvatarEditorOpen(true)}
                   style={{
                     position: 'absolute',
-                    bottom: '-8px',
-                    right: '-8px',
+                    bottom: isPhone ? '-4px' : '-8px',
+                    right: isPhone ? '-4px' : '-8px',
                     background: '#ae89ff',
                     color: '#2a0066',
                     border: 'none',
-                    borderRadius: '12px',
-                    width: '32px',
-                    height: '32px',
+                    borderRadius: isPhone ? '8px' : '12px',
+                    width: isPhone ? '24px' : '32px',
+                    height: isPhone ? '24px' : '32px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -538,7 +538,7 @@ export default function SettingsPage() {
                     (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: isPhone ? '13px' : '16px' }}>
                     edit
                   </span>
                 </button>
