@@ -281,6 +281,8 @@ export default function DashboardPage() {
     setActiveCard(Math.round(el.scrollLeft / cardWidth));
   };
 
+  const hasStudyGoals = (dashboard?.studyGoals ?? []).length > 0;
+  const hasPagesGoal = (dashboard?.studyGoals ?? []).some((g) => g.type === 'pages');
   const goalProgress = dashboard
     ? Math.min(100, Math.round((dashboard.todayPages / dashboard.dailyGoal) * 100))
     : 0;
@@ -1013,7 +1015,7 @@ export default function DashboardPage() {
                   marginBottom: '16px',
                 }}
               >
-                {dashboard?.studyGoals && dashboard.studyGoals.length > 0 ? 'Weekly Goals' : 'Daily Goal'}
+                {hasStudyGoals ? 'Weekly Goals' : 'Daily Goal'}
               </span>
               <h2
                 style={{
@@ -1024,117 +1026,147 @@ export default function DashboardPage() {
                   lineHeight: 1.1,
                 }}
               >
-                {goalProgress >= 100 ? 'Goal Complete!' : 'Keep Going'}
+                {hasPagesGoal
+                  ? (goalProgress >= 100 ? 'Goal Complete!' : 'Keep Going')
+                  : hasStudyGoals
+                    ? 'Your Goals'
+                    : (goalProgress >= 100 ? 'Goal Complete!' : 'Keep Going')}
               </h2>
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: 'rgba(255,255,255,0.8)',
-                  lineHeight: '1.7',
-                  margin: '0 0 32px',
-                }}
-              >
-                {dashboard === null
-                  ? 'Loading your progress…'
-                  : goalProgress >= 100
-                    ? `You wrote ${dashboard.todayPages} pages today. Amazing work — you hit your daily target!`
-                    : `${dashboard.todayPages} of ${dashboard.dailyGoal} pages written today. ${dashboard.dailyGoal - dashboard.todayPages} more to reach your goal.`}
-              </p>
+              {/* Only show pages summary text if the user has a pages goal or no study goals at all */}
+              {(hasPagesGoal || !hasStudyGoals) && (
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.8)',
+                    lineHeight: '1.7',
+                    margin: '0 0 32px',
+                  }}
+                >
+                  {dashboard === null
+                    ? 'Loading your progress…'
+                    : goalProgress >= 100
+                      ? `You wrote ${dashboard.todayPages} pages today. Amazing work — you hit your daily target!`
+                      : `${dashboard.todayPages} of ${dashboard.dailyGoal} pages written today. ${dashboard.dailyGoal - dashboard.todayPages} more to reach your goal.`}
+                </p>
+              )}
+              {/* If user only has non-pages goals, show a generic subtitle */}
+              {!hasPagesGoal && hasStudyGoals && (
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.8)',
+                    lineHeight: '1.7',
+                    margin: '0 0 32px',
+                  }}
+                >
+                  Track your weekly targets below.
+                </p>
+              )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Pages progress bar (auto-tracked) */}
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    marginBottom: '8px',
-                  }}
-                >
-                  <span>Pages Today</span>
-                  <span>{goalProgress}%</span>
-                </div>
-                <div
-                  style={{
-                    height: '12px',
-                    width: '100%',
-                    background: 'rgba(255,255,255,0.1)',
-                    borderRadius: '9999px',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${goalProgress}%`,
-                      background: '#ffde59',
-                      borderRadius: '9999px',
-                      boxShadow: goalProgress > 0 ? '0 0 15px rgba(255,222,89,0.5)' : 'none',
-                      transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Other active study goals */}
-              {dashboard?.studyGoals && dashboard.studyGoals.filter((g) => g.type !== 'pages').length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {dashboard.studyGoals
-                    .filter((g) => g.type !== 'pages')
-                    .map((goal) => {
-                      const meta = GOAL_META[goal.type];
-                      if (!meta) return null;
-                      const pct = Math.min(100, Math.round((goal.current / goal.target) * 100));
-                      return (
-                        <div key={goal.type} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}
+              {/* Show all active study goals */}
+              {hasStudyGoals ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {(dashboard?.studyGoals ?? []).map((goal) => {
+                    const meta = GOAL_META[goal.type];
+                    if (!meta) return null;
+                    // For pages goals, use the auto-tracked todayPages vs dailyGoal
+                    const isPagesGoal = goal.type === 'pages';
+                    const currentValue = isPagesGoal ? (dashboard?.todayPages ?? 0) : goal.current;
+                    const targetValue = isPagesGoal ? (dashboard?.dailyGoal ?? goal.target) : goal.target;
+                    const pct = Math.min(100, Math.round((currentValue / targetValue) * 100));
+                    return (
+                      <div key={goal.type} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            fontSize: '20px',
+                            color: pct >= 100 ? '#ffde59' : 'rgba(255,255,255,0.7)',
+                            flexShrink: 0,
+                            fontVariationSettings: pct >= 100 ? "'FILL' 1" : "'FILL' 0",
+                          }}
+                        >
+                          {pct >= 100 ? 'check_circle' : meta.icon}
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              marginBottom: '4px',
+                            }}
                           >
-                            {meta.icon}
-                          </span>
-                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ color: 'rgba(255,255,255,0.9)' }}>
+                              {meta.label}{isPagesGoal ? ' (today)' : ''}
+                            </span>
+                            <span style={{ color: 'rgba(255,255,255,0.6)' }}>
+                              {currentValue}/{targetValue} {meta.unit}
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              height: '8px',
+                              background: 'rgba(255,255,255,0.1)',
+                              borderRadius: '9999px',
+                              overflow: 'hidden',
+                            }}
+                          >
                             <div
                               style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                marginBottom: '4px',
-                              }}
-                            >
-                              <span style={{ color: 'rgba(255,255,255,0.8)' }}>{meta.label}</span>
-                              <span style={{ color: 'rgba(255,255,255,0.6)' }}>
-                                {goal.current}/{goal.target} {meta.unit}
-                              </span>
-                            </div>
-                            <div
-                              style={{
-                                height: '6px',
-                                background: 'rgba(255,255,255,0.1)',
+                                height: '100%',
+                                width: `${pct}%`,
+                                background: '#ffde59',
                                 borderRadius: '9999px',
-                                overflow: 'hidden',
+                                boxShadow: pct > 0 ? '0 0 10px rgba(255,222,89,0.4)' : 'none',
+                                transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)',
                               }}
-                            >
-                              <div
-                                style={{
-                                  height: '100%',
-                                  width: `${pct}%`,
-                                  background: 'rgba(255,222,89,0.7)',
-                                  borderRadius: '9999px',
-                                  transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)',
-                                }}
-                              />
-                            </div>
+                            />
                           </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Fallback: no study goals set — show legacy pages progress */
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <span>Progress</span>
+                    <span>{goalProgress}%</span>
+                  </div>
+                  <div
+                    style={{
+                      height: '12px',
+                      width: '100%',
+                      background: 'rgba(255,255,255,0.1)',
+                      borderRadius: '9999px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${goalProgress}%`,
+                        background: '#ffde59',
+                        borderRadius: '9999px',
+                        boxShadow: goalProgress > 0 ? '0 0 15px rgba(255,222,89,0.5)' : 'none',
+                        transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)',
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 
