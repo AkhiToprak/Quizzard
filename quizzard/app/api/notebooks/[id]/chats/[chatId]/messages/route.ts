@@ -494,12 +494,14 @@ export async function POST(request: NextRequest, { params }: Params) {
 
               // Fisher-Yates shuffle to randomize answer positions
               for (const q of questions) {
-                const correctAnswer = q.options[q.correctIndex];
+                let correctIdx = q.correctIndex;
                 for (let i = q.options.length - 1; i > 0; i--) {
                   const j = Math.floor(Math.random() * (i + 1));
                   [q.options[i], q.options[j]] = [q.options[j], q.options[i]];
+                  if (correctIdx === i) correctIdx = j;
+                  else if (correctIdx === j) correctIdx = i;
                 }
-                q.correctIndex = q.options.indexOf(correctAnswer);
+                q.correctIndex = correctIdx;
               }
 
               if (!quizTitle || !Array.isArray(questions) || questions.length === 0) {

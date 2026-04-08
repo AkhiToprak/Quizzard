@@ -142,6 +142,18 @@ export async function POST(request: NextRequest, { params }: Params) {
     if (type === 'quiz' && quiz) {
       const { title, questions } = quiz.input;
       if (title && Array.isArray(questions) && questions.length > 0) {
+        // Fisher-Yates shuffle to randomize answer positions
+        for (const q of questions) {
+          let correctIdx = q.correctIndex;
+          for (let i = q.options.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [q.options[i], q.options[j]] = [q.options[j], q.options[i]];
+            if (correctIdx === i) correctIdx = j;
+            else if (correctIdx === j) correctIdx = i;
+          }
+          q.correctIndex = correctIdx;
+        }
+
         const qSet = await db.quizSet.create({
           data: {
             notebookId,
