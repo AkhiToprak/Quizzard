@@ -289,14 +289,6 @@ export default function DashboardPage() {
       href: '/notebooks',
     },
     {
-      label: 'Todos',
-      value: String(todos.filter((t) => !t.completed).length),
-      icon: 'checklist',
-      iconColor: '#f0d04c',
-      iconBg: 'rgba(240,208,76,0.1)',
-      arrowColor: 'rgba(240,208,76,0.4)',
-    },
-    {
       label: 'Day Streak',
       value: streakValue,
       icon: 'local_fire_department',
@@ -335,6 +327,14 @@ export default function DashboardPage() {
           {freezesLeft} freeze{freezesLeft !== 1 ? 's' : ''}
         </div>
       ) : undefined,
+    },
+    {
+      label: 'Todos',
+      value: String(todos.filter((t) => !t.completed).length),
+      icon: 'checklist',
+      iconColor: '#f0d04c',
+      iconBg: 'rgba(240,208,76,0.1)',
+      arrowColor: 'rgba(240,208,76,0.4)',
     },
   ];
 
