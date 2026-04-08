@@ -37,17 +37,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { targetNotebookId, targetFolderId } = body as { targetNotebookId?: string; targetFolderId?: string };
+    const { targetNotebookId, targetFolderId, targetSectionId } = body as {
+      targetNotebookId?: string;
+      targetFolderId?: string;
+      targetSectionId?: string;
+    };
 
     switch (shared.contentType) {
       case 'notebook': {
         return await saveNotebook(userId, shared.contentId, shared.title, targetFolderId);
       }
       case 'flashcard_set': {
-        return await saveFlashcardSet(userId, shared.contentId, shared.title, targetNotebookId);
+        return await saveFlashcardSet(userId, shared.contentId, shared.title, targetNotebookId, targetSectionId);
       }
       case 'quiz_set': {
-        return await saveQuizSet(userId, shared.contentId, shared.title, targetNotebookId);
+        return await saveQuizSet(userId, shared.contentId, shared.title, targetNotebookId, targetSectionId);
       }
       case 'document': {
         return await saveDocument(userId, shared.contentId, shared.title, targetNotebookId);
@@ -150,7 +154,7 @@ async function getOrCreateNotebook(userId: string, targetNotebookId: string | un
   return nb.id;
 }
 
-async function saveFlashcardSet(userId: string, sourceSetId: string, title: string, targetNotebookId?: string) {
+async function saveFlashcardSet(userId: string, sourceSetId: string, title: string, targetNotebookId?: string, targetSectionId?: string) {
   const source = await db.flashcardSet.findUnique({
     where: { id: sourceSetId },
     include: { flashcards: true },
@@ -159,11 +163,18 @@ async function saveFlashcardSet(userId: string, sourceSetId: string, title: stri
 
   const notebookId = await getOrCreateNotebook(userId, targetNotebookId, `${title} (Saved)`);
 
+  // Verify section belongs to the target notebook if provided
+  if (targetSectionId) {
+    const section = await db.section.findFirst({ where: { id: targetSectionId, notebookId } });
+    if (!section) return badRequestResponse('Section not found in this notebook');
+  }
+
   const newSet = await db.flashcardSet.create({
     data: {
       notebookId,
       title: source.title,
       source: 'import',
+      sectionId: targetSectionId || null,
       flashcards: {
         create: source.flashcards.map((fc) => ({
           question: fc.question,
@@ -183,7 +194,7 @@ async function saveFlashcardSet(userId: string, sourceSetId: string, title: stri
   });
 }
 
-async function saveQuizSet(userId: string, sourceSetId: string, title: string, targetNotebookId?: string) {
+async function saveQuizSet(userId: string, sourceSetId: string, title: string, targetNotebookId?: string, targetSectionId?: string) {
   const source = await db.quizSet.findUnique({
     where: { id: sourceSetId },
     include: { questions: true },
@@ -192,10 +203,17 @@ async function saveQuizSet(userId: string, sourceSetId: string, title: string, t
 
   const notebookId = await getOrCreateNotebook(userId, targetNotebookId, `${title} (Saved)`);
 
+  // Verify section belongs to the target notebook if provided
+  if (targetSectionId) {
+    const section = await db.section.findFirst({ where: { id: targetSectionId, notebookId } });
+    if (!section) return badRequestResponse('Section not found in this notebook');
+  }
+
   const newSet = await db.quizSet.create({
     data: {
       notebookId,
       title: source.title,
+      sectionId: targetSectionId || null,
       questions: {
         create: source.questions.map((q) => ({
           question: q.question,

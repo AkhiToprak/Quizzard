@@ -59,6 +59,11 @@ export default function SaveDestinationModal({
   const [selectedNotebookId, setSelectedNotebookId] = useState<string | null>(null);
   const [createNew, setCreateNew] = useState(false);
   const [downloadingCsv, setDownloadingCsv] = useState(false);
+  // Section picker (for flashcard_set and quiz_set after selecting a notebook)
+  const [sections, setSections] = useState<{ id: string; title: string; sortOrder: number }[]>([]);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [sectionsLoading, setSectionsLoading] = useState(false);
+  const needsSection = contentType === 'flashcard_set' || contentType === 'quiz_set';
   // Folder browsing for non-notebook types
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [folderPath, setFolderPath] = useState<{ id: string | null; name: string }[]>([{ id: null, name: 'My Library' }]);
@@ -91,6 +96,28 @@ export default function SaveDestinationModal({
     }
     setLoading(false);
   }, [isNotebook]);
+
+  // Fetch sections when a notebook is selected (for flashcard/quiz types)
+  useEffect(() => {
+    if (!needsSection || !selectedNotebookId) {
+      setSections([]);
+      setSelectedSectionId(null);
+      return;
+    }
+    setSectionsLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`/api/notebooks/${selectedNotebookId}/sections`);
+        if (res.ok) {
+          const json = await res.json();
+          const raw = json.data?.sections || json.data || [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setSections(raw.map((s: any) => ({ id: s.id, title: s.title, sortOrder: s.sortOrder || 0 })));
+        }
+      } catch { /* ignore */ }
+      setSectionsLoading(false);
+    })();
+  }, [selectedNotebookId, needsSection]);
 
   // Fetch subfolders when navigating
   const fetchSubfolders = useCallback(async (parentId: string | null) => {
@@ -159,6 +186,7 @@ export default function SaveDestinationModal({
         // For other types: pass notebook ID or nothing (creates new)
         if (!createNew && selectedNotebookId) {
           body.targetNotebookId = selectedNotebookId;
+          if (selectedSectionId) body.targetSectionId = selectedSectionId;
         }
       }
       const res = await fetch(`/api/groups/${groupId}/shared/${sharedId}/save`, {
@@ -192,7 +220,7 @@ export default function SaveDestinationModal({
     ? folders.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
     : folders;
 
-  const canSave = isNotebook || createNew || selectedNotebookId;
+  const canSave = isNotebook || createNew || (needsSection ? (selectedNotebookId && selectedSectionId) : selectedNotebookId);
 
   return (
     <>
@@ -415,6 +443,32 @@ export default function SaveDestinationModal({
                     {filteredFolders.length === 0 && notebooksInFolder.length === 0 && !loading && (
                       <EmptyState search={search} icon={search ? 'search_off' : 'auto_stories'} text={search ? 'No results' : 'Empty folder'} />
                     )}
+
+                    {/* Section picker — shown after selecting a notebook for flashcard/quiz types */}
+                    {needsSection && selectedNotebookId && !createNew && (
+                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.border}1a` }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.textMuted, marginBottom: 8, paddingLeft: 4 }}>
+                          Choose a section
+                        </div>
+                        {sectionsLoading ? (
+                          <div style={{ padding: '16px 0', textAlign: 'center', color: COLORS.textMuted, fontSize: 13 }}>Loading sections...</div>
+                        ) : sections.length === 0 ? (
+                          <div style={{ padding: '16px 0', textAlign: 'center', color: COLORS.textMuted, fontSize: 13 }}>No sections in this notebook</div>
+                        ) : (
+                          sections.map((s) => (
+                            <ItemRow
+                              key={s.id}
+                              icon="segment" iconBg={COLORS.primary}
+                              label={s.title}
+                              selected={selectedSectionId === s.id}
+                              hovered={hoveredItem === `section-${s.id}`}
+                              onHover={(h) => setHoveredItem(h ? `section-${s.id}` : null)}
+                              onClick={() => setSelectedSectionId(s.id)}
+                            />
+                          ))
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
               </>
@@ -444,7 +498,7 @@ export default function SaveDestinationModal({
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                 {saved ? 'check_circle' : saving ? 'progress_activity' : 'library_add'}
               </span>
-              {saved ? 'Saved to Library!' : saving ? 'Saving...' : getSaveLabel(isNotebook, createNew, selectedNotebookId, selectedFolderId)}
+              {saved ? 'Saved to Library!' : saving ? 'Saving...' : getSaveLabel(isNotebook, createNew, selectedNotebookId, selectedFolderId, needsSection, selectedSectionId)}
             </button>
           </div>
         </div>
@@ -453,13 +507,14 @@ export default function SaveDestinationModal({
   );
 }
 
-function getSaveLabel(isNotebook: boolean, createNew: boolean, selectedNotebookId: string | null, selectedFolderId: string | null): string {
+function getSaveLabel(isNotebook: boolean, createNew: boolean, selectedNotebookId: string | null, selectedFolderId: string | null, needsSection?: boolean, selectedSectionId?: string | null): string {
   if (isNotebook) {
     if (selectedFolderId === '__current__' || selectedFolderId === null) return 'Clone Notebook Here';
     return 'Clone into Folder';
   }
   if (createNew) return 'Save to New Notebook';
-  if (selectedNotebookId) return 'Save to Notebook';
+  if (needsSection && selectedNotebookId && !selectedSectionId) return 'Select a section';
+  if (selectedNotebookId) return 'Save to Section';
   return 'Select a destination';
 }
 
