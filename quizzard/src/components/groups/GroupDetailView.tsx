@@ -113,8 +113,15 @@ export default function GroupDetailView({ groupId }: Props) {
   const canShare = isPrivileged || group.type !== 'class' || group.allowMemberSharing;
   const canInvite = isPrivileged || group.type !== 'class' || group.allowMemberInvites;
 
-  const leftTabs = TABS.filter((t) => t.align === 'left');
-  const rightTabs = TABS.filter((t) => t.align === 'right');
+  const isDM = group.type === 'direct';
+  const otherUser = isDM ? group.members.find((m) => m.userId !== currentUserId) : null;
+
+  // Filter tabs for DMs — only Chat and Shared
+  const visibleTabs = isDM
+    ? TABS.filter((t) => t.key === 'chat' || t.key === 'shared')
+    : TABS;
+  const leftTabs = visibleTabs.filter((t) => t.align === 'left');
+  const rightTabs = visibleTabs.filter((t) => t.align === 'right');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
@@ -142,21 +149,42 @@ export default function GroupDetailView({ groupId }: Props) {
         >
           <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
         </button>
-        {group.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={group.avatarUrl} alt="" style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }} />
+        {/* Avatar: DM shows other user's pic (circular), groups show group icon */}
+        {isDM && otherUser ? (
+          otherUser.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={otherUser.avatarUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{
+              width: 32, height: 32, borderRadius: '50%',
+              background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 14, fontWeight: 700, color: '#fff',
+            }}>
+              {(otherUser.name?.[0] || otherUser.username[0] || '?').toUpperCase()}
+            </div>
+          )
         ) : (
-          <div style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#fff' }}>groups</span>
-          </div>
+          group.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={group.avatarUrl} alt="" style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }} />
+          ) : (
+            <div style={{
+              width: 28, height: 28, borderRadius: 8,
+              background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#fff' }}>groups</span>
+            </div>
+          )
         )}
         <div>
-          <h1 style={{ fontSize: 14, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: '-0.02em', margin: 0 }}>{group.name}</h1>
-          <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>{group.members.length} member{group.members.length !== 1 ? 's' : ''}</p>
+          <h1 style={{ fontSize: 14, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: '-0.02em', margin: 0 }}>
+            {isDM && otherUser ? (otherUser.name || otherUser.username) : group.name}
+          </h1>
+          {!isDM && (
+            <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>{group.members.length} member{group.members.length !== 1 ? 's' : ''}</p>
+          )}
         </div>
       </div>
 
@@ -267,13 +295,15 @@ export default function GroupDetailView({ groupId }: Props) {
         )}
       </div>
 
-      {/* Invite modal */}
-      <InviteMemberModal
-        open={inviteOpen}
-        onClose={() => setInviteOpen(false)}
-        groupId={groupId}
-        existingMemberIds={group.members.map((m) => m.userId)}
-      />
+      {/* Invite modal (not for DMs) */}
+      {!isDM && (
+        <InviteMemberModal
+          open={inviteOpen}
+          onClose={() => setInviteOpen(false)}
+          groupId={groupId}
+          existingMemberIds={group.members.map((m) => m.userId)}
+        />
+      )}
     </div>
   );
 }

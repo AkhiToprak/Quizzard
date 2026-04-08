@@ -2,9 +2,20 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import StudyGroupCard from '@/components/social/StudyGroupCard';
 import CreateGroupModal from '@/components/social/CreateGroupModal';
 import GroupInvitationCard from '@/components/groups/GroupInvitationCard';
+import DMCard from '@/components/groups/DMCard';
+import StartDMModal from '@/components/groups/StartDMModal';
+
+interface GroupMember {
+  userId: string;
+  id: string;
+  name: string | null;
+  username: string;
+  avatarUrl: string | null;
+}
 
 interface Group {
   id: string;
@@ -87,12 +98,17 @@ function ComingSoon({ icon, title, description }: { icon: string; title: string;
 
 export default function GroupsPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id || '';
   const [activeTab, setActiveTab] = useState<CoWorkTab>('groups');
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [hoveredCreate, setHoveredCreate] = useState(false);
+  const [showDMModal, setShowDMModal] = useState(false);
+  const [dms, setDms] = useState<Array<{ id: string; members: GroupMember[] }>>([]);
+  const [dmsLoading, setDmsLoading] = useState(false);
   const [invitations, setInvitations] = useState<Array<{
     id: string;
     groupId: string;
@@ -142,6 +158,20 @@ export default function GroupsPage() {
     } catch { /* ignore */ }
   }, [invitations]);
 
+  const fetchDMs = useCallback(async () => {
+    setDmsLoading(true);
+    try {
+      const res = await fetch('/api/groups?type=direct');
+      if (res.ok) {
+        const json = await res.json();
+        const raw = json.data?.groups ?? [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setDms(Array.isArray(raw) ? raw.map((g: any) => ({ id: g.id, members: g.members || [] })) : []);
+      }
+    } catch { /* ignore */ }
+    setDmsLoading(false);
+  }, []);
+
   const fetchGroups = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -172,9 +202,13 @@ export default function GroupsPage() {
   }, [activeTab]);
 
   useEffect(() => {
-    fetchGroups();
-    fetchInvitations();
-  }, [fetchGroups, fetchInvitations]);
+    if (activeTab === 'dms') {
+      fetchDMs();
+    } else {
+      fetchGroups();
+      fetchInvitations();
+    }
+  }, [activeTab, fetchGroups, fetchInvitations, fetchDMs]);
 
   return (
     <>
@@ -303,11 +337,67 @@ export default function GroupsPage() {
 
         {/* Tab content */}
         {activeTab === 'dms' && (
-          <ComingSoon
-            icon="chat"
-            title="Direct Messages"
-            description="Share content and chat 1-on-1 with friends. All the power of study groups, in a private conversation."
-          />
+          <div>
+            {/* DM Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: COLORS.textPrimary, margin: 0 }}>Your Conversations</h3>
+              <button
+                onClick={() => setShowDMModal(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  background: COLORS.primary, color: '#1a0040', border: 'none',
+                  borderRadius: 12, padding: '10px 20px', fontWeight: 700, fontSize: 13,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                  transition: `transform 0.2s ${EASING}`,
+                }}
+                onMouseEnter={(e) => { (e.currentTarget).style.transform = 'scale(1.03)'; }}
+                onMouseLeave={(e) => { (e.currentTarget).style.transform = 'scale(1)'; }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+                New Message
+              </button>
+            </div>
+
+            {dmsLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="groups-skeleton" style={{ height: 72, borderRadius: 14 }} />
+                ))}
+              </div>
+            ) : dms.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '80px 16px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 56, color: COLORS.textMuted, opacity: 0.5 }}>chat_bubble_outline</span>
+                <span style={{ fontSize: 18, fontWeight: 600, color: COLORS.textPrimary }}>No conversations yet</span>
+                <span style={{ fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', maxWidth: 320 }}>Start a message with a friend to begin collaborating</span>
+                <button
+                  onClick={() => setShowDMModal(true)}
+                  style={{
+                    marginTop: 8, display: 'flex', alignItems: 'center', gap: 6,
+                    background: COLORS.primary, color: '#1a0040', fontSize: 14, fontWeight: 700,
+                    borderRadius: 12, padding: '12px 20px', border: 'none', cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chat</span>
+                  Start a Conversation
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {dms.map((dm) => {
+                  const otherUser = dm.members.find((m) => m.userId !== currentUserId) || dm.members[0];
+                  if (!otherUser) return null;
+                  return (
+                    <DMCard
+                      key={dm.id}
+                      otherUser={otherUser}
+                      onClick={() => router.push(`/groups/${dm.id}`)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
 
         {(activeTab === 'groups' || activeTab === 'classes') && <>
@@ -461,6 +551,11 @@ export default function GroupsPage() {
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreated={fetchGroups}
+      />
+
+      <StartDMModal
+        open={showDMModal}
+        onClose={() => setShowDMModal(false)}
       />
     </>
   );

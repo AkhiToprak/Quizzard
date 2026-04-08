@@ -36,6 +36,14 @@ export async function GET(request: NextRequest) {
             owner: {
               select: { id: true, name: true, username: true, avatarUrl: true },
             },
+            // Include members for DMs so we can show the other user's info
+            members: {
+              where: { status: 'accepted' },
+              select: {
+                userId: true,
+                user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+              },
+            },
           },
         },
       },
@@ -53,6 +61,10 @@ export async function GET(request: NextRequest) {
       role: m.role,
       memberCount: m.group._count.members,
       notebookCount: m.group._count.notebooks,
+      members: m.group.members.map((mem) => ({
+        userId: mem.userId,
+        ...mem.user,
+      })),
       joinedAt: m.joinedAt,
       createdAt: m.group.createdAt,
       updatedAt: m.group.updatedAt,
@@ -71,8 +83,66 @@ export async function POST(request: NextRequest) {
     if (!userId) return unauthorizedResponse();
 
     const body = await request.json();
-    const { name, description, type = 'study_group' } = body;
+    const { name, description, type = 'study_group', otherUserId } = body;
 
+    const validTypes = ['study_group', 'class', 'direct'];
+    if (!validTypes.includes(type)) {
+      return badRequestResponse('Invalid group type');
+    }
+
+    // === DIRECT MESSAGE FLOW ===
+    if (type === 'direct') {
+      if (!otherUserId || typeof otherUserId !== 'string') {
+        return badRequestResponse('otherUserId is required for direct messages');
+      }
+      if (otherUserId === userId) {
+        return badRequestResponse('Cannot create a DM with yourself');
+      }
+
+      // Verify the other user exists
+      const otherUser = await db.user.findUnique({ where: { id: otherUserId }, select: { id: true } });
+      if (!otherUser) return badRequestResponse('User not found');
+
+      // Check for existing DM between these two users
+      const existingDM = await db.studyGroup.findFirst({
+        where: {
+          type: 'direct',
+          AND: [
+            { members: { some: { userId, status: 'accepted' } } },
+            { members: { some: { userId: otherUserId, status: 'accepted' } } },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (existingDM) {
+        return successResponse({ id: existingDM.id, existing: true });
+      }
+
+      // Create new DM
+      const dm = await db.studyGroup.create({
+        data: {
+          name: 'DM',
+          ownerId: userId,
+          type: 'direct',
+          allowMemberChat: true,
+          allowMemberSharing: true,
+          allowMemberInvites: false,
+          members: {
+            createMany: {
+              data: [
+                { userId, role: 'member', status: 'accepted' },
+                { userId: otherUserId, role: 'member', status: 'accepted' },
+              ],
+            },
+          },
+        },
+      });
+
+      return createdResponse({ id: dm.id, existing: false });
+    }
+
+    // === STUDY GROUP / CLASS FLOW ===
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return badRequestResponse('Group name is required');
     }
@@ -81,12 +151,6 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('Group name must be 100 characters or less');
     }
 
-    const validTypes = ['study_group', 'class'];
-    if (!validTypes.includes(type)) {
-      return badRequestResponse('Type must be "study_group" or "class"');
-    }
-
-    // For classes: creator becomes teacher, permissions default to restrictive
     const isClass = type === 'class';
     const creatorRole = isClass ? 'teacher' : 'owner';
 
@@ -96,9 +160,9 @@ export async function POST(request: NextRequest) {
         description: description?.trim() || null,
         ownerId: userId,
         type,
-        allowMemberChat: !isClass,     // false for classes (restrictive)
-        allowMemberSharing: !isClass,  // false for classes (restrictive)
-        allowMemberInvites: !isClass,  // false for classes (restrictive)
+        allowMemberChat: !isClass,
+        allowMemberSharing: !isClass,
+        allowMemberInvites: !isClass,
         members: {
           create: {
             userId,
