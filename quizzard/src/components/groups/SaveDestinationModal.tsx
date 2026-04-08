@@ -58,6 +58,7 @@ export default function SaveDestinationModal({
   // For other types: pick a notebook or create new
   const [selectedNotebookId, setSelectedNotebookId] = useState<string | null>(null);
   const [createNew, setCreateNew] = useState(false);
+  const [downloadingCsv, setDownloadingCsv] = useState(false);
   // Folder browsing for non-notebook types
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [folderPath, setFolderPath] = useState<{ id: string | null; name: string }[]>([{ id: null, name: 'My Library' }]);
@@ -337,17 +338,50 @@ export default function SaveDestinationModal({
                 {/* ── For flashcards/quizzes/documents: pick notebook ── */}
                 {!isNotebook && (
                   <>
-                    {/* Create new notebook */}
-                    <ItemRow
-                      icon="add" iconBg={COLORS.primary}
-                      label="Create New Notebook"
-                      sublabel="Save into a brand new notebook"
-                      selected={createNew}
-                      hovered={hoveredItem === '__new__'}
-                      onHover={(h) => setHoveredItem(h ? '__new__' : null)}
-                      onClick={() => { setCreateNew(true); setSelectedNotebookId(null); }}
-                      dashed
-                    />
+                    {/* Create new notebook — NOT available for flashcard sets */}
+                    {contentType !== 'flashcard_set' && (
+                      <ItemRow
+                        icon="add" iconBg={COLORS.primary}
+                        label="Create New Notebook"
+                        sublabel="Save into a brand new notebook"
+                        selected={createNew}
+                        hovered={hoveredItem === '__new__'}
+                        onHover={(h) => setHoveredItem(h ? '__new__' : null)}
+                        onClick={() => { setCreateNew(true); setSelectedNotebookId(null); }}
+                        dashed
+                      />
+                    )}
+
+                    {/* Download as CSV — only for flashcard sets */}
+                    {contentType === 'flashcard_set' && (
+                      <ItemRow
+                        icon="download" iconBg={COLORS.yellow}
+                        iconColor="#5f4f00"
+                        label="Download as CSV"
+                        sublabel="Export flashcards to a spreadsheet"
+                        selected={false}
+                        hovered={hoveredItem === '__csv__'}
+                        onHover={(h) => setHoveredItem(h ? '__csv__' : null)}
+                        onClick={async () => {
+                          if (downloadingCsv) return;
+                          setDownloadingCsv(true);
+                          try {
+                            const res = await fetch(`/api/groups/${groupId}/shared/${sharedId}/csv`);
+                            if (res.ok) {
+                              const blob = await res.blob();
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `${contentTitle.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            }
+                          } catch { /* ignore */ }
+                          setDownloadingCsv(false);
+                        }}
+                        dashed
+                      />
+                    )}
 
                     {/* Folders to navigate into */}
                     {filteredFolders.map((f) => (
