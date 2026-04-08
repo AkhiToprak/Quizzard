@@ -940,6 +940,9 @@ model StudyGroup {
   ownerId     String
   avatarUrl   String?
   type        String             @default("study_group") // "study_group" | "class" | "direct"
+  allowMemberChat    Boolean    @default(true)  // Can members (students) send messages?
+  allowMemberSharing Boolean    @default(true)  // Can members (students) share content?
+  allowMemberInvites Boolean    @default(true)  // Can members (students) invite others?
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 

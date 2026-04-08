@@ -45,9 +45,10 @@ interface Props {
   groupName: string;
   currentUserId: string;
   userRole: string;
+  canShare?: boolean;
 }
 
-export default function GroupSharedContent({ groupId, groupName, currentUserId, userRole }: Props) {
+export default function GroupSharedContent({ groupId, groupName, currentUserId, userRole, canShare = true }: Props) {
   const [items, setItems] = useState<SharedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
@@ -90,7 +91,7 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
             Filter through documents, flashcards, and notebooks shared by the group.
           </p>
         </div>
-        <button style={{
+        {canShare && <button style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: COLORS.yellow, color: '#5f4f00', border: 'none',
           borderRadius: 12, padding: '12px 24px', fontWeight: 700, fontSize: 14,
@@ -104,7 +105,7 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
         >
           <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add_circle</span>
           Share Content
-        </button>
+        </button>}
       </div>
 
       {/* Filters */}

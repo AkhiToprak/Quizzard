@@ -23,6 +23,7 @@ interface Props {
   groupId: string;
   groupName: string;
   currentUserId: string;
+  canChat?: boolean;
 }
 
 function LoadingSkeleton() {
@@ -41,7 +42,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function GroupChat({ groupId, groupName, currentUserId }: Props) {
+export default function GroupChat({ groupId, groupName, currentUserId, canChat = true }: Props) {
   const { messages, loading, sending, hasMore, loadMore, sendMessage } = useGroupChat(groupId);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -118,7 +119,18 @@ export default function GroupChat({ groupId, groupName, currentUserId }: Props) 
       </div>
 
       {/* Input */}
-      <GroupChatInput onSend={(content) => sendMessage(content)} sending={sending} onShareClick={() => setShareModalOpen(true)} />
+      {canChat ? (
+        <GroupChatInput onSend={(content) => sendMessage(content)} sending={sending} onShareClick={() => setShareModalOpen(true)} />
+      ) : (
+        <div style={{
+          padding: '16px 24px', textAlign: 'center',
+          background: `${COLORS.elevated}e6`, borderTop: `1px solid ${COLORS.border}1a`,
+          color: COLORS.textMuted, fontSize: 13, fontWeight: 500,
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: 'middle', marginRight: 6 }}>lock</span>
+          Chat is restricted by the teacher
+        </div>
+      )}
 
       <ShareContentModal
         open={shareModalOpen}

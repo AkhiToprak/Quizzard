@@ -35,6 +35,7 @@ const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 export default function CreateGroupModal({ open, onClose, onCreated }: CreateGroupModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [groupType, setGroupType] = useState<'study_group' | 'class'>('study_group');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hoveredClose, setHoveredClose] = useState(false);
@@ -57,6 +58,7 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
     } else {
       setName('');
       setDescription('');
+      setGroupType('study_group');
       setError(null);
       setLoading(false);
       setStep('create');
@@ -128,7 +130,7 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
       const res = await fetch('/api/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), description: description.trim() || null }),
+        body: JSON.stringify({ name: name.trim(), description: description.trim() || null, type: groupType }),
       });
 
       if (!res.ok) {
@@ -277,9 +279,49 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
           >
+            {/* Type selector */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {([
+                { key: 'study_group' as const, label: 'Study Group', icon: 'groups' },
+                { key: 'class' as const, label: 'Class', icon: 'school' },
+              ]).map((opt) => {
+                const active = groupType === opt.key;
+                return (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => setGroupType(opt.key)}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      padding: '12px 16px', borderRadius: 12, border: 'none',
+                      background: active ? `${COLORS.primary}22` : COLORS.inputBg,
+                      color: active ? COLORS.primary : COLORS.textMuted,
+                      fontWeight: active ? 700 : 500, fontSize: 13,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                      outline: active ? `2px solid ${COLORS.primary}55` : '2px solid transparent',
+                      transition: `all 0.2s ${EASING}`,
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {groupType === 'class' && (
+              <div style={{
+                padding: '10px 14px', borderRadius: 10,
+                background: '#ffde5912', border: '1px solid #ffde5933',
+                fontSize: 12, color: '#ffde59', lineHeight: 1.5,
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 6 }}>info</span>
+                You&apos;ll be the teacher. Students can&apos;t share or chat unless you enable it in settings.
+              </div>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}>
-                Group Name *
+                {groupType === 'class' ? 'Class Name *' : 'Group Name *'}
               </label>
               <input
                 ref={inputRef}

@@ -9,6 +9,7 @@ import {
   notFoundResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { canPerformAction } from '@/lib/group-permissions';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -76,8 +77,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
       where: { groupId_userId: { groupId, userId: authUserId } },
     });
 
-    if (!requesterMembership || !['owner', 'admin'].includes(requesterMembership.role)) {
-      return forbiddenResponse('Only the owner or an admin can invite members');
+    if (!requesterMembership || requesterMembership.status !== 'accepted') {
+      return forbiddenResponse('You are not a member of this group');
+    }
+
+    // Permission check: owner/admin/teacher can always invite; members need allowMemberInvites
+    const groupInfo = await db.studyGroup.findUnique({
+      where: { id: groupId },
+      select: { type: true, allowMemberInvites: true },
+    });
+    if (!groupInfo) return notFoundResponse('Group not found');
+    if (!canPerformAction(groupInfo.type, requesterMembership.role, groupInfo.allowMemberInvites)) {
+      return forbiddenResponse('Inviting members is restricted by the teacher');
     }
 
     // Check the group exists

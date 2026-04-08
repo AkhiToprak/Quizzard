@@ -15,14 +15,21 @@ export async function GET(request: NextRequest) {
     const userId = await getAuthUserId(request);
     if (!userId) return unauthorizedResponse();
 
+    const url = new URL(request.url);
+    const typeFilter = url.searchParams.get('type'); // "study_group" | "class" | null
+
     const memberships = await db.studyGroupMember.findMany({
-      where: { userId },
+      where: {
+        userId,
+        status: 'accepted',
+        ...(typeFilter ? { group: { type: typeFilter } } : {}),
+      },
       include: {
         group: {
           include: {
             _count: {
               select: {
-                members: true,
+                members: { where: { status: 'accepted' } },
                 notebooks: true,
               },
             },
@@ -42,6 +49,7 @@ export async function GET(request: NextRequest) {
       avatarUrl: m.group.avatarUrl,
       ownerId: m.group.ownerId,
       owner: m.group.owner,
+      type: m.group.type,
       role: m.role,
       memberCount: m.group._count.members,
       notebookCount: m.group._count.notebooks,
@@ -63,7 +71,7 @@ export async function POST(request: NextRequest) {
     if (!userId) return unauthorizedResponse();
 
     const body = await request.json();
-    const { name, description } = body;
+    const { name, description, type = 'study_group' } = body;
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return badRequestResponse('Group name is required');
@@ -73,15 +81,28 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('Group name must be 100 characters or less');
     }
 
+    const validTypes = ['study_group', 'class'];
+    if (!validTypes.includes(type)) {
+      return badRequestResponse('Type must be "study_group" or "class"');
+    }
+
+    // For classes: creator becomes teacher, permissions default to restrictive
+    const isClass = type === 'class';
+    const creatorRole = isClass ? 'teacher' : 'owner';
+
     const group = await db.studyGroup.create({
       data: {
         name: name.trim(),
         description: description?.trim() || null,
         ownerId: userId,
+        type,
+        allowMemberChat: !isClass,     // false for classes (restrictive)
+        allowMemberSharing: !isClass,  // false for classes (restrictive)
+        allowMemberInvites: !isClass,  // false for classes (restrictive)
         members: {
           create: {
             userId,
-            role: 'owner',
+            role: creatorRole,
           },
         },
       },

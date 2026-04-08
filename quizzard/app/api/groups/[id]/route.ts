@@ -65,6 +65,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       avatarUrl: group.avatarUrl,
       ownerId: group.ownerId,
       owner: group.owner,
+      type: group.type,
+      allowMemberChat: group.allowMemberChat,
+      allowMemberSharing: group.allowMemberSharing,
+      allowMemberInvites: group.allowMemberInvites,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,
       members: group.members.map((m) => ({
@@ -103,12 +107,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       where: { groupId_userId: { groupId: id, userId } },
     });
 
-    if (!membership || !['owner', 'admin'].includes(membership.role)) {
-      return forbiddenResponse('Only the owner or an admin can update this group');
+    if (!membership || !['owner', 'admin', 'teacher'].includes(membership.role)) {
+      return forbiddenResponse('Only the owner, admin, or teacher can update this group');
     }
 
     const body = await request.json();
-    const { name, description } = body;
+    const { name, description, allowMemberChat, allowMemberSharing, allowMemberInvites } = body;
 
     if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
       return badRequestResponse('Group name cannot be empty');
@@ -118,9 +122,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return badRequestResponse('Group name must be 100 characters or less');
     }
 
-    const updateData: Record<string, string | null> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: Record<string, any> = {};
     if (name !== undefined) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description?.trim() || null;
+
+    // Permission toggles (only for classes, only by teacher/owner)
+    if (allowMemberChat !== undefined && typeof allowMemberChat === 'boolean') updateData.allowMemberChat = allowMemberChat;
+    if (allowMemberSharing !== undefined && typeof allowMemberSharing === 'boolean') updateData.allowMemberSharing = allowMemberSharing;
+    if (allowMemberInvites !== undefined && typeof allowMemberInvites === 'boolean') updateData.allowMemberInvites = allowMemberInvites;
 
     if (Object.keys(updateData).length === 0) {
       return badRequestResponse('No fields to update');

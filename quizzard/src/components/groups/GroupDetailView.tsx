@@ -40,6 +40,10 @@ interface GroupData {
   avatarUrl: string | null;
   ownerId: string;
   owner: { id: string; name: string | null; username: string; avatarUrl: string | null };
+  type: string;
+  allowMemberChat: boolean;
+  allowMemberSharing: boolean;
+  allowMemberInvites: boolean;
   members: Member[];
   createdAt: string;
   updatedAt: string;
@@ -100,7 +104,13 @@ export default function GroupDetailView({ groupId }: Props) {
 
   const currentMember = group.members.find((m) => m.userId === currentUserId);
   const userRole = currentMember?.role || 'member';
-  const isAdminOrOwner = userRole === 'owner' || userRole === 'admin';
+  const isAdminOrOwner = userRole === 'owner' || userRole === 'admin' || userRole === 'teacher';
+
+  // Compute permissions — teachers/owners/admins always bypass
+  const isPrivileged = ['owner', 'admin', 'teacher'].includes(userRole);
+  const canChat = isPrivileged || group.type !== 'class' || group.allowMemberChat;
+  const canShare = isPrivileged || group.type !== 'class' || group.allowMemberSharing;
+  const canInvite = isPrivileged || group.type !== 'class' || group.allowMemberInvites;
 
   const leftTabs = TABS.filter((t) => t.align === 'left');
   const rightTabs = TABS.filter((t) => t.align === 'right');
@@ -228,10 +238,10 @@ export default function GroupDetailView({ groupId }: Props) {
       {/* Tab content */}
       <div style={{ flex: 1, minHeight: 0, overflow: activeTab === 'chat' ? 'hidden' : 'auto' }} className="custom-scrollbar">
         {activeTab === 'chat' && (
-          <GroupChat groupId={groupId} groupName={group?.name || ''} currentUserId={currentUserId} />
+          <GroupChat groupId={groupId} groupName={group?.name || ''} currentUserId={currentUserId} canChat={canChat} />
         )}
         {activeTab === 'shared' && (
-          <GroupSharedContent groupId={groupId} groupName={group?.name || ''} currentUserId={currentUserId} userRole={userRole} />
+          <GroupSharedContent groupId={groupId} groupName={group?.name || ''} currentUserId={currentUserId} userRole={userRole} canShare={canShare} />
         )}
         {activeTab === 'members' && (
           <GroupMemberList
@@ -241,6 +251,7 @@ export default function GroupDetailView({ groupId }: Props) {
             members={group.members}
             onRefresh={fetchGroup}
             onInviteClick={() => setInviteOpen(true)}
+            canInvite={canInvite}
           />
         )}
         {activeTab === 'settings' && isAdminOrOwner && (

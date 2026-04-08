@@ -43,15 +43,17 @@ interface Props {
   userRole: string;
   members: Member[];
   onRefresh: () => void;
+  canInvite?: boolean;
   onInviteClick: () => void;
 }
 
 const ROLE_BADGES: Record<string, { label: string; bg: string; color: string }> = {
   owner: { label: 'Owner', bg: `${COLORS.primary}33`, color: COLORS.primary },
   admin: { label: 'Admin', bg: '#be99ff33', color: '#be99ff' },
+  teacher: { label: 'Teacher', bg: '#ffde5933', color: '#ffde59' },
 };
 
-export default function GroupMemberList({ groupId, currentUserId, userRole, members, onRefresh, onInviteClick }: Props) {
+export default function GroupMemberList({ groupId, currentUserId, userRole, members, onRefresh, onInviteClick, canInvite = true }: Props) {
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
@@ -105,7 +107,7 @@ export default function GroupMemberList({ groupId, currentUserId, userRole, memb
             Manage study group access, roles, and pending invitations.
           </p>
         </div>
-        {isAdminOrOwner && (
+        {canInvite && (
           <button
             onClick={onInviteClick}
             style={{
@@ -144,7 +146,7 @@ export default function GroupMemberList({ groupId, currentUserId, userRole, memb
         {acceptedMembers.map((member, idx) => {
           const badge = ROLE_BADGES[member.role];
           const isMenuOpen = menuOpen === member.userId;
-          const canManage = userRole === 'owner' && member.userId !== currentUserId && member.role !== 'owner';
+          const canManage = ['owner', 'teacher'].includes(userRole) && member.userId !== currentUserId && !['owner', 'teacher'].includes(member.role);
 
           return (
             <div

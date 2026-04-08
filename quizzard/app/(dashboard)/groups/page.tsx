@@ -146,7 +146,8 @@ export default function GroupsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/groups');
+      const typeParam = activeTab === 'classes' ? 'class' : 'study_group';
+      const res = await fetch(`/api/groups?type=${typeParam}`);
       if (!res.ok) throw new Error('Failed to fetch groups');
       const data = await res.json();
       const raw = data.data?.groups ?? data.data ?? [];
@@ -167,7 +168,8 @@ export default function GroupsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   useEffect(() => {
     fetchGroups();
@@ -233,7 +235,7 @@ export default function GroupsPage() {
             </p>
           </div>
 
-          {activeTab === 'groups' && (
+          {(activeTab === 'groups' || activeTab === 'classes') && (
             <button
               onClick={() => setShowCreateModal(true)}
               onMouseEnter={() => setHoveredCreate(true)}
@@ -258,7 +260,7 @@ export default function GroupsPage() {
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
                 add
               </span>
-              Create Group
+              {activeTab === 'classes' ? 'Create Class' : 'Create Group'}
             </button>
           )}
         </div>
@@ -300,14 +302,6 @@ export default function GroupsPage() {
         </div>
 
         {/* Tab content */}
-        {activeTab === 'classes' && (
-          <ComingSoon
-            icon="school"
-            title="Classes"
-            description="Organize entire classes with teachers and students. Teachers get special permissions to manage content and control sharing."
-          />
-        )}
-
         {activeTab === 'dms' && (
           <ComingSoon
             icon="chat"
@@ -316,7 +310,7 @@ export default function GroupsPage() {
           />
         )}
 
-        {activeTab === 'groups' && <>
+        {(activeTab === 'groups' || activeTab === 'classes') && <>
         {/* Pending Invitations */}
         {invitations.length > 0 && (
           <div style={{ marginBottom: 32 }}>
@@ -407,7 +401,7 @@ export default function GroupsPage() {
                 color: COLORS.textPrimary,
               }}
             >
-              No study groups yet
+              {activeTab === 'classes' ? 'No classes yet' : 'No study groups yet'}
             </span>
             <span
               style={{
@@ -440,7 +434,7 @@ export default function GroupsPage() {
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
                 add
               </span>
-              Create Your First Group
+              {activeTab === 'classes' ? 'Create Your First Class' : 'Create Your First Group'}
             </button>
           </div>
         ) : (

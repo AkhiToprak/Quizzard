@@ -8,6 +8,7 @@ import {
   forbiddenResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { canPerformAction } from '@/lib/group-permissions';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -92,6 +93,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
     });
     if (!membership || membership.status !== 'accepted') {
       return forbiddenResponse('You are not a member of this group');
+    }
+
+    // Permission check for classes
+    const groupInfo = await db.studyGroup.findUnique({
+      where: { id },
+      select: { type: true, allowMemberSharing: true },
+    });
+    if (groupInfo && !canPerformAction(groupInfo.type, membership.role, groupInfo.allowMemberSharing)) {
+      return forbiddenResponse('Sharing is restricted by the teacher');
     }
 
     const body = await request.json();

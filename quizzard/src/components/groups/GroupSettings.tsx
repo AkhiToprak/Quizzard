@@ -22,7 +22,7 @@ const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
 interface Props {
   groupId: string;
-  group: { name: string; description: string | null; avatarUrl: string | null; ownerId: string };
+  group: { name: string; description: string | null; avatarUrl: string | null; ownerId: string; type: string; allowMemberChat: boolean; allowMemberSharing: boolean; allowMemberInvites: boolean };
   currentUserId: string;
   userRole: string;
   onUpdated: () => void;
@@ -37,6 +37,9 @@ export default function GroupSettings({ groupId, group, currentUserId, userRole,
   const [deleteHover, setDeleteHover] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(group.avatarUrl);
+  const [allowChat, setAllowChat] = useState(group.allowMemberChat);
+  const [allowSharing, setAllowSharing] = useState(group.allowMemberSharing);
+  const [allowInvites, setAllowInvites] = useState(group.allowMemberInvites);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isOwner = userRole === 'owner';
@@ -104,7 +107,15 @@ export default function GroupSettings({ groupId, group, currentUserId, userRole,
       const res = await fetch(`/api/groups/${groupId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), description: description.trim() || null }),
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim() || null,
+          ...(group.type === 'class' ? {
+            allowMemberChat: allowChat,
+            allowMemberSharing: allowSharing,
+            allowMemberInvites: allowInvites,
+          } : {}),
+        }),
       });
       if (res.ok) onUpdated();
     } catch { /* ignore */ }
@@ -233,6 +244,53 @@ export default function GroupSettings({ groupId, group, currentUserId, userRole,
           </div>
         </div>
       </div>
+
+      {/* Class permissions */}
+      {group.type === 'class' && (
+        <div style={{
+          marginTop: 32, background: COLORS.cardBg, borderRadius: 16, padding: 32,
+        }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: COLORS.textPrimary, marginBottom: 4 }}>Student Permissions</h3>
+          <p style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 24 }}>Control what students can do in this class.</p>
+
+          {([
+            { key: 'chat' as const, label: 'Allow students to chat', icon: 'chat', value: allowChat, setter: setAllowChat },
+            { key: 'sharing' as const, label: 'Allow students to share content', icon: 'share', value: allowSharing, setter: setAllowSharing },
+            { key: 'invites' as const, label: 'Allow students to invite members', icon: 'person_add', value: allowInvites, setter: setAllowInvites },
+          ]).map((perm) => (
+            <div
+              key={perm.key}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '16px 0',
+                borderBottom: perm.key !== 'invites' ? `1px solid ${COLORS.border}1a` : 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 20, color: COLORS.textMuted }}>{perm.icon}</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: COLORS.textPrimary }}>{perm.label}</span>
+              </div>
+              <button
+                onClick={() => perm.setter(!perm.value)}
+                style={{
+                  width: 48, height: 28, borderRadius: 14, border: 'none',
+                  background: perm.value ? COLORS.primary : COLORS.inputBg,
+                  cursor: 'pointer', position: 'relative',
+                  transition: `background 0.2s ${EASING}`,
+                }}
+              >
+                <div style={{
+                  width: 22, height: 22, borderRadius: '50%',
+                  background: '#fff', position: 'absolute', top: 3,
+                  left: perm.value ? 23 : 3,
+                  transition: `left 0.2s ${EASING}`,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                }} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Danger zone */}
       {isOwner && (

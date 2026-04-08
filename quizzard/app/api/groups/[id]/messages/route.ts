@@ -8,6 +8,7 @@ import {
   forbiddenResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { canPerformAction } from '@/lib/group-permissions';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -81,6 +82,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
     });
     if (!membership || membership.status !== 'accepted') {
       return forbiddenResponse('You are not a member of this group');
+    }
+
+    // Permission check for classes
+    const group = await db.studyGroup.findUnique({
+      where: { id },
+      select: { type: true, allowMemberChat: true },
+    });
+    if (group && !canPerformAction(group.type, membership.role, group.allowMemberChat)) {
+      return forbiddenResponse('Chat is restricted by the teacher');
     }
 
     const body = await request.json();
