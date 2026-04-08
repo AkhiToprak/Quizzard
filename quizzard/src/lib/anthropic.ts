@@ -13,6 +13,3 @@ export const anthropic =
 if (process.env.NODE_ENV !== 'production') globalForAnthropic.anthropic = anthropic;
 
 export const AI_MODEL = 'claude-haiku-4-5-20251001';
-
-/** Monthly token budget per user (input + output combined). */
-export const MONTHLY_TOKEN_LIMIT = 1_000_000;

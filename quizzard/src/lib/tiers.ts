@@ -7,6 +7,8 @@ export type FeatureType = 'ai_flashcards' | 'ai_pptx' | 'ai_study_plan' | 'schol
 export interface TierConfig {
   name: string;
   priceCHF: number;
+  /** Monthly token budget (input + output combined). */
+  tokenLimit: number;
   limits: Record<FeatureType, number>; // -1 = unlimited
   badge: {
     label: string;
@@ -18,6 +20,7 @@ export const TIERS: Record<TierKey, TierConfig> = {
   FREE: {
     name: 'Free',
     priceCHF: 0,
+    tokenLimit: 100_000,
     limits: {
       ai_flashcards: 1,
       ai_pptx: 1,
@@ -33,6 +36,7 @@ export const TIERS: Record<TierKey, TierConfig> = {
   PLUS: {
     name: 'Plus',
     priceCHF: 5,
+    tokenLimit: 500_000,
     limits: {
       ai_flashcards: 4,
       ai_pptx: 3,
@@ -49,6 +53,7 @@ export const TIERS: Record<TierKey, TierConfig> = {
   PRO: {
     name: 'Pro',
     priceCHF: 10,
+    tokenLimit: 1_000_000,
     limits: {
       ai_flashcards: -1,
       ai_pptx: -1,

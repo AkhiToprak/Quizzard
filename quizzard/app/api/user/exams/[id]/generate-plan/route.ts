@@ -3,7 +3,7 @@ import { getToken } from 'next-auth/jwt';
 import { getAuthUserId } from '@/lib/auth';
 import { getScholarName } from '@/lib/scholar';
 import { db } from '@/lib/db';
-import { anthropic, AI_MODEL, MONTHLY_TOKEN_LIMIT } from '@/lib/anthropic';
+import { anthropic, AI_MODEL } from '@/lib/anthropic';
 import { checkTokenBudget, recordTokenUsage } from '@/lib/token-budget';
 import {
   createdResponse,
@@ -50,10 +50,10 @@ export async function POST(request: NextRequest, { params }: Params) {
     }
 
     // Token budget check
-    const { allowed } = await checkTokenBudget(userId);
+    const { allowed, tokenLimit } = await checkTokenBudget(userId);
     if (!allowed) {
       return tooManyRequestsResponse(
-        `Monthly token limit reached (${MONTHLY_TOKEN_LIMIT.toLocaleString()} tokens). Resets on the 1st of next month.`
+        `Monthly token limit reached (${tokenLimit.toLocaleString()} tokens). Resets on the 1st of next month.`
       );
     }
 

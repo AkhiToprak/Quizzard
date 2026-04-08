@@ -3,7 +3,7 @@ import { getToken } from 'next-auth/jwt';
 import { getAuthUserId } from '@/lib/auth';
 import { getScholarName } from '@/lib/scholar';
 import { db } from '@/lib/db';
-import { anthropic, AI_MODEL, MONTHLY_TOKEN_LIMIT } from '@/lib/anthropic';
+import { anthropic, AI_MODEL } from '@/lib/anthropic';
 import {
   successResponse,
   badRequestResponse,
@@ -14,6 +14,7 @@ import {
 } from '@/lib/api-response';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { ALL_TOOLS, extractToolUses } from '@/lib/ai-tools';
+import { checkTokenBudget } from '@/lib/token-budget';
 
 type Params = { params: Promise<{ id: string; pageId: string }> };
 
@@ -54,19 +55,11 @@ export async function POST(request: NextRequest, { params }: Params) {
       return badRequestResponse('Invalid type. Must be: flashcards, quiz, or mindmap');
     }
 
-    // Token budget check
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const tokenUsage = await db.chatMessage.aggregate({
-      where: { userId, createdAt: { gte: startOfMonth }, tokens: { not: null } },
-      _sum: { tokens: true },
-    });
-    const usedTokens = tokenUsage._sum.tokens ?? 0;
-    if (usedTokens >= MONTHLY_TOKEN_LIMIT) {
+    // Token budget check (per-tier monthly limit)
+    const { allowed: tokenAllowed, usedTokens, tokenLimit } = await checkTokenBudget(userId);
+    if (!tokenAllowed) {
       return tooManyRequestsResponse(
-        `Monthly token limit reached (${MONTHLY_TOKEN_LIMIT.toLocaleString()} tokens).`
+        `Monthly token limit reached (${tokenLimit.toLocaleString()} tokens).`
       );
     }
 
@@ -137,7 +130,7 @@ export async function POST(request: NextRequest, { params }: Params) {
           usage: {
             totalTokens,
             monthlyUsed: usedTokens + totalTokens,
-            monthlyLimit: MONTHLY_TOKEN_LIMIT,
+            monthlyLimit: tokenLimit,
           },
         });
       }
@@ -183,7 +176,7 @@ export async function POST(request: NextRequest, { params }: Params) {
           usage: {
             totalTokens,
             monthlyUsed: usedTokens + totalTokens,
-            monthlyLimit: MONTHLY_TOKEN_LIMIT,
+            monthlyLimit: tokenLimit,
           },
         });
       }
@@ -197,7 +190,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         usage: {
           totalTokens,
           monthlyUsed: usedTokens + totalTokens,
-          monthlyLimit: MONTHLY_TOKEN_LIMIT,
+          monthlyLimit: tokenLimit,
         },
       });
     }
@@ -209,7 +202,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       usage: {
         totalTokens,
         monthlyUsed: usedTokens + totalTokens,
-        monthlyLimit: MONTHLY_TOKEN_LIMIT,
+        monthlyLimit: tokenLimit,
       },
     });
   } catch (error: unknown) {

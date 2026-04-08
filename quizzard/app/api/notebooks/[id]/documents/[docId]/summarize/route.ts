@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { anthropic, AI_MODEL, MONTHLY_TOKEN_LIMIT } from '@/lib/anthropic';
+import { anthropic, AI_MODEL } from '@/lib/anthropic';
 import { checkTokenBudget, recordTokenUsage } from '@/lib/token-budget';
 import {
   successResponse,
@@ -53,10 +53,10 @@ export async function POST(
     }
 
     // Token budget check (only when we're about to call the API)
-    const { allowed } = await checkTokenBudget(userId);
+    const { allowed, tokenLimit } = await checkTokenBudget(userId);
     if (!allowed) {
       return tooManyRequestsResponse(
-        `Monthly token limit reached (${MONTHLY_TOKEN_LIMIT.toLocaleString()} tokens). Resets on the 1st of next month.`
+        `Monthly token limit reached (${tokenLimit.toLocaleString()} tokens). Resets on the 1st of next month.`
       );
     }
 
