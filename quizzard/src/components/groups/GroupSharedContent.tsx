@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GroupSharedContentCard from './GroupSharedContentCard';
 import ShareContentModal from './ShareContentModal';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 const COLORS = {
   pageBg: '#111126',
@@ -49,6 +50,7 @@ interface Props {
 }
 
 export default function GroupSharedContent({ groupId, groupName, currentUserId, userRole, canShare = true }: Props) {
+  const { isPhone } = useBreakpoint();
   const [items, setItems] = useState<SharedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
@@ -82,19 +84,27 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: isPhone ? 16 : 24 }}>
       {/* Header */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, marginBottom: 32 }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: isPhone ? 'column' : 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        alignItems: isPhone ? 'stretch' : 'flex-end',
+        gap: 16,
+        marginBottom: isPhone ? 20 : 32,
+      }}>
         <div>
-          <h2 style={{ fontSize: 28, fontWeight: 800, color: COLORS.textPrimary, letterSpacing: '-0.02em' }}>Shared Knowledge</h2>
-          <p style={{ fontSize: 14, color: COLORS.textSecondary, marginTop: 4, maxWidth: 500, fontWeight: 500 }}>
+          <h2 style={{ fontSize: isPhone ? 22 : 28, fontWeight: 800, color: COLORS.textPrimary, letterSpacing: '-0.02em' }}>Shared Knowledge</h2>
+          <p style={{ fontSize: isPhone ? 13 : 14, color: COLORS.textSecondary, marginTop: 4, maxWidth: 500, fontWeight: 500 }}>
             Filter through documents, flashcards, and notebooks shared by the group.
           </p>
         </div>
         {canShare && <button style={{
-          display: 'flex', alignItems: 'center', gap: 8,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           background: COLORS.yellow, color: '#5f4f00', border: 'none',
-          borderRadius: 12, padding: '12px 24px', fontWeight: 700, fontSize: 14,
+          borderRadius: 12, padding: isPhone ? '10px 20px' : '12px 24px', fontWeight: 700, fontSize: 14,
           cursor: 'pointer', fontFamily: 'inherit',
           boxShadow: `0 8px 24px rgba(255,222,89,0.15)`,
           transition: `transform 0.2s ${EASING}`,
@@ -109,7 +119,18 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24, overflowX: 'auto', paddingBottom: 4 }}>
+      <div style={{
+        display: 'flex',
+        gap: isPhone ? 8 : 12,
+        marginBottom: isPhone ? 16 : 24,
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        paddingBottom: 4,
+      }}
+        className="scroll-hide-scrollbar"
+      >
         {FILTERS.map((f) => {
           const active = filter === f.key;
           return (
@@ -117,11 +138,14 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
               key={f.key}
               onClick={() => setFilter(f.key)}
               style={{
-                padding: '8px 20px', borderRadius: 9999, border: 'none',
+                padding: isPhone ? '7px 14px' : '8px 20px',
+                borderRadius: 9999, border: 'none',
                 background: active ? COLORS.primary : COLORS.elevated,
                 color: active ? '#fff' : COLORS.textSecondary,
-                fontWeight: active ? 700 : 600, fontSize: 13,
+                fontWeight: active ? 700 : 600,
+                fontSize: isPhone ? 12 : 13,
                 cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit',
+                flexShrink: 0,
                 transition: `background 0.2s ${EASING}, color 0.2s ${EASING}`,
                 boxShadow: active ? `0 4px 12px ${COLORS.primary}33` : 'none',
               }}
@@ -134,7 +158,11 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
 
       {/* Grid */}
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: isPhone ? 14 : 20,
+        }}>
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="groups-skeleton" style={{ height: 180, borderRadius: 16 }} />
           ))}
@@ -145,7 +173,11 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
           <p style={{ fontSize: 14, fontWeight: 500 }}>No shared content yet. Be the first to share!</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: isPhone ? 14 : 20,
+        }}>
           {items.map((item) => (
             <GroupSharedContentCard
               key={item.id}
