@@ -268,15 +268,16 @@ export default function FeatureComparison() {
                 background: 'transparent',
                 cursor: 'pointer',
                 color: 'var(--on-surface)',
-                fontSize: 15,
-                fontWeight: 600,
+                fontSize: 16,
+                fontWeight: 700,
+                fontFamily: 'var(--font-display)',
               }}
             >
               {category.category}
               <span
                 className="material-symbols-outlined"
                 style={{
-                  fontSize: 20,
+                  fontSize: 22,
                   color: 'var(--outline)',
                   transform:
                     expandedMobile === catIdx
@@ -303,10 +304,8 @@ export default function FeatureComparison() {
                   <div
                     key={rowIdx}
                     style={{
-                      padding: '10px 0',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
+                      padding: '12px 0',
+                      borderTop: rowIdx > 0 ? '1px solid rgba(85,85,120,0.06)' : 'none',
                       opacity: expandedMobile === catIdx ? 1 : 0,
                       transition: 'opacity 0.3s cubic-bezier(0.22,1,0.36,1)',
                       transitionDelay: expandedMobile === catIdx ? `${rowIdx * 40}ms` : '0ms',
@@ -314,41 +313,80 @@ export default function FeatureComparison() {
                   >
                     <span
                       style={{
+                        display: 'block',
                         fontSize: 14,
-                        color: 'var(--on-surface-variant)',
+                        fontWeight: 600,
+                        color: 'var(--on-surface)',
+                        marginBottom: 10,
                       }}
                     >
                       {feature.name}
                     </span>
+                    {/* 3-column grid for tiers */}
                     <div
                       style={{
-                        display: 'flex',
-                        gap: 12,
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr 1fr',
+                        gap: 8,
                       }}
                     >
                       {[
-                        { label: 'F', value: feature.free },
-                        { label: 'P', value: feature.plus },
+                        { label: 'Free', value: feature.free },
+                        { label: 'Plus', value: feature.plus },
                         { label: 'Pro', value: feature.pro },
                       ].map((item) => (
-                        <span
+                        <div
                           key={item.label}
                           style={{
-                            fontSize: 12,
-                            padding: '3px 8px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 3,
+                            padding: '8px 6px',
                             borderRadius: 'var(--radius-sm)',
-                            background: 'var(--surface-container-high)',
-                            color:
-                              item.value === 'Unlimited'
-                                ? 'var(--tertiary-container)'
-                                : item.value === '✓'
-                                  ? 'var(--primary)'
-                                  : 'var(--on-surface-variant)',
-                            fontWeight: 600,
+                            background:
+                              item.label === 'Pro'
+                                ? 'rgba(255,222,89,0.06)'
+                                : 'var(--surface-container-high)',
+                            border:
+                              item.label === 'Pro'
+                                ? '1px solid rgba(255,222,89,0.12)'
+                                : '1px solid rgba(85,85,120,0.08)',
                           }}
                         >
-                          {item.label}: {item.value}
-                        </span>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                              color:
+                                item.label === 'Pro'
+                                  ? 'var(--tertiary-container)'
+                                  : item.label === 'Plus'
+                                    ? 'var(--primary)'
+                                    : 'var(--outline)',
+                            }}
+                          >
+                            {item.label}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color:
+                                item.value === 'Unlimited'
+                                  ? 'var(--tertiary-container)'
+                                  : item.value === '✓'
+                                    ? 'var(--primary)'
+                                    : item.value === '—'
+                                      ? 'var(--outline-variant)'
+                                      : 'var(--on-surface)',
+                            }}
+                          >
+                            {item.value === 'Unlimited' ? '∞' : item.value}
+                          </span>
+                        </div>
                       ))}
                     </div>
                   </div>
