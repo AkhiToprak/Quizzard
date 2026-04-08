@@ -1,8 +1,12 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import TrophyShelf from '@/components/features/TrophyShelf';
+import AvatarEditor from '@/components/ui/AvatarEditor';
+
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+type UsernameStatus = 'idle' | 'typing' | 'checking' | 'available' | 'taken' | 'invalid';
 
 interface ProfileData {
   id: string;
@@ -81,7 +85,7 @@ const DETAIL_ITEMS: { key: keyof ProfileData; label: string; icon: string }[] = 
 ];
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -96,6 +100,16 @@ export default function ProfilePage() {
     profilePrivate: false,
     hideAchievements: false,
   });
+
+  // Edit profile modal state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+  const [usernameInput, setUsernameInput] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
+  const [usernameMessage, setUsernameMessage] = useState('');
+  const [modalSaving, setModalSaving] = useState(false);
+  const [modalError, setModalError] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch('/api/user/profile')
@@ -121,6 +135,106 @@ export default function ProfilePage() {
       hideAchievements: profile.hideAchievements,
     });
     setEditing(true);
+  };
+
+  // Username availability check
+  const checkUsername = useCallback(async (value: string) => {
+    const normalized = value.toLowerCase();
+    if (!USERNAME_REGEX.test(normalized)) {
+      setUsernameStatus('invalid');
+      setUsernameMessage('3–20 chars, letters, numbers, underscores');
+      return;
+    }
+    if (profile && normalized === profile.username) {
+      setUsernameStatus('idle');
+      setUsernameMessage('');
+      return;
+    }
+    setUsernameStatus('checking');
+    setUsernameMessage('');
+    try {
+      const res = await fetch(`/api/user/check-username?username=${encodeURIComponent(normalized)}`);
+      const json = await res.json();
+      if (json.data?.available) {
+        setUsernameStatus('available');
+        setUsernameMessage('Username is available');
+      } else {
+        setUsernameStatus('taken');
+        setUsernameMessage('Username is already taken');
+      }
+    } catch {
+      setUsernameStatus('idle');
+      setUsernameMessage('');
+    }
+  }, [profile]);
+
+  const handleUsernameChange = (value: string) => {
+    setUsernameInput(value);
+    setUsernameStatus('typing');
+    setUsernameMessage('');
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (value.length >= 3) {
+      debounceRef.current = setTimeout(() => checkUsername(value), 500);
+    }
+  };
+
+  useEffect(() => {
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, []);
+
+  const openEditModal = () => {
+    if (!profile) return;
+    setUsernameInput(profile.username);
+    setUsernameStatus('idle');
+    setUsernameMessage('');
+    setModalError('');
+    setEditModalOpen(true);
+  };
+
+  const handleModalSave = async () => {
+    if (!profile) return;
+    const normalized = usernameInput.trim().toLowerCase();
+
+    if (!USERNAME_REGEX.test(normalized)) {
+      setModalError('Username must be 3–20 characters: letters, numbers, underscores only');
+      return;
+    }
+    if (usernameStatus === 'taken') {
+      setModalError('That username is already taken');
+      return;
+    }
+    if (usernameStatus === 'checking') {
+      setModalError('Please wait while we check username availability');
+      return;
+    }
+
+    if (normalized === profile.username) {
+      setEditModalOpen(false);
+      return;
+    }
+
+    setModalSaving(true);
+    setModalError('');
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: normalized }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setProfile(json.data ?? json);
+        await updateSession();
+        setEditModalOpen(false);
+      } else {
+        const json = await res.json();
+        setModalError(json.error || 'Save failed');
+      }
+    } catch {
+      setModalError('Save failed. Please try again.');
+    } finally {
+      setModalSaving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -325,7 +439,7 @@ export default function ProfilePage() {
 
         {/* Edit Profile Button */}
         <button
-          onClick={startEditing}
+          onClick={openEditModal}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -371,7 +485,36 @@ export default function ProfilePage() {
             gap: '16px',
           }}
         >
-          <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>About</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>About</h3>
+            <button
+              onClick={startEditing}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 12px',
+                background: 'transparent',
+                color: '#ae89ff',
+                borderRadius: '8px',
+                border: '1px solid rgba(174,137,255,0.2)',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span>
+              Edit
+            </button>
+          </div>
           {DETAIL_ITEMS.map((item) => {
             const value = profile[item.key];
             if (value == null) return null;
@@ -716,6 +859,298 @@ export default function ProfilePage() {
 
       {/* Achievements Section */}
       <TrophyShelf />
+
+      {/* Edit Profile Modal */}
+      {editModalOpen && profile && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(8px)',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !modalSaving) setEditModalOpen(false);
+          }}
+        >
+          <div
+            style={{
+              background: '#1c1c38',
+              borderRadius: '24px',
+              padding: '32px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px',
+              maxWidth: '420px',
+              width: '90%',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#e5e3ff' }}>
+                Edit Profile
+              </h3>
+              <button
+                onClick={() => setEditModalOpen(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#aaa8c8',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(170,168,200,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+              </button>
+            </div>
+
+            {/* Avatar section */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+              {profile.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.name || profile.username}
+                  style={{
+                    width: '96px',
+                    height: '96px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '3px solid rgba(174,137,255,0.3)',
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '96px',
+                    height: '96px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '32px',
+                    fontWeight: 700,
+                    color: '#ffffff',
+                    border: '3px solid rgba(174,137,255,0.3)',
+                  }}
+                >
+                  {getInitials(profile.name || profile.username)}
+                </div>
+              )}
+              <button
+                onClick={() => setAvatarEditorOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 16px',
+                  background: 'rgba(174,137,255,0.12)',
+                  color: '#ae89ff',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(174,137,255,0.2)',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.12)';
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                  photo_camera
+                </span>
+                Change Photo
+              </button>
+            </div>
+
+            {/* Username input */}
+            <div>
+              <label style={LABEL_STYLE}>Username</label>
+              <div style={{ position: 'relative' }}>
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: '14px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    fontSize: '14px',
+                    color: '#8888a8',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  @
+                </span>
+                <input
+                  type="text"
+                  value={usernameInput}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  maxLength={20}
+                  placeholder="username"
+                  style={{
+                    ...INPUT_STYLE,
+                    paddingLeft: '32px',
+                    paddingRight: '40px',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(174,137,255,0.5)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(170,168,200,0.2)';
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  {usernameStatus === 'checking' && (
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '18px',
+                        color: '#aaa8c8',
+                        animation: 'spin 1s linear infinite',
+                      }}
+                    >
+                      progress_activity
+                    </span>
+                  )}
+                  {usernameStatus === 'available' && (
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: '18px', color: '#4dff91', fontVariationSettings: "'FILL' 1" }}
+                    >
+                      check_circle
+                    </span>
+                  )}
+                  {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: '18px', color: '#fd6f85', fontVariationSettings: "'FILL' 1" }}
+                    >
+                      cancel
+                    </span>
+                  )}
+                </div>
+              </div>
+              {usernameStatus === 'available' && (
+                <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#4dff91' }}>
+                  {usernameMessage}
+                </p>
+              )}
+              {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
+                <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#fd6f85' }}>
+                  {usernameMessage}
+                </p>
+              )}
+              {(usernameStatus === 'idle' || usernameStatus === 'typing') && (
+                <p style={{ margin: '6px 0 0 4px', fontSize: '12px', color: '#8888a8' }}>
+                  3–20 chars, letters, numbers, underscores
+                </p>
+              )}
+            </div>
+
+            {/* Error */}
+            {modalError && (
+              <p style={{ margin: 0, fontSize: '13px', color: '#fd6f85' }}>{modalError}</p>
+            )}
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setEditModalOpen(false)}
+                disabled={modalSaving}
+                style={{
+                  padding: '10px 24px',
+                  background: 'transparent',
+                  color: '#aaa8c8',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(170,168,200,0.2)',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(170,168,200,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleModalSave}
+                disabled={modalSaving || usernameStatus === 'checking'}
+                style={{
+                  padding: '10px 24px',
+                  background: '#ae89ff',
+                  color: '#2a0066',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: modalSaving ? 'wait' : 'pointer',
+                  fontFamily: 'inherit',
+                  opacity: modalSaving ? 0.7 : 1,
+                  transition:
+                    'transform 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.2s cubic-bezier(0.22,1,0.36,1)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!modalSaving) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+                }}
+              >
+                {modalSaving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Avatar Editor (nested over the modal) */}
+      <AvatarEditor
+        open={avatarEditorOpen}
+        onClose={() => setAvatarEditorOpen(false)}
+        onSaved={async () => {
+          setAvatarEditorOpen(false);
+          const res = await fetch('/api/user/profile');
+          const json = await res.json();
+          if (json.data?.id) setProfile(json.data);
+          await updateSession();
+        }}
+      />
     </div>
   );
 }

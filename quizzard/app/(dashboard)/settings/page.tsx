@@ -1,8 +1,8 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
-import { useState, useEffect, useCallback, useRef, PointerEvent as ReactPointerEvent } from 'react';
-import { useDirectUpload } from '@/hooks/useDirectUpload';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import AvatarEditor from '@/components/ui/AvatarEditor';
 
 function getInitials(name?: string | null): string {
   if (!name) return '?';
@@ -241,164 +241,9 @@ export default function SettingsPage() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Avatar editor state
-  const { upload } = useDirectUpload();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [avatarImage, setAvatarImage] = useState<HTMLImageElement | null>(null);
-  const [avatarScale, setAvatarScale] = useState(1);
-  const [avatarOffset, setAvatarOffset] = useState({ x: 0, y: 0 });
-  const [avatarDragging, setAvatarDragging] = useState(false);
-  const [avatarDragStart, setAvatarDragStart] = useState({ x: 0, y: 0 });
-  const [avatarUploading, setAvatarUploading] = useState(false);
-  const [avatarError, setAvatarError] = useState('');
-
-  const EDITOR_SIZE = 280;
-  const OUTPUT_SIZE = 256;
-
-  const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError('File too large. Maximum size is 5MB.');
-      return;
-    }
-    setAvatarError('');
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        setAvatarImage(img);
-        setAvatarScale(1);
-        setAvatarOffset({ x: 0, y: 0 });
-        setAvatarEditorOpen(true);
-      };
-      img.onerror = () => setAvatarError('Could not load image.');
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  // Draw avatar preview on canvas
-  useEffect(() => {
-    if (!avatarEditorOpen || !avatarImage || !canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-    ctx.clearRect(0, 0, EDITOR_SIZE, EDITOR_SIZE);
-
-    // Dark background
-    ctx.fillStyle = '#0c0c1e';
-    ctx.fillRect(0, 0, EDITOR_SIZE, EDITOR_SIZE);
-
-    // Draw image centered + offset + scaled
-    const imgAspect = avatarImage.width / avatarImage.height;
-    let drawW: number, drawH: number;
-    if (imgAspect > 1) {
-      drawH = EDITOR_SIZE * avatarScale;
-      drawW = drawH * imgAspect;
-    } else {
-      drawW = EDITOR_SIZE * avatarScale;
-      drawH = drawW / imgAspect;
-    }
-    const drawX = (EDITOR_SIZE - drawW) / 2 + avatarOffset.x;
-    const drawY = (EDITOR_SIZE - drawH) / 2 + avatarOffset.y;
-    ctx.drawImage(avatarImage, drawX, drawY, drawW, drawH);
-
-    // Draw circular mask overlay
-    ctx.globalCompositeOperation = 'destination-in';
-    ctx.beginPath();
-    ctx.arc(EDITOR_SIZE / 2, EDITOR_SIZE / 2, EDITOR_SIZE / 2 - 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-
-    // Draw border ring
-    ctx.strokeStyle = '#ae89ff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(EDITOR_SIZE / 2, EDITOR_SIZE / 2, EDITOR_SIZE / 2 - 8, 0, Math.PI * 2);
-    ctx.stroke();
-  }, [avatarEditorOpen, avatarImage, avatarScale, avatarOffset]);
-
-  const handleAvatarPointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    setAvatarDragging(true);
-    setAvatarDragStart({ x: e.clientX - avatarOffset.x, y: e.clientY - avatarOffset.y });
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-  const handleAvatarPointerMove = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (!avatarDragging) return;
-    setAvatarOffset({
-      x: e.clientX - avatarDragStart.x,
-      y: e.clientY - avatarDragStart.y,
-    });
-  };
-
-  const handleAvatarPointerUp = () => {
-    setAvatarDragging(false);
-  };
-
-  const handleAvatarSave = async () => {
-    if (!avatarImage) return;
-    setAvatarUploading(true);
-    setAvatarError('');
-
-    // Render final image to offscreen canvas
-    const offscreen = document.createElement('canvas');
-    offscreen.width = OUTPUT_SIZE;
-    offscreen.height = OUTPUT_SIZE;
-    const ctx = offscreen.getContext('2d');
-    if (!ctx) return;
-
-    const ratio = OUTPUT_SIZE / EDITOR_SIZE;
-    const imgAspect = avatarImage.width / avatarImage.height;
-    let drawW: number, drawH: number;
-    if (imgAspect > 1) {
-      drawH = EDITOR_SIZE * avatarScale;
-      drawW = drawH * imgAspect;
-    } else {
-      drawW = EDITOR_SIZE * avatarScale;
-      drawH = drawW / imgAspect;
-    }
-    const drawX = ((EDITOR_SIZE - drawW) / 2 + avatarOffset.x) * ratio;
-    const drawY = ((EDITOR_SIZE - drawH) / 2 + avatarOffset.y) * ratio;
-
-    // Circular clip
-    ctx.beginPath();
-    ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.drawImage(avatarImage, drawX, drawY, drawW * ratio, drawH * ratio);
-
-    offscreen.toBlob(async (blob) => {
-      if (!blob) {
-        setAvatarError('Failed to process image.');
-        setAvatarUploading(false);
-        return;
-      }
-      try {
-        const file = new File([blob], 'avatar.png', { type: 'image/png' });
-        const { storagePath } = await upload(file, 'avatar');
-        const res = await fetch('/api/user/avatar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ storagePath }),
-        });
-        const json = await res.json();
-        if (!res.ok) {
-          setAvatarError(json.error || 'Upload failed.');
-        } else {
-          setAvatarEditorOpen(false);
-          // Trigger JWT refresh so avatarUrl is re-read from DB
-          await updateSession();
-        }
-      } catch {
-        setAvatarError('Upload failed. Please try again.');
-      }
-      setAvatarUploading(false);
-    }, 'image/png');
-  };
 
   const fetchAdminUsers = useCallback(async (search: string, page: number) => {
     setAdminLoading(true);
@@ -663,15 +508,8 @@ export default function SettingsPage() {
                     {getInitials(session?.user?.name)}
                   </div>
                 )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  style={{ display: 'none' }}
-                  onChange={handleAvatarFileSelect}
-                />
                 <button
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => setAvatarEditorOpen(true)}
                   style={{
                     position: 'absolute',
                     bottom: '-8px',
@@ -2603,141 +2441,15 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Avatar Editor Modal */}
-      {avatarEditorOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.7)',
-            backdropFilter: 'blur(8px)',
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setAvatarEditorOpen(false);
-          }}
-        >
-          <div
-            style={{
-              background: '#1c1c38',
-              borderRadius: '24px',
-              padding: '32px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '24px',
-              minWidth: '340px',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-            }}
-          >
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#e5e3ff' }}>
-              Adjust your photo
-            </h3>
-
-            <canvas
-              ref={canvasRef}
-              width={EDITOR_SIZE}
-              height={EDITOR_SIZE}
-              style={{
-                width: `${EDITOR_SIZE}px`,
-                height: `${EDITOR_SIZE}px`,
-                borderRadius: '50%',
-                cursor: avatarDragging ? 'grabbing' : 'grab',
-                touchAction: 'none',
-              }}
-              onPointerDown={handleAvatarPointerDown}
-              onPointerMove={handleAvatarPointerMove}
-              onPointerUp={handleAvatarPointerUp}
-            />
-
-            {/* Scale slider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ color: '#aaa8c8', fontSize: '18px' }}
-              >
-                photo_size_select_small
-              </span>
-              <input
-                type="range"
-                min="0.5"
-                max="3"
-                step="0.01"
-                value={avatarScale}
-                onChange={(e) => setAvatarScale(parseFloat(e.target.value))}
-                style={{
-                  flex: 1,
-                  accentColor: '#ae89ff',
-                  height: '6px',
-                }}
-              />
-              <span
-                className="material-symbols-outlined"
-                style={{ color: '#aaa8c8', fontSize: '24px' }}
-              >
-                photo_size_select_large
-              </span>
-            </div>
-
-            {avatarError && (
-              <p style={{ color: '#ff6b6b', fontSize: '13px', margin: 0 }}>{avatarError}</p>
-            )}
-
-            {/* Action buttons */}
-            <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-              <button
-                onClick={() => setAvatarEditorOpen(false)}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(174,137,255,0.3)',
-                  background: 'transparent',
-                  color: '#aaa8c8',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background =
-                    'rgba(174,137,255,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAvatarSave}
-                disabled={avatarUploading}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: avatarUploading
-                    ? '#6b5a99'
-                    : 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  cursor: avatarUploading ? 'not-allowed' : 'pointer',
-                  fontFamily: 'inherit',
-                  transition: 'opacity 0.15s',
-                }}
-              >
-                {avatarUploading ? 'Uploading…' : 'Save'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Avatar Editor */}
+      <AvatarEditor
+        open={avatarEditorOpen}
+        onClose={() => setAvatarEditorOpen(false)}
+        onSaved={async () => {
+          setAvatarEditorOpen(false);
+          await updateSession();
+        }}
+      />
       {/* Delete Account Confirmation Modal */}
       {deleteConfirmOpen && (
         <div

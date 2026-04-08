@@ -7,6 +7,9 @@ import {
   unauthorizedResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { Prisma } from '@prisma/client';
+
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,6 +50,7 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     const {
+      username,
       name,
       bio,
       dailyGoal,
@@ -59,6 +63,23 @@ export async function PUT(request: NextRequest) {
     } = body;
 
     const data: Record<string, unknown> = {};
+
+    if (username !== undefined) {
+      if (typeof username !== 'string' || !USERNAME_REGEX.test(username)) {
+        return badRequestResponse(
+          'Username must be 3–20 characters: letters, numbers, underscores only'
+        );
+      }
+      const normalized = username.toLowerCase();
+      const existing = await db.user.findUnique({
+        where: { username: normalized },
+        select: { id: true },
+      });
+      if (existing && existing.id !== userId) {
+        return badRequestResponse('This username is already taken');
+      }
+      data.username = normalized;
+    }
 
     if (name !== undefined) {
       if (name === null) {
@@ -145,25 +166,33 @@ export async function PUT(request: NextRequest) {
       return badRequestResponse('No valid fields to update');
     }
 
-    const updated = await db.user.update({
-      where: { id: userId },
-      data,
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        bio: true,
-        avatarUrl: true,
-        dailyGoal: true,
-        age: true,
-        location: true,
-        school: true,
-        lineOfWork: true,
-        profilePrivate: true,
-        hideAchievements: true,
-        createdAt: true,
-      },
-    });
+    let updated;
+    try {
+      updated = await db.user.update({
+        where: { id: userId },
+        data,
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          bio: true,
+          avatarUrl: true,
+          dailyGoal: true,
+          age: true,
+          location: true,
+          school: true,
+          lineOfWork: true,
+          profilePrivate: true,
+          hideAchievements: true,
+          createdAt: true,
+        },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        return badRequestResponse('This username is already taken');
+      }
+      throw err;
+    }
 
     return successResponse(updated);
   } catch {
