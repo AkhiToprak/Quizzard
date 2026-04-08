@@ -21,7 +21,7 @@ export default function DashboardGreeting({ userName }: DashboardGreetingProps) 
     fetch('/api/user/profile')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        const custom = data?.customGreeting;
+        const custom = data?.data?.customGreeting;
         if (custom && typeof custom === 'string') {
           setGreeting(interpolateGreeting(custom, userName));
         } else {
