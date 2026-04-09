@@ -204,53 +204,6 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     };
   }, []);
 
-  /* ─── Reorder toolbar: Text → Freedraw → Eraser first ───────────────── *
-   * Excalidraw has no prop for toolbar order, but the toolbar container
-   * is a flexbox, so we set `order` on the specific <label> wrappers to
-   * visually move them to the front. We identify them by the inner
-   * <input value="text|freedraw|eraser"> that Excalidraw uses as the
-   * underlying radio for shape selection.
-   * The toolbar mounts after Excalidraw's dynamic bundle loads, so we
-   * use a MutationObserver to apply the order as soon as it appears,
-   * and re-apply if Excalidraw swaps nodes (language change, resize). */
-  useEffect(() => {
-    if (!page) return;
-
-    const desiredOrder: Record<string, string> = {
-      text: '-3',
-      freedraw: '-2',
-      eraser: '-1',
-    };
-
-    const applyOrder = (): boolean => {
-      const inputs = document.querySelectorAll<HTMLInputElement>(
-        '.excalidraw input[name="editor-current-shape"]'
-      );
-      if (inputs.length === 0) return false;
-
-      let applied = 0;
-      inputs.forEach((input) => {
-        const wrapper = input.closest<HTMLElement>('label.ToolIcon');
-        if (!wrapper) return;
-        const target = desiredOrder[input.value];
-        wrapper.style.order = target ?? '0';
-        if (target) applied++;
-      });
-      return applied > 0;
-    };
-
-    // Try immediately in case the toolbar is already mounted
-    applyOrder();
-
-    // Watch for the toolbar to appear or re-render
-    const observer = new MutationObserver(() => {
-      applyOrder();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => observer.disconnect();
-  }, [page]);
-
   /* ─── Stylus barrel-button → eraser ─────────────────────────────────── *
    * Maps non-Apple stylus buttons to the eraser tool via Excalidraw's
    * imperative API. Works for Surface Pen, Wacom, S Pen, etc. — anything
@@ -391,6 +344,26 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         .excalidraw .dropdown-menu-group:has(> a[href*="excalidraw"]:only-child),
         .excalidraw .dropdown-menu-group:not(:has(> :not(a[href*="excalidraw"]))) {
           display: none !important;
+        }
+
+        /* ─── Reorder shape toolbar: Text → Pen → Eraser first ─────────
+         * The shapes toolbar is a flex container. We use :has() to
+         * target whichever ancestor wraps the tool's underlying radio
+         * input. We set the order property on multiple possible wrapper
+         * levels (label and div-wrapping-label) so this works whether
+         * or not Excalidraw wraps each ToolIcon in an extra div. Setting
+         * order on a non-flex-item is a harmless no-op. */
+        .excalidraw label:has(> input[name="editor-current-shape"][value="text"]),
+        .excalidraw div:has(> label > input[name="editor-current-shape"][value="text"]) {
+          order: -3 !important;
+        }
+        .excalidraw label:has(> input[name="editor-current-shape"][value="freedraw"]),
+        .excalidraw div:has(> label > input[name="editor-current-shape"][value="freedraw"]) {
+          order: -2 !important;
+        }
+        .excalidraw label:has(> input[name="editor-current-shape"][value="eraser"]),
+        .excalidraw div:has(> label > input[name="editor-current-shape"][value="eraser"]) {
+          order: -1 !important;
         }
       `}</style>
 
