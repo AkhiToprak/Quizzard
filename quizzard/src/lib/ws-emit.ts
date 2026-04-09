@@ -17,9 +17,24 @@
  * Worst case: clients miss a real-time event but get it on next refresh.
  */
 
-const WS_INTERNAL_URL =
-  process.env.WS_INTERNAL_URL || 'http://localhost:3002';
+// Strip trailing slashes so `${WS_INTERNAL_URL}/emit` never becomes `//emit`.
+const WS_INTERNAL_URL = (
+  process.env.WS_INTERNAL_URL || 'http://localhost:3002'
+).replace(/\/+$/, '');
 const WS_INTERNAL_SECRET = process.env.WS_INTERNAL_SECRET || '';
+
+// Log the resolved env state exactly once per cold start so Vercel logs
+// show us the values the function is actually using.
+let envLogged = false;
+function logEnvOnce() {
+  if (envLogged) return;
+  envLogged = true;
+  console.log(
+    `[ws-emit] env on cold start: WS_INTERNAL_URL=${WS_INTERNAL_URL} ` +
+      `WS_INTERNAL_SECRET_set=${!!WS_INTERNAL_SECRET} ` +
+      `WS_INTERNAL_SECRET_len=${WS_INTERNAL_SECRET.length}`
+  );
+}
 
 export interface WsEmitPayload {
   /** Socket.IO room to broadcast to. For cowork: `session:<sessionId>`. */
@@ -38,6 +53,7 @@ export interface WsEmitPayload {
  * REST→WS broadcast chain is actually reaching the ws-server.
  */
 export async function wsEmit(payload: WsEmitPayload): Promise<void> {
+  logEnvOnce();
   console.log(
     `[ws-emit] → ${payload.event} to ${payload.room} via ${WS_INTERNAL_URL}/emit`
   );

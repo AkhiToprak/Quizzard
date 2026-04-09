@@ -134,6 +134,32 @@ function isOnline(userId: string): boolean {
 
 // ─── HTTP server + Socket.IO ───
 const httpServer = createServer((req, res) => {
+  // Debug endpoint — reports env-var state so we can verify the secret
+  // matches between Vercel and DigitalOcean. Safe to expose because we
+  // only reveal the first 4 chars + length, never the full value.
+  if (req.url === '/debug') {
+    const secret = WS_INTERNAL_SECRET || '';
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        nodeVersion: process.version,
+        uptimeSeconds: Math.round(process.uptime()),
+        listeningPort: WS_PORT,
+        onlineUsers: onlineUsers.size,
+        coworkRooms: coworkSocketUsers.size,
+        env: {
+          NEXTAUTH_SECRET_set: !!NEXTAUTH_SECRET,
+          WS_INTERNAL_SECRET_set: !!WS_INTERNAL_SECRET,
+          WS_INTERNAL_SECRET_length: secret.length,
+          WS_INTERNAL_SECRET_first4: secret.slice(0, 4),
+          NEXTAUTH_URL: process.env.NEXTAUTH_URL || null,
+          DATABASE_URL_set: !!process.env.DATABASE_URL,
+        },
+      })
+    );
+    return;
+  }
+
   // Health check + presence query endpoint
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
