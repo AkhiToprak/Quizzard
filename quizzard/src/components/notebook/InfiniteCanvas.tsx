@@ -233,6 +233,52 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     return () => document.removeEventListener('pointerdown', handlePointerDown, true);
   }, [page]);
 
+  /* ─── Remap number shortcuts 1/2/3 → Text / Pen / Eraser ────────────── *
+   * Excalidraw's built-in numeric shortcuts are hardcoded in its SHAPES
+   * array (text=8, freedraw=7, eraser=0). With the new toolbar order
+   * (Text first, Pen second, Eraser third) that's confusing — users
+   * expect to press 1/2/3 for the first three visible tools. We
+   * intercept the keydown event in the capture phase, before it reaches
+   * Excalidraw's window-level bubble listener, and call setActiveTool
+   * directly; stopImmediatePropagation prevents Excalidraw's default
+   * handler from also firing for the same key.
+   *
+   * Guard against remapping inside text inputs (title field, in-canvas
+   * text annotations) or while modifiers are held. */
+  useEffect(() => {
+    if (!page) return;
+
+    const remap: Record<string, 'text' | 'freedraw' | 'eraser'> = {
+      '1': 'text',
+      '2': 'freedraw',
+      '3': 'eraser',
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable) return;
+      }
+
+      const tool = remap[e.key];
+      if (!tool) return;
+
+      const api = excalidrawAPIRef.current;
+      if (!api) return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      api.setActiveTool({ type: tool });
+    };
+
+    document.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () =>
+      document.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [page]);
+
   /* ─── Derive initial data from fetched page (memoized per page) ─────── */
   const initialData = useMemo<ExcalidrawInitialDataState | null>(() => {
     if (!page) return null;
@@ -385,13 +431,39 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
           order: 21 !important;
         }
 
-        /* Hide the numeric keybinding badges on every tool. Excalidraw's
-         * keyboard shortcuts are hardcoded in its source, so the badges
-         * would otherwise show "8" on Text while Text is in position 3,
-         * which is confusing. The tooltips on hover still show the key
-         * (e.g. "Text — T or 8") for anyone who wants the shortcut. */
+        /* Hide Excalidraw's default numeric keybinding badges on every
+         * tool by default. The built-in numbers (Selection=1, Rect=2,
+         * Text=8, Pen=7, Eraser=0, ...) conflict with the new toolbar
+         * order, so we suppress them and show only the remapped ones
+         * on Text/Pen/Eraser below. Tooltips on hover still show the
+         * full "Text — T or 8" hint for anyone who wants the original. */
         .excalidraw .ToolIcon__keybinding {
           display: none !important;
+        }
+
+        /* Re-show the badge on Text/Pen/Eraser but mask the original
+         * text by shrinking its font to 0, and inject the new shortcut
+         * number ("1" / "2" / "3") via the ::after pseudo-element.
+         * The ::after inherits color and position from its parent, so
+         * the badge looks identical to Excalidraw's native styling. */
+        .excalidraw label:has(> input[data-testid="toolbar-text"]) .ToolIcon__keybinding,
+        .excalidraw label:has(> input[data-testid="toolbar-freedraw"]) .ToolIcon__keybinding,
+        .excalidraw label:has(> input[data-testid="toolbar-eraser"]) .ToolIcon__keybinding {
+          display: inline-block !important;
+          font-size: 0 !important;
+          line-height: 1 !important;
+        }
+        .excalidraw label:has(> input[data-testid="toolbar-text"]) .ToolIcon__keybinding::after {
+          content: "1";
+          font-size: 11px;
+        }
+        .excalidraw label:has(> input[data-testid="toolbar-freedraw"]) .ToolIcon__keybinding::after {
+          content: "2";
+          font-size: 11px;
+        }
+        .excalidraw label:has(> input[data-testid="toolbar-eraser"]) .ToolIcon__keybinding::after {
+          content: "3";
+          font-size: 11px;
         }
       `}</style>
 
