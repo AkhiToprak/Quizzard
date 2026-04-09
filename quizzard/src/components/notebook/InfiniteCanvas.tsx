@@ -1,9 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import { Loader } from 'lucide-react';
-import { getSceneVersion } from '@excalidraw/excalidraw';
+// NOTE: This whole module is only ever loaded client-side because the parent
+// `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx` imports it via
+// `dynamic(..., { ssr: false })`. That means we can safely import Excalidraw
+// (and its compound `MainMenu` / `WelcomeScreen` components) directly, which
+// preserves the static members like `MainMenu.DefaultItems.ClearCanvas`.
+import {
+  Excalidraw,
+  MainMenu,
+  WelcomeScreen,
+  getSceneVersion,
+} from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import type {
   AppState,
@@ -15,12 +24,6 @@ import type {
   ExcalidrawElement,
   OrderedExcalidrawElement,
 } from '@excalidraw/excalidraw/element/types';
-
-// Excalidraw uses browser-only APIs — must be dynamically imported with SSR off.
-const Excalidraw = dynamic(
-  async () => (await import('@excalidraw/excalidraw')).Excalidraw,
-  { ssr: false }
-);
 
 interface CanvasPageData {
   id: string;
@@ -266,6 +269,34 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <style>{`
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+        /* ─── De-brand Excalidraw ─────────────────────────────────────
+         * Excalidraw is MIT-licensed so we're allowed to remove/hide
+         * any of its branded UI. The three leak points are:
+         *   1. the floating "?" help button (bottom-right) which opens
+         *      a dialog titled "Excalidraw";
+         *   2. the library sidebar trigger, whose sidebar links to
+         *      "Excalidraw+" promotional content;
+         *   3. the "Excalidraw+" and "Sign in" promos that some
+         *      builds inject into the main menu. We also provide a
+         *      custom <MainMenu> below, which excludes them by design.
+         * ───────────────────────────────────────────────────────────── */
+        .excalidraw .help-icon,
+        .excalidraw button.help-icon,
+        .excalidraw .HelpButton,
+        .excalidraw [data-testid="HelpDialog"] {
+          display: none !important;
+        }
+        .excalidraw .default-sidebar-trigger,
+        .excalidraw .sidebar-trigger,
+        .excalidraw [data-testid="sidebar-trigger"],
+        .excalidraw .layer-ui__library {
+          display: none !important;
+        }
+        .excalidraw a[href*="plus.excalidraw.com"],
+        .excalidraw a[href*="excalidraw.com"] {
+          display: none !important;
+        }
       `}</style>
 
       {/* Title + save status */}
@@ -354,7 +385,23 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
                 toggleTheme: false,
               },
             }}
-          />
+          >
+            {/* Custom main menu with NO Excalidraw-branded items
+                (skips Socials / Excalidraw+ / Help / LiveCollab / LoadScene
+                / Export / SaveAsImage — all of which show the Excalidraw name). */}
+            <MainMenu>
+              <MainMenu.DefaultItems.ClearCanvas />
+              <MainMenu.DefaultItems.ChangeCanvasBackground />
+            </MainMenu>
+            {/* Custom welcome screen with no "Welcome to Excalidraw" text. */}
+            <WelcomeScreen>
+              <WelcomeScreen.Center>
+                <WelcomeScreen.Center.Heading>
+                  Start drawing
+                </WelcomeScreen.Center.Heading>
+              </WelcomeScreen.Center>
+            </WelcomeScreen>
+          </Excalidraw>
         </div>
       </div>
     </div>
