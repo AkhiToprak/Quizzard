@@ -51,7 +51,7 @@ const LAST_SEEN_UPDATE_INTERVAL = 60_000; // batch DB updates every 60s
 
 // Git-stamp so we can verify from /debug whether the running binary is the
 // latest compiled code. Bumped by hand whenever the cowork logic changes.
-const WS_SERVER_BUILD_TAG = 'cowork-v5-buildtag-2026-04-09';
+const WS_SERVER_BUILD_TAG = 'cowork-v6-buildtag-2026-04-10';
 
 if (!NEXTAUTH_SECRET) {
   console.error('[ws-server] NEXTAUTH_SECRET is not set. Exiting.');
@@ -440,6 +440,7 @@ io.on('connection', async (socket: Socket) => {
   // ephemeral — never persisted to Postgres.
   // Server enriches the payload with the trusted userId so subscribers can
   // attribute the cursor without trusting client input.
+  let cursorEventCount = 0;
   socket.on(
     'cowork:cursor',
     (payload: {
@@ -458,6 +459,35 @@ io.on('connection', async (socket: Socket) => {
         pageId: payload.pageId ?? null,
         x: payload.x,
         y: payload.y,
+      });
+      // Log every 60th event so we can confirm from DO Runtime Logs
+      // that cursors are actually flowing without spamming at 16/s.
+      cursorEventCount += 1;
+      if (cursorEventCount % 60 === 1) {
+        const room = `session:${sessionId}`;
+        const roomSockets = io.sockets.adapter.rooms.get(room);
+        console.log(
+          `[ws-server] cowork:cursor relay #${cursorEventCount} from ${userId} → ${room} ` +
+            `(${(roomSockets?.size ?? 0) - 1} other socket(s) in room)`
+        );
+      }
+    }
+  );
+
+  // ─── Cowork: live doc update notification relay ───
+  // Host's autosave pings this after the PUT lands in Postgres so
+  // participants can refetch content within ~100-200ms instead of
+  // waiting for the polling fallback.
+  socket.on(
+    'cowork:doc_notify',
+    (payload: { sessionId?: string; pageId?: string }) => {
+      const sessionId = payload?.sessionId;
+      if (!sessionId || typeof sessionId !== 'string') return;
+      if (typeof payload.pageId !== 'string') return;
+      socket.to(`session:${sessionId}`).emit('cowork:doc_notify', {
+        sessionId,
+        pageId: payload.pageId,
+        by: userId,
       });
     }
   );

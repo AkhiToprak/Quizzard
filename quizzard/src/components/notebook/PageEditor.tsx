@@ -197,24 +197,32 @@ export default function PageEditor({
     []
   );
 
-  /* ─── Co-work cursor: emit own cursor (throttled) ───────────────────── */
+  /* ─── Co-work cursor: emit own cursor (throttled) ───────────────────── *
+   * We listen on `document` rather than on the editor container because
+   * the container ref isn't attached until the initial page fetch
+   * completes (gated by the `if (!page) return null;` earlier), and the
+   * effect's deps don't include `page`, so it wouldn't re-run once the
+   * ref finally became non-null. Doing the bounds check inside the
+   * handler against `editorContainerRef.current` (read on every event)
+   * dodges the timing issue entirely and has negligible cost. */
   useEffect(() => {
-    if (!coworkSocket || !coWorkSessionId || !editorContainerRef.current) return;
-    const container = editorContainerRef.current;
+    if (!coworkSocket || !coWorkSessionId) return;
     let lastEmit = 0;
 
-    const emit = (clientX: number, clientY: number) => {
+    const onMove = (e: PointerEvent) => {
+      const container = editorContainerRef.current;
+      if (!container) return;
+
       const now = performance.now();
       // ~16 events/sec is plenty for cursor smoothness without saturating
       // a slow connection.
       if (now - lastEmit < 60) return;
-      lastEmit = now;
 
       const rect = container.getBoundingClientRect();
       // Viewport-relative coords inside the scrollable container — used
       // only for the "is the pointer inside the editor?" check.
-      const viewportX = clientX - rect.left;
-      const viewportY = clientY - rect.top;
+      const viewportX = e.clientX - rect.left;
+      const viewportY = e.clientY - rect.top;
       if (
         viewportX < 0 ||
         viewportY < 0 ||
@@ -223,6 +231,8 @@ export default function PageEditor({
       ) {
         return;
       }
+
+      lastEmit = now;
 
       // Document-relative coords — add the container's scroll offset so
       // the position is tied to content, not viewport. This makes the
@@ -239,10 +249,9 @@ export default function PageEditor({
       });
     };
 
-    const onMove = (e: PointerEvent) => emit(e.clientX, e.clientY);
-    container.addEventListener('pointermove', onMove);
+    document.addEventListener('pointermove', onMove);
     return () => {
-      container.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointermove', onMove);
     };
   }, [coworkSocket, coWorkSessionId, pageId]);
 
@@ -420,6 +429,15 @@ export default function PageEditor({
     };
   }, [notebookId, pageId]);
 
+  // Stable ref to the cowork socket so the `save` callback can emit
+  // broadcasts without listing the socket in its useCallback deps
+  // (which would invalidate the callback on every socket re-render and
+  // cascade a scheduleSave dependency change).
+  const coworkSocketRef = useRef<typeof coworkSocket>(null);
+  useEffect(() => {
+    coworkSocketRef.current = coworkSocket;
+  }, [coworkSocket]);
+
   const save = useCallback(
     async (contentJson: Record<string, unknown>, plainText: string, pageTitle: string) => {
       setSaveStatus('saving');
@@ -430,11 +448,25 @@ export default function PageEditor({
           body: JSON.stringify({ title: pageTitle, content: contentJson, textContent: plainText }),
         });
         if (isMountedRef.current) setSaveStatus('saved');
+
+        // Real-time cowork doc broadcast. After the save has landed in
+        // Postgres, ping all other participants in the session so they
+        // refresh the editor content immediately instead of waiting for
+        // the 2.5s polling fallback. We only send a notification (no
+        // content payload) — the receivers fetch the freshest version
+        // themselves, which keeps broadcasts tiny and avoids races with
+        // a participant who was mid-typing.
+        if (coWorkSessionId && coworkSocketRef.current?.connected) {
+          coworkSocketRef.current.emit('cowork:doc_notify', {
+            sessionId: coWorkSessionId,
+            pageId,
+          });
+        }
       } catch {
         if (isMountedRef.current) setSaveStatus('unsaved');
       }
     },
-    [notebookId, pageId]
+    [notebookId, pageId, coWorkSessionId]
   );
 
   const scheduleSave = useCallback(
@@ -457,19 +489,29 @@ export default function PageEditor({
     ? lockedByOther && !coworkEditOpen
     : lockedByOther;
 
-  // NB: `page` is deliberately NOT in the useEditor deps list. When we
-  // polled the live document during a cowork session, the old deps
-  // `[page, ...]` caused a full editor teardown + rebuild every 2.5s
-  // (polling → setPage → useEditor dep changed → destroy+recreate
-  // editor → whole subtree remounts → useCoworkSocket hook tears down
-  // before its `connect` event could run `cowork:join`). The server
-  // saw connections but never any `cowork:join ✓` logs. Fix: keep the
-  // editor instance stable across polling ticks and hydrate content
-  // imperatively (see the effect below this hook).
+  // NB: `page` and `effectiveReadOnly` are deliberately NOT in the
+  // useEditor deps list. Earlier:
+  //   - `page` in deps meant the 2.5s polling (which called setPage)
+  //     rebuilt the editor every tick, which tore down useCoworkSocket
+  //     before its `connect` event could run `sendJoin()`. The server
+  //     saw connections but never any `cowork:join ✓` logs.
+  //   - `effectiveReadOnly` in deps meant toggling "Open editing"
+  //     rebuilt the editor into an empty document (because our
+  //     hydration ref refuses to re-hydrate for the same pageId),
+  //     and also caused another socket teardown. Result: the host's
+  //     toggle flipped the participant into edit mode but they stared
+  //     at a blank page.
+  //
+  // Fix: keep the editor instance stable for the full pageId lifetime
+  // and drive content/editable imperatively via `setContent` and
+  // `setEditable`.
   const editor = useEditor(
     {
       immediatelyRender: false,
-      editable: !effectiveReadOnly,
+      // Initial editable state is "true" — we flip it imperatively
+      // below once the lock state is known. Starting true prevents a
+      // flash-of-read-only on mount.
+      editable: true,
       extensions: [
         StarterKit.configure({ heading: false, codeBlock: false }),
         CodeBlockLowlight.extend({
@@ -496,9 +538,7 @@ export default function PageEditor({
         }),
         ResizableImage,
         Placeholder.configure({
-          placeholder: effectiveReadOnly
-            ? 'This page is being edited by someone else...'
-            : 'Start writing...',
+          placeholder: 'Start writing...',
         }),
         Typography,
         Table.configure({ resizable: true, handleWidth: 5, cellMinWidth: 80 }),
@@ -518,8 +558,16 @@ export default function PageEditor({
         scheduleSave(json, ed.getText());
       },
     },
-    [pageId, effectiveReadOnly, handleSlashStateChange]
+    [pageId, handleSlashStateChange]
   );
+
+  // Flip editable imperatively whenever the effective read-only state
+  // changes. TipTap exposes `editor.setEditable(bool)` for exactly this
+  // so we never have to rebuild the whole editor on a lock flip.
+  useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(!effectiveReadOnly);
+  }, [editor, effectiveReadOnly]);
 
   // Hydrate editor content on initial page load. Only fires when the
   // editor instance or the pageId changes — NOT on every `page` state
@@ -536,25 +584,32 @@ export default function PageEditor({
     );
   }, [editor, pageId, page?.content]);
 
-  /* ─── Cowork: live document polling when viewing as a non-editor ─────── *
-   * The editor itself has no built-in sync. When a cowork participant is
-   * read-only (host is the lock holder), we refetch the page content every
-   * 2.5 seconds and replace the editor's content via `setContent(..., false)`
-   * so no onUpdate fires. This is a polling MVP — a CRDT/OT layer would be
-   * cleaner but is out of scope for now.
+  /* ─── Cowork: live document sync when viewing as a non-editor ─────── *
+   * When the participant is locked out (host holds the lock and "open
+   * editing" is off) the editor has no way to receive live updates from
+   * the host's typing. Two mechanisms keep the participant's content
+   * fresh:
+   *   1. `cowork:doc_notify` broadcast — host's autosave fires a tiny
+   *      notification through the ws-server; participants refetch
+   *      immediately. ~100-200ms end-to-end after autosave commits.
+   *   2. 5-second polling fallback — catches ws drops.
    *
-   * Runs only when:
-   *   - a cowork session is active
-   *   - the user is currently read-only (not holding the lock, and the
-   *     host hasn't opened editing to all participants)
-   * That avoids wiping the lock holder's own typing while they edit. */
+   * Both paths funnel through the same `refresh()` helper which diffs
+   * the fetched content against the editor and applies it via
+   * `setContent(..., { emitUpdate: false })` so no autosave fires. */
+  const refreshDocFromServerRef = useRef<() => Promise<void>>(async () => {});
   useEffect(() => {
     if (!editor) return;
     if (!coWorkSessionId) return;
-    if (!effectiveReadOnly) return;
+    if (!effectiveReadOnly) {
+      // No polling while the user is the live editor — they're the
+      // source of truth.
+      refreshDocFromServerRef.current = async () => {};
+      return;
+    }
 
     let cancelled = false;
-    const poll = async () => {
+    const refresh = async () => {
       try {
         const res = await fetch(
           `/api/notebooks/${notebookId}/pages/${pageId}`
@@ -567,32 +622,47 @@ export default function PageEditor({
         const remoteJson = JSON.stringify(json.data.content);
         if (currentJson === remoteJson) return;
 
-        // Replace content without firing onUpdate — this is a passive
-        // view refresh, not a local edit. TipTap v3's setContent takes
-        // (content, options) where options includes `emitUpdate: false`
-        // to skip triggering the autosave loop.
         editor.commands.setContent(
           migrateHeadingsToToggle(json.data.content),
           { emitUpdate: false }
         );
-        // Update title only. Do NOT call setPage(json.data) here — that
-        // would mutate the `page` state and (historically) trigger a
-        // useEditor teardown, which tore down useCoworkSocket with it.
-        // Keeping `page` stable during polling is what keeps the cowork
-        // socket alive long enough to actually emit cowork:join.
+        // Update title only. Do NOT call setPage(json.data) — that
+        // would re-trigger the useEditor dep chain historically and
+        // tear down the cowork socket (see long comment above the
+        // useEditor call).
         if (typeof json.data.title === 'string') setTitle(json.data.title);
       } catch {
         // silent — next tick will retry
       }
     };
+    refreshDocFromServerRef.current = refresh;
 
-    poll(); // immediate refresh on entering read-only mode
-    const interval = setInterval(poll, 2500);
+    refresh(); // immediate refresh on entering read-only mode
+    // Slower polling now that we have the ws notify path as the
+    // primary mechanism. 5s is a safety net — if the ws chain is
+    // healthy the notify path will have already refreshed within
+    // ~200ms of the host's autosave.
+    const interval = setInterval(refresh, 5000);
     return () => {
       cancelled = true;
       clearInterval(interval);
     };
   }, [editor, coWorkSessionId, effectiveReadOnly, notebookId, pageId]);
+
+  // Listen for host's cowork:doc_notify broadcast and refresh
+  // immediately via the ref set up by the polling effect above.
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId) return;
+    const onDocNotify = (data: { sessionId: string; pageId: string }) => {
+      if (data.sessionId !== coWorkSessionId) return;
+      if (data.pageId !== pageId) return;
+      void refreshDocFromServerRef.current();
+    };
+    coworkSocket.on('cowork:doc_notify', onDocNotify);
+    return () => {
+      coworkSocket.off('cowork:doc_notify', onDocNotify);
+    };
+  }, [coworkSocket, coWorkSessionId, pageId]);
 
   /* ─── Cowork: listen for the host's "open editing" broadcast ─────────── */
   useEffect(() => {
