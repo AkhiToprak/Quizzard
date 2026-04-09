@@ -33,13 +33,33 @@ export interface WsEmitPayload {
 /**
  * Fire-and-forget emit. Returns void; never throws.
  * Uses a 2 second timeout so a hung ws-server doesn't tie up an API route.
+ *
+ * Verbose logging is enabled so Vercel function logs reveal whether the
+ * REST→WS broadcast chain is actually reaching the ws-server.
  */
 export async function wsEmit(payload: WsEmitPayload): Promise<void> {
+  console.log(
+    `[ws-emit] → ${payload.event} to ${payload.room} via ${WS_INTERNAL_URL}/emit`
+  );
+
   if (!WS_INTERNAL_SECRET) {
-    if (process.env.NODE_ENV === 'production') {
-      console.warn('[ws-emit] WS_INTERNAL_SECRET is not set; skipping broadcast.');
-    }
+    console.warn(
+      '[ws-emit] WS_INTERNAL_SECRET is not set on this environment. ' +
+        'Real-time broadcasts (participant joined/left, chat messages, ' +
+        'page locks, session ended) will not fan out. Set the env var ' +
+        'to the same value as on the ws-server.'
+    );
     return;
+  }
+  if (
+    !process.env.WS_INTERNAL_URL &&
+    process.env.NODE_ENV === 'production'
+  ) {
+    console.warn(
+      '[ws-emit] WS_INTERNAL_URL is not set. Defaulting to http://localhost:3002 ' +
+        'which will NOT work from Vercel. Set WS_INTERNAL_URL to your ws-server ' +
+        'public URL (e.g. https://<your-app>.ondigitalocean.app).'
+    );
   }
 
   const controller = new AbortController();
@@ -55,14 +75,30 @@ export async function wsEmit(payload: WsEmitPayload): Promise<void> {
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
-    if (!res.ok) {
-      console.warn(`[ws-emit] ws-server responded ${res.status} for ${payload.event}`);
+    if (res.ok) {
+      console.log(
+        `[ws-emit] ✓ ${payload.event} delivered (status ${res.status})`
+      );
+    } else if (res.status === 401) {
+      console.warn(
+        `[ws-emit] ✗ ${payload.event} rejected with 401. ` +
+          `WS_INTERNAL_SECRET does NOT match the value configured on ws-server.`
+      );
+    } else {
+      console.warn(
+        `[ws-emit] ✗ ${payload.event} failed with status ${res.status}`
+      );
     }
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
-      console.warn(`[ws-emit] timeout broadcasting ${payload.event}`);
+      console.warn(
+        `[ws-emit] ✗ ${payload.event} timed out after 2s. ws-server is unreachable.`
+      );
     } else {
-      console.warn(`[ws-emit] failed to broadcast ${payload.event}:`, (err as Error).message);
+      console.warn(
+        `[ws-emit] ✗ ${payload.event} network error:`,
+        (err as Error).message
+      );
     }
   } finally {
     clearTimeout(timeout);

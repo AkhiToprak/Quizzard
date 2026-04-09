@@ -100,6 +100,16 @@ export default function PageEditor({
   const [page, setPage] = useState<PageData | null>(null);
   const [title, setTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  /**
+   * Host-controlled "open editing" flag. When the host flips this on via
+   * the CoWorkBar button, all participants receive a `cowork:edit_mode`
+   * broadcast and ignore their page lock so they can type freely.
+   * When off (default), only the lock holder (usually the host) can edit.
+   *
+   * Note: simultaneous typing is last-writer-wins at the 1.5s autosave
+   * granularity. Real conflict-free editing would need a CRDT/OT layer.
+   */
+  const [coworkEditOpen, setCoworkEditOpen] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [lockedByOther, setLockedByOther] = useState(false);
@@ -201,11 +211,25 @@ export default function PageEditor({
       lastEmit = now;
 
       const rect = container.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-      // Skip when the pointer is outside the editor container — peers don't
-      // need to see your cursor wandering on top of the sidebar.
-      if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
+      // Viewport-relative coords inside the scrollable container — used
+      // only for the "is the pointer inside the editor?" check.
+      const viewportX = clientX - rect.left;
+      const viewportY = clientY - rect.top;
+      if (
+        viewportX < 0 ||
+        viewportY < 0 ||
+        viewportX > rect.width ||
+        viewportY > rect.height
+      ) {
+        return;
+      }
+
+      // Document-relative coords — add the container's scroll offset so
+      // the position is tied to content, not viewport. This makes the
+      // cursor appear at the same *content location* on every peer's
+      // screen, regardless of how each peer has scrolled.
+      const x = viewportX + container.scrollLeft;
+      const y = viewportY + container.scrollTop;
 
       coworkSocket.emit('cowork:cursor', {
         sessionId: coWorkSessionId,
@@ -424,10 +448,19 @@ export default function PageEditor({
     [save]
   );
 
+  // Effective read-only state:
+  //   - Not in a cowork session → lock applies as normal
+  //   - In a cowork session and the host has enabled open editing → anyone
+  //     can type regardless of who holds the lock
+  //   - Otherwise → locked out when someone else holds the lock
+  const effectiveReadOnly = coWorkSessionId
+    ? lockedByOther && !coworkEditOpen
+    : lockedByOther;
+
   const editor = useEditor(
     {
       immediatelyRender: false,
-      editable: !lockedByOther,
+      editable: !effectiveReadOnly,
       extensions: [
         StarterKit.configure({ heading: false, codeBlock: false }),
         CodeBlockLowlight.extend({
@@ -454,7 +487,7 @@ export default function PageEditor({
         }),
         ResizableImage,
         Placeholder.configure({
-          placeholder: lockedByOther
+          placeholder: effectiveReadOnly
             ? 'This page is being edited by someone else...'
             : 'Start writing...',
         }),
@@ -474,8 +507,76 @@ export default function PageEditor({
         scheduleSave(json, ed.getText());
       },
     },
-    [page, lockedByOther, handleSlashStateChange]
+    [page, effectiveReadOnly, handleSlashStateChange]
   );
+
+  /* ─── Cowork: live document polling when viewing as a non-editor ─────── *
+   * The editor itself has no built-in sync. When a cowork participant is
+   * read-only (host is the lock holder), we refetch the page content every
+   * 2.5 seconds and replace the editor's content via `setContent(..., false)`
+   * so no onUpdate fires. This is a polling MVP — a CRDT/OT layer would be
+   * cleaner but is out of scope for now.
+   *
+   * Runs only when:
+   *   - a cowork session is active
+   *   - the user is currently read-only (not holding the lock, and the
+   *     host hasn't opened editing to all participants)
+   * That avoids wiping the lock holder's own typing while they edit. */
+  useEffect(() => {
+    if (!editor) return;
+    if (!coWorkSessionId) return;
+    if (!effectiveReadOnly) return;
+
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const res = await fetch(
+          `/api/notebooks/${notebookId}/pages/${pageId}`
+        );
+        if (cancelled || !res.ok) return;
+        const json = await res.json();
+        if (!json.success || !json.data?.content) return;
+
+        const currentJson = JSON.stringify(editor.getJSON());
+        const remoteJson = JSON.stringify(json.data.content);
+        if (currentJson === remoteJson) return;
+
+        // Replace content without firing onUpdate — this is a passive
+        // view refresh, not a local edit. TipTap v3's setContent takes
+        // (content, options) where options includes `emitUpdate: false`
+        // to skip triggering the autosave loop.
+        editor.commands.setContent(
+          migrateHeadingsToToggle(json.data.content),
+          { emitUpdate: false }
+        );
+        // Keep the page metadata in sync too (title, updatedAt, etc.)
+        setPage(json.data);
+        if (typeof json.data.title === 'string') setTitle(json.data.title);
+      } catch {
+        // silent — next tick will retry
+      }
+    };
+
+    poll(); // immediate refresh on entering read-only mode
+    const interval = setInterval(poll, 2500);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [editor, coWorkSessionId, effectiveReadOnly, notebookId, pageId]);
+
+  /* ─── Cowork: listen for the host's "open editing" broadcast ─────────── */
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId) return;
+    const onEditMode = (data: { sessionId: string; enabled: boolean }) => {
+      if (data.sessionId !== coWorkSessionId) return;
+      setCoworkEditOpen(!!data.enabled);
+    };
+    coworkSocket.on('cowork:edit_mode', onEditMode);
+    return () => {
+      coworkSocket.off('cowork:edit_mode', onEditMode);
+    };
+  }, [coworkSocket, coWorkSessionId]);
 
   const handleTitleChange = useCallback(
     (newTitle: string) => {

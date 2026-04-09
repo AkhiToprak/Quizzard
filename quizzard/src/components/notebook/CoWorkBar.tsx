@@ -59,9 +59,36 @@ export default function CoWorkBar({
   const [hoveredInvite, setHoveredInvite] = useState(false);
   const [hoveredEnd, setHoveredEnd] = useState(false);
   const [ending, setEnding] = useState(false);
+  /**
+   * Host-controlled "open editing" flag. When toggled on, everyone in the
+   * session can edit the page even if the lock holder is someone else.
+   * Broadcast via cowork:edit_mode through the ws-server so all peers end
+   * up with the same state. Default off.
+   */
+  const [editOpen, setEditOpen] = useState(false);
+  const [hoveredEdit, setHoveredEdit] = useState(false);
 
   const isHost = hostId === currentUserId;
   const socket = useCoworkSocket(sessionId);
+
+  // Stay in sync with other peers' edit-mode changes (also reflects our
+  // own toggle since the server broadcasts to the whole room).
+  useEffect(() => {
+    if (!socket) return;
+    const onEditMode = (data: { sessionId: string; enabled: boolean }) => {
+      if (data.sessionId !== sessionId) return;
+      setEditOpen(!!data.enabled);
+    };
+    socket.on('cowork:edit_mode', onEditMode);
+    return () => {
+      socket.off('cowork:edit_mode', onEditMode);
+    };
+  }, [socket, sessionId]);
+
+  const toggleEditOpen = () => {
+    if (!socket || !isHost) return;
+    socket.emit('cowork:edit_mode', { sessionId, enabled: !editOpen });
+  };
 
   const fetchParticipants = useCallback(async () => {
     try {
@@ -303,6 +330,75 @@ export default function CoWorkBar({
         >
           {formatDuration(elapsed)}
         </span>
+
+        {/* Allow-edit toggle (host only). When off, only the lock holder
+            can type. When on, all participants can edit simultaneously —
+            last writer wins at the 1.5s autosave granularity. */}
+        {isHost ? (
+          <button
+            onClick={toggleEditOpen}
+            onMouseEnter={() => setHoveredEdit(true)}
+            onMouseLeave={() => setHoveredEdit(false)}
+            title={
+              editOpen
+                ? 'Everyone in this session can edit'
+                : 'Only you can edit — click to open editing for everyone'
+            }
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '5px 10px',
+              borderRadius: 7,
+              border: 'none',
+              background: editOpen
+                ? hoveredEdit
+                  ? 'rgba(255,222,89,0.24)'
+                  : 'rgba(255,222,89,0.18)'
+                : hoveredEdit
+                  ? 'rgba(237,233,255,0.1)'
+                  : 'rgba(237,233,255,0.05)',
+              color: editOpen ? '#ffde59' : '#aaa8c8',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: `all 0.15s ${EASING}`,
+              fontFamily: 'inherit',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+              {editOpen ? 'lock_open' : 'lock'}
+            </span>
+            {editOpen ? 'Open editing' : 'Host only'}
+          </button>
+        ) : (
+          <span
+            title={
+              editOpen
+                ? 'Everyone can edit'
+                : 'Only the host can edit — wait for them to open editing'
+            }
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '5px 10px',
+              borderRadius: 7,
+              background: editOpen
+                ? 'rgba(255,222,89,0.14)'
+                : 'rgba(237,233,255,0.05)',
+              color: editOpen ? '#ffde59' : '#8888a8',
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: 'inherit',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+              {editOpen ? 'edit' : 'visibility'}
+            </span>
+            {editOpen ? 'Editing' : 'Read only'}
+          </span>
+        )}
 
         {/* Invite button */}
         <button

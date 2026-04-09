@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { use, useEffect, useState, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import PageEditor from '@/components/notebook/PageEditor';
 import CoWorkBar from '@/components/notebook/CoWorkBar';
@@ -29,6 +29,7 @@ export default function PageEditorPage({
 }) {
   const { id: notebookId, pageId } = use(params);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const highlightTerm = searchParams.get('highlight') || undefined;
   const coworkParam = searchParams.get('cowork');
   const { data: session } = useSession();
@@ -101,10 +102,14 @@ export default function PageEditorPage({
     };
   }, [coworkParam, notebookId]);
 
-  const handleSessionEnd = () => {
+  // When the session ends (host ended it, or polling/socket detected the
+  // inactive state), navigate the user back to the notebook home so they
+  // don't keep editing a page they might not actually own.
+  const handleSessionEnd = useCallback(() => {
     setCoworkSession(null);
     setCurrentCoworkSession(null);
-  };
+    router.push(`/notebooks/${notebookId}`);
+  }, [router, notebookId]);
 
   if (!pageType) {
     return (

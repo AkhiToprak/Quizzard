@@ -163,6 +163,9 @@ const httpServer = createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/emit') {
     const provided = req.headers['x-ws-internal-secret'];
     if (!WS_INTERNAL_SECRET || provided !== WS_INTERNAL_SECRET) {
+      console.warn(
+        `[ws-server] /emit rejected: ${!WS_INTERNAL_SECRET ? 'no WS_INTERNAL_SECRET on ws-server' : 'secret mismatch with caller'}`
+      );
       res.writeHead(401, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'unauthorized' }));
       return;
@@ -188,10 +191,18 @@ const httpServer = createServer((req, res) => {
           res.end(JSON.stringify({ error: 'missing room or event' }));
           return;
         }
+        // Look up how many sockets are actually in the room so we can log
+        // whether the broadcast will reach anyone.
+        const roomSockets = io.sockets.adapter.rooms.get(parsed.room);
+        const size = roomSockets ? roomSockets.size : 0;
+        console.log(
+          `[ws-server] /emit → ${parsed.event} to ${parsed.room} (${size} listener${size === 1 ? '' : 's'})`
+        );
         io.to(parsed.room).emit(parsed.event, parsed.data);
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true }));
-      } catch {
+        res.end(JSON.stringify({ ok: true, listeners: size }));
+      } catch (err) {
+        console.warn('[ws-server] /emit invalid json:', (err as Error).message);
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'invalid json' }));
       }
@@ -320,6 +331,24 @@ io.on('connection', async (socket: Socket) => {
       }
     }
   });
+
+  // ─── Cowork: edit-mode toggle ───
+  // The host flips the CoWorkBar "Allow edit" button and the socket relays
+  // to everyone (including the sender so the host's own PageEditor picks up
+  // the new state from its own listener — single source of truth).
+  // No persistence; if the host refreshes, the flag resets to off.
+  socket.on(
+    'cowork:edit_mode',
+    (payload: { sessionId?: string; enabled?: boolean }) => {
+      const sessionId = payload?.sessionId;
+      if (!sessionId || typeof sessionId !== 'string') return;
+      const enabled = !!payload?.enabled;
+      io.to(`session:${sessionId}`).emit('cowork:edit_mode', {
+        sessionId,
+        enabled,
+      });
+    }
+  );
 
   // ─── Cowork: cursor relay ───
   // Throttling is the client's responsibility; we just relay. Cursors are
