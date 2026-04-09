@@ -347,22 +347,20 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         }
 
         /* ─── Reorder shape toolbar: Text → Pen → Eraser first ─────────
-         * The shapes toolbar is a flex container. We use :has() to
-         * target whichever ancestor wraps the tool's underlying radio
-         * input. We set the order property on multiple possible wrapper
-         * levels (label and div-wrapping-label) so this works whether
-         * or not Excalidraw wraps each ToolIcon in an extra div. Setting
-         * order on a non-flex-item is a harmless no-op. */
-        .excalidraw label:has(> input[name="editor-current-shape"][value="text"]),
-        .excalidraw div:has(> label > input[name="editor-current-shape"][value="text"]) {
+         * Excalidraw's shapes toolbar is a flex container where each
+         * tool is a label.ToolIcon wrapping a radio input. The inputs
+         * are identified by data-testid (toolbar-text, toolbar-freedraw,
+         * toolbar-eraser), NOT by a value attribute. We use :has() to
+         * set the order property on the label, which is the direct
+         * flex child. Lock, Hand, Selection and the other shapes keep
+         * their default order 0 and follow after. */
+        .excalidraw label:has(> input[data-testid="toolbar-text"]) {
           order: -3 !important;
         }
-        .excalidraw label:has(> input[name="editor-current-shape"][value="freedraw"]),
-        .excalidraw div:has(> label > input[name="editor-current-shape"][value="freedraw"]) {
+        .excalidraw label:has(> input[data-testid="toolbar-freedraw"]) {
           order: -2 !important;
         }
-        .excalidraw label:has(> input[name="editor-current-shape"][value="eraser"]),
-        .excalidraw div:has(> label > input[name="editor-current-shape"][value="eraser"]) {
+        .excalidraw label:has(> input[data-testid="toolbar-eraser"]) {
           order: -1 !important;
         }
       `}</style>
