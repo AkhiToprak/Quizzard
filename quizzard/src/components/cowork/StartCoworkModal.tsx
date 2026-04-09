@@ -33,8 +33,12 @@ interface Notebook {
   name: string;
   color: string | null;
   subject: string | null;
-  sections?: { _count: { pages: number } }[];
-  _count?: { sections: number; documents: number };
+  /**
+   * The list endpoint enriches each notebook with a `_count.pages` total
+   * (see app/api/notebooks/route.ts lines 44–48 — it sums section page
+   * counts and strips the sections array). Don't try to read sections here.
+   */
+  _count?: { sections: number; documents: number; pages: number };
 }
 
 interface Section {
@@ -208,8 +212,7 @@ export default function StartCoworkModal({
 
   if (!open) return null;
 
-  const totalPageCount = (n: Notebook) =>
-    (n.sections ?? []).reduce((acc, s) => acc + (s._count?.pages ?? 0), 0);
+  const totalPageCount = (n: Notebook) => n._count?.pages ?? 0;
 
   return (
     <div

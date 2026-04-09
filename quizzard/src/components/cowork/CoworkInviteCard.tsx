@@ -49,6 +49,17 @@ export default function CoworkInviteCard({
   const accentColor = payload.notebookColor || DEFAULT_NOTEBOOK_COLOR;
 
   // Probe the session — is it still active?
+  //
+  // The existing `GET /api/notebooks/[id]/cowork/[sessionId]` endpoint gates
+  // its response behind participant-or-notebook-owner membership, which
+  // means non-host group members hit a 403 before they've clicked Join.
+  // For our UX, 403 does NOT mean "session has ended" — it means "I
+  // can't tell you details, but the session exists". Only 404 or an
+  // explicit `isActive: false` count as "ended".
+  //
+  // Anything else (200/active, 403, network error) defaults to "live" so
+  // the Join button stays visible. If the session is actually dead, the
+  // join attempt will surface it via a 404 and we flip the state then.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -57,18 +68,26 @@ export default function CoworkInviteCard({
           `/api/notebooks/${payload.notebookId}/cowork/${payload.sessionId}`
         );
         if (cancelled) return;
+
+        if (res.status === 404) {
+          setSessionState('ended');
+          return;
+        }
+
         if (res.ok) {
           const json = await res.json();
-          if (json?.data?.isActive !== false) {
-            setSessionState('live');
-          } else {
+          if (json?.data?.isActive === false) {
             setSessionState('ended');
+            return;
           }
-        } else {
-          setSessionState('ended');
         }
+
+        // 200/active, 403 forbidden (non-participant probe), or any
+        // other status — default to live.
+        setSessionState('live');
       } catch {
-        if (!cancelled) setSessionState('ended');
+        // Network failure — don't lock the user out of trying.
+        if (!cancelled) setSessionState('live');
       }
     })();
     return () => {
