@@ -84,7 +84,7 @@ export default function LoginPage() {
           />
           <Image
             src="/logo_trimmed.png"
-            alt="Quizzard"
+            alt="Notemage"
             width={96}
             height={96}
             style={{ objectFit: 'contain', position: 'relative' }}
@@ -185,7 +185,7 @@ export default function LoginPage() {
               </div>
               <input
                 type="email"
-                placeholder="scholar@quizzard.ai"
+                placeholder="scholar@notemage.app"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

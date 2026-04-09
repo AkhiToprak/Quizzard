@@ -15,7 +15,7 @@ import {
 } from '@/lib/api-response';
 
 /**
- * POST – import OneNote sections into a Quizzard notebook
+ * POST – import OneNote sections into a Notemage notebook
  * Body: { targetNotebookId: string, sectionIds: string[] }
  */
 export async function POST(request: NextRequest) {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('targetNotebookId and sectionIds are required');
     }
 
-    // Verify Quizzard notebook ownership
+    // Verify Notemage notebook ownership
     const notebook = await db.notebook.findFirst({
       where: { id: targetNotebookId, userId },
     });
@@ -70,8 +70,8 @@ export async function POST(request: NextRequest) {
           .select('id,displayName')
           .get();
 
-        // Create a Quizzard section
-        const quizzardSection = await db.section.create({
+        // Create a Notemage section
+        const notemageSection = await db.section.create({
           data: {
             notebookId: targetNotebookId,
             title: sectionInfo.displayName || 'Imported Section',
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
             // Create the page
             const page = await db.page.create({
               data: {
-                sectionId: quizzardSection.id,
+                sectionId: notemageSection.id,
                 title: onenotePage.title || 'Untitled',
                 content: content as unknown as Prisma.InputJsonValue,
                 textContent: textContent || '',

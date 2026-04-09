@@ -1,6 +1,6 @@
 # Implementation Plan: Restructuring Notebook Sidebar for Files & Chats
 
-The goal is to move Quizzard closer to a OneNote-style workspace where **Files (Pages/Documents)** and **Chats** are cleanly separated and organized hierarchically in the sidebar. This plan eliminates the "either/or" toggle of the Scholar view and presents a unified, highly organized sidebar where files can be created inside sections.
+The goal is to move Notemage closer to a OneNote-style workspace where **Files (Pages/Documents)** and **Chats** are cleanly separated and organized hierarchically in the sidebar. This plan eliminates the "either/or" toggle of the Scholar view and presents a unified, highly organized sidebar where files can be created inside sections.
 
 ## 1. Architectural Changes
 
@@ -12,7 +12,7 @@ The goal is to move Quizzard closer to a OneNote-style workspace where **Files (
 
 ### Proposed State (OneNote-Style)
 
-Replace the dual-panel system with a unified `UnifiedSidebar` that explicitly separates the two core pillars of Quizzard:
+Replace the dual-panel system with a unified `UnifiedSidebar` that explicitly separates the two core pillars of Notemage:
 
 1. **Files (The Vault):** A hierarchical tree (Sections → Pages/Files) exactly like OneNote. Files are created and edited within their respective sections.
 2. **Chats (The Scholar):** A dedicated section for all AI conversations linked to this notebook, kept entirely separate from the files.
@@ -61,7 +61,7 @@ Replace the dual-panel system with a unified `UnifiedSidebar` that explicitly se
 
 ---
 
-## 3. Visual Examples (Retaining Quizzard Colors)
+## 3. Visual Examples (Retaining Notemage Colors)
 
 Here is how the distinct sections will look stylistically within your Neon Scholar brand framework:
 

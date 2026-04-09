@@ -1,6 +1,6 @@
 # Figma MCP Integration Rules — Neon Scholar Design System
 
-These rules define how to translate Figma MCP output into code for the Quizzard project. Follow them for every Figma-driven change.
+These rules define how to translate Figma MCP output into code for the Notemage project. Follow them for every Figma-driven change.
 
 ## Required Flow (do not skip)
 

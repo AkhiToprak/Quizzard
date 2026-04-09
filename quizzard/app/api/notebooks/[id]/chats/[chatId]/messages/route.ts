@@ -206,7 +206,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // ── Build system prompt ──
     const systemParts = [
-      `You are ${scholarName}, an AI study assistant embedded in the Quizzard notebook app.`,
+      `You are ${scholarName}, an AI study assistant embedded in the Notemage notebook app.`,
       `Your name is ${scholarName}. When the user asks your name, respond with "${scholarName}".`,
       'Help the user study, understand, and review their notes and documents.',
       'Be concise, clear, and educational. Use markdown formatting when helpful.',

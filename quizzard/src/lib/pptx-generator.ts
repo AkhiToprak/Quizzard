@@ -20,7 +20,7 @@ export async function generateFlashcardPptx(
 ): Promise<Buffer> {
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
-  pptx.author = 'Quizzard';
+  pptx.author = 'Notemage';
   pptx.title = setTitle;
 
   // Title slide
@@ -117,7 +117,7 @@ export async function generateQuizPptx(
 ): Promise<Buffer> {
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
-  pptx.author = 'Quizzard';
+  pptx.author = 'Notemage';
   pptx.title = setTitle;
 
   // Title slide
@@ -191,7 +191,7 @@ export async function generatePagesPptx(
 ): Promise<Buffer> {
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
-  pptx.author = 'Quizzard';
+  pptx.author = 'Notemage';
   pptx.title = notebookTitle;
 
   // Title slide
@@ -285,7 +285,7 @@ export async function generatePresentationPptx(
 ): Promise<Buffer> {
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE'; // 13.33" × 7.5"
-  pptx.author = 'Quizzard';
+  pptx.author = 'Notemage';
   pptx.title = presTitle;
 
   const accent = themeColor.replace('#', '');
@@ -634,7 +634,7 @@ export async function generatePresentationPptx(
 export async function generateSlidesAsPptx(title: string, slides: SlideData[]): Promise<Buffer> {
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
-  pptx.author = 'Quizzard';
+  pptx.author = 'Notemage';
   pptx.title = title;
 
   for (const slideData of slides) {

@@ -1,7 +1,7 @@
-# Quizzard Style Guide
+# Notemage Style Guide
 
 ## Design System Overview
-This guide defines the design system for Quizzard. All UI components and pages should follow these standards for consistency and maintainability.
+This guide defines the design system for Notemage. All UI components and pages should follow these standards for consistency and maintainability.
 
 ---
 

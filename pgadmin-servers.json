@@ -1,12 +1,12 @@
 {
   "Servers": {
     "1": {
-      "Name": "Quizzard Dev",
+      "Name": "Notemage Dev",
       "Group": "Servers",
       "Host": "db",
       "Port": 5432,
-      "MaintenanceDB": "quizzard_dev",
-      "Username": "quizzard",
+      "MaintenanceDB": "notemage_dev",
+      "Username": "notemage",
       "SSLMode": "prefer"
     }
   }

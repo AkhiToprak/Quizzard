@@ -278,7 +278,7 @@ const bubbleComponents: Components = {
   ),
 };
 
-/* Syntax highlighting token colors matching Quizzard's purple aesthetic */
+/* Syntax highlighting token colors matching Notemage's purple aesthetic */
 const HLJS_STYLES = `
   .md-renderer .hljs-keyword,
   .md-renderer .hljs-selector-tag,

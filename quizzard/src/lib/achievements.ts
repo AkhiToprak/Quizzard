@@ -193,7 +193,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Special ─────────────────────────────────────────────────────────
   {
     badge: 'all_achievements',
-    name: 'Quizzard',
+    name: 'Notemage',
     description: 'Get all achievements',
     icon: 'auto_awesome',
     category: 'special',

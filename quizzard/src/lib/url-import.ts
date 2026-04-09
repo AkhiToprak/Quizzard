@@ -129,7 +129,7 @@ export async function importFromUrl(url: string): Promise<UrlImportResult> {
     response = await fetch(validatedUrl, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Quizzard/1.0',
+        'User-Agent': 'Notemage/1.0',
         Accept: 'text/html, application/xhtml+xml, */*',
       },
       redirect: 'follow',

@@ -290,7 +290,7 @@ export default function PageEditor({
       ],
       content: page?.content ? migrateHeadingsToToggle(page.content) : '',
       editorProps: {
-        attributes: { class: 'quizzard-editor' },
+        attributes: { class: 'notemage-editor' },
       },
       onUpdate: ({ editor: ed }) => {
         const json = ed.getJSON() as Record<string, unknown>;
@@ -405,7 +405,7 @@ export default function PageEditor({
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <style>{`
         /* ── editor base ── */
-        .quizzard-editor {
+        .notemage-editor {
           outline: none;
           min-height: 100%;
           font-family: 'DM Sans', sans-serif;
@@ -415,27 +415,27 @@ export default function PageEditor({
           caret-color: #a47bff;
         }
         /* ── headings ── */
-        .quizzard-editor h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin: 28px 0 10px; line-height: 1.2; }
-        .quizzard-editor h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 22px 0 8px; line-height: 1.3; }
-        .quizzard-editor h3 { font-size: 18px; font-weight: 600; margin: 18px 0 6px; line-height: 1.4; }
+        .notemage-editor h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin: 28px 0 10px; line-height: 1.2; }
+        .notemage-editor h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 22px 0 8px; line-height: 1.3; }
+        .notemage-editor h3 { font-size: 18px; font-weight: 600; margin: 18px 0 6px; line-height: 1.4; }
         /* ── inline formatting ── */
-        .quizzard-editor strong, .quizzard-editor b { font-weight: 700 !important; }
-        .quizzard-editor em, .quizzard-editor i { font-style: italic !important; }
-        .quizzard-editor u { text-decoration: underline !important; }
-        .quizzard-editor s { text-decoration: line-through !important; }
+        .notemage-editor strong, .notemage-editor b { font-weight: 700 !important; }
+        .notemage-editor em, .notemage-editor i { font-style: italic !important; }
+        .notemage-editor u { text-decoration: underline !important; }
+        .notemage-editor s { text-decoration: line-through !important; }
         /* ── paragraph ── */
-        .quizzard-editor p { margin: 0 0 10px; }
+        .notemage-editor p { margin: 0 0 10px; }
         /* ── lists ── */
-        .quizzard-editor ul { list-style-type: disc !important; padding-left: 28px; margin: 8px 0 10px; }
-        .quizzard-editor ol { list-style-type: decimal !important; padding-left: 28px; margin: 8px 0 10px; }
-        .quizzard-editor li { margin: 3px 0; display: list-item !important; }
-        .quizzard-editor li p { margin: 0; }
+        .notemage-editor ul { list-style-type: disc !important; padding-left: 28px; margin: 8px 0 10px; }
+        .notemage-editor ol { list-style-type: decimal !important; padding-left: 28px; margin: 8px 0 10px; }
+        .notemage-editor li { margin: 3px 0; display: list-item !important; }
+        .notemage-editor li p { margin: 0; }
         /* ── blockquote ── */
-        .quizzard-editor blockquote { border-left: 3px solid #8c52ff; padding-left: 16px; color: rgba(237,233,255,0.6); margin: 12px 0; }
+        .notemage-editor blockquote { border-left: 3px solid #8c52ff; padding-left: 16px; color: rgba(237,233,255,0.6); margin: 12px 0; }
         /* ── inline code ── */
-        .quizzard-editor code { background: rgba(140,82,255,0.14); padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace; color: #c4a9ff; }
+        .notemage-editor code { background: rgba(140,82,255,0.14); padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace; color: #c4a9ff; }
         /* ── code block ── */
-        .quizzard-editor pre {
+        .notemage-editor pre {
           background: rgba(140,82,255,0.06);
           border: 1px solid rgba(140,82,255,0.15);
           padding: 16px 18px;
@@ -449,50 +449,50 @@ export default function PageEditor({
           position: relative;
           z-index: auto;
         }
-        .quizzard-editor pre code { background: none; padding: 0; border-radius: 0; color: inherit; font-size: inherit; display: block; }
-        .quizzard-editor .code-block-wrapper select option { background: #1a1428; color: #e0daf8; }
+        .notemage-editor pre code { background: none; padding: 0; border-radius: 0; color: inherit; font-size: inherit; display: block; }
+        .notemage-editor .code-block-wrapper select option { background: #1a1428; color: #e0daf8; }
         /* ── syntax highlighting tokens ── */
-        .quizzard-editor .hljs-keyword,
-        .quizzard-editor .hljs-selector-tag,
-        .quizzard-editor .hljs-built_in { color: #c4a0ff; }
-        .quizzard-editor .hljs-string,
-        .quizzard-editor .hljs-attr { color: #ffde59; }
-        .quizzard-editor .hljs-number,
-        .quizzard-editor .hljs-literal { color: #ff9e64; }
-        .quizzard-editor .hljs-function,
-        .quizzard-editor .hljs-title,
-        .quizzard-editor .hljs-title.function_ { color: #7ec8ff; }
-        .quizzard-editor .hljs-params { color: #e0daf8; font-style: italic; }
-        .quizzard-editor .hljs-comment,
-        .quizzard-editor .hljs-quote { color: #7a72a0; font-style: italic; }
-        .quizzard-editor .hljs-variable,
-        .quizzard-editor .hljs-template-variable { color: #e0daf8; }
-        .quizzard-editor .hljs-type,
-        .quizzard-editor .hljs-class .hljs-title { color: #7ec8ff; }
-        .quizzard-editor .hljs-tag { color: #c4a0ff; }
-        .quizzard-editor .hljs-name { color: #c4a0ff; }
-        .quizzard-editor .hljs-attribute { color: #b9c3ff; }
-        .quizzard-editor .hljs-symbol,
-        .quizzard-editor .hljs-bullet { color: #ff9e64; }
-        .quizzard-editor .hljs-addition { color: #a6e3a1; }
-        .quizzard-editor .hljs-deletion { color: #ff6b8a; }
-        .quizzard-editor .hljs-operator { color: #c4a0ff; }
-        .quizzard-editor .hljs-punctuation { color: #8b85a8; }
-        .quizzard-editor .hljs-property { color: #b9c3ff; }
-        .quizzard-editor .hljs-regexp { color: #ff9e64; }
-        .quizzard-editor .hljs-meta { color: #ae89ff; }
+        .notemage-editor .hljs-keyword,
+        .notemage-editor .hljs-selector-tag,
+        .notemage-editor .hljs-built_in { color: #c4a0ff; }
+        .notemage-editor .hljs-string,
+        .notemage-editor .hljs-attr { color: #ffde59; }
+        .notemage-editor .hljs-number,
+        .notemage-editor .hljs-literal { color: #ff9e64; }
+        .notemage-editor .hljs-function,
+        .notemage-editor .hljs-title,
+        .notemage-editor .hljs-title.function_ { color: #7ec8ff; }
+        .notemage-editor .hljs-params { color: #e0daf8; font-style: italic; }
+        .notemage-editor .hljs-comment,
+        .notemage-editor .hljs-quote { color: #7a72a0; font-style: italic; }
+        .notemage-editor .hljs-variable,
+        .notemage-editor .hljs-template-variable { color: #e0daf8; }
+        .notemage-editor .hljs-type,
+        .notemage-editor .hljs-class .hljs-title { color: #7ec8ff; }
+        .notemage-editor .hljs-tag { color: #c4a0ff; }
+        .notemage-editor .hljs-name { color: #c4a0ff; }
+        .notemage-editor .hljs-attribute { color: #b9c3ff; }
+        .notemage-editor .hljs-symbol,
+        .notemage-editor .hljs-bullet { color: #ff9e64; }
+        .notemage-editor .hljs-addition { color: #a6e3a1; }
+        .notemage-editor .hljs-deletion { color: #ff6b8a; }
+        .notemage-editor .hljs-operator { color: #c4a0ff; }
+        .notemage-editor .hljs-punctuation { color: #8b85a8; }
+        .notemage-editor .hljs-property { color: #b9c3ff; }
+        .notemage-editor .hljs-regexp { color: #ff9e64; }
+        .notemage-editor .hljs-meta { color: #ae89ff; }
         /* ── callout blocks ── */
-        .quizzard-editor [data-callout-type] p { margin: 0 0 6px; }
-        .quizzard-editor [data-callout-type] p:last-child { margin: 0; }
+        .notemage-editor [data-callout-type] p { margin: 0 0 6px; }
+        .notemage-editor [data-callout-type] p:last-child { margin: 0; }
         /* ── toggle heading ── */
-        .quizzard-editor [data-toggle-level] p { margin: 0 0 6px; }
-        .quizzard-editor [data-toggle-level] p:last-child { margin: 0; }
+        .notemage-editor [data-toggle-level] p { margin: 0 0 6px; }
+        .notemage-editor [data-toggle-level] p:last-child { margin: 0; }
         /* ── mark / highlight ── */
-        .quizzard-editor mark { border-radius: 3px; padding: 1px 3px; }
+        .notemage-editor mark { border-radius: 3px; padding: 1px 3px; }
         /* ── float clearfix for wrap-mode images ── */
-        .quizzard-editor .ProseMirror::after { content: ''; display: table; clear: both; }
+        .notemage-editor .ProseMirror::after { content: ''; display: table; clear: both; }
         /* ── placeholder ── */
-        .quizzard-editor p.is-editor-empty:first-child::before {
+        .notemage-editor p.is-editor-empty:first-child::before {
           content: attr(data-placeholder);
           color: rgba(237,233,255,0.2);
           pointer-events: none;
@@ -500,14 +500,14 @@ export default function PageEditor({
           height: 0;
         }
         /* ── tables ── */
-        .quizzard-editor table { border-collapse: collapse; width: 100%; table-layout: fixed; margin: 14px 0; overflow: hidden; }
-        .quizzard-editor td, .quizzard-editor th { border: 1px solid rgba(140,82,255,0.18); padding: 8px 12px; vertical-align: top; position: relative; }
-        .quizzard-editor th { background: rgba(140,82,255,0.10); font-weight: 600; color: #c4b5fd; }
-        .quizzard-editor td { background: rgba(140,82,255,0.03); }
-        .quizzard-editor .selectedCell:after { content: ''; position: absolute; inset: 0; background: rgba(140,82,255,0.12); pointer-events: none; z-index: 2; }
-        .quizzard-editor .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: rgba(140,82,255,0.4); cursor: col-resize; z-index: 10; }
-        .quizzard-editor .resize-cursor { cursor: col-resize; }
-        .quizzard-editor td p, .quizzard-editor th p { margin: 0; }
+        .notemage-editor table { border-collapse: collapse; width: 100%; table-layout: fixed; margin: 14px 0; overflow: hidden; }
+        .notemage-editor td, .notemage-editor th { border: 1px solid rgba(140,82,255,0.18); padding: 8px 12px; vertical-align: top; position: relative; }
+        .notemage-editor th { background: rgba(140,82,255,0.10); font-weight: 600; color: #c4b5fd; }
+        .notemage-editor td { background: rgba(140,82,255,0.03); }
+        .notemage-editor .selectedCell:after { content: ''; position: absolute; inset: 0; background: rgba(140,82,255,0.12); pointer-events: none; z-index: 2; }
+        .notemage-editor .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: rgba(140,82,255,0.4); cursor: col-resize; z-index: 10; }
+        .notemage-editor .resize-cursor { cursor: col-resize; }
+        .notemage-editor td p, .notemage-editor th p { margin: 0; }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>
 

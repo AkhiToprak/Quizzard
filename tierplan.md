@@ -1,7 +1,7 @@
 # Tier System Implementation Plan
 
 ## Context
-Quizzard needs a subscription tier system (Free / Plus / Pro) to gate AI features. No real payments yet — users pick a tier during onboarding and get it instantly. This adds: database schema, onboarding step, tier badges, usage tracking with enforcement, a public pricing page, and a navbar link.
+Notemage needs a subscription tier system (Free / Plus / Pro) to gate AI features. No real payments yet — users pick a tier during onboarding and get it instantly. This adds: database schema, onboarding step, tier badges, usage tracking with enforcement, a public pricing page, and a navbar link.
 
 ---
 

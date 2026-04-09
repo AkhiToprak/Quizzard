@@ -320,7 +320,7 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
             </div>
             <input
               type="email"
-              placeholder="alex@quizzard.ai"
+              placeholder="alex@notemage.ai"
               value={data.email}
               onChange={(e) => onChange('email', e.target.value)}
               required

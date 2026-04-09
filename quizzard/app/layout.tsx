@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Quizzard',
+  title: 'Notemage',
   description: 'AI-powered study companion',
 };
 

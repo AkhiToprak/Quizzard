@@ -620,7 +620,7 @@ export default function LandingPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo_trimmed.png"
-              alt="Quizzard"
+              alt="Notemage"
               style={{ height: 40, width: 'auto', display: 'block' }}
             />
           </Link>
@@ -769,7 +769,7 @@ export default function LandingPage() {
                 marginBottom: 40,
               }}
             >
-              Upload your notes. Quizzard turns them into quizzes, flashcards, and a study plan that
+              Upload your notes. Notemage turns them into quizzes, flashcards, and a study plan that
               actually works.
             </p>
 
@@ -787,7 +787,7 @@ export default function LandingPage() {
           <div className="reveal d2">
             <ProductFrame
               placeholder="/screenshots/dashboard.png"
-              alt="Quizzard dashboard preview"
+              alt="Notemage dashboard preview"
             />
           </div>
         </div>
@@ -813,7 +813,7 @@ export default function LandingPage() {
         ]}
         ctaText="Try It Free"
         screenshotPlaceholder="/screenshots/notebook-detail.png"
-        screenshotAlt="Quizzard notebook view"
+        screenshotAlt="Notemage notebook view"
       />
 
       {/* ── PAS BLOCK 2: Study Method ── */}
@@ -833,7 +833,7 @@ export default function LandingPage() {
         ]}
         ctaText="Generate Your First Quiz"
         screenshotPlaceholder="/screenshots/ai-chat.png"
-        screenshotAlt="Quizzard quiz interface"
+        screenshotAlt="Notemage quiz interface"
         reverse
       />
 
@@ -847,13 +847,13 @@ export default function LandingPage() {
         ]}
         solveHeadline="Your Personal Exam Countdown"
         solveBullets={[
-          { bold: 'Add your exam dates', rest: '— Quizzard builds a day-by-day plan' },
+          { bold: 'Add your exam dates', rest: '— Notemage builds a day-by-day plan' },
           { bold: 'Daily goals', rest: '— Know exactly what to cover today' },
           { bold: 'Stay motivated', rest: '— Streaks, achievements, and progress tracking' },
         ]}
         ctaText="Plan Your Next Exam"
         screenshotPlaceholder="/screenshots/notebooks.png"
-        screenshotAlt="Quizzard exam planner"
+        screenshotAlt="Notemage exam planner"
       />
 
       {/* ── HOW IT WORKS ── */}
@@ -971,7 +971,7 @@ export default function LandingPage() {
         ]}
         ctaText="Join the Community"
         screenshotPlaceholder="/screenshots/community.png"
-        screenshotAlt="Quizzard community page"
+        screenshotAlt="Notemage community page"
         reverse
       />
 
@@ -1023,7 +1023,7 @@ export default function LandingPage() {
               marginBottom: 48,
             }}
           >
-            Quizzard is free. Real students are already using it to study smarter.
+            Notemage is free. Real students are already using it to study smarter.
           </p>
           <div className="reveal d2">
             <Link
@@ -1053,11 +1053,11 @@ export default function LandingPage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo_trimmed.png"
-          alt="Quizzard"
+          alt="Notemage"
           style={{ height: '32px', width: 'auto', opacity: 0.75 }}
         />
         <p style={{ fontSize: 13, color: 'rgba(237,233,255,0.28)' }}>
-          © 2026 Quizzard — Built for students, by students.
+          © 2026 Notemage — Built for students, by students.
         </p>
         <div style={{ display: 'flex', gap: 24 }}>
           <Link href="/auth/login" className="nlink" style={{ fontSize: 14 }}>

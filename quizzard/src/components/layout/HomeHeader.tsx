@@ -155,7 +155,7 @@ export default function HomeHeader() {
           >
             <Image
               src="/logo_trimmed.png"
-              alt="Quizzard"
+              alt="Notemage"
               width={isTablet ? 100 : 120}
               height={32}
               style={{ objectFit: 'contain' }}

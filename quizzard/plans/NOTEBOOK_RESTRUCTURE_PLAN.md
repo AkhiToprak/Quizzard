@@ -2,9 +2,9 @@
 
 ## Why This Change
 
-Quizzard is currently an "upload files → AI chat" tool. Users upload PDFs/DOCX files, the app extracts text, and (in a future phase) an AI chats about the content. This is useful but limited — it treats notebooks as containers for uploaded files, not as living documents users actively write in.
+Notemage is currently an "upload files → AI chat" tool. Users upload PDFs/DOCX files, the app extracts text, and (in a future phase) an AI chats about the content. This is useful but limited — it treats notebooks as containers for uploaded files, not as living documents users actively write in.
 
-The goal is to transform Quizzard into a **real notebook app** — like OneNote — where users can:
+The goal is to transform Notemage into a **real notebook app** — like OneNote — where users can:
 
 - Open a notebook and get a dedicated workspace with its own sidebar
 - Create sections (folders) and subsections within notebooks

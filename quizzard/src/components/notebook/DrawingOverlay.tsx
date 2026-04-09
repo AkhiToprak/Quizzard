@@ -167,7 +167,7 @@ export default function DrawingOverlay({
 
     const observer = new ResizeObserver(update);
     observer.observe(parent);
-    const contentEl = parent.querySelector('.quizzard-editor');
+    const contentEl = parent.querySelector('.notemage-editor');
     if (contentEl) observer.observe(contentEl);
 
     return () => observer.disconnect();

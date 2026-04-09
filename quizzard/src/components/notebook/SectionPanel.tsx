@@ -68,7 +68,7 @@ export default function SectionPanel() {
         <Link href="/home">
           <Image
             src="/logo_trimmed.png"
-            alt="Quizzard"
+            alt="Notemage"
             width={120}
             height={30}
             style={{ objectFit: 'contain', objectPosition: 'left', cursor: 'pointer' }}

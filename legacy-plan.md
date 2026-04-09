@@ -1,4 +1,4 @@
-# Quizzard — Missing Features Implementation Plan
+# Notemage — Missing Features Implementation Plan
 
 > Generated 2026-03-31 by auditing the Obsidian phase docs (Phase 0–14) against the live codebase.
 > Each section is broken into the smallest possible subphases with exact files, tools, libraries, and SQL/Prisma changes.

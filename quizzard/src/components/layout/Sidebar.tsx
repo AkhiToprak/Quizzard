@@ -53,7 +53,7 @@ export default function Sidebar() {
       <Link href="/home" style={{ padding: '0 24px', marginBottom: '8px', display: 'block' }}>
         <Image
           src="/logo_trimmed.png"
-          alt="Quizzard"
+          alt="Notemage"
           width={160}
           height={40}
           style={{ objectFit: 'contain', objectPosition: 'left', cursor: 'pointer' }}

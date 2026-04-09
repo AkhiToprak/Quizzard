@@ -217,7 +217,7 @@ export default function WaitlistPage() {
         <div style={{ marginBottom: '40px' }}>
           <Image
             src="/logo_white.png"
-            alt="Quizzard"
+            alt="Notemage"
             width={180}
             height={50}
             style={{ margin: '0 auto' }}
@@ -290,7 +290,7 @@ export default function WaitlistPage() {
                   lineHeight: 1.7,
                 }}
               >
-                We&apos;ll send you an email when Quizzard launches. Stay tuned!
+                We&apos;ll send you an email when Notemage launches. Stay tuned!
               </p>
             </div>
           ) : (
@@ -319,7 +319,7 @@ export default function WaitlistPage() {
                   marginBottom: '32px',
                 }}
               >
-                Quizzard turns your study materials into flashcards, quizzes, and AI-powered study
+                Notemage turns your study materials into flashcards, quizzes, and AI-powered study
                 plans. Be the first to know when we launch.
               </p>
 

@@ -290,7 +290,7 @@ export default function OnboardingWizard() {
         >
           <Image
             src="/logo_trimmed.png"
-            alt="Quizzard"
+            alt="Notemage"
             width={56}
             height={56}
             style={{ objectFit: 'contain' }}
@@ -308,7 +308,7 @@ export default function OnboardingWizard() {
             textAlign: 'center',
           }}
         >
-          Quizzard AI
+          Notemage AI
         </h1>
         <p style={{ color: '#aaa8c8', fontSize: '17px', margin: 0, textAlign: 'center' }}>
           {stepSubtitle}

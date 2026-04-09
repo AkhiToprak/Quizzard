@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "quizzard-dev",
+      "name": "notemage-dev",
       "runtimeExecutable": "/bin/bash",
       "runtimeArgs": ["-c", "export PATH=/usr/local/bin:$PATH && cd /Users/toprakdemirel/Entwicklung/Quizzard/quizzard && npm run dev"],
       "port": 3001,

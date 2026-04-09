@@ -205,7 +205,7 @@ export async function checkAndUnlockAchievements(
     }
   }
 
-  // ── Pass 2: Check the meta-achievement ("Quizzard") ─────────────────
+  // ── Pass 2: Check the meta-achievement ("Notemage") ─────────────────
   if (!unlockedBadges.has('all_achievements')) {
     const validUnlockedCount = [...unlockedBadges].filter((b) =>
       NON_META_BADGES.includes(b)

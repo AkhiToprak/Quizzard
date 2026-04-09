@@ -932,7 +932,7 @@ function AppleNotesTab() {
           'Select the note(s) you want to export',
           'Go to File → Export as PDF',
           'Save the PDF file to your computer',
-          'In Quizzard, open any section and click the Upload (↑) button to import the PDF as a page',
+          'In Notemage, open any section and click the Upload (↑) button to import the PDF as a page',
         ]}
       />
     </div>

@@ -1,4 +1,4 @@
-# Quizzard — Bug Fixes & UX Improvements Plan
+# Notemage — Bug Fixes & UX Improvements Plan
 
 ## Context
 

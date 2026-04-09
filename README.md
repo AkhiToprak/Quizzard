@@ -1,12 +1,12 @@
-# Quizzard
+# Notemage
 
 AI-powered study companion that turns your notes into an interactive learning experience.
 
-![Quizzard Logo](brand_assets/quizzard_logo.png)
+![Notemage Logo](brand_assets/quizzard_logo.png)
 
-## What is Quizzard?
+## What is Notemage?
 
-Quizzard is a full-stack study platform that combines a OneNote-style notebook editor with AI capabilities powered by Claude. Upload documents, take notes, and let AI generate flashcards, quizzes, summaries, and study plans — all in one place.
+Notemage is a full-stack study platform that combines a OneNote-style notebook editor with AI capabilities powered by Claude. Upload documents, take notes, and let AI generate flashcards, quizzes, summaries, and study plans — all in one place.
 
 ## Features
 
@@ -41,7 +41,7 @@ Quizzard is a full-stack study platform that combines a OneNote-style notebook e
 
 ## Status
 
-Quizzard is currently in active development and will be available as a hosted platform soon. This repository is public for transparency — it is **not** intended for self-hosting or cloning.
+Notemage is currently in active development and will be available as a hosted platform soon. This repository is public for transparency — it is **not** intended for self-hosting or cloning.
 
 ## License
 

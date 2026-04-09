@@ -1,6 +1,6 @@
-# Quizzard: Project Description
+# Notemage: Project Description
 
-**Quizzard** is a collaborative, social knowledge platform and notes application designed to combine a robust notebook workspace with a thriving community layer.
+**Notemage** is a collaborative, social knowledge platform and notes application designed to combine a robust notebook workspace with a thriving community layer.
 
 ---
 
@@ -57,7 +57,7 @@ The frontend uses reusable, domain-specific React components (`src/components/`)
 
 ## 4. Visual Design & Style Guidelines
 
-Quizzard utilizes a custom styling framework known as the **Neon Scholar Design System**, built purely on Tailwind CSS properties (v4 inline tokens) and robust CSS variables.
+Notemage utilizes a custom styling framework known as the **Neon Scholar Design System**, built purely on Tailwind CSS properties (v4 inline tokens) and robust CSS variables.
 
 ### Colors
 Refined to convey a rich, dark "neon scholar" look:

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Quizzard uses Next.js API Routes for the backend. All API endpoints should follow consistent patterns for responses, error handling, and authentication.
+Notemage uses Next.js API Routes for the backend. All API endpoints should follow consistent patterns for responses, error handling, and authentication.
 
 ---
 

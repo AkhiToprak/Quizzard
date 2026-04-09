@@ -1,8 +1,8 @@
-# Quizzard Feature Expansion — lockin-final
+# Notemage Feature Expansion — lockin-final
 
 ## Context
 
-Quizzard is a Next.js 16 educational platform with notebooks, flashcards, quizzes, AI chat (Claude), rich text editing (TipTap), infinite canvas (Tldraw), real-time collaboration, and community features. This plan adds: enhanced flashcard management, content extraction from slides/PDFs/URLs, study planning, tables, export system, PPT generation, and external notebook imports.
+Notemage is a Next.js 16 educational platform with notebooks, flashcards, quizzes, AI chat (Claude), rich text editing (TipTap), infinite canvas (Tldraw), real-time collaboration, and community features. This plan adds: enhanced flashcard management, content extraction from slides/PDFs/URLs, study planning, tables, export system, PPT generation, and external notebook imports.
 
 ---
 
@@ -374,7 +374,7 @@ Quizzard is a Next.js 16 educational platform with notebooks, flashcards, quizze
 - **Approach:** Apple Notes has no public API for web apps.
 - **Solution:** Support Apple Notes → PDF export workflow.
 - **UI:** Add "Import from Apple Notes" option with instructions: "Select notes in Apple Notes → File → Export as PDF, then import here."
-- **Alternative (macOS Electron only, future):** If Quizzard ever ships as a desktop app, use `osascript` to read Apple Notes via AppleScript.
+- **Alternative (macOS Electron only, future):** If Notemage ever ships as a desktop app, use `osascript` to read Apple Notes via AppleScript.
 
 ---
 

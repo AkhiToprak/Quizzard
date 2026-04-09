@@ -226,7 +226,7 @@ export default function PricingPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo_trimmed.png"
-              alt="Quizzard"
+              alt="Notemage"
               style={{ height: 40, width: 'auto', display: 'block' }}
             />
           </Link>
@@ -417,11 +417,11 @@ export default function PricingPage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo_trimmed.png"
-          alt="Quizzard"
+          alt="Notemage"
           style={{ height: 32, width: 'auto', opacity: 0.6 }}
         />
         <p style={{ fontSize: 13, color: 'var(--on-surface-variant)', opacity: 0.35 }}>
-          &copy; 2026 Quizzard &mdash; Built for students, by students.
+          &copy; 2026 Notemage &mdash; Built for students, by students.
         </p>
         <div style={{ display: 'flex', gap: 24 }}>
           <Link href="/pricing" className="nlink" style={{ fontSize: 14 }}>

@@ -1,12 +1,12 @@
-# Quizzard — Social Features Implementation Plan
+# Notemage — Social Features Implementation Plan
 
-> **For Claude:** This document is the single source of truth for implementing the social layer of Quizzard. Each phase is independently deployable. Execute phases in order — later phases depend on earlier ones. All file paths are relative to `quizzard/`.
+> **For Claude:** This document is the single source of truth for implementing the social layer of Notemage. Each phase is independently deployable. Execute phases in order — later phases depend on earlier ones. All file paths are relative to `quizzard/`.
 
 ---
 
 ## Context
 
-Quizzard has auth (email/password via NextAuth), a personal dashboard, and a notebook workspace (TipTap + drawing). There are **no social features, no proper onboarding, and no community**. This plan adds: multi-step onboarding, friends system, notebook sharing, community posts, a new home page, and turn-based co-work — broken into many small, independently deployable phases.
+Notemage has auth (email/password via NextAuth), a personal dashboard, and a notebook workspace (TipTap + drawing). There are **no social features, no proper onboarding, and no community**. This plan adds: multi-step onboarding, friends system, notebook sharing, community posts, a new home page, and turn-based co-work — broken into many small, independently deployable phases.
 
 ---
 
