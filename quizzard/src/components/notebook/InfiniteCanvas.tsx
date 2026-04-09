@@ -11,6 +11,7 @@ import {
   Excalidraw,
   WelcomeScreen,
   getSceneVersion,
+  CaptureUpdateAction,
 } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import type {
@@ -85,6 +86,9 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
   const titleRef = useRef(title);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const lastSceneVersionRef = useRef<number>(-1);
+  const lastBgColorRef = useRef<string>(DEFAULT_BG);
+  const bgColorInputRef = useRef<HTMLInputElement | null>(null);
+  const [bgColor, setBgColor] = useState<string>(DEFAULT_BG);
   titleRef.current = title;
 
   /* ─── Fetch page data ───────────────────────────────────────────────── */
@@ -140,7 +144,13 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     saveRef.current = save;
   }, [save]);
 
-  /* ─── Excalidraw onChange — version-gated + 2s debounce ─────────────── */
+  /* ─── Excalidraw onChange — version-gated + bg-change + 2s debounce ── *
+   * Fires on every Excalidraw interaction (including pointer moves).
+   * We short-circuit no-ops by comparing both the scene version AND
+   * the view background color against the previously seen values, so
+   * background-only changes still trigger a save (scene version only
+   * reflects element changes). The first onChange at mount primes both
+   * refs without saving. */
   const handleChange = useCallback(
     (
       elements: readonly OrderedExcalidrawElement[],
@@ -148,13 +158,25 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
       files: BinaryFiles
     ) => {
       const version = getSceneVersion(elements);
-      if (version === lastSceneVersionRef.current) return;
-      // First onChange fires at mount — prime the version ref without saving.
+      const currentBg = appState.viewBackgroundColor || DEFAULT_BG;
+      const sceneChanged = version !== lastSceneVersionRef.current;
+      const bgChanged = currentBg !== lastBgColorRef.current;
+
+      if (!sceneChanged && !bgChanged) return;
+
+      // First call at mount primes the refs without saving.
       if (lastSceneVersionRef.current === -1) {
         lastSceneVersionRef.current = version;
+        lastBgColorRef.current = currentBg;
+        setBgColor(currentBg);
         return;
       }
+
       lastSceneVersionRef.current = version;
+      if (bgChanged) {
+        lastBgColorRef.current = currentBg;
+        setBgColor(currentBg);
+      }
 
       setSaveStatus('unsaved');
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -162,12 +184,35 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         saveRef.current(
           {
             elements: elements as readonly ExcalidrawElement[],
-            appState: { viewBackgroundColor: appState.viewBackgroundColor },
+            appState: { viewBackgroundColor: currentBg },
             files,
           },
           titleRef.current
         );
       }, 2000);
+    },
+    []
+  );
+
+  /* ─── Background color picker → Excalidraw updateScene ─────────────── *
+   * Opens the browser's native color input when the swatch is clicked,
+   * then pushes the chosen color into Excalidraw via updateScene. The
+   * subsequent onChange fires handleChange above, which detects the bg
+   * change, updates lastBgColorRef + bgColor state, and schedules a
+   * save via the normal debounced pipeline. */
+  const openBgColorPicker = useCallback(() => {
+    bgColorInputRef.current?.click();
+  }, []);
+
+  const handleBgColorInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newColor = e.target.value;
+      const api = excalidrawAPIRef.current;
+      if (!api) return;
+      api.updateScene({
+        appState: { viewBackgroundColor: newColor },
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
     },
     []
   );
@@ -486,6 +531,50 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
               letterSpacing: '-0.04em',
               lineHeight: 1.2,
               padding: 0,
+            }}
+          />
+          {/* Canvas background color picker — clicking the swatch opens
+              the browser's native color picker. The input is visually
+              hidden but still focusable via its ref. */}
+          <button
+            type="button"
+            onClick={openBgColorPicker}
+            title="Canvas background color"
+            aria-label="Canvas background color"
+            style={{
+              flexShrink: 0,
+              width: '22px',
+              height: '22px',
+              borderRadius: '6px',
+              background: bgColor,
+              border: '1px solid rgba(237,233,255,0.15)',
+              boxShadow: '0 0 0 1px rgba(0,0,0,0.3) inset',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'transform 0.15s ease, border-color 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.08)';
+              e.currentTarget.style.borderColor = 'rgba(140,82,255,0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.borderColor = 'rgba(237,233,255,0.15)';
+            }}
+          />
+          <input
+            ref={bgColorInputRef}
+            type="color"
+            value={bgColor}
+            onChange={handleBgColorInputChange}
+            aria-hidden="true"
+            tabIndex={-1}
+            style={{
+              position: 'absolute',
+              width: 0,
+              height: 0,
+              opacity: 0,
+              pointerEvents: 'none',
             }}
           />
           <div
