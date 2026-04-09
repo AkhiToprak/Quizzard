@@ -24,18 +24,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
+# Prefer the pre-compiled JS bundle (produced by `npm run build:ws` in
+# the heroku-postbuild hook) — running plain `node` on a .cjs file is
+# the most portable option and never relies on tsx, npx, or PATH.
+if [ -f "ws-dist/ws-server.cjs" ]; then
+  echo "[start-ws] booting ws-dist/ws-server.cjs via $(which node)"
+  exec node ws-dist/ws-server.cjs
+fi
+
+# Fallback: try tsx for local dev where the build step hasn't run.
 if [ ! -f "ws-server.ts" ]; then
-  echo "[start-ws] ERROR: ws-server.ts not found in ${PROJECT_ROOT}" >&2
+  echo "[start-ws] ERROR: neither ws-dist/ws-server.cjs nor ws-server.ts found in ${PROJECT_ROOT}" >&2
   exit 1
 fi
 
 if [ ! -x "node_modules/.bin/tsx" ]; then
-  echo "[start-ws] ERROR: node_modules/.bin/tsx is missing." >&2
-  echo "[start-ws] Did 'npm ci' run during the build step?" >&2
-  echo "[start-ws] If tsx is in devDependencies, set NODE_ENV before install" >&2
-  echo "[start-ws] or move it to dependencies in package.json." >&2
+  echo "[start-ws] ERROR: tsx is not installed and the compiled bundle is missing." >&2
+  echo "[start-ws] Run 'npm run build:ws' first, or install tsx as a dependency." >&2
   exit 1
 fi
 
-echo "[start-ws] booting ws-server.ts via $(pwd)/node_modules/.bin/tsx"
+echo "[start-ws] booting ws-server.ts via $(pwd)/node_modules/.bin/tsx (uncompiled fallback)"
 exec node_modules/.bin/tsx ws-server.ts

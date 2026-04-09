@@ -20,6 +20,9 @@
 # production
 /build
 
+# ws-server compiled bundle (built by `npm run build:ws` / heroku-postbuild)
+/ws-dist
+
 # misc
 .DS_Store
 *.pem
