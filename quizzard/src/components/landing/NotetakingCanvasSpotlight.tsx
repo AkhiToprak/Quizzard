@@ -4,15 +4,15 @@ import MockFrame from './MockFrame';
 import SectionHeader from './SectionHeader';
 
 const notetakingBullets = [
-  { icon: 'edit_note', text: 'Markdown + rich formatting with a slash menu' },
-  { icon: 'auto_awesome', text: 'Inline AI actions — rewrite, summarize, expand' },
+  { icon: 'edit_note', text: 'Markdown, tables, callouts, code blocks' },
+  { icon: 'save', text: 'Auto-saves while you type' },
   { icon: 'folder', text: 'Notebooks, folders, tags — organize your way' },
 ];
 
 const canvasBullets = [
   { icon: 'draw', text: 'Infinite canvas with pen, text, and eraser tools' },
   { icon: 'palette', text: '6 pen colors, three widths, custom backgrounds' },
-  { icon: 'stylus', text: 'Stylus + barrel-button eraser support' },
+  { icon: 'stylus', text: 'Stylus eraser on Surface, Wacom, and S Pen devices' },
 ];
 
 export default function NotetakingCanvasSpotlight() {
@@ -60,7 +60,7 @@ export default function NotetakingCanvasSpotlight() {
           <FeatureCard
             tag="Text notes"
             title="Write like a human"
-            description="A rich text editor built for study sessions. Slash commands, markdown shortcuts, and inline AI that lives exactly where your cursor is."
+            description="A rich text editor built for study sessions. Markdown shortcuts, tables, callouts, code blocks, and auto-save as you type."
             bullets={notetakingBullets}
             mockImage="https://placehold.co/1280x760/14122c/ae89ff/png?text=Text+Notes"
             mockCornerLabel="Algebra · Chapter 3"
