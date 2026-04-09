@@ -740,7 +740,7 @@ export default function LandingPage() {
               <span style={{ display: 'flex', alignItems: 'center', color: '#c4a0ff' }}>
                 {Ic.sparkle}
               </span>
-              AI-Powered Study Platform
+              All in one Notetaker
             </div>
 
             <h1
@@ -753,10 +753,10 @@ export default function LandingPage() {
                 color: '#ede9ff',
               }}
             >
-              Ace Every Exam
+              The only Notetaking App
               <br />
               <span style={{ color: '#ffde59', textShadow: '0 0 40px rgba(255,222,89,0.3)' }}>
-                Without the All-Nighters
+                You&apos;ll ever need
               </span>
             </h1>
 
@@ -769,8 +769,8 @@ export default function LandingPage() {
                 marginBottom: 40,
               }}
             >
-              Upload your notes. Notemage turns them into quizzes, flashcards, and a study plan that
-              actually works.
+              Take notes, make flashcards, quizzes, powerpoints, chat with ai. All in one app, no
+              need to switch between 5 tabs or pay for 10 subscriptions!
             </p>
 
             <div className="hero-btns" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
@@ -796,7 +796,7 @@ export default function LandingPage() {
       {/* ── PAS BLOCK 1: Organization ── */}
       <PASSection
         label="THE PROBLEM"
-        problemHeadline="Your Notes Are Everywhere. Your Grades Show It."
+        problemHeadline="Taking Notes Does Not Have To Be This Hard!"
         agitateLines={[
           'Lecture slides in Drive. Notes in three apps. Highlights on paper.',
           "You spend more time <strong style='color:#ede9ff'>finding</strong> what to study than actually studying.",
@@ -808,7 +808,7 @@ export default function LandingPage() {
           { bold: 'Organized by subject', rest: '— Notebooks with subfolders, always searchable' },
           {
             bold: 'AI reads your material',
-            rest: '— Answers from YOUR notes, not generic responses',
+            rest: '— YOUR personal MAGE answers your questions and helps you study.',
           },
         ]}
         ctaText="Try It Free"
@@ -819,7 +819,7 @@ export default function LandingPage() {
       {/* ── PAS BLOCK 2: Study Method ── */}
       <PASSection
         label="SOUND FAMILIAR?"
-        problemHeadline="Re-reading Your Notes Doesn't Work. Science Says So."
+        problemHeadline="You want to lock in, but you're too lazy to start"
         agitateLines={[
           'You highlight everything. Re-read the same page 4 times. <em>Feel</em> productive.',
           "Then the exam hits and you can't recall a thing.",
