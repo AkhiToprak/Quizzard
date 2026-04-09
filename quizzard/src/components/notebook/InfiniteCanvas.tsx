@@ -204,6 +204,82 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     };
   }, []);
 
+  /* ─── Reorder toolbar: Text → Freedraw → Eraser first ───────────────── *
+   * Excalidraw has no prop for toolbar order, but the toolbar container
+   * is a flexbox, so we set `order` on the specific <label> wrappers to
+   * visually move them to the front. We identify them by the inner
+   * <input value="text|freedraw|eraser"> that Excalidraw uses as the
+   * underlying radio for shape selection.
+   * The toolbar mounts after Excalidraw's dynamic bundle loads, so we
+   * use a MutationObserver to apply the order as soon as it appears,
+   * and re-apply if Excalidraw swaps nodes (language change, resize). */
+  useEffect(() => {
+    if (!page) return;
+
+    const desiredOrder: Record<string, string> = {
+      text: '-3',
+      freedraw: '-2',
+      eraser: '-1',
+    };
+
+    const applyOrder = (): boolean => {
+      const inputs = document.querySelectorAll<HTMLInputElement>(
+        '.excalidraw input[name="editor-current-shape"]'
+      );
+      if (inputs.length === 0) return false;
+
+      let applied = 0;
+      inputs.forEach((input) => {
+        const wrapper = input.closest<HTMLElement>('label.ToolIcon');
+        if (!wrapper) return;
+        const target = desiredOrder[input.value];
+        wrapper.style.order = target ?? '0';
+        if (target) applied++;
+      });
+      return applied > 0;
+    };
+
+    // Try immediately in case the toolbar is already mounted
+    applyOrder();
+
+    // Watch for the toolbar to appear or re-render
+    const observer = new MutationObserver(() => {
+      applyOrder();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [page]);
+
+  /* ─── Stylus barrel-button → eraser ─────────────────────────────────── *
+   * Maps non-Apple stylus buttons to the eraser tool via Excalidraw's
+   * imperative API. Works for Surface Pen, Wacom, S Pen, etc. — anything
+   * that reports `pointerType === 'pen'` with a modifier button pressed.
+   * Apple Pencil double-tap / squeeze gestures are NOT exposed to web
+   * pages by Safari and cannot be detected here — no workaround exists.
+   * Detection rules:
+   *   - buttons & 2  → barrel / right-click button (Wacom, Surface)
+   *   - buttons & 32 → eraser tip in contact (Surface Pen flipped)
+   * We only switch on pointerdown; the user can switch back via the
+   * toolbar (or keyboard: T / P / E / V). */
+  useEffect(() => {
+    if (!page) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      if (e.pointerType !== 'pen') return;
+      const hasBarrel = (e.buttons & 2) === 2;
+      const hasEraserTip = (e.buttons & 32) === 32;
+      if (!hasBarrel && !hasEraserTip) return;
+
+      const api = excalidrawAPIRef.current;
+      if (!api) return;
+      api.setActiveTool({ type: 'eraser' });
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDown, true);
+  }, [page]);
+
   /* ─── Derive initial data from fetched page (memoized per page) ─────── */
   const initialData = useMemo<ExcalidrawInitialDataState | null>(() => {
     if (!page) return null;
