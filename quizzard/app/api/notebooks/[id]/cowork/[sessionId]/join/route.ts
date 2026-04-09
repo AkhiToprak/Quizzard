@@ -9,6 +9,7 @@ import {
   conflictResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { wsEmit } from '@/lib/ws-emit';
 
 type Params = { params: Promise<{ id: string; sessionId: string }> };
 
@@ -58,6 +59,21 @@ export async function POST(request: NextRequest, { params }: Params) {
     } else {
       await db.coWorkParticipant.create({
         data: { sessionId, userId },
+      });
+    }
+
+    // Real-time broadcast — fetch the user we just (re)joined to enrich the
+    // payload, so subscribers can render avatars/names without a follow-up
+    // fetch.
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true, avatarUrl: true },
+    });
+    if (user) {
+      await wsEmit({
+        room: `session:${sessionId}`,
+        event: 'cowork:participant_joined',
+        data: { sessionId, user },
       });
     }
 

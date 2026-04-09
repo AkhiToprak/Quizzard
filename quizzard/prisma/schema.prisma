@@ -79,6 +79,7 @@ model User {
   hostedSessions         CoWorkSession[]    @relation("HostedSessions")
   coWorkJoined           CoWorkParticipant[]
   pageLocks              PageLock[]
+  coWorkMessages         CoWorkMessage[]
   lastSeenAt             DateTime?
   notebookComments       NotebookComment[]
   notebookCommentVotes   NotebookCommentVote[]
@@ -762,6 +763,7 @@ model CoWorkSession {
   host         User                @relation("HostedSessions", fields: [hostId], references: [id], onDelete: Cascade)
   participants CoWorkParticipant[]
   pageLocks    PageLock[]
+  messages     CoWorkMessage[]
 
   @@index([notebookId, isActive])
   @@map("co_work_sessions")
@@ -796,6 +798,20 @@ model PageLock {
 
   @@unique([sessionId, pageId])
   @@map("page_locks")
+}
+
+model CoWorkMessage {
+  id         String   @id @default(cuid())
+  sessionId  String
+  userId     String
+  text       String   @db.Text
+  createdAt  DateTime @default(now())
+
+  session    CoWorkSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("co_work_messages")
 }
 
 // ============================================================================

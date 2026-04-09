@@ -40,6 +40,8 @@ import {
 import SlashMenu from './SlashMenu';
 import InlineAIToolbar from './InlineAIToolbar';
 import UpsellToast from '@/components/ui/UpsellToast';
+import RemoteCursor from './RemoteCursor';
+import { useCoworkSocket } from '@/lib/cowork-socket';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /** Migrate legacy `heading` nodes to `toggleHeading` nodes in saved content. */
@@ -124,6 +126,51 @@ export default function PageEditor({
   const handleRequiresUpgrade = useCallback(() => setUpsellOpen(true), []);
   const handleUpsellClose = useCallback(() => setUpsellOpen(false), []);
 
+  /* ─── Co-work remote cursors ────────────────────────────────────────── */
+  // Map<userId, { x, y, name, lastSeenAt }> in container-relative pixels.
+  // Cursors are dropped after 8 seconds of silence to handle the case where
+  // a peer's tab is closed without a clean disconnect.
+  type RemoteCursorEntry = { x: number; y: number; name: string; lastSeenAt: number };
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, RemoteCursorEntry>>(
+    new Map()
+  );
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const coworkSocket = useCoworkSocket(coWorkSessionId ?? null);
+
+  // Cache participant usernames so cursor events can render a name without
+  // a per-event fetch. We rely on the participants list returned from the
+  // session GET endpoint, fetched once when the session id changes.
+  const participantNamesRef = useRef<Map<string, string>>(new Map());
+  useEffect(() => {
+    if (!coWorkSessionId) {
+      participantNamesRef.current.clear();
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}`
+        );
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        const participants = json.data?.participants || [];
+        const next = new Map<string, string>();
+        for (const p of participants) {
+          if (p.user?.id && p.user?.username) {
+            next.set(p.user.id, p.user.username);
+          }
+        }
+        participantNamesRef.current = next;
+      } catch {
+        // silent
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [coWorkSessionId, notebookId]);
+
   /* ─── Slash command menu state ──────────────────────────────────────── */
   const [slashState, setSlashState] = useState<SlashCommandState>({
     isOpen: false,
@@ -139,6 +186,107 @@ export default function PageEditor({
     (next: SlashCommandState) => slashSetterRef.current(next),
     []
   );
+
+  /* ─── Co-work cursor: emit own cursor (throttled) ───────────────────── */
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId || !editorContainerRef.current) return;
+    const container = editorContainerRef.current;
+    let lastEmit = 0;
+
+    const emit = (clientX: number, clientY: number) => {
+      const now = performance.now();
+      // ~16 events/sec is plenty for cursor smoothness without saturating
+      // a slow connection.
+      if (now - lastEmit < 60) return;
+      lastEmit = now;
+
+      const rect = container.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      // Skip when the pointer is outside the editor container — peers don't
+      // need to see your cursor wandering on top of the sidebar.
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
+
+      coworkSocket.emit('cowork:cursor', {
+        sessionId: coWorkSessionId,
+        pageId,
+        x,
+        y,
+      });
+    };
+
+    const onMove = (e: PointerEvent) => emit(e.clientX, e.clientY);
+    container.addEventListener('pointermove', onMove);
+    return () => {
+      container.removeEventListener('pointermove', onMove);
+    };
+  }, [coworkSocket, coWorkSessionId, pageId]);
+
+  /* ─── Co-work cursor: subscribe to remote cursors ───────────────────── */
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId) return;
+
+    const onCursor = (data: {
+      sessionId: string;
+      userId: string;
+      pageId: string | null;
+      x: number;
+      y: number;
+    }) => {
+      if (data.sessionId !== coWorkSessionId) return;
+      // Only show remote cursors on the same page
+      if (data.pageId && data.pageId !== pageId) return;
+      // Don't show our own cursor
+      if (data.userId === currentUserId) return;
+      const name = participantNamesRef.current.get(data.userId) || 'Anon';
+      setRemoteCursors((prev) => {
+        const next = new Map(prev);
+        next.set(data.userId, {
+          x: data.x,
+          y: data.y,
+          name,
+          lastSeenAt: performance.now(),
+        });
+        return next;
+      });
+    };
+
+    const onCursorGone = (data: { sessionId: string; userId: string }) => {
+      if (data.sessionId !== coWorkSessionId) return;
+      setRemoteCursors((prev) => {
+        if (!prev.has(data.userId)) return prev;
+        const next = new Map(prev);
+        next.delete(data.userId);
+        return next;
+      });
+    };
+
+    coworkSocket.on('cowork:cursor', onCursor);
+    coworkSocket.on('cowork:cursor_gone', onCursorGone);
+
+    // Garbage-collect stale cursors every 2s. A peer who closes their tab
+    // without a clean disconnect will fall off the overlay after ~8s.
+    const sweep = setInterval(() => {
+      const now = performance.now();
+      setRemoteCursors((prev) => {
+        let mutated = false;
+        const next = new Map(prev);
+        for (const [userId, entry] of next) {
+          if (now - entry.lastSeenAt > 8000) {
+            next.delete(userId);
+            mutated = true;
+          }
+        }
+        return mutated ? next : prev;
+      });
+    }, 2000);
+
+    return () => {
+      coworkSocket.off('cowork:cursor', onCursor);
+      coworkSocket.off('cowork:cursor_gone', onCursorGone);
+      clearInterval(sweep);
+    };
+  }, [coworkSocket, coWorkSessionId, pageId, currentUserId]);
 
   // Co-work page locking
   useEffect(() => {
@@ -639,7 +787,7 @@ export default function PageEditor({
       />
 
       {/* ── Editor canvas (full width, infinite scroll) ── */}
-      <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
+      <div ref={editorContainerRef} style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
         <div style={{ padding: isPhone ? '16px 16px 60px' : isTablet ? '20px 28px 80px' : '28px 56px 80px', minHeight: '100%', position: 'relative' }}>
           <EditorContent editor={editor} />
           <SlashMenu state={slashState} editor={editor} />
@@ -649,6 +797,16 @@ export default function PageEditor({
             pageId={pageId}
             onRequiresUpgrade={handleRequiresUpgrade}
           />
+          {/* Co-work remote cursor overlays */}
+          {Array.from(remoteCursors.entries()).map(([userId, entry]) => (
+            <RemoteCursor
+              key={userId}
+              userId={userId}
+              name={entry.name}
+              x={entry.x}
+              y={entry.y}
+            />
+          ))}
           <DrawingOverlay
             strokes={strokes}
             onStrokesChange={handleStrokesChange}

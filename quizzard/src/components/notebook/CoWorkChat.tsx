@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCoworkSocket } from '@/lib/cowork-socket';
 
 interface ChatMessage {
   id: string;
@@ -8,11 +9,34 @@ interface ChatMessage {
   username: string;
   text: string;
   timestamp: number;
+  pending?: boolean;
 }
 
 interface CoWorkChatProps {
+  notebookId: string;
+  sessionId: string;
   currentUserId: string;
   currentUsername: string;
+}
+
+interface ServerMessage {
+  id: string;
+  sessionId: string;
+  userId: string;
+  username: string;
+  avatarUrl: string | null;
+  text: string;
+  createdAt: string;
+}
+
+function fromServer(m: ServerMessage): ChatMessage {
+  return {
+    id: m.id,
+    userId: m.userId,
+    username: m.username,
+    text: m.text,
+    timestamp: new Date(m.createdAt).getTime(),
+  };
 }
 
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
@@ -37,36 +61,126 @@ function formatTime(ts: number): string {
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
-let msgCounter = 0;
+let pendingCounter = 0;
 
-export default function CoWorkChat({ currentUserId, currentUsername }: CoWorkChatProps) {
+export default function CoWorkChat({
+  notebookId,
+  sessionId,
+  currentUserId,
+  currentUsername,
+}: CoWorkChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [hoveredToggle, setHoveredToggle] = useState(false);
   const [hoveredSend, setHoveredSend] = useState(false);
+  const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const socket = useCoworkSocket(sessionId);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = () => {
-    const text = input.trim();
-    if (!text) return;
+  // Initial history load
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/notebooks/${notebookId}/cowork/${sessionId}/messages`
+        );
+        if (!res.ok) return;
+        const json = await res.json();
+        const list: ServerMessage[] = json.data?.messages || [];
+        if (!cancelled) {
+          setMessages(list.map(fromServer));
+        }
+      } catch {
+        // silent
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [notebookId, sessionId]);
 
+  // Real-time message subscription
+  useEffect(() => {
+    if (!socket) return;
+
+    const onMessage = (m: ServerMessage) => {
+      if (m.sessionId !== sessionId) return;
+      setMessages((prev) => {
+        // De-dupe: if the optimistic pending message is from the current
+        // user with the same text, replace it with the persisted version.
+        const idx = prev.findIndex(
+          (p) =>
+            p.pending &&
+            p.userId === m.userId &&
+            p.text === m.text
+        );
+        if (idx !== -1) {
+          const next = prev.slice();
+          next[idx] = fromServer(m);
+          return next;
+        }
+        // Skip if we already have this id
+        if (prev.some((p) => p.id === m.id)) return prev;
+        return [...prev, fromServer(m)];
+      });
+    };
+
+    socket.on('cowork:message', onMessage);
+    return () => {
+      socket.off('cowork:message', onMessage);
+    };
+  }, [socket, sessionId]);
+
+  const handleSend = useCallback(async () => {
+    const text = input.trim();
+    if (!text || sending) return;
+
+    // Optimistic append
+    const pendingId = `pending-${++pendingCounter}`;
     setMessages((prev) => [
       ...prev,
       {
-        id: `msg-${++msgCounter}`,
+        id: pendingId,
         userId: currentUserId,
         username: currentUsername,
         text,
         timestamp: Date.now(),
+        pending: true,
       },
     ]);
     setInput('');
-  };
+    setSending(true);
+
+    try {
+      const res = await fetch(
+        `/api/notebooks/${notebookId}/cowork/${sessionId}/messages`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        }
+      );
+      if (!res.ok) {
+        // Drop the optimistic message on failure
+        setMessages((prev) => prev.filter((m) => m.id !== pendingId));
+      }
+      // On success, the ws-server will broadcast the persisted message and
+      // our `cowork:message` listener will swap the pending entry for the
+      // server version. (Even if our own broadcast doesn't loop back, the
+      // de-dupe path keeps the local entry visible — it just stays pending.)
+    } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== pendingId));
+    } finally {
+      setSending(false);
+    }
+  }, [input, sending, currentUserId, currentUsername, notebookId, sessionId]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -169,13 +283,15 @@ export default function CoWorkChat({ currentUserId, currentUsername }: CoWorkCha
             <span style={{ fontSize: 14, fontWeight: 700, color: '#e5e3ff' }}>Session Chat</span>
             <span
               style={{
-                fontSize: 10,
-                color: '#8888a8',
+                fontSize: 9,
+                color: socket?.connected ? '#4ade80' : '#8888a8',
                 marginLeft: 'auto',
-                fontStyle: 'italic',
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
               }}
             >
-              In-memory only
+              {socket?.connected ? '● live' : '○ offline'}
             </span>
           </div>
 

@@ -8,6 +8,7 @@ import {
   forbiddenResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { wsEmit } from '@/lib/ws-emit';
 
 type Params = { params: Promise<{ id: string; sessionId: string }> };
 
@@ -106,6 +107,13 @@ export async function DELETE(request: NextRequest, { params }: Params) {
         where: { id: sessionId },
         data: { isActive: false, endedAt: new Date() },
       });
+    });
+
+    // Real-time broadcast (fire-and-forget)
+    await wsEmit({
+      room: `session:${sessionId}`,
+      event: 'cowork:session_ended',
+      data: { sessionId },
     });
 
     return successResponse({ ended: true });

@@ -35,8 +35,9 @@ function loadEnv() {
 }
 loadEnv();
 
-const WS_PORT = parseInt(process.env.WS_PORT || '3002', 10);
+const WS_PORT = parseInt(process.env.WS_PORT || process.env.PORT || '3002', 10);
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+const WS_INTERNAL_SECRET = process.env.WS_INTERNAL_SECRET;
 const HEARTBEAT_INTERVAL = 30_000; // 30s
 const HEARTBEAT_TIMEOUT = 65_000; // miss 2 heartbeats → disconnect
 const LAST_SEEN_UPDATE_INTERVAL = 60_000; // batch DB updates every 60s
@@ -44,6 +45,11 @@ const LAST_SEEN_UPDATE_INTERVAL = 60_000; // batch DB updates every 60s
 if (!NEXTAUTH_SECRET) {
   console.error('[ws-server] NEXTAUTH_SECRET is not set. Exiting.');
   process.exit(1);
+}
+if (!WS_INTERNAL_SECRET) {
+  console.warn(
+    '[ws-server] WS_INTERNAL_SECRET is not set. /emit endpoint will reject all calls.'
+  );
 }
 
 const db = new PrismaClient();
@@ -82,6 +88,14 @@ const socketToUser = new Map<string, string>();
 const lastHeartbeat = new Map<string, number>();
 // userId → cached friend IDs
 const friendCache = new Map<string, string[]>();
+
+// ─── Cowork session state ───
+// sessionId → Map<userId, count> — how many sockets per user are in the room
+// (a single user with two tabs open should still count as one participant
+// when their first tab disconnects)
+const coworkSocketUsers = new Map<string, Map<string, number>>();
+// socketId → Set of sessionIds the socket has joined
+const socketCoworkSessions = new Map<string, Set<string>>();
 
 function getUserFriends(userId: string): string[] {
   return friendCache.get(userId) || [];
@@ -123,7 +137,13 @@ const httpServer = createServer((req, res) => {
   // Health check + presence query endpoint
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', onlineCount: onlineUsers.size }));
+    res.end(
+      JSON.stringify({
+        status: 'ok',
+        onlineCount: onlineUsers.size,
+        coworkRooms: coworkSocketUsers.size,
+      })
+    );
     return;
   }
   // GET /online?ids=id1,id2,id3 — returns which of the given IDs are online
@@ -135,6 +155,50 @@ const httpServer = createServer((req, res) => {
     res.end(JSON.stringify({ online }));
     return;
   }
+
+  // POST /emit — internal webhook from Next.js API routes.
+  // Auth: shared HMAC secret in `x-ws-internal-secret` header.
+  // Body: { room: string, event: string, data: unknown }
+  // Broadcasts the event+data to every socket in the named room.
+  if (req.method === 'POST' && req.url === '/emit') {
+    const provided = req.headers['x-ws-internal-secret'];
+    if (!WS_INTERNAL_SECRET || provided !== WS_INTERNAL_SECRET) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'unauthorized' }));
+      return;
+    }
+
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+      // Cap at 1 MB to prevent abuse
+      if (body.length > 1024 * 1024) {
+        req.destroy();
+      }
+    });
+    req.on('end', () => {
+      try {
+        const parsed = JSON.parse(body) as {
+          room?: string;
+          event?: string;
+          data?: unknown;
+        };
+        if (!parsed.room || !parsed.event) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'missing room or event' }));
+          return;
+        }
+        io.to(parsed.room).emit(parsed.event, parsed.data);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+      } catch {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'invalid json' }));
+      }
+    });
+    return;
+  }
+
   res.writeHead(404);
   res.end();
 });
@@ -197,6 +261,93 @@ io.on('connection', async (socket: Socket) => {
     lastHeartbeat.set(socket.id, Date.now());
   });
 
+  // ─── Cowork: join a session room ───
+  // Server trusts the userId from the verified presence token (NOT from the
+  // client payload) so an authed user can't impersonate another user.
+  // Persistence (DB session check) lives in the Next.js join route — by the
+  // time the client emits this, the REST call has already validated they're
+  // an active participant.
+  socket.on('cowork:join', (payload: { sessionId?: string }) => {
+    const sessionId = payload?.sessionId;
+    if (!sessionId || typeof sessionId !== 'string') return;
+
+    const room = `session:${sessionId}`;
+    socket.join(room);
+
+    // Track membership for cleanup on disconnect
+    let sessionsForSocket = socketCoworkSessions.get(socket.id);
+    if (!sessionsForSocket) {
+      sessionsForSocket = new Set();
+      socketCoworkSessions.set(socket.id, sessionsForSocket);
+    }
+    sessionsForSocket.add(sessionId);
+
+    let usersInSession = coworkSocketUsers.get(sessionId);
+    if (!usersInSession) {
+      usersInSession = new Map();
+      coworkSocketUsers.set(sessionId, usersInSession);
+    }
+    const prevCount = usersInSession.get(userId) || 0;
+    usersInSession.set(userId, prevCount + 1);
+  });
+
+  // ─── Cowork: leave a session room ───
+  socket.on('cowork:leave', (payload: { sessionId?: string }) => {
+    const sessionId = payload?.sessionId;
+    if (!sessionId || typeof sessionId !== 'string') return;
+
+    const room = `session:${sessionId}`;
+    socket.leave(room);
+
+    const sessionsForSocket = socketCoworkSessions.get(socket.id);
+    if (sessionsForSocket) {
+      sessionsForSocket.delete(sessionId);
+      if (sessionsForSocket.size === 0) {
+        socketCoworkSessions.delete(socket.id);
+      }
+    }
+
+    const usersInSession = coworkSocketUsers.get(sessionId);
+    if (usersInSession) {
+      const prev = usersInSession.get(userId) || 0;
+      if (prev <= 1) {
+        usersInSession.delete(userId);
+      } else {
+        usersInSession.set(userId, prev - 1);
+      }
+      if (usersInSession.size === 0) {
+        coworkSocketUsers.delete(sessionId);
+      }
+    }
+  });
+
+  // ─── Cowork: cursor relay ───
+  // Throttling is the client's responsibility; we just relay. Cursors are
+  // ephemeral — never persisted to Postgres.
+  // Server enriches the payload with the trusted userId so subscribers can
+  // attribute the cursor without trusting client input.
+  socket.on(
+    'cowork:cursor',
+    (payload: {
+      sessionId?: string;
+      pageId?: string;
+      x?: number;
+      y?: number;
+    }) => {
+      const sessionId = payload?.sessionId;
+      if (!sessionId || typeof sessionId !== 'string') return;
+      if (typeof payload.x !== 'number' || typeof payload.y !== 'number') return;
+      // Only emit to other sockets in the room (not back to sender).
+      socket.to(`session:${sessionId}`).emit('cowork:cursor', {
+        sessionId,
+        userId,
+        pageId: payload.pageId ?? null,
+        x: payload.x,
+        y: payload.y,
+      });
+    }
+  );
+
   // Disconnect
   socket.on('disconnect', async () => {
     const uid = socketToUser.get(socket.id);
@@ -204,6 +355,30 @@ io.on('connection', async (socket: Socket) => {
 
     socketToUser.delete(socket.id);
     lastHeartbeat.delete(socket.id);
+
+    // Clean up cowork session memberships
+    const sessionsForSocket = socketCoworkSessions.get(socket.id);
+    if (sessionsForSocket) {
+      for (const sessionId of sessionsForSocket) {
+        const usersInSession = coworkSocketUsers.get(sessionId);
+        if (usersInSession) {
+          const prev = usersInSession.get(uid) || 0;
+          if (prev <= 1) {
+            usersInSession.delete(uid);
+            // The user has no more sockets in this session — broadcast
+            // a synthetic "cursor gone" event so peers can hide their
+            // cursor overlay immediately.
+            io.to(`session:${sessionId}`).emit('cowork:cursor_gone', { sessionId, userId: uid });
+          } else {
+            usersInSession.set(uid, prev - 1);
+          }
+          if (usersInSession.size === 0) {
+            coworkSocketUsers.delete(sessionId);
+          }
+        }
+      }
+      socketCoworkSessions.delete(socket.id);
+    }
 
     const sockets = onlineUsers.get(uid);
     if (sockets) {

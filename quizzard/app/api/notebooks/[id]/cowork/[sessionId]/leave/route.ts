@@ -8,6 +8,7 @@ import {
   forbiddenResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { wsEmit } from '@/lib/ws-emit';
 
 type Params = { params: Promise<{ id: string; sessionId: string }> };
 
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     });
     if (!participant) return notFoundResponse('Not an active participant');
 
+    let sessionEnded = false;
     await db.$transaction(async (tx) => {
       // Release all locks held by this user
       await tx.pageLock.deleteMany({
@@ -65,8 +67,23 @@ export async function POST(request: NextRequest, { params }: Params) {
           where: { id: sessionId },
           data: { isActive: false, endedAt: new Date() },
         });
+        sessionEnded = true;
       }
     });
+
+    // Real-time broadcast (fire-and-forget)
+    await wsEmit({
+      room: `session:${sessionId}`,
+      event: 'cowork:participant_left',
+      data: { sessionId, userId },
+    });
+    if (sessionEnded) {
+      await wsEmit({
+        room: `session:${sessionId}`,
+        event: 'cowork:session_ended',
+        data: { sessionId },
+      });
+    }
 
     return successResponse({ left: true });
   } catch {

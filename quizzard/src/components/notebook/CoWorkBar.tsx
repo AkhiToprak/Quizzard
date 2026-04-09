@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import CoWorkInviteModal from '@/components/notebook/CoWorkInviteModal';
+import { useCoworkSocket } from '@/lib/cowork-socket';
 
 interface Participant {
   id: string;
@@ -60,6 +61,7 @@ export default function CoWorkBar({
   const [ending, setEnding] = useState(false);
 
   const isHost = hostId === currentUserId;
+  const socket = useCoworkSocket(sessionId);
 
   const fetchParticipants = useCallback(async () => {
     try {
@@ -75,11 +77,57 @@ export default function CoWorkBar({
     }
   }, [notebookId, sessionId]);
 
+  // Initial load + reconciliation. Real-time events keep us in sync after,
+  // so we don't need the 10-second polling fallback anymore — but we still
+  // do one fetch at mount to populate the list before the first event lands.
   useEffect(() => {
     fetchParticipants();
-    const interval = setInterval(fetchParticipants, 10000);
-    return () => clearInterval(interval);
   }, [fetchParticipants]);
+
+  // Real-time participant updates via the cowork socket.
+  useEffect(() => {
+    if (!socket) return;
+
+    const onJoined = (data: {
+      sessionId: string;
+      user: { id: string; username: string; avatarUrl: string | null };
+    }) => {
+      if (data.sessionId !== sessionId) return;
+      setParticipants((prev) => {
+        // De-dupe by userId — if the same user re-joins, keep one entry.
+        if (prev.some((p) => p.userId === data.user.id)) return prev;
+        return [
+          ...prev,
+          {
+            id: `live-${data.user.id}`,
+            userId: data.user.id,
+            user: data.user,
+            joinedAt: new Date().toISOString(),
+          },
+        ];
+      });
+    };
+
+    const onLeft = (data: { sessionId: string; userId: string }) => {
+      if (data.sessionId !== sessionId) return;
+      setParticipants((prev) => prev.filter((p) => p.userId !== data.userId));
+    };
+
+    const onSessionEnded = (data: { sessionId: string }) => {
+      if (data.sessionId !== sessionId) return;
+      onSessionEnd?.();
+    };
+
+    socket.on('cowork:participant_joined', onJoined);
+    socket.on('cowork:participant_left', onLeft);
+    socket.on('cowork:session_ended', onSessionEnded);
+
+    return () => {
+      socket.off('cowork:participant_joined', onJoined);
+      socket.off('cowork:participant_left', onLeft);
+      socket.off('cowork:session_ended', onSessionEnded);
+    };
+  }, [socket, sessionId, onSessionEnd]);
 
   // Timer
   useEffect(() => {

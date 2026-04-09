@@ -9,6 +9,7 @@ import {
   conflictResponse,
   internalErrorResponse,
 } from '@/lib/api-response';
+import { wsEmit } from '@/lib/ws-emit';
 
 type Params = { params: Promise<{ id: string; sessionId: string; pageId: string }> };
 
@@ -116,6 +117,18 @@ export async function POST(request: NextRequest, { params }: Params) {
         },
       });
 
+      // Real-time broadcast (fire-and-forget)
+      await wsEmit({
+        room: `session:${sessionId}`,
+        event: 'cowork:page_locked',
+        data: {
+          sessionId,
+          pageId,
+          lockedById: userId,
+          expiresAt: lock.expiresAt.toISOString(),
+        },
+      });
+
       return successResponse({
         id: lock.id,
         pageId,
@@ -161,6 +174,13 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     if (lock.lockedById !== userId) return forbiddenResponse('You do not hold this lock');
 
     await db.pageLock.delete({ where: { id: lock.id } });
+
+    // Real-time broadcast (fire-and-forget)
+    await wsEmit({
+      room: `session:${sessionId}`,
+      event: 'cowork:page_unlocked',
+      data: { sessionId, pageId, releasedById: userId },
+    });
 
     return successResponse({ released: true });
   } catch {
