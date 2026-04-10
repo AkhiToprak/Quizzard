@@ -6,12 +6,11 @@ import { HexColorPicker, HexColorInput } from 'react-colorful';
 // NOTE: This whole module is only ever loaded client-side because the parent
 // `app/(dashboard)/notebooks/[id]/pages/[pageId]/page.tsx` imports it via
 // `dynamic(..., { ssr: false })`. That means we can safely import Excalidraw
-// (and its compound `MainMenu` / `WelcomeScreen` components) directly, which
-// preserves the static members like `MainMenu.DefaultItems.ClearCanvas`.
+// (and its compound `MainMenu` component) directly, which preserves the
+// static members like `MainMenu.DefaultItems.ClearCanvas`.
 import {
   Excalidraw,
   MainMenu,
-  WelcomeScreen,
   getSceneVersion,
   CaptureUpdateAction,
 } from '@excalidraw/excalidraw';
@@ -1152,15 +1151,6 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
                 </div>
               </MainMenu.ItemCustom>
             </MainMenu>
-
-            {/* Custom welcome screen with no "Welcome to Excalidraw" text. */}
-            <WelcomeScreen>
-              <WelcomeScreen.Center>
-                <WelcomeScreen.Center.Heading>
-                  Start drawing
-                </WelcomeScreen.Center.Heading>
-              </WelcomeScreen.Center>
-            </WelcomeScreen>
           </Excalidraw>
         </div>
       </div>
