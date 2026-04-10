@@ -89,18 +89,6 @@ export default function LandingFooter() {
                 height={96}
                 style={{ height: 32, width: 'auto', objectFit: 'contain' }}
               />
-              <span
-                style={{
-                  fontFamily: 'var(--font-brand)',
-                  fontSize: 20,
-                  fontWeight: 600,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: 'var(--on-surface)',
-                }}
-              >
-                Notemage
-              </span>
             </div>
             <p
               style={{
