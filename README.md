@@ -2,7 +2,7 @@
 
 AI-powered study companion that turns your notes into an interactive learning experience.
 
-![Notemage Logo](notemagelogos/icon_with_text-bg)
+![Notemage Logo](/notemagelogos/icon_with_text-bg.png)
 
 ## What is Notemage?
 
