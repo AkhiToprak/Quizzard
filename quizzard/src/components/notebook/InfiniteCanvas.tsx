@@ -139,16 +139,46 @@ function renderPatternBody(style: BackgroundStyle, ink: string) {
   if (style === 'dotted') {
     return <circle cx={12} cy={12} r={1.2} fill={ink} />;
   }
+  // Grid and lined both use vector-effect="non-scaling-stroke" so the lines
+  // stay a constant 1px thick on screen regardless of pattern scale. At
+  // high zoom the cells get bigger but the lines stay crisp and subtle,
+  // matching the UX convention in design tools like Figma and Miro.
   if (style === 'grid') {
     return (
       <>
-        <line x1={0} y1={0} x2={24} y2={0} stroke={ink} strokeWidth={1} />
-        <line x1={0} y1={0} x2={0} y2={24} stroke={ink} strokeWidth={1} />
+        <line
+          x1={0}
+          y1={0}
+          x2={24}
+          y2={0}
+          stroke={ink}
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+        />
+        <line
+          x1={0}
+          y1={0}
+          x2={0}
+          y2={24}
+          stroke={ink}
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+        />
       </>
     );
   }
   if (style === 'lined') {
-    return <line x1={0} y1={31.5} x2={32} y2={31.5} stroke={ink} strokeWidth={1} />;
+    return (
+      <line
+        x1={0}
+        y1={31.5}
+        x2={32}
+        y2={31.5}
+        stroke={ink}
+        strokeWidth={1}
+        vectorEffect="non-scaling-stroke"
+      />
+    );
   }
   return null;
 }
@@ -317,22 +347,30 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
 
   /* ─── Imperatively sync the SVG pattern overlay to Excalidraw's viewport ─ *
    * Called from handleChange on every interaction (pan, zoom, draw, etc.).
-   * Updates width/height and patternTransform on the <pattern> element
-   * directly — no React re-render — so panning stays smooth. No-ops when
-   * the current style is 'blank' or the ref isn't mounted yet. */
+   * Sets a combined translate+scale patternTransform on the <pattern>
+   * element directly — no React re-render — so panning stays smooth.
+   *
+   * We keep the pattern's width/height fixed at their scene-unit base
+   * (from the JSX props) and let patternTransform handle both pan and
+   * zoom. The scale(zoom) factor grows the tile AND its children
+   * proportionally, so tile spacing stays correct at every zoom level.
+   * Lines in grid/lined patterns use vector-effect="non-scaling-stroke"
+   * so strokes stay visually 1px thick regardless of scale — without
+   * that, zooming in would make grid lines chunky and ugly.
+   *
+   * No-ops when the current style is 'blank' or the ref isn't mounted. */
   const updatePatternTransform = useCallback(
     (scrollX: number, scrollY: number, zoom: number) => {
       const pat = patternElementRef.current;
       if (!pat) return;
       const base = PATTERN_BASE[backgroundStyleRef.current];
       if (base.width === 0) return;
-      const w = base.width * zoom;
-      const h = base.height * zoom;
-      pat.setAttribute('width', String(w));
-      pat.setAttribute('height', String(h));
       const ox = -scrollX * zoom;
       const oy = -scrollY * zoom;
-      pat.setAttribute('patternTransform', `translate(${ox} ${oy})`);
+      pat.setAttribute(
+        'patternTransform',
+        `translate(${ox} ${oy}) scale(${zoom})`,
+      );
     },
     [],
   );
