@@ -27,7 +27,7 @@ Notemage detects pointer events from non-Apple stylus devices (Wacom, Surface Pe
 
 > **Apple Pencil note:** Apple Pencil's double-tap and squeeze gestures are not exposed to web pages, so they don't work in the browser. Apple Pencil drawing itself works fine — just no shortcut buttons. Native-app gesture support is on the roadmap.
 
-For the device-by-device matrix and the debug procedure, the engineering reference lives at `quizzard/docs/stylus-support.md` in the repo.
+For the device-by-device matrix and the debug procedure, the engineering reference lives at `docs/stylus-support.md` in the Notemage repo.
 
 ## What gets saved
 

@@ -109,7 +109,7 @@ export default function MageSpotlight() {
             urlLabel="notemage.app/notebooks/anatomy/chats"
             cornerLabel="Personal Mage"
             accent="rgba(174, 137, 255, 0.35)"
-            aspectRatio="16 / 10"
+            aspectRatio="3024 / 1668"
           />
         </div>
       </div>

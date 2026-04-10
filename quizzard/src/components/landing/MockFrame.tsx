@@ -27,7 +27,7 @@ export default function MockFrame({
   urlLabel = 'notemage.app',
   cornerLabel,
   accent = 'rgba(174, 137, 255, 0.35)',
-  aspectRatio = '16 / 10',
+  aspectRatio = '3024 / 1668',
   style,
   className,
 }: MockFrameProps) {
@@ -178,7 +178,7 @@ export default function MockFrame({
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: 'contain',
               display: 'block',
             }}
           />

@@ -49,7 +49,7 @@ export default function CoworkSpotlight() {
             urlLabel="notemage.app/live/zurich-bio"
             cornerLabel="Live session"
             accent="rgba(81, 112, 255, 0.35)"
-            aspectRatio="4 / 3"
+            aspectRatio="3024 / 1668"
           />
 
           {/* Floating chat bubble */}

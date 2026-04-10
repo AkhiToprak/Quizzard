@@ -197,7 +197,7 @@ export default function HeroCarousel() {
                   urlLabel={`notemage.app${slide.chromeLabel}`}
                   cornerLabel={slide.eyebrow}
                   accent={`${slide.accent}55`}
-                  aspectRatio="16 / 10"
+                  aspectRatio="3024 / 1668"
                 />
               </div>
             );
