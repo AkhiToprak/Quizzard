@@ -88,8 +88,23 @@ export function looksLikeMarkdown(text: string): boolean {
 /**
  * Convert markdown source to an HTML string suitable for TipTap's
  * HTML-paste pipeline. Uses `marked` with GFM enabled (tables, strike-
- * through). Demotes `<h4>`-`<h6>` → `<h3>` because `ToggleHeading` only
- * parses the top three levels (see src/lib/tiptap-toggle-heading.ts:91-98).
+ * through, etc.).
+ *
+ * Headings need special handling: `ToggleHeading` defines per-attribute
+ * `parseHTML` functions on `level`/`summary`/`collapsed` that only know
+ * how to read the `data-toggle-*` attributes on its own round-trip `div`
+ * form. They run AFTER the tag-level `getAttrs` in `parseHTML()` and
+ * silently override its return value with defaults when the pasted
+ * element is a raw `<h1>`/`<h2>`/`<h3>` — every heading ends up as
+ * level 1 with an empty summary, and the heading text gets dumped into
+ * the toggle body instead of the summary bar.
+ *
+ * To sidestep that, we pre-transform every `<h1>`-`<h6>` in marked's
+ * output into the canonical `<div data-toggle-level=".." data-toggle-
+ * summary="..">` form that the working parse rule expects. `h4`-`h6`
+ * collapse onto level 3 (ToggleHeading's deepest level). The empty
+ * `<p></p>` body satisfies the node's `block+` content spec without
+ * duplicating the heading text inside the toggle.
  */
 export function markdownToHtml(text: string): string {
   const html = marked.parse(text, {
@@ -98,5 +113,21 @@ export function markdownToHtml(text: string): string {
     async: false,
   }) as string;
 
-  return html.replace(/<(\/?)h[456]([\s>])/g, '<$1h3$2');
+  return html.replace(
+    /<h([1-6])>([\s\S]*?)<\/h\1>/g,
+    (_match, levelStr: string, inner: string) => {
+      const rawLevel = Number(levelStr);
+      const level = rawLevel > 3 ? 3 : rawLevel;
+      // Strip inline tags (e.g. <strong>, <em>, <code>, <a>) from the
+      // heading text. Marked has already HTML-escaped `<`, `>`, `&`,
+      // `"`, and `'` in the text itself, so the remaining entities are
+      // safe to drop into a double-quoted attribute value as-is — the
+      // browser will decode them when the parser reads the attribute.
+      const summary = inner.replace(/<[^>]+>/g, '');
+      return (
+        `<div data-toggle-level="${level}" data-toggle-summary="${summary}" ` +
+        `data-collapsed="false"><p></p></div>`
+      );
+    }
+  );
 }
