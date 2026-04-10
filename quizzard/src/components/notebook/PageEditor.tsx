@@ -747,17 +747,41 @@ export default function PageEditor({
   // would happily autosave A's content to page B's record. That's a
   // second, separate data-loss bug — fixed here by refusing to hydrate
   // until the fetched `page.id` matches the current `pageId`.
+  //
+  // NB we deliberately do NOT require `page.content` to be truthy here.
+  // A freshly-created text page has `content: null` in the database;
+  // that's a valid hydrated state ("we fetched the page and it is
+  // empty"), not an un-fetched one. Earlier iterations of this gate
+  // bailed on null content, which meant the hydration ref never got
+  // set, which meant `onUpdate`'s gate (`hydratedForPageIdRef.current
+  // !== pageId`) blocked every autosave on brand-new pages — the
+  // status bar stayed pinned at "saved" and every keystroke was
+  // silently dropped. Catching this cost us most of a debugging
+  // session on 2026-04-10; DO NOT re-introduce a content-truthiness
+  // check here without a very good reason.
   useEffect(() => {
     if (!editor) return;
-    if (!page?.content) return;
+    if (!page) return;
     if (page.id !== pageId) return;
     if (hydratedForPageIdRef.current === pageId) return;
+
     hydratedForPageIdRef.current = pageId;
-    lastKnownContentWasEmptyRef.current = isEffectivelyEmptyTiptapDoc(page.content);
-    editor.commands.setContent(
-      migrateHeadingsToToggle(page.content),
-      { emitUpdate: false }
-    );
+
+    if (page.content) {
+      // Real content from the server — push it into the editor.
+      lastKnownContentWasEmptyRef.current = isEffectivelyEmptyTiptapDoc(page.content);
+      editor.commands.setContent(
+        migrateHeadingsToToggle(page.content),
+        { emitUpdate: false }
+      );
+    } else {
+      // Brand-new / empty page. Leave the editor at its default empty
+      // doc. Record that we KNOW the last-seen state was empty so the
+      // onUpdate empty-doc wipe guard doesn't fight us when the user
+      // types their first character (that transition is empty →
+      // non-empty, which is legitimate and must save).
+      lastKnownContentWasEmptyRef.current = true;
+    }
   }, [editor, pageId, page?.id, page?.content]);
 
   /* ─── Cowork: live document sync when viewing as a non-editor ─────── *
