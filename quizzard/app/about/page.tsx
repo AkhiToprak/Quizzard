@@ -288,23 +288,6 @@ export default function AboutPage() {
             of them.
           </p>
 
-          {/* Paragraph 2 — leading into pull quote */}
-          <p
-            style={{
-              fontSize: 20,
-              lineHeight: 1.75,
-              color: 'rgba(237, 233, 255, 0.88)',
-              fontFamily: 'var(--font-sans)',
-              margin: '32px 0 0',
-            }}
-          >
-            So I thought to myself, hey — you&apos;re supposed to be able to
-            build this yourself, no?{' '}
-            <span style={{ color: 'var(--on-surface)', fontWeight: 700 }}>
-              Challenge accepted!
-            </span>
-          </p>
-
           {/* Pull quote — extracted from the letter */}
           <figure
             className="nm-pullquote"
