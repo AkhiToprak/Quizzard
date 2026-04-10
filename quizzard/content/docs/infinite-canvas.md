@@ -41,7 +41,7 @@ You can drag images and files into the canvas. They become part of the scene and
 
 ## Where canvas fits in
 
-- Use a **text page** for structured notes you'll want Scholar Chat to read or AI to flashcard from.
+- Use a **text page** for structured notes you'll want Mage Chat to read or AI to flashcard from.
 - Use a **canvas page** for visual material — proofs, diagrams, hand-drawn equations, free-form brainstorming.
 
 You can mix both kinds of pages inside one notebook.

@@ -59,5 +59,5 @@ Manually-created and imported decks are unlimited on every plan. See [Plans and 
 ## Related docs
 
 - [Quizzes](/docs/quizzes) — multiple-choice tests, the natural counterpart to flashcards.
-- [Mage Chat](/docs/scholar-chat) — how to ask the AI for a deck.
+- [Mage Chat](/docs/mage-chat) — how to ask the AI for a deck.
 - [Presentations](/docs/presentations) — for the bigger story on PowerPoint exports.

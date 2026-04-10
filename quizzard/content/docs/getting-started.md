@@ -49,5 +49,5 @@ Once a page has content on it, the rest of Notemage opens up — you can ask you
 ## Where to go next
 
 - **The notebook → [Notebooks and pages](/docs/notebooks-and-pages)** — sections, pages, and the structure underneath everything.
-- **AI features → [Scholar Chat](/docs/scholar-chat)** — your in-notebook tutor, and how to give it the right context.
+- **AI features → [Mage Chat](/docs/mage-chat)** — your in-notebook tutor, and how to give it the right context.
 - **Account → [Plans and limits](/docs/plans-and-limits)** — what's free, what unlocks on Plus and Pro.

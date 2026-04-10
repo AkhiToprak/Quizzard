@@ -16,7 +16,7 @@ You can upload these directly to a notebook:
 - **TXT** — plain text.
 - **MD** — Markdown.
 
-Once a document is uploaded, its extracted text is stored alongside the original file. That extracted text is what Scholar Chat reads when you add the document as context, and it's what's used for AI summaries and study-tool generation.
+Once a document is uploaded, its extracted text is stored alongside the original file. That extracted text is what Mage Chat reads when you add the document as context, and it's what's used for AI summaries and study-tool generation.
 
 ## OneNote import
 
@@ -41,6 +41,6 @@ Use these when you have lecture decks or worksheets you want to read and annotat
 
 ## Where this hooks in
 
-- **[Scholar Chat](/docs/scholar-chat)** can read any uploaded document as context.
+- **[Mage Chat](/docs/mage-chat)** can read any uploaded document as context.
 - **[Flashcards](/docs/flashcards)** and **[Quizzes](/docs/quizzes)** can be AI-generated from a document just like from a page.
-- **[Presentations](/docs/presentations)** can be generated from a document via Scholar Chat.
+- **[Presentations](/docs/presentations)** can be generated from a document via Mage Chat.

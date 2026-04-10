@@ -28,7 +28,7 @@ Linking a notebook means the exam card becomes a one-click jump into the right m
 
 ## Timer widget
 
-The timer widget is a small floating panel with three modes you can switch between with a tab. State is preserved while you navigate around the app, so the timer keeps running while you read pages, drill flashcards, or chat with Scholar.
+The timer widget is a small floating panel with three modes you can switch between with a tab. State is preserved while you navigate around the app, so the timer keeps running while you read pages, drill flashcards, or chat with Mage.
 
 ### Countdown {#countdown}
 

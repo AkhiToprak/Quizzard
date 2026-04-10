@@ -52,10 +52,10 @@ This builds a straightforward deck from each page's text content. No theme colou
 
 | Want…                                             | Use                       |
 | ------------------------------------------------- | ------------------------- |
-| A polished, presentable deck the AI builds for me | **Path 1** — Scholar Chat |
+| A polished, presentable deck the AI builds for me | **Path 1** — Mage Chat    |
 | A no-frills deck of my notes for a quick share    | **Path 2** — page export  |
 | Slides for an in-class flashcard or quiz session  | **Path 3** — set export   |
 
 ## Limits
 
-The Path 1 (AI-generated) flow uses Scholar Chat under the hood, so it counts against your monthly token budget and message cap. See [Plans and limits](/docs/plans-and-limits). Paths 2 and 3 are pure export — they don't use AI tokens.
+The Path 1 (AI-generated) flow uses Mage Chat under the hood, so it counts against your monthly token budget and message cap. See [Plans and limits](/docs/plans-and-limits). Paths 2 and 3 are pure export — they don't use AI tokens.
