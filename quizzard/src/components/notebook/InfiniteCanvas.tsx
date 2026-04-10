@@ -44,32 +44,190 @@ interface InfiniteCanvasProps {
 /**
  * Persisted shape we write back to the DB. We deliberately avoid persisting
  * the full AppState because it contains ephemeral data (selection, zoom,
- * pointer, collaborators, etc). Only viewBackgroundColor is kept.
+ * pointer, collaborators, etc). Only viewBackgroundColor and our custom
+ * backgroundStyle are kept.
  */
+type BackgroundStyle = 'blank' | 'dotted' | 'lined' | 'grid';
+
+const BACKGROUND_STYLES: readonly BackgroundStyle[] = [
+  'blank',
+  'dotted',
+  'lined',
+  'grid',
+] as const;
+
 type PersistedScene = {
   elements: readonly ExcalidrawElement[];
-  appState: { viewBackgroundColor: string };
+  appState: {
+    viewBackgroundColor: string;
+    backgroundStyle: BackgroundStyle;
+  };
   files: BinaryFiles;
 };
 
 const DEFAULT_BG = '#0d0c1f';
 
+/** SVG pattern tile sizes per style (in scene units). Width=0 means no pattern. */
+const PATTERN_BASE: Record<BackgroundStyle, { width: number; height: number }> = {
+  blank: { width: 0, height: 0 },
+  dotted: { width: 24, height: 24 },
+  lined: { width: 32, height: 32 },
+  grid: { width: 24, height: 24 },
+};
+
+/**
+ * Parse the persisted appState from a raw Page.content. Returns the user's
+ * real base color (never 'transparent') and background style, both with safe
+ * defaults for legacy rows. Used both for seeding React state and for
+ * building Excalidraw's initialData.
+ */
+function parsePersistedAppState(raw: unknown): {
+  userBgColor: string;
+  backgroundStyle: BackgroundStyle;
+} {
+  if (!raw || typeof raw !== 'object') {
+    return { userBgColor: DEFAULT_BG, backgroundStyle: 'blank' };
+  }
+  const maybe = raw as Record<string, unknown>;
+  const savedAppState = (maybe.appState ?? {}) as Record<string, unknown>;
+  const rawColor = savedAppState.viewBackgroundColor;
+  // Ignore stale 'transparent' values — we use that only as a live marker
+  // while a pattern is active; the user's real color should always be saved.
+  const userBgColor =
+    typeof rawColor === 'string' && rawColor !== 'transparent'
+      ? rawColor
+      : DEFAULT_BG;
+  const rawStyle = savedAppState.backgroundStyle;
+  const backgroundStyle: BackgroundStyle =
+    typeof rawStyle === 'string' &&
+    (BACKGROUND_STYLES as readonly string[]).includes(rawStyle)
+      ? (rawStyle as BackgroundStyle)
+      : 'blank';
+  return { userBgColor, backgroundStyle };
+}
+
+/**
+ * Compute a faint ink color for pattern dots/lines that contrasts with the
+ * given base color. Uses perceived luminance: dark bg → faint white, light
+ * bg → faint black. Returns rgba strings with low alpha so the pattern
+ * reads as subtle paper texture, not a loud grid.
+ */
+function getInkColor(hex: string): string {
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (/^#[0-9a-f]{6}$/i.test(hex)) {
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+  } else if (/^#[0-9a-f]{3}$/i.test(hex)) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else {
+    return 'rgba(255,255,255,0.12)';
+  }
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum < 0.5 ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.14)';
+}
+
+/**
+ * Render the SVG children for a single pattern tile. The tile coordinate
+ * system matches PATTERN_BASE[style] dimensions.
+ */
+function renderPatternBody(style: BackgroundStyle, ink: string) {
+  if (style === 'dotted') {
+    return <circle cx={12} cy={12} r={1.2} fill={ink} />;
+  }
+  if (style === 'grid') {
+    return (
+      <>
+        <line x1={0} y1={0} x2={24} y2={0} stroke={ink} strokeWidth={1} />
+        <line x1={0} y1={0} x2={0} y2={24} stroke={ink} strokeWidth={1} />
+      </>
+    );
+  }
+  if (style === 'lined') {
+    return <line x1={0} y1={31.5} x2={32} y2={31.5} stroke={ink} strokeWidth={1} />;
+  }
+  return null;
+}
+
+/**
+ * A tiny 36×20 preview used inside the style picker tiles in the burger
+ * menu. Shows a miniature of the pattern so users can tell the four options
+ * apart at a glance.
+ */
+function StyleTileSwatch({ style }: { style: BackgroundStyle }) {
+  const ink = 'rgba(237,233,255,0.55)';
+  const bg = 'rgba(0,0,0,0.3)';
+  if (style === 'blank') {
+    return (
+      <svg width={36} height={20} style={{ display: 'block' }}>
+        <rect width={36} height={20} rx={3} fill={bg} />
+      </svg>
+    );
+  }
+  if (style === 'dotted') {
+    return (
+      <svg width={36} height={20} style={{ display: 'block' }}>
+        <rect width={36} height={20} rx={3} fill={bg} />
+        {[6, 14, 22, 30].flatMap((cx) =>
+          [6, 14].map((cy) => (
+            <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1} fill={ink} />
+          )),
+        )}
+      </svg>
+    );
+  }
+  if (style === 'lined') {
+    return (
+      <svg width={36} height={20} style={{ display: 'block' }}>
+        <rect width={36} height={20} rx={3} fill={bg} />
+        <line x1={3} y1={7} x2={33} y2={7} stroke={ink} strokeWidth={1} />
+        <line x1={3} y1={13} x2={33} y2={13} stroke={ink} strokeWidth={1} />
+      </svg>
+    );
+  }
+  return (
+    <svg width={36} height={20} style={{ display: 'block' }}>
+      <rect width={36} height={20} rx={3} fill={bg} />
+      <line x1={3} y1={7} x2={33} y2={7} stroke={ink} strokeWidth={1} />
+      <line x1={3} y1={13} x2={33} y2={13} stroke={ink} strokeWidth={1} />
+      <line x1={11} y1={3} x2={11} y2={17} stroke={ink} strokeWidth={1} />
+      <line x1={19} y1={3} x2={19} y2={17} stroke={ink} strokeWidth={1} />
+      <line x1={27} y1={3} x2={27} y2={17} stroke={ink} strokeWidth={1} />
+    </svg>
+  );
+}
+
 /**
  * Detect whether `raw` looks like an Excalidraw scene. Legacy rows may contain
  * tldraw store snapshots (shaped differently), which we silently drop and
  * start from a blank canvas — the next save overwrites the row.
+ *
+ * NOTE: When a pattern style is active, we hand Excalidraw a
+ * `viewBackgroundColor: 'transparent'` marker so its internal canvas is
+ * see-through and our SVG overlay (which paints the user's real color and
+ * the pattern) shows through. The user's real color is always persisted in
+ * Page.content.appState.viewBackgroundColor — never 'transparent'.
+ *
+ * Known v1 limitation: Excalidraw's "Save as image" export captures only
+ * Excalidraw's own canvas, so exports of patterned canvases will come out
+ * transparent without the dots/lines/grid.
  */
 function toExcalidrawInitialData(raw: unknown): ExcalidrawInitialDataState | null {
   if (!raw || typeof raw !== 'object') return null;
   const maybe = raw as Record<string, unknown>;
   if (!Array.isArray(maybe.elements)) return null;
 
-  const savedAppState = (maybe.appState ?? {}) as Partial<AppState>;
+  const { userBgColor, backgroundStyle } = parsePersistedAppState(raw);
 
   return {
     elements: maybe.elements as readonly ExcalidrawElement[],
     appState: {
-      viewBackgroundColor: savedAppState.viewBackgroundColor ?? DEFAULT_BG,
+      viewBackgroundColor:
+        backgroundStyle === 'blank' ? userBgColor : 'transparent',
     },
     files: (maybe.files as BinaryFiles) ?? undefined,
     scrollToContent: true,
@@ -90,6 +248,9 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
   const lastSceneVersionRef = useRef<number>(-1);
   const lastBgColorRef = useRef<string>(DEFAULT_BG);
   const [bgColor, setBgColor] = useState<string>(DEFAULT_BG);
+  const [backgroundStyle, setBackgroundStyle] = useState<BackgroundStyle>('blank');
+  const backgroundStyleRef = useRef<BackgroundStyle>('blank');
+  const patternElementRef = useRef<SVGPatternElement | null>(null);
   titleRef.current = title;
 
   /* ─── Fetch page data ───────────────────────────────────────────────── */
@@ -110,6 +271,15 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         if (json.success && isMountedRef.current) {
           setPage(json.data);
           setTitle(json.data.title);
+          // Seed base color + background style from persisted appState so
+          // the first render of our overlay and the first Excalidraw
+          // onChange see the right values. parsePersistedAppState normalises
+          // defaults and strips stale 'transparent' markers.
+          const parsed = parsePersistedAppState(json.data.content);
+          setBgColor(parsed.userBgColor);
+          setBackgroundStyle(parsed.backgroundStyle);
+          lastBgColorRef.current = parsed.userBgColor;
+          backgroundStyleRef.current = parsed.backgroundStyle;
         }
       } finally {
         if (isMountedRef.current) setIsLoading(false);
@@ -145,38 +315,83 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     saveRef.current = save;
   }, [save]);
 
+  /* ─── Imperatively sync the SVG pattern overlay to Excalidraw's viewport ─ *
+   * Called from handleChange on every interaction (pan, zoom, draw, etc.).
+   * Updates width/height and patternTransform on the <pattern> element
+   * directly — no React re-render — so panning stays smooth. No-ops when
+   * the current style is 'blank' or the ref isn't mounted yet. */
+  const updatePatternTransform = useCallback(
+    (scrollX: number, scrollY: number, zoom: number) => {
+      const pat = patternElementRef.current;
+      if (!pat) return;
+      const base = PATTERN_BASE[backgroundStyleRef.current];
+      if (base.width === 0) return;
+      const w = base.width * zoom;
+      const h = base.height * zoom;
+      pat.setAttribute('width', String(w));
+      pat.setAttribute('height', String(h));
+      const ox = -scrollX * zoom;
+      const oy = -scrollY * zoom;
+      pat.setAttribute('patternTransform', `translate(${ox} ${oy})`);
+    },
+    [],
+  );
+
   /* ─── Excalidraw onChange — version-gated + bg-change + 2s debounce ── *
-   * Fires on every Excalidraw interaction (including pointer moves).
-   * We short-circuit no-ops by comparing both the scene version AND
-   * the view background color against the previously seen values, so
+   * Fires on every Excalidraw interaction (including pointer moves and
+   * pan/zoom). We short-circuit no-ops by comparing both the scene version
+   * AND the view background color against the previously seen values, so
    * background-only changes still trigger a save (scene version only
-   * reflects element changes). The first onChange at mount primes both
-   * refs without saving. */
+   * reflects element changes). The first onChange at mount primes the
+   * scene-version ref without saving; bg refs are already seeded from the
+   * fetch callback. We also pipe the current viewport into
+   * updatePatternTransform so the SVG pattern overlay tracks pan/zoom
+   * smoothly without causing a React re-render. */
   const handleChange = useCallback(
     (
       elements: readonly OrderedExcalidrawElement[],
       appState: AppState,
       files: BinaryFiles
     ) => {
+      // Sync the pattern overlay on every interaction — covers pan, zoom,
+      // draw, erase, etc. No React re-render; pure imperative attribute
+      // updates on the mounted <pattern> element.
+      updatePatternTransform(
+        appState.scrollX,
+        appState.scrollY,
+        appState.zoom.value,
+      );
+
       const version = getSceneVersion(elements);
-      const currentBg = appState.viewBackgroundColor || DEFAULT_BG;
+      const reportedBg = appState.viewBackgroundColor || DEFAULT_BG;
+      const isPatternMode = backgroundStyleRef.current !== 'blank';
+      // In pattern mode, Excalidraw's internal viewBackgroundColor is the
+      // 'transparent' marker we installed — NOT the user's real color.
+      // The user's real color lives in lastBgColorRef (seeded from the
+      // fetched page and updated by handleBgColorChange).
+      const bgChanged =
+        !isPatternMode && reportedBg !== lastBgColorRef.current;
       const sceneChanged = version !== lastSceneVersionRef.current;
-      const bgChanged = currentBg !== lastBgColorRef.current;
 
       if (!sceneChanged && !bgChanged) return;
 
-      // First call at mount primes the refs without saving.
+      // First call at mount primes the scene-version ref without saving.
+      // bgColor state + ref were already seeded from the fetch callback,
+      // so we only sync them here when we're in blank mode (where
+      // Excalidraw owns the authoritative color).
       if (lastSceneVersionRef.current === -1) {
         lastSceneVersionRef.current = version;
-        lastBgColorRef.current = currentBg;
-        setBgColor(currentBg);
+        if (!isPatternMode) {
+          lastBgColorRef.current = reportedBg;
+          setBgColor(reportedBg);
+        }
         return;
       }
 
       lastSceneVersionRef.current = version;
       if (bgChanged) {
-        lastBgColorRef.current = currentBg;
-        setBgColor(currentBg);
+        lastBgColorRef.current = reportedBg;
+        setBgColor(reportedBg);
       }
 
       setSaveStatus('unsaved');
@@ -185,30 +400,110 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         saveRef.current(
           {
             elements: elements as readonly ExcalidrawElement[],
-            appState: { viewBackgroundColor: currentBg },
+            appState: {
+              // Always persist the user's real color, never 'transparent'.
+              viewBackgroundColor: lastBgColorRef.current,
+              backgroundStyle: backgroundStyleRef.current,
+            },
             files,
           },
           titleRef.current
         );
       }, 2000);
     },
-    []
+    [updatePatternTransform]
   );
 
-  /* ─── Background color picker → Excalidraw updateScene ─────────────── *
+  /* ─── Background color picker → Excalidraw updateScene (or overlay) ── *
    * Called from the react-colorful HexColorPicker inside our custom
-   * MainMenu item. Pushes the new color into Excalidraw; the subsequent
-   * onChange fires handleChange, which detects the bg change, updates
-   * lastBgColorRef + bgColor state, and schedules a save via the normal
-   * debounced pipeline. */
+   * MainMenu item. In 'blank' mode we push the color into Excalidraw and
+   * let onChange → handleChange detect the change and schedule a save.
+   * In pattern mode Excalidraw's internal bg stays 'transparent' so its
+   * onChange won't notice the change; we update state/ref directly and
+   * schedule a save manually. Either way lastBgColorRef is the single
+   * source of truth for persistence. */
   const handleBgColorChange = useCallback((newColor: string) => {
+    // Drive state + ref so the overlay + next save see the new color.
+    setBgColor(newColor);
+    lastBgColorRef.current = newColor;
+
     const api = excalidrawAPIRef.current;
-    if (!api) return;
-    api.updateScene({
-      appState: { viewBackgroundColor: newColor },
-      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-    });
+    if (api && backgroundStyleRef.current === 'blank') {
+      api.updateScene({
+        appState: { viewBackgroundColor: newColor },
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+      return;
+    }
+
+    // Pattern mode — Excalidraw stays transparent, so schedule save here.
+    setSaveStatus('unsaved');
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const current = excalidrawAPIRef.current;
+      if (!current) return;
+      saveRef.current(
+        {
+          elements: current.getSceneElements() as readonly ExcalidrawElement[],
+          appState: {
+            viewBackgroundColor: newColor,
+            backgroundStyle: backgroundStyleRef.current,
+          },
+          files: current.getFiles(),
+        },
+        titleRef.current,
+      );
+    }, 2000);
   }, []);
+
+  /* ─── Background STYLE picker → swap Excalidraw bg ↔ overlay pattern ── *
+   * Toggling between 'blank' and any pattern flips Excalidraw's internal
+   * viewBackgroundColor between the user's real color and our
+   * 'transparent' marker. The overlay div behind Excalidraw always paints
+   * the real color, and the SVG pattern (if any) layers on top of it.
+   * Excalidraw's own onChange may not fire for the transparent↔color flip
+   * (it's our synthetic value), so we always schedule a save manually. */
+  const handleBackgroundStyleChange = useCallback(
+    (next: BackgroundStyle) => {
+      setBackgroundStyle(next);
+      backgroundStyleRef.current = next;
+
+      const api = excalidrawAPIRef.current;
+      if (api) {
+        api.updateScene({
+          appState: {
+            viewBackgroundColor:
+              next === 'blank' ? lastBgColorRef.current : 'transparent',
+          },
+          captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
+        // Immediately push the current viewport into the (possibly newly
+        // mounted) pattern element. A useEffect below also syncs after
+        // commit as a safety net for the first-frame case.
+        const s = api.getAppState();
+        updatePatternTransform(s.scrollX, s.scrollY, s.zoom.value);
+      }
+
+      setSaveStatus('unsaved');
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        const current = excalidrawAPIRef.current;
+        if (!current) return;
+        saveRef.current(
+          {
+            elements: current.getSceneElements() as readonly ExcalidrawElement[],
+            appState: {
+              viewBackgroundColor: lastBgColorRef.current,
+              backgroundStyle: next,
+            },
+            files: current.getFiles(),
+          },
+          titleRef.current,
+        );
+      }, 2000);
+    },
+    [updatePatternTransform],
+  );
 
   /* ─── Title change → debounced save (canvas snapshot read from API) ─ */
   const handleTitleChange = useCallback((newTitle: string) => {
@@ -222,12 +517,16 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         return;
       }
       const elements = api.getSceneElements();
-      const appState = api.getAppState();
       const files = api.getFiles();
       saveRef.current(
         {
           elements: elements as readonly ExcalidrawElement[],
-          appState: { viewBackgroundColor: appState.viewBackgroundColor },
+          appState: {
+            // Use the ref'd real color — Excalidraw's live value may be the
+            // 'transparent' marker when a pattern is active.
+            viewBackgroundColor: lastBgColorRef.current,
+            backgroundStyle: backgroundStyleRef.current,
+          },
           files,
         },
         newTitle
@@ -241,6 +540,19 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, []);
+
+  /* ─── Sync the pattern overlay transform after a style change ───────── *
+   * Switching from 'blank' to a pattern mounts a new <pattern> element
+   * whose ref isn't attached yet when handleBackgroundStyleChange runs.
+   * This effect fires after commit, once the new SVG is attached, and
+   * pushes the current Excalidraw viewport into the pattern so the first
+   * paint already has the correct width/height/translate. Safe to re-run. */
+  useEffect(() => {
+    const api = excalidrawAPIRef.current;
+    if (!api) return;
+    const s = api.getAppState();
+    updatePatternTransform(s.scrollX, s.scrollY, s.zoom.value);
+  }, [backgroundStyle, updatePatternTransform]);
 
   /* ─── Stylus barrel-button → eraser ─────────────────────────────────── *
    * Maps non-Apple stylus buttons to the eraser tool via Excalidraw's
@@ -599,6 +911,50 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
       {/* Canvas — absolute-inset wrapper gives Excalidraw a deterministic size */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <div style={{ position: 'absolute', inset: 0 }}>
+          {/* Pattern overlay — paints the user's real base color plus the
+              selected pattern BEHIND Excalidraw. When a pattern is active,
+              Excalidraw's own canvas is rendered with 'transparent' so this
+              layer shows through; in blank mode Excalidraw paints the base
+              color itself and this div is visually a no-op. pointer-events
+              is none so it never steals clicks from Excalidraw.
+              The <pattern> element's width/height and patternTransform are
+              updated imperatively by updatePatternTransform on every
+              Excalidraw onChange so the pattern pans and zooms 1:1 with
+              the scene without triggering React re-renders. */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              background: bgColor,
+            }}
+          >
+            {backgroundStyle !== 'blank' && (
+              <svg
+                width="100%"
+                height="100%"
+                style={{ position: 'absolute', inset: 0, display: 'block' }}
+              >
+                <defs>
+                  <pattern
+                    ref={patternElementRef}
+                    id={`canvas-bg-pattern-${pageId}`}
+                    patternUnits="userSpaceOnUse"
+                    width={PATTERN_BASE[backgroundStyle].width}
+                    height={PATTERN_BASE[backgroundStyle].height}
+                  >
+                    {renderPatternBody(backgroundStyle, getInkColor(bgColor))}
+                  </pattern>
+                </defs>
+                <rect
+                  width="100%"
+                  height="100%"
+                  fill={`url(#canvas-bg-pattern-${pageId})`}
+                />
+              </svg>
+            )}
+          </div>
           <Excalidraw
             initialData={initialData}
             onChange={handleChange}
@@ -660,6 +1016,57 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
                     }}
                   >
                     Canvas background
+                  </div>
+                  {/* Style picker — Blank / Dotted / Lined / Grid tiles.
+                      Sits above the color picker so users set the style
+                      first (the larger decision) and then fine-tune the
+                      base color. */}
+                  <div
+                    role="radiogroup"
+                    aria-label="Background style"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(4, 1fr)',
+                      gap: '6px',
+                      padding: '0 2px',
+                    }}
+                  >
+                    {BACKGROUND_STYLES.map((styleOption) => {
+                      const selected = backgroundStyle === styleOption;
+                      return (
+                        <button
+                          key={styleOption}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          aria-label={styleOption}
+                          title={
+                            styleOption.charAt(0).toUpperCase() +
+                            styleOption.slice(1)
+                          }
+                          onClick={() => handleBackgroundStyleChange(styleOption)}
+                          style={{
+                            height: '32px',
+                            borderRadius: '6px',
+                            border: selected
+                              ? '1px solid rgba(174,137,255,0.9)'
+                              : '1px solid rgba(237,233,255,0.12)',
+                            background: selected
+                              ? 'rgba(174,137,255,0.12)'
+                              : 'rgba(0,0,0,0.35)',
+                            cursor: 'pointer',
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition:
+                              'border-color 0.2s, background 0.2s',
+                          }}
+                        >
+                          <StyleTileSwatch style={styleOption} />
+                        </button>
+                      );
+                    })}
                   </div>
                   <div style={{ padding: '0 2px' }}>
                     <HexColorPicker
