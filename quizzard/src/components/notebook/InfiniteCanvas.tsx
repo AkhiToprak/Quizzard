@@ -12,7 +12,6 @@ import {
   Excalidraw,
   MainMenu,
   getSceneVersion,
-  CaptureUpdateAction,
 } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import type {
@@ -141,19 +140,6 @@ function getInkColor(hex: string): string {
 }
 
 /**
- * Pick the right Excalidraw theme for a given base color. Excalidraw's
- * dark theme applies a CSS invert filter to its canvas so user strokes
- * drawn in dark colors appear light on a dark bg (and vice versa). If
- * the user picks a light base color we need to switch Excalidraw to its
- * light theme or the filter will make strokes nearly invisible (and will
- * also invert any color we hand to viewBackgroundColor — the root cause
- * of the "pick white, see black" bug).
- */
-function getExcalidrawTheme(hex: string): 'light' | 'dark' {
-  return getLuminance(hex) < 0.5 ? 'dark' : 'light';
-}
-
-/**
  * Render the SVG children for a single pattern tile. The tile coordinate
  * system matches PATTERN_BASE[style] dimensions.
  */
@@ -261,13 +247,11 @@ function StyleTileSwatch({ style }: { style: BackgroundStyle }) {
  * NOTE: We ALWAYS hand Excalidraw `viewBackgroundColor: 'transparent'` —
  * regardless of the background style. The user's real color is painted by
  * our overlay div which sits behind Excalidraw's canvas, so it isn't
- * affected by Excalidraw's dark-theme invert filter. If we let Excalidraw
- * paint the color itself, picking white would render as black because of
- * that filter. The user's real color is persisted in
+ * affected by Excalidraw's dark-theme invert filter. Excalidraw itself is
+ * pinned to its light theme (see `theme="light"` on the JSX element) so
+ * the invert filter is never active and the color the user picks is the
+ * color they see. The user's real color is persisted in
  * Page.content.appState.viewBackgroundColor — never 'transparent'.
- *
- * We also set `appState.theme` based on the base color's luminance so
- * user strokes stay legible on both dark and light backgrounds.
  *
  * Known v1 limitation: Excalidraw's "Save as image" export captures only
  * Excalidraw's own canvas, so exports will come out transparent without
@@ -278,13 +262,10 @@ function toExcalidrawInitialData(raw: unknown): ExcalidrawInitialDataState | nul
   const maybe = raw as Record<string, unknown>;
   if (!Array.isArray(maybe.elements)) return null;
 
-  const { userBgColor } = parsePersistedAppState(raw);
-
   return {
     elements: maybe.elements as readonly ExcalidrawElement[],
     appState: {
       viewBackgroundColor: 'transparent',
-      theme: getExcalidrawTheme(userBgColor),
     },
     files: (maybe.files as BinaryFiles) ?? undefined,
     scrollToContent: true,
@@ -460,30 +441,19 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     [updatePatternTransform]
   );
 
-  /* ─── Background color picker → overlay + Excalidraw theme update ──── *
+  /* ─── Background color picker → overlay only ────────────────────────── *
    * Called from the react-colorful HexColorPicker inside our custom
    * MainMenu item. Drives the overlay div's background via React state
-   * (lastBgColorRef is the single source of truth for persistence) and
-   * updates Excalidraw's theme based on the color's luminance so strokes
-   * stay legible on both dark and light backgrounds. Excalidraw's
-   * internal viewBackgroundColor always stays 'transparent' — never the
-   * real color — which is why picking white no longer renders as black.
-   * Schedules a save manually since Excalidraw's own onChange never sees
-   * a meaningful bg change. */
+   * (lastBgColorRef is the single source of truth for persistence).
+   * Excalidraw's own canvas stays transparent and its theme is pinned
+   * to light at the JSX prop, so the dark-theme invert filter never
+   * runs and the color the user picks is the color they see. Schedules
+   * a save manually since Excalidraw's own onChange never sees a
+   * meaningful bg change. */
   const handleBgColorChange = useCallback((newColor: string) => {
     // Drive state + ref so the overlay + next save see the new color.
     setBgColor(newColor);
     lastBgColorRef.current = newColor;
-
-    // Flip Excalidraw's theme if the luminance crossed the mid threshold.
-    // Harmless no-op if the theme didn't actually change.
-    const api = excalidrawAPIRef.current;
-    if (api) {
-      api.updateScene({
-        appState: { theme: getExcalidrawTheme(newColor) },
-        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-      });
-    }
 
     setSaveStatus('unsaved');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -674,13 +644,12 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     const parsed = toExcalidrawInitialData(page.content);
     if (parsed) return parsed;
     // Blank fallback (empty page.content or legacy tldraw snapshot). Must
-    // match toExcalidrawInitialData's invariants: Excalidraw canvas is
-    // always transparent, theme derives from the base color's luminance.
+    // match toExcalidrawInitialData's invariant: Excalidraw's canvas is
+    // always transparent so our overlay's base color shows through.
     return {
       elements: [],
       appState: {
         viewBackgroundColor: 'transparent',
-        theme: getExcalidrawTheme(DEFAULT_BG),
       },
     };
   }, [page]);
@@ -1006,6 +975,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
             excalidrawAPI={(api) => {
               excalidrawAPIRef.current = api;
             }}
+            theme="light"
             UIOptions={{
               canvasActions: {
                 loadScene: true,
