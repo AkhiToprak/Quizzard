@@ -7,28 +7,15 @@ const columns = [
   {
     title: 'Product',
     links: [
-      { label: 'Features', href: '#features' },
       { label: 'Pricing', href: '/pricing' },
-      { label: 'Changelog', href: '#' },
-      { label: 'Roadmap', href: '#' },
-    ],
-  },
-  {
-    title: 'Learn',
-    links: [
-      { label: 'Docs', href: '/docs' },
       { label: 'How it works', href: '#how-it-works' },
-      { label: 'Tutorials', href: '#' },
-      { label: 'Study tips', href: '#' },
     ],
   },
   {
     title: 'Company',
     links: [
       { label: 'About', href: '#' },
-      { label: 'Blog', href: '#' },
       { label: 'Contact', href: '#' },
-      { label: 'Press kit', href: '#' },
     ],
   },
   {
@@ -80,7 +67,7 @@ export default function LandingFooter() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.4fr repeat(4, 1fr)',
+            gridTemplateColumns: '1.6fr repeat(3, 1fr)',
             gap: 48,
             marginBottom: 64,
           }}
@@ -135,43 +122,46 @@ export default function LandingFooter() {
                 marginTop: 24,
               }}
             >
-              {['alternate_email', 'public', 'play_circle', 'photo_camera'].map(
-                (icon) => (
-                  <a
-                    key={icon}
-                    href="#"
-                    aria-label="Social link"
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: 'var(--radius-md)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'rgba(174, 137, 255, 0.08)',
-                      border: '1px solid rgba(174, 137, 255, 0.18)',
-                      color: 'var(--on-surface-variant)',
-                      textDecoration: 'none',
-                      transition:
-                        'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.background =
-                        'rgba(174, 137, 255, 0.18)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.background =
-                        'rgba(174, 137, 255, 0.08)';
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                      {icon}
-                    </span>
-                  </a>
-                )
-              )}
+              <a
+                href="https://www.tiktok.com/@notemage"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Notemage on TikTok"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 'var(--radius-md)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(174, 137, 255, 0.08)',
+                  border: '1px solid rgba(174, 137, 255, 0.18)',
+                  color: 'var(--on-surface-variant)',
+                  textDecoration: 'none',
+                  transition:
+                    'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.background =
+                    'rgba(174, 137, 255, 0.18)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.background =
+                    'rgba(174, 137, 255, 0.08)';
+                }}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path d="M19.321 5.562a5.124 5.124 0 0 1-3.414-1.267 5.124 5.124 0 0 1-1.537-2.723 5.105 5.105 0 0 1-.08-.898h-3.29v13.4a3.022 3.022 0 0 1-5.436 1.817 3.02 3.02 0 0 1-.604-1.817 3.022 3.022 0 0 1 3.022-3.022c.324 0 .634.051.926.145V8.045a6.353 6.353 0 0 0-.926-.067 6.318 6.318 0 0 0-6.318 6.318 6.318 6.318 0 0 0 6.318 6.318 6.318 6.318 0 0 0 6.318-6.318V8.871a8.399 8.399 0 0 0 5.021 1.647V7.229a5.102 5.102 0 0 1-.003-.003 5.124 5.124 0 0 1 .003-1.664z" />
+                </svg>
+              </a>
             </div>
           </div>
 
