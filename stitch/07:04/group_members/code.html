@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lumina Collective - Members</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#282c36",
+                        "on-tertiary-fixed": "#22004f",
+                        "on-secondary-container": "#fff7e7",
+                        "surface-container-high": "#1c2028",
+                        "error-container": "#a70138",
+                        "on-error": "#490013",
+                        "on-tertiary-container": "#2c0063",
+                        "outline": "#73757d",
+                        "inverse-surface": "#f9f9ff",
+                        "on-primary-container": "#280072",
+                        "primary-dim": "#7e51ff",
+                        "secondary-fixed-dim": "#edc600",
+                        "primary-fixed": "#a98fff",
+                        "surface": "#0b0e14",
+                        "surface-variant": "#22262f",
+                        "on-tertiary-fixed-variant": "#4a1891",
+                        "outline-variant": "#45484f",
+                        "tertiary-container": "#b287fe",
+                        "surface-container-low": "#10131a",
+                        "surface-tint": "#b6a0ff",
+                        "on-primary-fixed-variant": "#32008a",
+                        "tertiary-fixed-dim": "#b78eff",
+                        "background": "#0b0e14",
+                        "on-tertiary": "#3c0081",
+                        "on-background": "#ecedf6",
+                        "tertiary-dim": "#b287fe",
+                        "primary": "#b6a0ff",
+                        "tertiary": "#be99ff",
+                        "secondary": "#fdd400",
+                        "surface-container": "#161a21",
+                        "error-dim": "#d73357",
+                        "on-surface": "#ecedf6",
+                        "on-primary-fixed": "#000000",
+                        "tertiary-fixed": "#c29fff",
+                        "secondary-dim": "#edc600",
+                        "on-secondary-fixed": "#433700",
+                        "surface-dim": "#0b0e14",
+                        "primary-fixed-dim": "#9c7eff",
+                        "inverse-primary": "#6834eb",
+                        "on-primary": "#340090",
+                        "surface-container-lowest": "#000000",
+                        "on-surface-variant": "#a9abb3",
+                        "on-secondary": "#594a00",
+                        "secondary-fixed": "#fdd400",
+                        "surface-container-highest": "#22262f",
+                        "on-secondary-fixed-variant": "#645300",
+                        "secondary-container": "#705d00",
+                        "on-error-container": "#ffb2b9",
+                        "error": "#ff6e84",
+                        "inverse-on-surface": "#52555c",
+                        "primary-container": "#a98fff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0b0e14;
+            color: #ecedf6;
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-surface selection:bg-primary/30 min-h-screen pb-24 md:pb-0">
+<!-- TopAppBar Component -->
+<header class="bg-slate-950/80 backdrop-blur-xl docked full-width top-0 sticky z-50 shadow-2xl shadow-violet-900/5">
+<div class="flex justify-between items-center w-full px-6 py-3 max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors duration-200 p-2 rounded-lg">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex items-center gap-3">
+<img alt="Group Icon" class="w-8 h-8 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4T5zE_d0c3LXAwqosJPUcoVBRkl2BZ8xNrUw7U88VzCiAhtRnJ2zYy0OSS4rETDFpOXsowMOYzopvc7L8-KAunnhtIbnbjFUQOedir8Xt1bfWT79HiIgjZUN4a7uesQnndDgcOYfvWbEvneAhuGuSLDVeccrByOklSrnpDBV47Qh8KcRfhgPX8xgOe7nD5AcQAZzIo-1wbF6waoo46rTxJOQXgHrlrnRm_pNuNFYDm_zyRdYVeO_IbJ_mGFDD9jXVVebma4ue"/>
+<span class="text-xl font-extrabold text-slate-100 tracking-tighter font-['Plus_Jakarta_Sans']">Lumina Collective</span>
+</div>
+</div>
+<div class="hidden md:flex items-center flex-1 max-w-md mx-8">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+<input class="w-full bg-slate-900/50 border-none rounded-full py-2 pl-10 pr-4 text-sm text-slate-200 focus:ring-1 focus:ring-violet-400/50 placeholder:text-slate-600 transition-all" placeholder="Search collective..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors duration-200 p-2 rounded-lg">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="ml-2 w-8 h-8 rounded-full border border-violet-400/20 overflow-hidden">
+<img alt="User profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDCSdj6TCDR6u-me9Sq35G9WauU0ype3OOvu2B61-2BU4UUJKEZWpHziXiYygb-G6bwStfTWGKlZ8y0-Y0-k0dlP4xLn4rll4JV3PodczOXLmGoI71iU5MNQiH9VpEi7wa8IKPCKF3dOb5g9ACrFcafoV49-pQL0R4Br0WwFcMzbEdAOG42pM9st6af_O7jqMvT4Dx9KzdyczBgD_HK-72VKPvVL2FzYenSBQTe6eESUHqJfVhUSfXyItCgv2dLEMtH9a41DcY"/>
+</div>
+</div>
+</div>
+</header>
+<nav class="bg-surface-container-low/50 backdrop-blur-sm border-b border-outline-variant/10">
+<div class="max-w-screen-2xl mx-auto px-6 flex items-center gap-8">
+<div class="flex items-center gap-8">
+<a class="py-4 text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors" href="#">Chat</a>
+<a class="py-4 text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors" href="#">Shared</a>
+</div>
+<div class="flex-1"></div>
+<div class="flex items-center gap-8">
+<a class="relative py-4 text-sm font-bold text-violet-400 transition-colors flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">group</span> Members
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-violet-400 rounded-full"></span>
+</a>
+<a class="py-4 text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">settings</span> Settings
+                </a>
+</div>
+</div>
+</nav>
+<main class="max-w-screen-xl mx-auto px-6 py-10">
+<!-- Content Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div>
+<h2 class="text-4xl font-extrabold font-headline tracking-tight text-on-surface mb-2">Members</h2>
+<p class="text-on-surface-variant font-body">Manage study group access, roles, and pending invitations.</p>
+</div>
+<button class="bg-secondary text-on-secondary px-6 py-3 rounded-xl font-bold font-label flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-secondary/10 self-start md:self-auto">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+                Invite Member
+            </button>
+</div>
+<!-- Members List (Single Vertical List) -->
+<div class="bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10">
+<div class="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low">
+<h3 class="text-xs font-bold font-label uppercase tracking-widest text-primary-dim">All Members</h3>
+<span class="text-xs font-bold text-on-surface-variant">14 Active</span>
+</div>
+<div class="divide-y divide-outline-variant/10">
+<!-- Owner -->
+<div class="flex items-center justify-between p-6 hover:bg-surface-container/50 transition-all group">
+<div class="flex items-center gap-4">
+<img alt="Member Avatar" class="w-12 h-12 rounded-lg bg-surface-container-high object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrifgofEVeKvUxtvvrs-D6dDfp7eWT4lU411F9Iv0rE4aOJbrN5SxMxs868RmELt-R1pb0r5e4b11Rc3PD8vSPgNju605IJqOwOPkPaeISRyxOJOXpC05Jv3gqv8BfJsXQBkza8WjzmIVDx8HjAwiTp1n6JMAx3ymU-PAAiv_r7adltFtCHoltAlcxHDevWt0lewxfnS5UqsIjUyBrKkQMfD0-Xc9xbnGwf6gfql9yKPZp9E1dXj-Rf0HwoKqzLG9vY6Rdyeu9"/>
+<div class="flex items-center gap-3">
+<h4 class="font-bold text-on-surface font-headline">Aria Thorne</h4>
+<span class="text-[10px] font-bold px-2 py-0.5 bg-primary/20 text-primary-fixed rounded-full uppercase tracking-wider">Owner</span>
+</div>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Admin -->
+<div class="flex items-center justify-between p-6 hover:bg-surface-container/50 transition-all group">
+<div class="flex items-center gap-4">
+<img alt="Member Avatar" class="w-12 h-12 rounded-lg bg-surface-container-high object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgf2aZp0flW5qAzdE7wTOOCL9VIXs5iwZZywYtDpU-LLCId3bhkACPvygkk-CUtzT_7U-p9nF0lVX9rIdewc9qUP2KX0LIm-20xmtzXLsdiMjjUy6I50NvNZeOcc4gM_QZKPz4MLukm7t53vnOqIs46T54bxMWY8NJv0stwAxycrSs5AokHdLgvXX1ktJO2I3mxYkuC3aHetdIzen-b5TQwj3PHl3Ao_gxNTrxTlC95p9uGG3lNzI9W-FP9yOZ1gaGdc7dty0"/>
+<div class="flex items-center gap-3">
+<h4 class="font-bold text-on-surface font-headline">Julian Vane</h4>
+<span class="text-[10px] font-bold px-2 py-0.5 bg-tertiary/20 text-tertiary-fixed rounded-full uppercase tracking-wider">Admin</span>
+</div>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Members -->
+<div class="flex items-center justify-between p-6 hover:bg-surface-container/50 transition-all group">
+<div class="flex items-center gap-4">
+<img alt="Member Avatar" class="w-12 h-12 rounded-lg bg-surface-container-high object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsV_oznFNCgadJGth0tlgRqOWUYq06f6Tdz-mIuEAJv6xmHPvWC5BvQhgTUilpdLKMDGMnW-h6Ux3czjkb0WRTbF5jNfPzMf9x0ZhcbFIqVAxBQFPHZUAYrK24YZ4EO4Xjvurvl86GyDHumE-5CqCZZc5U_Hm8eyRODDau94rhMQH1SYWshNnWBJKKuMwaIqxGNIATGxMvUS0ZoO3mru00ZFnDfvOOc_yR7cDUerajynAW1-6e2zt8hYub92ovS-Q9f96Ad0Ue"/>
+<h4 class="font-bold text-on-surface font-headline">Leo Sterling</h4>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between p-6 hover:bg-surface-container/50 transition-all group">
+<div class="flex items-center gap-4">
+<img alt="Member Avatar" class="w-12 h-12 rounded-lg bg-surface-container-high object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAs57Jc9M4on_fKcHr1KOj8G_xNqsnkSQNXyoRh9eEmHLajpZ5hU_ChFNj7jQFjCW4A9VRhQf1oybn9HEPQaDMESplb_sa0-jezXGgpJwR4_2LTnGBfK0RDOXHzr9a83QaJcrXVL13yIXwV1ykVpD_HGUvv3FN2KILbv7mwvvMLUwsAJ2RPGTaZtAyv8hgMJT3seYp5Jyj55FHA3KGlIkmHqjumn4m5gQ7mmcSkM1OmCof9kxeRgMza9CvSBILXWGC2ExeTQ4uG"/>
+<h4 class="font-bold text-on-surface font-headline">Elena Rossi</h4>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between p-6 hover:bg-surface-container/50 transition-all group">
+<div class="flex items-center gap-4">
+<img alt="Member Avatar" class="w-12 h-12 rounded-lg bg-surface-container-high object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZ_JI-9yZlJLC53OqaJLJY-ELgBgNgbT2jv4zJII1cBkJrZh_3NCHyWDYSrtdjlwrIGXHsd2x0uYGng2llil-N3xbcYmlO6_k8F7_5zXO8i5O4h_Iyyy6iX7bYmLB-8R6YgyA-w894pHRL-YPyW710bRO3BrP4yjIl2Q_ojY9cpji6hgF4tGUTERXFHZIM2OD3A0Vhjun3j22vsX_Xq0iNHxfFfev3u--PkMGsxHkePHTHjLc4_jpZajqKbbnbrllg8EHeTNwJ"/>
+<h4 class="font-bold text-on-surface font-headline">Marcus Chen</h4>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between p-6 hover:bg-surface-container/50 transition-all group">
+<div class="flex items-center gap-4">
+<img alt="Member Avatar" class="w-12 h-12 rounded-lg bg-surface-container-high object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCduqelRVNX2QM-N_N_0cpih88zEcjWScKQppfqMRlRvLrVjRYsaiDHXRjqkChxXI5fAtzM8nSj_Vw3aBihoYV05AgbO266m8ppxc-f8wJdNpqBiSAs6SPWlP751BgyowLur3YkPARPhOACKD5idopEfAtOceN7HdW09qV2D__nDcpiU5EnSzRLATndTPX9ZmIUjguQxJHArdxb0qgDDbgMXxAg75tPZNR3-F7qgBUIi899KZmaSEL5htCSx6La-4UNZULlIbyb"/>
+<h4 class="font-bold text-on-surface font-headline">Sasha Bloom</h4>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar Component (Mobile Only) -->
+<nav class="md:hidden bg-slate-900/95 backdrop-blur-md fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 border-t border-slate-800/50 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] rounded-t-2xl">
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-slate-200">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Chat</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-slate-200">
+<span class="material-symbols-outlined">folder_shared</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Shared</span>
+</div>
+<div class="flex flex-col items-center justify-center text-violet-400 bg-violet-400/10 rounded-xl px-4 py-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Members</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-slate-200">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Settings</span>
+</div>
+</nav>
+</body></html>

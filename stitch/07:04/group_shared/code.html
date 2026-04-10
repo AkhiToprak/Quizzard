@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#282c36",
+                    "on-tertiary-fixed": "#22004f",
+                    "on-secondary-container": "#fff7e7",
+                    "surface-container-high": "#1c2028",
+                    "error-container": "#a70138",
+                    "on-error": "#490013",
+                    "on-tertiary-container": "#2c0063",
+                    "outline": "#73757d",
+                    "inverse-surface": "#f9f9ff",
+                    "on-primary-container": "#280072",
+                    "primary-dim": "#7e51ff",
+                    "secondary-fixed-dim": "#edc600",
+                    "primary-fixed": "#a98fff",
+                    "surface": "#0b0e14",
+                    "surface-variant": "#22262f",
+                    "on-tertiary-fixed-variant": "#4a1891",
+                    "outline-variant": "#45484f",
+                    "tertiary-container": "#b287fe",
+                    "surface-container-low": "#10131a",
+                    "surface-tint": "#b6a0ff",
+                    "on-primary-fixed-variant": "#32008a",
+                    "tertiary-fixed-dim": "#b78eff",
+                    "background": "#0b0e14",
+                    "on-tertiary": "#3c0081",
+                    "on-background": "#ecedf6",
+                    "tertiary-dim": "#b287fe",
+                    "primary": "#b6a0ff",
+                    "tertiary": "#be99ff",
+                    "secondary": "#fdd400",
+                    "surface-container": "#161a21",
+                    "error-dim": "#d73357",
+                    "on-surface": "#ecedf6",
+                    "on-primary-fixed": "#000000",
+                    "tertiary-fixed": "#c29fff",
+                    "secondary-dim": "#edc600",
+                    "on-secondary-fixed": "#433700",
+                    "surface-dim": "#0b0e14",
+                    "primary-fixed-dim": "#9c7eff",
+                    "inverse-primary": "#6834eb",
+                    "on-primary": "#340090",
+                    "surface-container-lowest": "#000000",
+                    "on-surface-variant": "#a9abb3",
+                    "on-secondary": "#594a00",
+                    "secondary-fixed": "#fdd400",
+                    "surface-container-highest": "#22262f",
+                    "on-secondary-fixed-variant": "#645300",
+                    "secondary-container": "#705d00",
+                    "on-error-container": "#ffb2b9",
+                    "error": "#ff6e84",
+                    "inverse-on-surface": "#52555c",
+                    "primary-container": "#a98fff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(169, 143, 255, 0.05);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="bg-slate-950/80 backdrop-blur-xl docked full-width top-0 sticky z-50 shadow-2xl shadow-violet-900/5">
+<div class="flex justify-between items-center w-full px-6 py-3 max-w-screen-2xl mx-auto"><div class="flex items-center gap-4">
+<button class="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors duration-200 p-2 rounded-lg">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<div class="flex items-center gap-3">
+<img alt="Group Icon" class="w-8 h-8 rounded-lg object-cover" data-alt="minimalist geometric logo of a stylized glowing violet book or brain against a dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4T5zE_d0c3LXAwqosJPUcoVBRkl2BZ8xNrUw7U88VzCiAhtRnJ2zYy0OSS4rETDFpOXsowMOYzopvc7L8-KAunnhtIbnbjFUQOedir8Xt1bfWT79HiIgjZUN4a7uesQnndDgcOYfvWbEvneAhuGuSLDVeccrByOklSrnpDBV47Qh8KcRfhgPX8xgOe7nD5AcQAZzIo-1wbF6waoo46rTxJOQXgHrlrnRm_pNuNFYDm_zyRdYVeO_IbJ_mGFDD9jXVVebma4ue"/>
+<span class="text-xl font-extrabold text-slate-100 tracking-tighter font-['Plus_Jakarta_Sans']">Lumina Collective</span>
+</div>
+</div>
+<div class="hidden md:flex items-center flex-1 max-w-md mx-8">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+<input class="w-full bg-slate-900/50 border-none rounded-full py-2 pl-10 pr-4 text-sm text-slate-200 focus:ring-1 focus:ring-violet-400/50 placeholder:text-slate-600 transition-all" placeholder="Search collective..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors duration-200 p-2 rounded-lg">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="ml-2 w-8 h-8 rounded-full border border-violet-400/20 overflow-hidden">
+<img alt="User profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfRJVlPof5SQETeV0qRN5o_2dy8s5wqHF1bO19cvgNgRAwowaydJSVZ_X7yrFMLJ7F6m8NNQpwSR7gNfFymALNnIQ7dnyCOXAkd6atkn7wFWJU9-Qsr8GNEFEtb_rdR0BvyeTHU_-z0EX7e__C1AU6ORUDFwPWr6q8Gep4ld2JjFPE1JtSXoLvz_bGpXGLrCTHyC06mQ6OkGAOq0a5X9Y61-Tnv9ki0M8i-Gi_-cU4_35kc795FLxFWn5t573S3QFyc56KLDuF"/>
+</div>
+</div></div>
+</header><nav class="bg-surface-container-low/50 backdrop-blur-sm border-b border-outline-variant/10">
+<div class="max-w-screen-2xl mx-auto px-6 flex items-center gap-8">
+<div class="flex items-center gap-8">
+<a class="py-4 text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+                Chat
+            </a>
+<a class="relative py-4 text-sm font-bold text-violet-400 transition-colors" href="#">
+                Shared
+                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-violet-400 rounded-full"></span>
+</a>
+</div>
+<div class="flex-1"></div>
+<div class="flex items-center gap-8">
+<a class="py-4 text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">group</span> Members
+            </a>
+<a class="py-4 text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">settings</span> Settings
+            </a>
+</div>
+</div>
+</nav>
+<main class="max-w-screen-2xl mx-auto px-6 py-8 pb-32">
+<!-- Hero / Section Header -->
+<section class="mb-10">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h2 class="font-headline text-4xl font-extrabold tracking-tight mb-2 text-on-surface">Shared Knowledge</h2>
+<p class="text-on-surface-variant max-w-xl font-medium">Access collaborative intelligence across your grimoire. Filter through documents, flashcards, and notebooks shared by the collective.</p>
+</div>
+<button class="bg-secondary text-on-secondary px-6 py-3 rounded-xl font-headline font-bold flex items-center gap-2 shadow-lg shadow-secondary/10 hover:shadow-secondary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined">add_circle</span>
+                    Share Content
+                </button>
+</div>
+</section>
+<!-- Filter Chips -->
+<nav class="mb-8 overflow-x-auto">
+<div class="flex gap-3 pb-2">
+<button class="px-5 py-2 rounded-full bg-primary-container text-on-primary-container font-headline font-bold text-sm whitespace-nowrap shadow-md shadow-primary/10">All Resources</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-on-surface font-headline font-semibold text-sm transition-colors whitespace-nowrap">Notebooks</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-on-surface font-headline font-semibold text-sm transition-colors whitespace-nowrap">Flashcards</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-on-surface font-headline font-semibold text-sm transition-colors whitespace-nowrap">Quizzes</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-on-surface font-headline font-semibold text-sm transition-colors whitespace-nowrap">Documents</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-on-surface font-headline font-semibold text-sm transition-colors whitespace-nowrap">Folders</button>
+</div>
+</nav>
+<!-- Content Grid (Asymmetric / Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Bento Hero Card (Spans 2 columns) -->
+<div class="md:col-span-2 relative group overflow-hidden rounded-xl bg-gradient-to-br from-primary-dim to-inverse-primary p-[1px]">
+<div class="bg-surface-container w-full h-full rounded-xl p-6 flex flex-col justify-between overflow-hidden relative">
+<div class="absolute -right-10 -top-10 w-48 h-48 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/30 transition-all duration-500"></div>
+<div>
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined" style="font-size: 32px;">auto_stories</span>
+</div>
+<button class="text-on-surface-variant hover:text-error-dim transition-colors p-2 bg-surface-container-high rounded-lg">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<h3 class="font-headline text-2xl font-bold mb-2">Advanced Quantum Mechanics</h3>
+<p class="text-on-surface-variant text-sm font-medium line-clamp-2 mb-4">Complete lecture notes with integrated interactive simulations and group problem sets.</p>
+</div>
+<div class="flex items-center justify-between mt-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border border-primary/20 p-0.5">
+<img alt="Sharer" class="w-full h-full rounded-full object-cover" data-alt="professional portrait of a young male scholar with glasses and a warm smile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2iQD6zHAFItlEMId24gbt9DNNKowPvJXVW7GW2TeFii-Y1WK6rbxJZSroANou3TOsaVQA05NFjLmIl0tTMKhe12wLoF6XLC1OpVhgW1IZzvPNEdmODI0_CdLmBZhqO_SfgoLtiWQGfa5VHuGidQCc9RIDXx1e8dt6Xc1xqGQDCdHOvxOnFqGkUP4WInmSaXVJUOCCu-tqWQz2qQyCoyrRjwc0Ku4Tqh6KECW2OlOzGU1aq7ZijSKYHkKzwzUt2dGsnnedFA5k"/>
+</div>
+<span class="text-xs font-headline font-bold text-primary">Shared by Elias Thorne</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 font-bold">2 hours ago</span>
+</div>
+</div>
+</div>
+<!-- Standard Content Card 1 -->
+<div class="bg-surface-container rounded-xl p-5 flex flex-col group hover:bg-surface-container-high transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-tertiary-container/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">quiz</span>
+</div>
+<button class="text-on-surface-variant hover:text-error-dim transition-colors p-1.5 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+<h4 class="font-headline font-bold text-lg mb-1">Final Exam Prep: Bio 201</h4>
+<p class="text-on-surface-variant text-xs mb-6">45 flashcards • Multiple choice focus</p>
+<div class="mt-auto flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant">
+<img alt="Sharer" class="w-full h-full rounded-full object-cover" data-alt="avatar of a young woman with curly hair and studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_d2KS_o8rinlhUoLLazOirN5AZrUDw-cL-uIiyaH8gMIyVhKFaimIoQxLP_-G2hK-4EkC23noJYsqHAJN_1AZE91SnFONzXuM1_OOm1lhMvgs87MZQ6DMUmRPRhMs6fyzDK2Yn54Z9CR9a2JvXzETq8I6sKxYz4dK74EesO4xwSjRL91LZM7nxhWlBqu0S_avraVYkicy7_yfpuzbt9H0EhLd_5xsHEuABwX_m3XiM6uFq1okdT3ps6I_sNHhJ41TPhoCavyq"/>
+</div>
+<span class="text-[11px] font-bold text-on-surface-variant">Sarah Jenkins</span>
+</div>
+</div>
+<!-- Standard Content Card 2 -->
+<div class="bg-surface-container rounded-xl p-5 flex flex-col group hover:bg-surface-container-high transition-all border border-transparent hover:border-outline-variant/20">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-secondary-container/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">folder</span>
+</div>
+<button class="text-on-surface-variant hover:text-error-dim transition-colors p-1.5 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+<h4 class="font-headline font-bold text-lg mb-1">Research Papers 2024</h4>
+<p class="text-on-surface-variant text-xs mb-6">12 PDF Documents • Archive</p>
+<div class="mt-auto flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant">
+<img alt="Sharer" class="w-full h-full rounded-full object-cover" data-alt="portrait of a focused student in a dark library with soft blue lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3_BUOg5GKpHPF0cfHzvTzN9fkyouIc7Vo5D4MPS5KMUzPb_8WpYYadHRfYY82GXbznJS1ZJ4lvrC8k3cRo2QsAOX07_FfR4vzHTGVSCAlFrMSLTp_r3FVHzuQtJCvCe4-tnEEQdbX_P9Y2T8yAhxlZr0fC_Ww7kEpDgqnpnU0unFCOJpohgPp-YriqzVuq_LfxDa-GQ7vWt5CUPP2Hqa41AA6VEUW7-gKvMKJ1jC2iWoKmRGjSGfO5xv-qWgyj2nXql95KY7_"/>
+</div>
+<span class="text-[11px] font-bold text-on-surface-variant">Marcus Vane</span>
+</div>
+</div>
+<!-- Standard Content Card 3 -->
+<div class="bg-surface-container rounded-xl p-5 flex flex-col group hover:bg-surface-container-high transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<button class="text-on-surface-variant hover:text-error-dim transition-colors p-1.5 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+<h4 class="font-headline font-bold text-lg mb-1">Macroeconomics PDF</h4>
+<p class="text-on-surface-variant text-xs mb-6">Handwritten scan • Ch 1-5</p>
+<div class="mt-auto flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant">
+<img alt="Sharer" class="w-full h-full rounded-full object-cover" data-alt="side profile of a young adult with dramatic purple and orange neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxe6URdynsCXxTh1LEoSws2WRVG7_QWsNdr67NqgzZ71ohBXDfR5tmbCsBvZRDfzeArjZXd1zwSdVoVcbbxzSy_ShKZdKfUsiVHgyojf-ZE8dmZJ1VEeWelAPf7cphzpv3Tn3pgu25-8wLI6xHbhW1bqDMO-ZqcwBOSgBmbfgph3ViKTypuwUylyY4_J1zMyHDKJLkKi6TgFBWK6L4bRyXwyFHHjksZJSmLF4-UFZPpTraHFTbZRl-09fVT0ctD2QMlK2gULx2"/>
+</div>
+<span class="text-[11px] font-bold text-on-surface-variant">Luna Lovecraft</span>
+</div>
+</div>
+<!-- Promotion / Feature Card -->
+<!-- Standard Content Card 4 -->
+<div class="bg-surface-container rounded-xl p-5 flex flex-col group hover:bg-surface-container-high transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-tertiary-container/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<button class="text-on-surface-variant hover:text-error-dim transition-colors p-1.5 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+<h4 class="font-headline font-bold text-lg mb-1">Philosophy of Mind</h4>
+<p class="text-on-surface-variant text-xs mb-6">Notebook • 4,500 words</p>
+<div class="mt-auto flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant">
+<img alt="Sharer" class="w-full h-full rounded-full object-cover" data-alt="professional male academic portrait with warm desk lighting and books in background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHpvARkUAPWv7jFk5x8ThwJXLoeL1gBafzBGW0AU-_eAAq8iKRdg2j4JUizWstPdK_7Ga92nJyhm9qkjXuHM45d0YnEj-venEM-_aAso53skkVwkCKavD0VNxHoRkBQdiDrQEnFwji27fh86_EDu2GhJd3mI1o9dp7e4ZCWrsPHUgD1iiQBdJp3jmOl0KjDaFDLfLAC2pX0uZEH25yvxXEmfAore8axq_DJD6_xBXyNz7Qj4hl2ETrMJu0fz1FVUuFJogqs6c9"/>
+</div>
+<span class="text-[11px] font-bold text-on-surface-variant">Elias Thorne</span>
+</div>
+</div>
+<!-- Standard Content Card 5 -->
+<div class="bg-surface-container rounded-xl p-5 flex flex-col group hover:bg-surface-container-high transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<button class="text-on-surface-variant hover:text-error-dim transition-colors p-1.5 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+<h4 class="font-headline font-bold text-lg mb-1">Stats Datasets</h4>
+<p class="text-on-surface-variant text-xs mb-6">Excel • Raw observations</p>
+<div class="mt-auto flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant">
+<img alt="Sharer" class="w-full h-full rounded-full object-cover" data-alt="portrait of a researcher with blue computer screen light reflecting on their face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-kaDSoqFB7suTuE9691q4cV8261MxPN6_XZcPDTNe1KR8-fEnUPvhNGgKLQ_In_WqgPKQVbq0S7CNBulJMN4ELs_5GqjeJMpqjDQAZCtp99p5w7wplmzd23ZBCyGEYDtS30pT9QDyHxa4DRADjCiNcledYdLoGUszR44Md4v6F5Hh_TO9UAKhwc2HmxCP7KXOzqjvj8kRt1nP6gv048Nvb9-rpLtnvdBnccFNaPb00OeMbm_pyPjuCEOVlApORBkraFLgrlYj"/>
+</div>
+<span class="text-[11px] font-bold text-on-surface-variant">Marcus Vane</span>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB for Mobile (as requested "Prominent FAB") -->
+<button class="md:hidden fixed right-6 bottom-24 w-16 h-16 rounded-full bg-secondary text-on-secondary shadow-2xl flex items-center justify-center z-[60] active:scale-90 transition-all border-4 border-surface">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<!-- BottomNavBar -->
+</body></html>
