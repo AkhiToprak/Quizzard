@@ -36,6 +36,7 @@ import PageLockIndicator from './PageLockIndicator';
 import { isEffectivelyEmptyTiptapDoc } from '@/lib/tiptap-is-empty';
 import { looksLikeMarkdown, markdownToHtml } from '@/lib/markdown-to-html';
 import { DOMParser as PMDOMParser } from '@tiptap/pm/model';
+import { CellSelection } from '@tiptap/pm/tables';
 import {
   SlashCommand,
   type SlashCommandState,
@@ -591,7 +592,30 @@ export default function PageEditor({
           placeholder: 'Start writing...',
         }),
         Typography,
-        Table.configure({ resizable: true, handleWidth: 5, cellMinWidth: 80 }),
+        Table.configure({ resizable: true, handleWidth: 5, cellMinWidth: 80 }).extend({
+          // When a full row or column is selected (CellSelection whose
+          // span covers every column or every row), Delete/Backspace
+          // by default only clears the cell content. Promote those
+          // presses to `deleteRow`/`deleteColumn` so marking a row and
+          // pressing Delete actually removes the row.
+          addKeyboardShortcuts() {
+            const handleDelete = (): boolean => {
+              const { selection } = this.editor.state;
+              if (!(selection instanceof CellSelection)) return false;
+              if (selection.isRowSelection()) {
+                return this.editor.commands.deleteRow();
+              }
+              if (selection.isColSelection()) {
+                return this.editor.commands.deleteColumn();
+              }
+              return false;
+            };
+            return {
+              Delete: handleDelete,
+              Backspace: handleDelete,
+            };
+          },
+        }),
         TableRow,
         TableCell,
         TableHeader,
