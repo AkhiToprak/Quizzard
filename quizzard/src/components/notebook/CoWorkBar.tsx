@@ -54,7 +54,16 @@ export default function CoWorkBar({
 }: CoWorkBarProps) {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [elapsed, setElapsed] = useState(0);
-  const [startTime] = useState(Date.now());
+  /**
+   * Session-wide start time, as an absolute epoch-ms. Seeded from the
+   * server's `createdAt` on the first GET so every peer shows the
+   * same elapsed duration regardless of when they joined. We don't
+   * default to Date.now() — starting from the local mount time made
+   * joiners see a timer that restarted at "0:00" each time they
+   * navigated into the page, while the host saw the real value.
+   * `null` means "not yet known"; the timer effect no-ops until then.
+   */
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [hoveredInvite, setHoveredInvite] = useState(false);
   const [hoveredEnd, setHoveredEnd] = useState(false);
@@ -98,6 +107,17 @@ export default function CoWorkBar({
         if (json.data?.participants) {
           setParticipants(json.data.participants);
         }
+        // Anchor the timer to the server-side session start so every
+        // peer shows the same elapsed duration. Parsed once — we
+        // deliberately keep a stable reference after the first seed
+        // so a drifting server clock doesn't cause the timer to jump
+        // around on subsequent polls.
+        if (typeof json.data?.createdAt === 'string') {
+          const parsed = Date.parse(json.data.createdAt);
+          if (Number.isFinite(parsed)) {
+            setStartTime((prev) => (prev === null ? parsed : prev));
+          }
+        }
       }
     } catch {
       // silent
@@ -130,6 +150,13 @@ export default function CoWorkBar({
           }
           if (Array.isArray(json.data?.participants)) {
             setParticipants(json.data.participants);
+          }
+          // Safety net — in case the initial fetch missed the seed.
+          if (typeof json.data?.createdAt === 'string') {
+            const parsed = Date.parse(json.data.createdAt);
+            if (Number.isFinite(parsed)) {
+              setStartTime((prev) => (prev === null ? parsed : prev));
+            }
           }
         }
       } catch {
@@ -184,8 +211,12 @@ export default function CoWorkBar({
     };
   }, [socket, sessionId, onSessionEnd]);
 
-  // Timer
+  // Timer — no-op until `startTime` has been seeded from the server's
+  // `createdAt`. We also prime `elapsed` immediately so the display
+  // doesn't briefly show "0:00" before the next interval tick.
   useEffect(() => {
+    if (startTime === null) return;
+    setElapsed(Date.now() - startTime);
     const interval = setInterval(() => {
       setElapsed(Date.now() - startTime);
     }, 1000);
