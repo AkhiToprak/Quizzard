@@ -58,7 +58,7 @@ function StatCard({
   return (
     <div
       style={{
-        background: '#161630',
+        background: '#21213e',
         borderRadius: '16px',
         padding: '20px',
         display: 'flex',
@@ -128,7 +128,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
         width: '56px',
         height: '32px',
         borderRadius: '9999px',
-        background: checked ? '#ae89ff' : '#2a2a4c',
+        background: checked ? '#ae89ff' : '#35355c',
         border: 'none',
         cursor: 'pointer',
         flexShrink: 0,
@@ -688,7 +688,7 @@ export default function SettingsPage() {
           {/* Profile card */}
           <div
             style={{
-              background: '#161630',
+              background: '#21213e',
               borderRadius: isPhone ? '20px' : '32px',
               padding: isPhone ? '20px' : '32px',
               display: 'flex',
@@ -843,7 +843,7 @@ export default function SettingsPage() {
           {/* Account Security */}
           <section
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: isPhone ? '20px' : '32px',
               padding: isPhone ? '20px' : '32px',
               display: activeSection === 'account' || activeSection === 'privacy' ? 'flex' : 'none',
@@ -905,7 +905,7 @@ export default function SettingsPage() {
               <button
                 style={{
                   padding: '16px 24px',
-                  background: '#2a2a4c',
+                  background: '#35355c',
                   border: '1px solid rgba(70,69,96,0.3)',
                   borderRadius: '16px',
                   color: '#e5e3ff',
@@ -920,7 +920,7 @@ export default function SettingsPage() {
                   (e.currentTarget as HTMLButtonElement).style.background = '#292946';
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c';
+                  (e.currentTarget as HTMLButtonElement).style.background = '#35355c';
                 }}
               >
                 Change Email
@@ -1034,7 +1034,7 @@ export default function SettingsPage() {
           {/* Dashboard Greeting */}
           <section
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: isPhone ? '20px' : '32px',
               padding: isPhone ? '20px' : '32px',
               display: activeSection === 'account' ? 'flex' : 'none',
@@ -1179,7 +1179,7 @@ export default function SettingsPage() {
           {/* Mage Name */}
           <section
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: isPhone ? '20px' : '32px',
               padding: isPhone ? '20px' : '32px',
               display: activeSection === 'account' ? 'flex' : 'none',
@@ -1325,7 +1325,7 @@ export default function SettingsPage() {
           {/* Notifications */}
           <section
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: isPhone ? '20px' : '32px',
               padding: isPhone ? '20px' : '32px',
               display:
@@ -1384,15 +1384,15 @@ export default function SettingsPage() {
                     justifyContent: 'space-between',
                     gap: '24px',
                     padding: '16px',
-                    background: '#161630',
+                    background: '#21213e',
                     borderRadius: '16px',
                     transition: 'background 0.15s',
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background = '#232342';
+                    (e.currentTarget as HTMLDivElement).style.background = '#2d2d52';
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background = '#161630';
+                    (e.currentTarget as HTMLDivElement).style.background = '#21213e';
                   }}
                 >
                   <div>
@@ -1420,7 +1420,7 @@ export default function SettingsPage() {
           {/* Study Goals */}
           <section
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: isPhone ? '20px' : '32px',
               padding: isPhone ? '20px' : '32px',
               display: activeSection === 'goals' ? 'flex' : 'none',
@@ -1484,7 +1484,7 @@ export default function SettingsPage() {
                       key={config.type}
                       onClick={() => toggleStudyGoal(config)}
                       style={{
-                        background: '#232342',
+                        background: '#2d2d52',
                         borderRadius: '20px',
                         padding: '20px',
                         border: isSelected
@@ -1557,7 +1557,7 @@ export default function SettingsPage() {
                                   setStudyGoalTarget(config.type, preset);
                                 }}
                                 style={{
-                                  background: isActive ? '#ae89ff' : '#2a2a4c',
+                                  background: isActive ? '#ae89ff' : '#35355c',
                                   color: isActive ? '#1a0044' : '#aaa8c8',
                                   border: `1px solid ${isActive ? '#ae89ff' : '#555578'}`,
                                   borderRadius: '20px',
@@ -1581,7 +1581,7 @@ export default function SettingsPage() {
                             onChange={(e) => handleGoalCustomInput(config.type, e.target.value)}
                             style={{
                               width: '52px',
-                              background: '#2a2a4c',
+                              background: '#35355c',
                               border: goalCustomInputs[config.type] ? '1px solid #ae89ff' : '1px solid #555578',
                               borderRadius: '8px',
                               padding: '4px 8px',
@@ -1649,7 +1649,7 @@ export default function SettingsPage() {
           {/* Subscription Management */}
           <section
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: isPhone ? '20px' : '32px',
               padding: isPhone ? '20px' : '32px',
               display: activeSection === 'subscription' ? 'flex' : 'none',
@@ -1691,7 +1691,7 @@ export default function SettingsPage() {
             {/* Current plan card */}
             <div
               style={{
-                background: '#161630',
+                background: '#21213e',
                 borderRadius: '20px',
                 padding: '24px',
                 display: 'flex',
@@ -1849,7 +1849,7 @@ export default function SettingsPage() {
                       <div
                         key={tier}
                         style={{
-                          background: isCurrent ? 'rgba(174,137,255,0.08)' : '#161630',
+                          background: isCurrent ? 'rgba(174,137,255,0.08)' : '#21213e',
                           borderRadius: '16px',
                           padding: '20px',
                           border: isCurrent
@@ -2053,7 +2053,7 @@ export default function SettingsPage() {
             >
               <div
                 style={{
-                  background: '#1c1c38',
+                  background: '#272746',
                   borderRadius: '24px',
                   padding: '32px',
                   display: 'flex',
@@ -2171,7 +2171,7 @@ export default function SettingsPage() {
           {isAdmin && (
             <section
               style={{
-                background: '#1c1c38',
+                background: '#272746',
                 borderRadius: isPhone ? '20px' : '32px',
                 padding: isPhone ? '20px' : '32px',
                 display: activeSection === 'admin' ? 'flex' : 'none',
@@ -2323,7 +2323,7 @@ export default function SettingsPage() {
                       <div
                         key={user.id}
                         style={{
-                          background: user.banned ? 'rgba(253,111,133,0.05)' : '#161630',
+                          background: user.banned ? 'rgba(253,111,133,0.05)' : '#21213e',
                           borderRadius: '16px',
                           padding: isPhone ? '14px' : '16px 20px',
                           display: 'flex',
@@ -2591,7 +2591,7 @@ export default function SettingsPage() {
                       padding: '8px 16px',
                       borderRadius: '10px',
                       border: 'none',
-                      background: adminPage <= 1 ? '#232342' : '#2a2a4c',
+                      background: adminPage <= 1 ? '#2d2d52' : '#35355c',
                       color: adminPage <= 1 ? '#555578' : '#e5e3ff',
                       fontSize: '13px',
                       fontWeight: 700,
@@ -2611,7 +2611,7 @@ export default function SettingsPage() {
                       padding: '8px 16px',
                       borderRadius: '10px',
                       border: 'none',
-                      background: adminPage >= adminTotalPages ? '#232342' : '#2a2a4c',
+                      background: adminPage >= adminTotalPages ? '#2d2d52' : '#35355c',
                       color: adminPage >= adminTotalPages ? '#555578' : '#e5e3ff',
                       fontSize: '13px',
                       fontWeight: 700,
@@ -2630,7 +2630,7 @@ export default function SettingsPage() {
           {isAdmin && (
             <section
               style={{
-                background: '#1c1c38',
+                background: '#272746',
                 borderRadius: isPhone ? '20px' : '32px',
                 padding: isPhone ? '20px' : '32px',
                 display: activeSection === 'stats' ? 'flex' : 'none',
@@ -2821,7 +2821,7 @@ export default function SettingsPage() {
               <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  background: '#1c1c38',
+                  background: '#272746',
                   borderRadius: '24px',
                   padding: '32px',
                   width: '100%',
@@ -2931,7 +2931,7 @@ export default function SettingsPage() {
               <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  background: '#1c1c38',
+                  background: '#272746',
                   borderRadius: '24px',
                   padding: '32px',
                   width: '100%',
@@ -3075,7 +3075,7 @@ export default function SettingsPage() {
         >
           <div
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: '24px',
               padding: '32px',
               display: 'flex',

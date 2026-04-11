@@ -48,7 +48,7 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
   const inputStyle = (hasError: boolean): React.CSSProperties => ({
     width: '100%',
     padding: '12px 14px',
-    background: '#1c1c38',
+    background: '#272746',
     border: `1.5px solid ${hasError ? '#f87171' : 'rgba(174,137,255,0.15)'}`,
     borderRadius: '10px',
     color: '#e5e3ff',
@@ -283,14 +283,14 @@ export default function ExamForm({ notebooks, onSubmit, onClose }: ExamFormProps
                       : 'rgba(174,137,255,0.15)';
                   }}
                 >
-                  <option value="" style={{ background: '#1c1c38', color: '#8888a8' }}>
+                  <option value="" style={{ background: '#272746', color: '#8888a8' }}>
                     Select a notebook...
                   </option>
                   {notebooks.map((nb) => (
                     <option
                       key={nb.id}
                       value={nb.id}
-                      style={{ background: '#1c1c38', color: '#e5e3ff' }}
+                      style={{ background: '#272746', color: '#e5e3ff' }}
                     >
                       {nb.name}
                     </option>

@@ -69,7 +69,7 @@ export default function AvatarStep({
 
   const cardBase: React.CSSProperties = {
     flex: 1,
-    background: '#232342',
+    background: '#2d2d52',
     borderRadius: '20px',
     padding: '20px 16px',
     border: '1px solid #555578',
@@ -149,7 +149,7 @@ export default function AvatarStep({
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'rgba(17,17,38,0.7)',
+                background: 'rgba(26, 26, 54,0.7)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

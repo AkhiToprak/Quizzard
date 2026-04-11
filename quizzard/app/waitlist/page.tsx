@@ -229,7 +229,7 @@ export default function WaitlistPage() {
         <div
           className="waitlist-card"
           style={{
-            background: 'rgba(22, 22, 48, 0.6)',
+            background: 'rgba(33, 33, 62, 0.6)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
             border: '1px solid rgba(140, 82, 255, 0.15)',

@@ -80,7 +80,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
           <div
             key={i}
             style={{
-              background: '#161630',
+              background: '#21213e',
               borderRadius: '16px',
               height: '80px',
               animation: 'trophy-pulse 1.5s ease-in-out infinite',
@@ -165,7 +165,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                 border: isActive
                   ? '1px solid rgba(174,137,255,0.4)'
                   : '1px solid rgba(170,168,200,0.15)',
-                background: isActive ? 'rgba(174,137,255,0.15)' : 'rgba(22,22,48,0.6)',
+                background: isActive ? 'rgba(174,137,255,0.15)' : 'rgba(33, 33, 62,0.6)',
                 color: isActive ? '#ae89ff' : '#aaa8c8',
                 fontSize: isPhone ? '12px' : '13px',
                 fontWeight: 600,
@@ -184,7 +184,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.background = 'rgba(22,22,48,0.6)';
+                  e.currentTarget.style.background = 'rgba(33, 33, 62,0.6)';
                   e.currentTarget.style.color = '#aaa8c8';
                 }
                 e.currentTarget.style.transform = 'scale(1)';
@@ -219,7 +219,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
               key={achievement.badge}
               onClick={() => setExpandedBadge(isExpanded ? null : achievement.badge)}
               style={{
-                background: isUnlocked ? '#161630' : '#1a1a30',
+                background: isUnlocked ? '#21213e' : '#22223c',
                 borderRadius: isPhone ? '12px' : '16px',
                 padding: isPhone ? '14px 10px' : '20px',
                 display: 'flex',
@@ -297,7 +297,7 @@ export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
                     style={{
                       height: '6px',
                       borderRadius: '3px',
-                      background: '#2a2a4c',
+                      background: '#35355c',
                       overflow: 'hidden',
                     }}
                   >

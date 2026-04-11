@@ -339,7 +339,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: isPhone ? '8px' : '16px',
-          background: 'rgba(17,17,38,0.6)',
+          background: 'rgba(26, 26, 54,0.6)',
           flexShrink: 0,
         }}
       >

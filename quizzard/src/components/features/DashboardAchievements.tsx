@@ -52,7 +52,7 @@ export default function DashboardAchievements() {
     return (
       <div
         style={{
-          background: '#161630',
+          background: '#21213e',
           borderRadius: '20px',
           padding: '24px',
         }}
@@ -62,7 +62,7 @@ export default function DashboardAchievements() {
             <div
               key={i}
               style={{
-                background: '#1c1c38',
+                background: '#272746',
                 borderRadius: '14px',
                 height: '56px',
                 animation: 'dash-ach-pulse 1.5s ease-in-out infinite',
@@ -102,7 +102,7 @@ export default function DashboardAchievements() {
   return (
     <div
       style={{
-        background: '#161630',
+        background: '#21213e',
         borderRadius: '20px',
         padding: '24px',
       }}
@@ -195,7 +195,7 @@ export default function DashboardAchievements() {
                     alignItems: 'center',
                     gap: '10px',
                     padding: '10px 14px',
-                    background: '#1c1c38',
+                    background: '#272746',
                     borderRadius: '14px',
                     border: '1px solid rgba(174,137,255,0.15)',
                     flex: '1 1 0',
@@ -319,7 +319,7 @@ export default function DashboardAchievements() {
                     alignItems: 'center',
                     gap: '12px',
                     padding: '10px 14px',
-                    background: '#1c1c38',
+                    background: '#272746',
                     borderRadius: '14px',
                   }}
                 >
@@ -328,7 +328,7 @@ export default function DashboardAchievements() {
                       width: '36px',
                       height: '36px',
                       borderRadius: '10px',
-                      background: '#2a2a4c',
+                      background: '#35355c',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -383,7 +383,7 @@ export default function DashboardAchievements() {
                       style={{
                         height: '6px',
                         borderRadius: '3px',
-                        background: '#2a2a4c',
+                        background: '#35355c',
                         overflow: 'hidden',
                       }}
                     >

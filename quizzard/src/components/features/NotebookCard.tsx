@@ -301,7 +301,7 @@ export default function NotebookCard({
             position: 'absolute',
             top: '48px',
             right: '24px',
-            background: '#232342',
+            background: '#2d2d52',
             borderRadius: '12px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
             overflow: 'hidden',
@@ -332,7 +332,7 @@ export default function NotebookCard({
               textAlign: 'left',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = '#2a2a4c';
+              (e.currentTarget as HTMLButtonElement).style.background = '#35355c';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background = 'transparent';

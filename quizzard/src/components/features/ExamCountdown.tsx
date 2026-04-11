@@ -41,7 +41,7 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
   return (
     <div
       style={{
-        background: '#161630',
+        background: '#21213e',
         borderRadius: '16px',
         padding: '20px',
         borderLeft: `4px solid ${urgencyColor}`,
@@ -52,10 +52,10 @@ export default function ExamCountdown({ exam, onGeneratePlan, onDelete }: ExamCo
         opacity: isPast ? 0.55 : 1,
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.background = '#1c1c38';
+        (e.currentTarget as HTMLDivElement).style.background = '#272746';
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.background = '#161630';
+        (e.currentTarget as HTMLDivElement).style.background = '#21213e';
       }}
     >
       {/* Top row: title + notebook + delete */}

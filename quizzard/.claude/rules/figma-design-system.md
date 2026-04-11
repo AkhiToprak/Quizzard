@@ -22,7 +22,7 @@ These rules define how to translate Figma MCP output into code for the Notemage 
 
 | Class                  | Purpose                                                                                               |
 | ---------------------- | ----------------------------------------------------------------------------------------------------- |
-| `glass-panel`          | Frosted glass: `rgba(24,24,42,0.7)` + `blur(20px)` + `border-radius: var(--radius-xl)`                |
+| `glass-panel`          | Frosted glass: `rgba(33,33,54,0.7)` + `blur(20px)` + `border-radius: var(--radius-xl)`                |
 | `neon-glow`            | Purple glow: `box-shadow: 0 0 40px 12px rgba(174,137,255,0.15), 0 0 80px 24px rgba(174,137,255,0.08)` |
 | `notebook-pattern`     | Dot grid background with primary-tinted dots                                                          |
 | `surface-elevated`     | `background: var(--surface-container)` + `border-radius: var(--radius-lg)`                            |
@@ -49,12 +49,12 @@ When Figma returns colors, map them to CSS variables:
 | `#ffde59`         | `var(--tertiary-container)`               | `tertiary-container`        |
 | `#ffedb3`         | `var(--tertiary)`                         | `tertiary`                  |
 | `#fd6f85`         | `var(--error)`                            | `error`                     |
-| `#111126`         | `var(--background)` / `var(--surface)`    | `background` / `surface`    |
-| `#080816`         | `var(--surface-container-lowest)`         | `surface-container-lowest`  |
-| `#161630`         | `var(--surface-container-low)`            | `surface-container-low`     |
-| `#1c1c38`         | `var(--surface-container)`                | `surface-container`         |
-| `#232342`         | `var(--surface-container-high)`           | `surface-container-high`    |
-| `#2a2a4c`         | `var(--surface-container-highest)`        | `surface-container-highest` |
+| `#1a1a36`         | `var(--background)` / `var(--surface)`    | `background` / `surface`    |
+| `#10102a`         | `var(--surface-container-lowest)`         | `surface-container-lowest`  |
+| `#21213e`         | `var(--surface-container-low)`            | `surface-container-low`     |
+| `#272746`         | `var(--surface-container)`                | `surface-container`         |
+| `#2d2d52`         | `var(--surface-container-high)`           | `surface-container-high`    |
+| `#35355c`         | `var(--surface-container-highest)`        | `surface-container-highest` |
 | `#eeecff`         | `var(--on-surface)` / `var(--foreground)` | `on-surface` / `foreground` |
 | `#c0bed8`         | `var(--on-surface-variant)`               | `on-surface-variant`        |
 | `#8888a8`         | `var(--outline)`                          | `outline`                   |

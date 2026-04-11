@@ -225,7 +225,7 @@ export default function AvatarEditor({ open, onClose, onSaved }: AvatarEditorPro
         >
           <div
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: '24px',
               padding: '32px',
               display: 'flex',

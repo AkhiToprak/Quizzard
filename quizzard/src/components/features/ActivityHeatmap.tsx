@@ -34,7 +34,7 @@ const MONTH_NAMES = [
 ];
 
 function getColor(count: number): string {
-  if (count === 0) return '#1a1a2e';
+  if (count === 0) return '#22223a';
   if (count <= 2) return '#2d1f5e';
   if (count <= 5) return '#6b3fa0';
   return '#ae89ff';
@@ -153,7 +153,7 @@ export default function ActivityHeatmap() {
   return (
     <div
       style={{
-        background: '#161630',
+        background: '#21213e',
         borderRadius: '24px',
         padding: isPhone ? '16px' : '24px',
       }}
@@ -304,7 +304,7 @@ export default function ActivityHeatmap() {
                 left: `${tooltip.x}px`,
                 top: `${tooltip.y}px`,
                 transform: 'translate(-50%, -100%)',
-                background: '#2a2a4c',
+                background: '#35355c',
                 color: '#e5e3ff',
                 padding: '6px 10px',
                 borderRadius: '8px',

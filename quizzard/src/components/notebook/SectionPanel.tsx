@@ -47,7 +47,7 @@ export default function SectionPanel() {
       style={{
         width: '180px',
         minWidth: '180px',
-        background: '#111126',
+        background: '#1a1a36',
         borderRight: '1px solid rgba(140,82,255,0.1)',
         display: 'flex',
         flexDirection: 'column',

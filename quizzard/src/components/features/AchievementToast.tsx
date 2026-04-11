@@ -49,7 +49,7 @@ export default function AchievementToast({
           alignItems: 'flex-start',
           gap: '14px',
           padding: '16px 20px',
-          background: '#1c1c38',
+          background: '#272746',
           borderRadius: '16px',
           border: '1px solid rgba(255,222,89,0.3)',
           boxShadow: '0 0 24px rgba(255,222,89,0.1), 0 8px 32px rgba(0,0,0,0.4)',

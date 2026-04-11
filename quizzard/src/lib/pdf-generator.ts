@@ -3,7 +3,7 @@ import PDFDocument from 'pdfkit';
 // Brand colors as hex strings
 const BRAND = {
   purple: '#8c52ff',
-  dark: '#0d0c20',
+  dark: '#181732',
   text: '#ede9ff',
   subtext: '#a09cb5',
   white: '#ffffff',

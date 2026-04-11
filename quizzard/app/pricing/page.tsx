@@ -56,7 +56,7 @@ export default function PricingPage() {
           align-items: center;
           gap: 6px;
           background: var(--tertiary-container);
-          color: #1a1a2e;
+          color: #22223a;
           font-weight: 700;
           font-size: 14px;
           padding: 9px 20px;
@@ -201,7 +201,7 @@ export default function PricingPage() {
           height: 64,
           display: 'flex',
           alignItems: 'center',
-          background: scrolled ? 'rgba(17,17,38,0.88)' : 'transparent',
+          background: scrolled ? 'rgba(26, 26, 54,0.88)' : 'transparent',
           backdropFilter: scrolled ? 'blur(24px)' : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(24px)' : 'none',
           borderBottom: scrolled
@@ -362,7 +362,7 @@ export default function PricingPage() {
             alignItems: 'center',
             gap: 8,
             background: 'var(--tertiary-container)',
-            color: '#1a1a2e',
+            color: '#22223a',
             fontWeight: 700,
             fontSize: 16,
             padding: '15px 32px',

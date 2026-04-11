@@ -409,7 +409,7 @@ export default function DashboardPage() {
             const cardContent = (
               <div
                 style={{
-                  background: '#161630',
+                  background: '#21213e',
                   padding: '24px',
                   borderRadius: '24px',
                   display: 'flex',
@@ -419,14 +419,14 @@ export default function DashboardPage() {
                   height: '100%',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.background = '#1c1c38';
+                  (e.currentTarget as HTMLDivElement).style.background = '#272746';
                   const arrow = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>(
                     '.stat-arrow'
                   );
                   if (arrow) arrow.style.transform = 'translateX(4px)';
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.background = '#161630';
+                  (e.currentTarget as HTMLDivElement).style.background = '#21213e';
                   const arrow = (e.currentTarget as HTMLDivElement).querySelector<HTMLSpanElement>(
                     '.stat-arrow'
                   );
@@ -600,7 +600,7 @@ export default function DashboardPage() {
                         maxLength={200}
                         style={{
                           flex: 1,
-                          background: '#1c1c38',
+                          background: '#272746',
                           border: '1px solid rgba(174,137,255,0.1)',
                           borderRadius: '10px',
                           padding: '8px 12px',
@@ -688,7 +688,7 @@ export default function DashboardPage() {
       {xpData && (
         <section
           style={{
-            background: '#161630',
+            background: '#21213e',
             borderRadius: '20px',
             padding: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
           }}
@@ -715,7 +715,7 @@ export default function DashboardPage() {
       {/* Upcoming Exams */}
       <section
         style={{
-          background: '#161630',
+          background: '#21213e',
           borderRadius: '20px',
           padding: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
         }}
@@ -817,7 +817,7 @@ export default function DashboardPage() {
           {/* Recent Activity */}
           <div
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: responsiveValue(bp, { phone: '20px', tablet: '24px', desktop: '32px' }),
               padding: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '32px' }),
               position: 'relative',
@@ -895,12 +895,12 @@ export default function DashboardPage() {
                           justifyContent: 'space-between',
                           padding: '16px',
                           borderRadius: '16px',
-                          background: '#161630',
+                          background: '#21213e',
                           transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
                           cursor: 'pointer',
                         }}
                         onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.background = '#2a2a4c';
+                          (e.currentTarget as HTMLDivElement).style.background = '#35355c';
                           const btn = (
                             e.currentTarget as HTMLDivElement
                           ).querySelector<HTMLButtonElement>('.activity-btn');
@@ -910,12 +910,12 @@ export default function DashboardPage() {
                           }
                         }}
                         onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.background = '#161630';
+                          (e.currentTarget as HTMLDivElement).style.background = '#21213e';
                           const btn = (
                             e.currentTarget as HTMLDivElement
                           ).querySelector<HTMLButtonElement>('.activity-btn');
                           if (btn) {
-                            btn.style.background = '#2a2a4c';
+                            btn.style.background = '#35355c';
                             btn.style.color = '#ae89ff';
                           }
                         }}
@@ -972,7 +972,7 @@ export default function DashboardPage() {
                           className="activity-btn"
                           style={{
                             padding: '8px 16px',
-                            background: '#2a2a4c',
+                            background: '#35355c',
                             borderRadius: '12px',
                             border: 'none',
                             color: '#ae89ff',
@@ -1246,7 +1246,7 @@ export default function DashboardPage() {
             style={{
               width: '80px',
               height: '80px',
-              background: '#232342',
+              background: '#2d2d52',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',

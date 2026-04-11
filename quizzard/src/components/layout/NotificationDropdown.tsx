@@ -19,9 +19,9 @@ interface NotificationDropdownProps {
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
 const COLORS = {
-  cardBg: '#161630',
-  elevated: '#232342',
-  inputBg: '#2a2a4c',
+  cardBg: '#21213e',
+  elevated: '#2d2d52',
+  inputBg: '#35355c',
   primary: '#ae89ff',
   textPrimary: '#e5e3ff',
   textSecondary: '#aaa8c8',

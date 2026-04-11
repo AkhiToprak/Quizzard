@@ -6,7 +6,7 @@ export interface SlideData {
   notes?: string;
 }
 
-// Purple accent #8c52ff, dark background #0d0c20, text #ede9ff
+// Purple accent #8c52ff, dark background #181732, text #ede9ff
 const BRAND_COLORS = {
   bg: '0d0c20',
   accent: '8c52ff',

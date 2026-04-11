@@ -12,9 +12,9 @@ import InviteMemberModal from './InviteMemberModal';
 import TimerWidget from '@/components/layout/TimerWidget';
 
 const COLORS = {
-  pageBg: '#111126',
-  cardBg: '#161630',
-  elevated: '#232342',
+  pageBg: '#1a1a36',
+  cardBg: '#21213e',
+  elevated: '#2d2d52',
   primary: '#ae89ff',
   deepPurple2: '#8348f6',
   textPrimary: '#e5e3ff',

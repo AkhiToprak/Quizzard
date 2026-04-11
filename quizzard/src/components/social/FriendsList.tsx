@@ -89,7 +89,7 @@ function SkeletonRow({ compact }: { compact: boolean }) {
           width: 32,
           height: 32,
           borderRadius: '50%',
-          background: '#232342',
+          background: '#2d2d52',
           flexShrink: 0,
           animation: 'friendsListPulse 1.5s ease-in-out infinite',
         }}
@@ -100,7 +100,7 @@ function SkeletonRow({ compact }: { compact: boolean }) {
             width: 80,
             height: 12,
             borderRadius: 6,
-            background: '#232342',
+            background: '#2d2d52',
             marginBottom: compact ? 0 : 4,
             animation: 'friendsListPulse 1.5s ease-in-out 0.1s infinite',
           }}
@@ -111,7 +111,7 @@ function SkeletonRow({ compact }: { compact: boolean }) {
               width: 56,
               height: 10,
               borderRadius: 6,
-              background: '#232342',
+              background: '#2d2d52',
               animation: 'friendsListPulse 1.5s ease-in-out 0.2s infinite',
             }}
           />
@@ -302,7 +302,7 @@ export default function FriendsList({ compact = false, onAddFriendClick }: Frien
                     gap: 8,
                     padding: '6px 8px',
                     borderRadius: 8,
-                    background: hoveredFriendId === friend.friendshipId ? '#232342' : 'transparent',
+                    background: hoveredFriendId === friend.friendshipId ? '#2d2d52' : 'transparent',
                     transition: TRANSITION,
                     cursor: 'pointer',
                   }}
@@ -355,7 +355,7 @@ export default function FriendsList({ compact = false, onAddFriendClick }: Frien
   return (
     <div
       style={{
-        background: '#161630',
+        background: '#21213e',
         borderRadius: 12,
         border: '1px solid #555578',
         overflow: 'hidden',
@@ -390,7 +390,7 @@ export default function FriendsList({ compact = false, onAddFriendClick }: Frien
                 minWidth: 22,
                 height: 22,
                 borderRadius: 11,
-                background: '#232342',
+                background: '#2d2d52',
                 color: '#aaa8c8',
                 fontSize: 12,
                 fontWeight: 600,
@@ -681,7 +681,7 @@ export default function FriendsList({ compact = false, onAddFriendClick }: Frien
                 alignItems: 'center',
                 gap: 10,
                 padding: '8px 16px',
-                background: hoveredFriendId === friend.friendshipId ? '#232342' : 'transparent',
+                background: hoveredFriendId === friend.friendshipId ? '#2d2d52' : 'transparent',
                 transition: TRANSITION,
                 cursor: 'pointer',
                 position: 'relative',
@@ -727,7 +727,7 @@ export default function FriendsList({ compact = false, onAddFriendClick }: Frien
                     height: 28,
                     borderRadius: 6,
                     border: 'none',
-                    background: '#2a2a4c',
+                    background: '#35355c',
                     color: '#8888a8',
                     cursor: 'pointer',
                     flexShrink: 0,

@@ -142,7 +142,7 @@ export default function GroupInvitePage() {
     <div style={{ maxWidth: 480, margin: '0 auto', padding: '40px 16px' }}>
       <div
         style={{
-          background: '#161630',
+          background: '#21213e',
           borderRadius: 24,
           padding: '40px 32px',
           display: 'flex',
@@ -205,7 +205,7 @@ export default function GroupInvitePage() {
             alignItems: 'center',
             gap: 8,
             padding: '10px 16px',
-            background: '#1c1c38',
+            background: '#272746',
             borderRadius: 12,
             fontSize: 13,
             color: '#aaa8c8',

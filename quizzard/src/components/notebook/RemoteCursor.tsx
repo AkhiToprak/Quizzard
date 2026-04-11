@@ -86,7 +86,7 @@ export default function RemoteCursor({ userId, name, x, y }: RemoteCursorProps) 
           left: 14,
           top: 18,
           background: color,
-          color: '#0d0c20',
+          color: '#181732',
           padding: '3px 8px 3px 8px',
           borderRadius: 6,
           fontSize: 11,

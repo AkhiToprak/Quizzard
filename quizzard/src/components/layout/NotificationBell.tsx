@@ -9,7 +9,7 @@ import type { Notification } from '@/lib/notification-utils';
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
 const COLORS = {
-  elevated: '#232342',
+  elevated: '#2d2d52',
   primary: '#ae89ff',
   textPrimary: '#e5e3ff',
   textMuted: '#8888a8',

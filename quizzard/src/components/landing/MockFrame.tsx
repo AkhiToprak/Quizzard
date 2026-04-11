@@ -166,7 +166,7 @@ export default function MockFrame({
           aspectRatio,
           width: '100%',
           background:
-            'radial-gradient(120% 80% at 50% 0%, rgba(140, 82, 255, 0.14) 0%, transparent 60%), #0d0c20',
+            'radial-gradient(120% 80% at 50% 0%, rgba(140, 82, 255, 0.14) 0%, transparent 60%), #181732',
         }}
       >
         {image ? (

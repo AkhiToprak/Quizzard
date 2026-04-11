@@ -224,7 +224,7 @@ const components: Components = {
     <pre
       style={{
         margin: '20px 0 24px 0',
-        background: 'rgba(8, 8, 22, 0.65)',
+        background: 'rgba(16, 16, 42, 0.65)',
         border: '1px solid rgba(174,137,255,0.18)',
         borderRadius: 'var(--radius-md)',
         padding: '16px 18px',

@@ -1402,7 +1402,7 @@ export default function EditorToolbar({
   return (
     <div
       style={{
-        background: '#09081a',
+        background: '#15142e',
         borderBottom: '1px solid rgba(140,82,255,0.1)',
         position: 'sticky',
         top: 0,

@@ -138,7 +138,7 @@ export default function StudyGoalsStep({
               onMouseEnter={() => setHoveredCard(config.type)}
               onMouseLeave={() => setHoveredCard(null)}
               style={{
-                background: '#232342',
+                background: '#2d2d52',
                 borderRadius: '20px',
                 padding: '20px',
                 border: isSelected
@@ -216,7 +216,7 @@ export default function StudyGoalsStep({
                           setTarget(config.type, preset);
                         }}
                         style={{
-                          background: isActive ? '#ae89ff' : '#2a2a4c',
+                          background: isActive ? '#ae89ff' : '#35355c',
                           color: isActive ? '#1a0044' : '#aaa8c8',
                           border: `1px solid ${isActive ? '#ae89ff' : '#555578'}`,
                           borderRadius: '20px',
@@ -241,7 +241,7 @@ export default function StudyGoalsStep({
                     onChange={(e) => handleCustomInput(config.type, e.target.value)}
                     style={{
                       width: '52px',
-                      background: '#2a2a4c',
+                      background: '#35355c',
                       border: customInputs[config.type] ? '1px solid #ae89ff' : '1px solid #555578',
                       borderRadius: '8px',
                       padding: '4px 8px',

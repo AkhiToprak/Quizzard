@@ -57,7 +57,7 @@ function formatDate(iso: string): string {
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   padding: '10px 14px',
-  background: '#1c1c38',
+  background: '#272746',
   border: '1px solid rgba(170,168,200,0.2)',
   borderRadius: '10px',
   color: '#e5e3ff',
@@ -330,7 +330,7 @@ export default function ProfilePage() {
       {/* Profile Header */}
       <div
         style={{
-          background: '#161630',
+          background: '#21213e',
           borderRadius: isPhone ? '20px' : '24px',
           padding: isPhone ? '28px 20px' : '40px',
           display: 'flex',
@@ -512,7 +512,7 @@ export default function ProfilePage() {
       {!editing && hasDetails && (
         <div
           style={{
-            background: '#161630',
+            background: '#21213e',
             borderRadius: isPhone ? '20px' : '24px',
             padding: isPhone ? '20px' : '28px 32px',
             display: 'flex',
@@ -586,7 +586,7 @@ export default function ProfilePage() {
       {editing && (
         <div
           style={{
-            background: '#161630',
+            background: '#21213e',
             borderRadius: isPhone ? '20px' : '24px',
             padding: isPhone ? '20px' : '32px',
             display: 'flex',
@@ -731,7 +731,7 @@ export default function ProfilePage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                background: '#1c1c38',
+                background: '#272746',
                 borderRadius: '12px',
                 marginBottom: '10px',
               }}
@@ -787,7 +787,7 @@ export default function ProfilePage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                background: '#1c1c38',
+                background: '#272746',
                 borderRadius: '12px',
               }}
             >
@@ -914,7 +914,7 @@ export default function ProfilePage() {
         >
           <div
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: isPhone ? '20px' : '24px',
               padding: isPhone ? '24px 20px' : '32px',
               display: 'flex',

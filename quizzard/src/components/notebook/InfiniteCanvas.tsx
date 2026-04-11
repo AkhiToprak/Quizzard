@@ -992,7 +992,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
                 pointerEvents: 'none',
                 padding: '10px 16px',
                 borderRadius: 'var(--radius-full)',
-                background: 'rgba(24,24,42,0.9)',
+                background: 'rgba(33, 33, 54,0.9)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 border: '1px solid rgba(174,137,255,0.35)',

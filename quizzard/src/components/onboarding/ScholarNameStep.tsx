@@ -80,7 +80,7 @@ export default function ScholarNameStep({
       >
         <div
           style={{
-            background: '#232342',
+            background: '#2d2d52',
             borderRadius: '20px',
             padding: '20px 24px',
             border: '1px solid #555578',
@@ -139,7 +139,7 @@ export default function ScholarNameStep({
               width: '100%',
               padding: '16px',
               paddingRight: '60px',
-              background: '#1c1c38',
+              background: '#272746',
               border: `1px solid ${inputFocused ? 'rgba(174,137,255,0.5)' : '#555578'}`,
               borderRadius: '16px',
               color: '#e5e3ff',

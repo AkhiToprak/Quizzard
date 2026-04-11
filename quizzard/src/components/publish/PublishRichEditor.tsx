@@ -12,7 +12,7 @@ import { useEffect, useRef, useCallback } from 'react';
 const lowlight = createLowlight(common);
 
 const COLORS = {
-  elevated: '#232342',
+  elevated: '#2d2d52',
   primary: '#8c52ff',
   primaryLight: '#ae89ff',
   textPrimary: '#ede9ff',
@@ -311,7 +311,7 @@ export default function PublishRichEditor({ content, onChange }: PublishRichEdit
             color: ${COLORS.textSecondary};
           }
           .publish-rich-editor .tiptap pre {
-            background: #111126;
+            background: #1a1a36;
             border-radius: 8px;
             padding: 16px;
             margin: 12px 0;

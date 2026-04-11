@@ -17,9 +17,9 @@ interface Friend {
 }
 
 const COLORS = {
-  cardBg: '#161630',
-  elevated: '#232342',
-  inputBg: '#2a2a4c',
+  cardBg: '#21213e',
+  elevated: '#2d2d52',
+  inputBg: '#35355c',
   primary: '#ae89ff',
   deepPurple: '#884efb',
   deepPurple2: '#8348f6',

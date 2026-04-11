@@ -200,7 +200,7 @@ export default function FeatureComparison() {
                     style={{
                       background:
                         rowIdx % 2 === 1
-                          ? 'rgba(22,22,48,0.3)'
+                          ? 'rgba(33, 33, 62,0.3)'
                           : 'transparent',
                       transition: 'background 0.2s',
                     }}

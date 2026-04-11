@@ -280,7 +280,7 @@ export default function OnboardingWizard() {
             width: '80px',
             height: '80px',
             marginBottom: '24px',
-            background: '#2a2a4c',
+            background: '#35355c',
             borderRadius: '20px',
             display: 'flex',
             alignItems: 'center',
@@ -318,7 +318,7 @@ export default function OnboardingWizard() {
       {/* Card */}
       <div
         style={{
-          background: '#161630',
+          background: '#21213e',
           borderRadius: '32px',
           padding: '40px',
           boxShadow: '0 32px 64px rgba(0,0,0,0.4)',

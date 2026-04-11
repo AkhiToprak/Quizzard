@@ -209,7 +209,7 @@ export default function PublicProfilePage() {
       {/* Profile Header */}
       <div
         style={{
-          background: '#161630',
+          background: '#21213e',
           borderRadius: isPhone ? '20px' : '24px',
           padding: isPhone ? '28px 20px' : '40px',
           display: 'flex',
@@ -457,7 +457,7 @@ export default function PublicProfilePage() {
       {isPrivate && (
         <div
           style={{
-            background: '#161630',
+            background: '#21213e',
             borderRadius: isPhone ? '20px' : '24px',
             padding: isPhone ? '28px 20px' : '40px',
             textAlign: 'center',
@@ -488,7 +488,7 @@ export default function PublicProfilePage() {
       {!isPrivate && hasDetails && (
         <div
           style={{
-            background: '#161630',
+            background: '#21213e',
             borderRadius: isPhone ? '20px' : '24px',
             padding: isPhone ? '20px' : '28px 32px',
             display: 'flex',

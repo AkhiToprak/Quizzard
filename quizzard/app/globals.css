@@ -45,17 +45,17 @@
   --on-error-container: #ff97a3;
 
   /* Surface */
-  --background: #111126;
-  --surface: #111126;
-  --surface-dim: #111126;
-  --surface-bright: #333358;
-  --surface-container-lowest: #080816;
-  --surface-container-low: #161630;
-  --surface-container: #1c1c38;
-  --surface-container-high: #232342;
-  --surface-container-highest: #2a2a4c;
+  --background: #1a1a36;
+  --surface: #1a1a36;
+  --surface-dim: #1a1a36;
+  --surface-bright: #3e3e68;
+  --surface-container-lowest: #10102a;
+  --surface-container-low: #21213e;
+  --surface-container: #272746;
+  --surface-container-high: #2d2d52;
+  --surface-container-highest: #35355c;
   --surface-tint: #ae89ff;
-  --surface-variant: #2a2a4c;
+  --surface-variant: #35355c;
   --on-surface: #eeecff;
   --on-surface-variant: #c0bed8;
   --on-background: #eeecff;
@@ -198,7 +198,7 @@ body {
 /* ─── Glass panel ─────────────────────────────────────────────────────── */
 
 .glass-panel {
-  background: rgba(24, 24, 42, 0.7);
+  background: rgba(33, 33, 54, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-xl);

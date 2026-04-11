@@ -47,7 +47,7 @@ export default function ContactPage() {
     width: '100%',
     padding: '14px 18px',
     borderRadius: 'var(--radius-md)',
-    background: 'rgba(22, 22, 48, 0.72)',
+    background: 'rgba(33, 33, 62, 0.72)',
     border: '1px solid rgba(140, 82, 255, 0.22)',
     color: 'var(--on-surface)',
     fontSize: 15,
@@ -61,7 +61,7 @@ export default function ContactPage() {
     focusedField === id
       ? {
           borderColor: 'rgba(174, 137, 255, 0.7)',
-          background: 'rgba(28, 28, 56, 0.85)',
+          background: 'rgba(39, 39, 70, 0.85)',
           boxShadow:
             '0 0 0 4px rgba(174, 137, 255, 0.14), 0 8px 24px rgba(174, 137, 255, 0.12)',
         }
@@ -83,7 +83,7 @@ export default function ContactPage() {
       className="nm-contact"
       style={{
         position: 'relative',
-        background: '#09081a',
+        background: '#15142e',
         color: '#ede9ff',
         fontFamily: 'var(--font-sans)',
         minHeight: '100vh',
@@ -316,7 +316,7 @@ export default function ContactPage() {
               padding: '48px 44px',
               borderRadius: 'var(--radius-xl)',
               background:
-                'linear-gradient(180deg, rgba(28, 28, 56, 0.72) 0%, rgba(22, 22, 48, 0.6) 100%)',
+                'linear-gradient(180deg, rgba(39, 39, 70, 0.72) 0%, rgba(33, 33, 62, 0.6) 100%)',
               border: '1px solid rgba(140, 82, 255, 0.22)',
               backdropFilter: 'blur(24px) saturate(140%)',
               WebkitBackdropFilter: 'blur(24px) saturate(140%)',
@@ -453,7 +453,7 @@ export default function ContactPage() {
                         borderRadius: 'var(--radius-full)',
                         background: active
                           ? 'linear-gradient(135deg, rgba(174, 137, 255, 0.28) 0%, rgba(255, 222, 89, 0.18) 100%)'
-                          : 'rgba(22, 22, 48, 0.6)',
+                          : 'rgba(33, 33, 62, 0.6)',
                         border: active
                           ? '1px solid rgba(174, 137, 255, 0.55)'
                           : '1px solid rgba(140, 82, 255, 0.22)',

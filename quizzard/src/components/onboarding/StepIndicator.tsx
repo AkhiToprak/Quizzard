@@ -46,7 +46,7 @@ export default function StepIndicator({ currentStep, totalSteps, labels }: StepI
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
-                    background: isCompleted ? '#ae89ff' : isActive ? '#161630' : '#2a2a4c',
+                    background: isCompleted ? '#ae89ff' : isActive ? '#21213e' : '#35355c',
                     border: isCompleted
                       ? '2px solid #ae89ff'
                       : isActive

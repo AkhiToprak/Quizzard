@@ -8,7 +8,7 @@ export default function FinalCta() {
       style={{
         position: 'relative',
         padding: '160px 32px 192px',
-        background: '#09081a',
+        background: '#15142e',
         overflow: 'hidden',
         textAlign: 'center',
       }}

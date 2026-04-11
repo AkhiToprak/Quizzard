@@ -145,7 +145,7 @@ export default function CoWorkInviteModal({
           height: isPhone ? '100dvh' : undefined,
           maxWidth: isPhone ? 'none' : 440,
           maxHeight: isPhone ? 'none' : undefined,
-          background: '#161630',
+          background: '#21213e',
           borderRadius: isPhone ? 0 : 24,
           boxShadow: isPhone ? 'none' : '0 32px 64px rgba(0,0,0,0.5)',
           zIndex: 10000,
@@ -210,7 +210,7 @@ export default function CoWorkInviteModal({
               height: 32,
               borderRadius: 10,
               border: 'none',
-              background: hoveredClose ? '#232342' : 'transparent',
+              background: hoveredClose ? '#2d2d52' : 'transparent',
               color: '#8888a8',
               cursor: 'pointer',
               display: 'flex',
@@ -419,7 +419,7 @@ export default function CoWorkInviteModal({
               border: 'none',
               background:
                 selected.size === 0
-                  ? '#2a2a4c'
+                  ? '#35355c'
                   : hoveredSend
                     ? 'linear-gradient(135deg, #c4a6ff, #9b5fff)'
                     : 'linear-gradient(135deg, #ae89ff, #884efb)',

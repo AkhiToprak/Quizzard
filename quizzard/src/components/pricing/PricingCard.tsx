@@ -39,7 +39,7 @@ const ACCENT: Record<
   FREE: {
     border: 'rgba(136,136,168,0.15)',
     glow: 'none',
-    bg: 'rgba(22,22,48,0.6)',
+    bg: 'rgba(33, 33, 62,0.6)',
     text: 'var(--on-surface-variant)',
     hoverGlow: '0 8px 32px rgba(174,137,255,0.06), 0 2px 8px rgba(0,0,0,0.3)',
   },
@@ -147,7 +147,7 @@ export default function PricingCard({
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'linear-gradient(135deg, var(--tertiary-container), #f5c542)',
-            color: '#1a1a2e',
+            color: '#22223a',
             fontSize: 11,
             fontWeight: 700,
             textTransform: 'uppercase',
@@ -332,7 +332,7 @@ export default function PricingCard({
                 ? 'linear-gradient(135deg, var(--primary), var(--primary-container))'
                 : 'var(--surface-container-high)',
             color: isPro
-              ? '#1a1a2e'
+              ? '#22223a'
               : isPopular
                 ? '#fff'
                 : 'var(--on-surface-variant)',

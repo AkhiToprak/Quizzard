@@ -147,7 +147,7 @@ export default function FileImportDialog({
         style={{
           width: '100%',
           maxWidth: '480px',
-          background: '#111126',
+          background: '#1a1a36',
           borderRadius: '16px',
           border: '1px solid rgba(140,82,255,0.18)',
           padding: '24px',

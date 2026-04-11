@@ -68,7 +68,7 @@ function buildCallbackHtml(type: 'success' | 'error', message: string): string {
   return `<!DOCTYPE html>
 <html>
 <head><title>OneNote Connection</title></head>
-<body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0d0c20; color: #ede9ff;">
+<body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #181732; color: #ede9ff;">
   <div style="text-align: center;">
     <p>${type === 'success' ? '&#10003;' : '&#10007;'} ${escapeHtml(message)}</p>
     <p style="color: rgba(196,169,255,0.5); font-size: 14px;">This window will close automatically.</p>

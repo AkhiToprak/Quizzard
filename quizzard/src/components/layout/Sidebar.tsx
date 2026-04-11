@@ -38,7 +38,7 @@ export default function Sidebar() {
         width: '256px',
         minWidth: '256px',
         height: '100vh',
-        background: '#111126',
+        background: '#1a1a36',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
@@ -88,7 +88,7 @@ export default function Sidebar() {
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  (e.currentTarget as HTMLAnchorElement).style.background = '#1a1a2e';
+                  (e.currentTarget as HTMLAnchorElement).style.background = '#22223a';
                   (e.currentTarget as HTMLAnchorElement).style.transform = 'translateX(4px)';
                 }
               }}
@@ -185,7 +185,7 @@ export default function Sidebar() {
             transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1)',
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = '#1a1a2e';
+            (e.currentTarget as HTMLButtonElement).style.background = '#22223a';
             (e.currentTarget as HTMLButtonElement).style.transform = 'translateX(4px)';
           }}
           onMouseLeave={(e) => {

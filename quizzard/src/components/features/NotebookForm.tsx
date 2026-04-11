@@ -172,7 +172,7 @@ export default function NotebookForm({
     >
       <div
         style={{
-          background: '#111126',
+          background: '#1a1a36',
           border: '1px solid rgba(140,82,255,0.2)',
           borderRadius: '18px',
           padding: '28px',

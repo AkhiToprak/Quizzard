@@ -214,7 +214,7 @@ export default function SectionItem({
                     top: '100%',
                     right: 0,
                     marginTop: '4px',
-                    background: '#1a1a2e',
+                    background: '#22223a',
                     borderRadius: '10px',
                     border: '1px solid rgba(140,82,255,0.15)',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.4)',

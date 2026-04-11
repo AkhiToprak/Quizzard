@@ -34,7 +34,7 @@ export default function HowItWorks() {
         position: 'relative',
         padding: '128px 32px',
         background:
-          'linear-gradient(180deg, #09081a 0%, #0b0920 50%, #09081a 100%)',
+          'linear-gradient(180deg, #15142e 0%, #161534 50%, #15142e 100%)',
       }}
     >
       {/* dot grid overlay */}

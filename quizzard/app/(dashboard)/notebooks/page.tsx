@@ -365,7 +365,7 @@ function NotebooksPageContent() {
               padding: '8px 14px 8px 12px',
               borderRadius: '10px',
               border: `1px solid ${filterOpen ? 'rgba(174,137,255,0.35)' : 'rgba(174,137,255,0.12)'}`,
-              background: filterOpen ? 'rgba(174,137,255,0.08)' : '#1a1a2e',
+              background: filterOpen ? 'rgba(174,137,255,0.08)' : '#22223a',
               color: '#e5e3ff',
               fontSize: '13px',
               fontWeight: 500,
@@ -615,7 +615,7 @@ function NotebooksPageContent() {
               padding: '8px 12px 8px 38px',
               borderRadius: 10,
               border: `1.5px solid ${searchFocused ? '#ae89ff' : 'rgba(174,137,255,0.12)'}`,
-              background: '#1a1a2e',
+              background: '#22223a',
               color: '#e5e3ff',
               fontSize: 13,
               outline: 'none',
@@ -830,7 +830,7 @@ function NotebooksPageContent() {
                 '.add-folder-icon-wrap'
               );
               if (icon) {
-                icon.style.background = '#1c1c38';
+                icon.style.background = '#272746';
                 icon.style.transform = 'scale(1)';
               }
               const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>(
@@ -845,7 +845,7 @@ function NotebooksPageContent() {
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: '#1c1c38',
+                background: '#272746',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -923,7 +923,7 @@ function NotebooksPageContent() {
                 '.add-icon-wrap'
               );
               if (icon) {
-                icon.style.background = '#1c1c38';
+                icon.style.background = '#272746';
                 icon.style.transform = 'scale(1)';
               }
               const label = (e.currentTarget as HTMLDivElement).querySelector<HTMLParagraphElement>(
@@ -938,7 +938,7 @@ function NotebooksPageContent() {
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: '#1c1c38',
+                background: '#272746',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1026,7 +1026,7 @@ function NotebooksPageContent() {
         >
           <div
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: '20px',
               padding: '32px',
               width: '100%',
@@ -1075,7 +1075,7 @@ function NotebooksPageContent() {
                   flex: 1,
                   padding: '12px',
                   borderRadius: '12px',
-                  background: '#2a2a4c',
+                  background: '#35355c',
                   border: 'none',
                   fontSize: '14px',
                   fontWeight: 600,
@@ -1129,7 +1129,7 @@ function NotebooksPageContent() {
         >
           <div
             style={{
-              background: '#1c1c38',
+              background: '#272746',
               borderRadius: '20px',
               padding: '32px',
               width: '100%',
@@ -1178,7 +1178,7 @@ function NotebooksPageContent() {
                   flex: 1,
                   padding: '12px',
                   borderRadius: '12px',
-                  background: '#2a2a4c',
+                  background: '#35355c',
                   border: 'none',
                   fontSize: '14px',
                   fontWeight: 600,

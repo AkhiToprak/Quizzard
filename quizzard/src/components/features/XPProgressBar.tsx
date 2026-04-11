@@ -51,7 +51,7 @@ export default function XPProgressBar({
           style={{
             height: '10px',
             width: '100%',
-            background: '#1c1c38',
+            background: '#272746',
             borderRadius: '5px',
             overflow: 'hidden',
           }}

@@ -12,7 +12,7 @@ export default function Hero() {
         paddingTop: 140,
         paddingBottom: 100,
         overflow: 'hidden',
-        background: '#09081a',
+        background: '#15142e',
       }}
     >
       {/* Layered radial glows */}
@@ -240,7 +240,7 @@ export default function Hero() {
           height: 140,
           pointerEvents: 'none',
           background:
-            'linear-gradient(180deg, rgba(9,8,26,0) 0%, #09081a 100%)',
+            'linear-gradient(180deg, rgba(9,8,26,0) 0%, #15142e 100%)',
         }}
       />
 

@@ -129,7 +129,7 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '16px 16px 16px 48px',
-    background: '#2a2a4c',
+    background: '#35355c',
     border: 'none',
     borderRadius: '16px',
     color: '#e5e3ff',
@@ -436,7 +436,7 @@ export default function AccountStep({ data, onChange, onNext, loading, error }: 
               width: '18px',
               height: '18px',
               borderRadius: '4px',
-              background: '#2a2a4c',
+              background: '#35355c',
               border: 'none',
               accentColor: '#ae89ff',
               flexShrink: 0,

@@ -70,7 +70,7 @@ export default function NotebookSidebar({ notebookId }: NotebookSidebarProps) {
       style={{
         width: '256px',
         minWidth: '256px',
-        background: '#111126',
+        background: '#1a1a36',
         borderRight: '1px solid rgba(140,82,255,0.12)',
         display: 'flex',
         flexDirection: 'column',

@@ -11,11 +11,11 @@ import { useBreakpoint } from '@/hooks/useBreakpoint';
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
 const C = {
-  pageBg: '#111126',
-  cardBg: 'rgba(22,22,48,0.92)',
-  elevated: '#232342',
-  inputBg: '#2a2a4c',
-  surfaceBright: '#333358',
+  pageBg: '#1a1a36',
+  cardBg: 'rgba(33, 33, 62,0.92)',
+  elevated: '#2d2d52',
+  inputBg: '#35355c',
+  surfaceBright: '#3e3e68',
   primary: '#ae89ff',
   primaryDim: '#884efb',
   primaryGlow: 'rgba(174,137,255,0.15)',

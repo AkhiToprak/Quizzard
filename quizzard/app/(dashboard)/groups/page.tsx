@@ -28,9 +28,9 @@ interface Group {
 }
 
 const COLORS = {
-  pageBg: '#111126',
-  cardBg: '#161630',
-  elevated: '#232342',
+  pageBg: '#1a1a36',
+  cardBg: '#21213e',
+  elevated: '#2d2d52',
   primary: '#ae89ff',
   deepPurple: '#884efb',
   textPrimary: '#e5e3ff',

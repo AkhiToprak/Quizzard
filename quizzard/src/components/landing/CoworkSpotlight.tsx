@@ -9,7 +9,7 @@ export default function CoworkSpotlight() {
         position: 'relative',
         padding: '128px 32px',
         background:
-          'linear-gradient(180deg, #09081a 0%, #0c0a24 50%, #09081a 100%)',
+          'linear-gradient(180deg, #15142e 0%, #191736 50%, #15142e 100%)',
         overflow: 'hidden',
       }}
     >

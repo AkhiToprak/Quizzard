@@ -12,7 +12,7 @@ const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 const AUTO_DISMISS_MS = 6000;
 
 const COLORS = {
-  cardBg: '#161630',
+  cardBg: '#21213e',
   primary: '#ae89ff',
   textPrimary: '#e5e3ff',
   textMuted: '#8888a8',

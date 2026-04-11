@@ -10,7 +10,7 @@ export default function MageSpotlight() {
         position: 'relative',
         padding: '128px 32px',
         background:
-          'radial-gradient(1000px 600px at 50% 0%, rgba(140, 82, 255, 0.12) 0%, transparent 60%), #09081a',
+          'radial-gradient(1000px 600px at 50% 0%, rgba(140, 82, 255, 0.12) 0%, transparent 60%), #15142e',
         overflow: 'hidden',
       }}
     >

@@ -131,7 +131,7 @@ export default function LearningToolsCarousel() {
       style={{
         position: 'relative',
         padding: '128px 0',
-        background: '#09081a',
+        background: '#15142e',
         overflow: 'hidden',
       }}
     >
@@ -311,7 +311,7 @@ function ToolCard({ tool }: { tool: Tool }) {
         style={{
           position: 'relative',
           aspectRatio: '5 / 3',
-          background: `radial-gradient(120% 80% at 50% 0%, ${tool.accent}22 0%, transparent 60%), #0d0c20`,
+          background: `radial-gradient(120% 80% at 50% 0%, ${tool.accent}22 0%, transparent 60%), #181732`,
           overflow: 'hidden',
           borderBottom: `1px solid ${tool.accent}22`,
         }}
@@ -336,7 +336,7 @@ function ToolCard({ tool }: { tool: Tool }) {
             width: 44,
             height: 44,
             borderRadius: 'var(--radius-md)',
-            background: 'rgba(8, 8, 22, 0.8)',
+            background: 'rgba(16, 16, 42, 0.8)',
             border: `1px solid ${tool.accent}66`,
             display: 'flex',
             alignItems: 'center',

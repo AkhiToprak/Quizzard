@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 const COLORS = {
   elevated: '#131328',
-  inputBg: '#1c1c38',
+  inputBg: '#272746',
   primary: '#ae89ff',
   textPrimary: '#e5e3ff',
   textMuted: '#8888a8',

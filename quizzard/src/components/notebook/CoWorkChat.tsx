@@ -243,7 +243,7 @@ export default function CoWorkChat({
             : hoveredToggle
               ? 'rgba(174,137,255,0.2)'
               : 'rgba(174,137,255,0.12)',
-          color: isOpen ? '#111126' : '#ae89ff',
+          color: isOpen ? '#1a1a36' : '#ae89ff',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -272,7 +272,7 @@ export default function CoWorkChat({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '2px solid #111126',
+              border: '2px solid #1a1a36',
             }}
           >
             {messages.length > 99 ? '99+' : messages.length}
@@ -289,7 +289,7 @@ export default function CoWorkChat({
             right: 24,
             width: 320,
             maxHeight: 440,
-            background: '#161630',
+            background: '#21213e',
             borderRadius: 20,
             border: '1px solid #555578',
             boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
@@ -400,7 +400,7 @@ export default function CoWorkChat({
                       borderRadius: isOwn ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                       background: isOwn
                         ? 'linear-gradient(135deg, rgba(174,137,255,0.2), rgba(136,78,251,0.2))'
-                        : '#232342',
+                        : '#2d2d52',
                       fontSize: 13,
                       color: '#e5e3ff',
                       lineHeight: 1.5,
@@ -445,7 +445,7 @@ export default function CoWorkChat({
                 padding: '9px 14px',
                 borderRadius: 12,
                 border: 'none',
-                background: '#2a2a4c',
+                background: '#35355c',
                 color: '#e5e3ff',
                 fontSize: 13,
                 fontFamily: 'inherit',
@@ -466,7 +466,7 @@ export default function CoWorkChat({
                   ? hoveredSend
                     ? 'linear-gradient(135deg, #c4a6ff, #9b5fff)'
                     : 'linear-gradient(135deg, #ae89ff, #884efb)'
-                  : '#2a2a4c',
+                  : '#35355c',
                 color: input.trim() ? '#fff' : '#8888a8',
                 cursor: input.trim() ? 'pointer' : 'not-allowed',
                 display: 'flex',

@@ -90,7 +90,7 @@ export default function PaymentStep({ tier, onSuccess, onBack, error }: PaymentS
         style={{
           borderRadius: 'var(--radius-lg, 16px)',
           overflow: 'hidden',
-          background: 'var(--surface-container-lowest, #080816)',
+          background: 'var(--surface-container-lowest, #10102a)',
           minHeight: '400px',
         }}
       >

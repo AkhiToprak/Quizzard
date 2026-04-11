@@ -15,10 +15,10 @@ import TimerWidget from './TimerWidget';
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
 const COLORS = {
-  pageBg: '#111126',
-  cardBg: '#161630',
-  elevated: '#232342',
-  inputBg: '#2a2a4c',
+  pageBg: '#1a1a36',
+  cardBg: '#21213e',
+  elevated: '#2d2d52',
+  inputBg: '#35355c',
   primary: '#ae89ff',
   textPrimary: '#e5e3ff',
   textSecondary: '#aaa8c8',
@@ -101,7 +101,7 @@ export default function HomeHeader() {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          background: 'rgba(17,17,38,0.85)',
+          background: 'rgba(26, 26, 54,0.85)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderBottom: `1px solid ${COLORS.border}`,

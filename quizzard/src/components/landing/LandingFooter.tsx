@@ -36,7 +36,7 @@ export default function LandingFooter() {
         position: 'relative',
         padding: '96px 32px 48px',
         background:
-          'linear-gradient(180deg, rgba(8, 8, 22, 0.0) 0%, rgba(8, 8, 22, 0.85) 40%, #050410 100%)',
+          'linear-gradient(180deg, rgba(16, 16, 42, 0.0) 0%, rgba(16, 16, 42, 0.85) 40%, #0e0d20 100%)',
         borderTop: '1px solid rgba(140, 82, 255, 0.16)',
         overflow: 'hidden',
       }}

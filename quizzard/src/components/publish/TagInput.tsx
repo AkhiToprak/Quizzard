@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 const COLORS = {
-  cardBg: '#161630',
-  elevated: '#232342',
+  cardBg: '#21213e',
+  elevated: '#2d2d52',
   primary: '#8c52ff',
   primaryLight: '#ae89ff',
   textPrimary: '#ede9ff',
