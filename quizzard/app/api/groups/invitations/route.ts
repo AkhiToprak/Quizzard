@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
           },
         },
         inviter: {
-          select: { id: true, name: true, username: true, avatarUrl: true },
+          select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
         },
       },
       orderBy: { createdAt: 'desc' },

@@ -348,10 +348,18 @@ export default function InfiniteCanvas({
    * to viewport pixels on every Excalidraw onChange via `viewport` state.
    * Cursors get garbage-collected after 8s of silence to handle tabs that
    * disconnect without a clean leave. */
+  type RemoteCursorUser = {
+    id: string;
+    username?: string | null;
+    name?: string | null;
+    nameStyle?: { fontId?: string; colorId?: string } | null;
+    equippedTitleId?: string | null;
+    equippedFrameId?: string | null;
+  };
   type RemoteCursorEntry = {
     sceneX: number;
     sceneY: number;
-    name: string;
+    user: RemoteCursorUser;
     lastSeenAt: number;
   };
   const [remoteCursors, setRemoteCursors] = useState<Map<string, RemoteCursorEntry>>(
@@ -367,12 +375,14 @@ export default function InfiniteCanvas({
     zoom: 1,
   });
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
-  // Cache participant usernames so cursor events can render a name
-  // without a per-event fetch, fetched once when the session id changes.
-  const participantNamesRef = useRef<Map<string, string>>(new Map());
+  // Cache participant user shapes (including cosmetic styling) so cursor
+  // events can render a styled name without a per-event fetch. Fetched
+  // once when the session id changes. Peers who join mid-session render
+  // their cursor with a fallback name until the next refetch.
+  const participantUsersRef = useRef<Map<string, RemoteCursorUser>>(new Map());
   useEffect(() => {
     if (!coWorkSessionId) {
-      participantNamesRef.current.clear();
+      participantUsersRef.current.clear();
       return;
     }
     let cancelled = false;
@@ -384,13 +394,13 @@ export default function InfiniteCanvas({
         if (!res.ok || cancelled) return;
         const json = await res.json();
         const participants = json.data?.participants || [];
-        const next = new Map<string, string>();
+        const next = new Map<string, RemoteCursorUser>();
         for (const p of participants) {
-          if (p.user?.id && p.user?.username) {
-            next.set(p.user.id, p.user.username);
+          if (p.user?.id) {
+            next.set(p.user.id, p.user as RemoteCursorUser);
           }
         }
-        participantNamesRef.current = next;
+        participantUsersRef.current = next;
       } catch {
         // silent
       }
@@ -991,13 +1001,14 @@ export default function InfiniteCanvas({
       if (data.sessionId !== coWorkSessionId) return;
       if (data.pageId && data.pageId !== pageId) return;
       if (data.userId === currentUserId) return;
-      const name = participantNamesRef.current.get(data.userId) || 'Anon';
+      const cached = participantUsersRef.current.get(data.userId);
+      const user: RemoteCursorUser = cached ?? { id: data.userId, username: 'Anon' };
       setRemoteCursors((prev) => {
         const next = new Map(prev);
         next.set(data.userId, {
           sceneX: data.x,
           sceneY: data.y,
-          name,
+          user,
           lastSeenAt: performance.now(),
         });
         return next;
@@ -1696,7 +1707,7 @@ export default function InfiniteCanvas({
                   <RemoteCursor
                     key={userId}
                     userId={userId}
-                    name={entry.name}
+                    user={entry.user}
                     x={screenX}
                     y={screenY}
                   />

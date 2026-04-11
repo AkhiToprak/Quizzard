@@ -10,6 +10,8 @@ import type {
   CommunityNotebookResult,
   PageResult,
 } from '@/types/search';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
@@ -24,19 +26,6 @@ const C = {
   border: '#555578',
   highlight: 'rgba(174,137,255,0.15)',
 } as const;
-
-const AVATAR_COLORS = [
-  'linear-gradient(135deg, #ae89ff, #884efb)',
-  'linear-gradient(135deg, #ff89ae, #fb4e88)',
-  'linear-gradient(135deg, #89ffd4, #4efba5)',
-  'linear-gradient(135deg, #ffde59, #fbae4e)',
-];
-
-function getAvatarGradient(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
 
 function highlightMatch(text: string, query: string) {
   if (!query) return text;
@@ -190,35 +179,14 @@ function UserItem({
 }) {
   return (
     <button onMouseDown={onClick} style={itemStyle}>
-      <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          flexShrink: 0,
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: user.avatarUrl ? undefined : getAvatarGradient(user.id),
-          fontSize: 12,
-          fontWeight: 700,
-          color: '#fff',
-        }}
-      >
-        {user.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          (user.username || '?')[0].toUpperCase()
-        )}
-      </div>
+      <UserAvatar user={user} size={28} radius={8} />
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div
+        <UserName
+          user={user}
+          preferUsername
+          as="div"
           style={{
+            display: 'block',
             fontSize: 13,
             fontWeight: 500,
             color: C.textPrimary,
@@ -226,9 +194,7 @@ function UserItem({
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           }}
-        >
-          {highlightMatch(user.username, query)}
-        </div>
+        />
         {user.name && (
           <div
             style={{
@@ -239,7 +205,7 @@ function UserItem({
               textOverflow: 'ellipsis',
             }}
           >
-            {user.name}
+            {highlightMatch(user.name, query)}
           </div>
         )}
       </div>
@@ -336,7 +302,16 @@ function CommunityItem({
           {highlightMatch(nb.title || nb.name, query)}
         </div>
         <div style={{ fontSize: 11, color: C.textMuted }}>
-          by @{nb.ownerUsername}
+          by @
+          <UserName
+            user={{
+              username: nb.ownerUsername,
+              name: nb.ownerName ?? null,
+              nameStyle: nb.ownerNameStyle ?? null,
+              equippedTitleId: nb.ownerEquippedTitleId ?? null,
+            }}
+            preferUsername
+          />
           {nb.subject ? ` · ${nb.subject}` : ''}
         </div>
       </div>

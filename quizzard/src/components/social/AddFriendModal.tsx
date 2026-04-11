@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 interface User {
   id: string;
@@ -8,6 +10,9 @@ interface User {
   name: string;
   avatarUrl: string | null;
   friendshipStatus: 'none' | 'pending_sent' | 'pending_received' | 'accepted';
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
 }
 
 interface AddFriendModalProps {
@@ -211,47 +216,9 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
 
   if (!open) return null;
 
-  const getInitial = (name: string, username: string) => {
-    return (name?.[0] || username?.[0] || '?').toUpperCase();
-  };
-
-  const renderAvatar = (user: User) => {
-    const size = 40;
-    if (user.avatarUrl) {
-      return (
-        <img
-          src={user.avatarUrl}
-          alt={user.username}
-          style={{
-            width: size,
-            height: size,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            flexShrink: 0,
-          }}
-        />
-      );
-    }
-    return (
-      <div
-        style={{
-          width: size,
-          height: size,
-          borderRadius: '50%',
-          background: `linear-gradient(135deg, ${COLORS.deepPurple}, ${COLORS.deepPurple2})`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 16,
-          fontWeight: 700,
-          color: '#fff',
-          flexShrink: 0,
-        }}
-      >
-        {getInitial(user.name, user.username)}
-      </div>
-    );
-  };
+  const renderAvatar = (user: User) => (
+    <UserAvatar user={user} size={40} radius="50%" />
+  );
 
   const renderActionButton = (user: User) => {
     const isHovered = hoveredButtons[user.id] || false;
@@ -484,18 +451,20 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
           >
             {renderAvatar(user)}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div
+              <UserName
+                as="div"
+                user={user}
+                preferUsername
                 style={{
                   fontSize: 14,
                   fontWeight: 700,
                   color: COLORS.textPrimary,
+                  maxWidth: '100%',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}
-              >
-                {user.username}
-              </div>
+              />
               <div
                 style={{
                   fontSize: 12,

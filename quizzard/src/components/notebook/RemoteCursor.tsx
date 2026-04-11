@@ -12,11 +12,13 @@
  * reused on the canvas later. Pure rendering — no event listeners.
  */
 
+import { UserName, type UserNameUser } from '@/components/user/UserName';
+
 interface RemoteCursorProps {
   /** User-id for color hashing. */
   userId: string;
-  /** Display name shown in the pill. */
-  name: string;
+  /** User shape for the name pill — carries cosmetic styling. */
+  user: UserNameUser;
   /** X coordinate in pixels, relative to the positioned ancestor. */
   x: number;
   /** Y coordinate in pixels, relative to the positioned ancestor. */
@@ -42,7 +44,7 @@ function colorForUser(userId: string): string {
   return COLORS[Math.abs(hash) % COLORS.length];
 }
 
-export default function RemoteCursor({ userId, name, x, y }: RemoteCursorProps) {
+export default function RemoteCursor({ userId, user, x, y }: RemoteCursorProps) {
   const color = colorForUser(userId);
 
   return (
@@ -79,26 +81,35 @@ export default function RemoteCursor({ userId, name, x, y }: RemoteCursorProps) 
         />
       </svg>
 
-      {/* Name pill */}
+      {/* Name pill — pill background is the cursor color; the label itself
+          renders via <UserName> so any equipped font/color cosmetic shines
+          through on top of the pill. */}
       <div
         style={{
           position: 'absolute',
           left: 14,
           top: 18,
           background: color,
-          color: '#181732',
           padding: '3px 8px 3px 8px',
           borderRadius: 6,
-          fontSize: 11,
-          fontWeight: 700,
-          fontFamily: 'var(--font-brand)',
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
           whiteSpace: 'nowrap',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
         }}
       >
-        {name}
+        <UserName
+          user={user}
+          fallback="Anon"
+          preferUsername
+          style={{
+            color: '#181732',
+            fontSize: 11,
+            fontWeight: 700,
+            fontFamily: 'var(--font-brand)',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            lineHeight: 1,
+          }}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 interface FriendRequestCardProps {
   friendshipId: string;
@@ -9,6 +11,9 @@ interface FriendRequestCardProps {
     username: string;
     name?: string | null;
     avatarUrl?: string | null;
+    nameStyle?: { fontId?: string; colorId?: string } | null;
+    equippedFrameId?: string | null;
+    equippedTitleId?: string | null;
   };
   createdAt: string;
   onAccept: (friendshipId: string) => void;
@@ -42,8 +47,6 @@ export default function FriendRequestCard({
   const [acceptHovered, setAcceptHovered] = useState(false);
   const [declineHovered, setDeclineHovered] = useState(false);
 
-  const initial = (user.name ?? user.username).charAt(0).toUpperCase();
-
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -60,38 +63,7 @@ export default function FriendRequestCard({
       }}
     >
       {/* Avatar */}
-      {user.avatarUrl ? (
-        <img
-          src={user.avatarUrl}
-          alt={user.username}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            flexShrink: 0,
-          }}
-        />
-      ) : (
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #ae89ff 0%, #7c5cbf 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            fontSize: 16,
-            fontWeight: 700,
-            color: '#fff',
-            userSelect: 'none',
-          }}
-        >
-          {initial}
-        </div>
-      )}
+      <UserAvatar user={user} size={40} radius="50%" />
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -103,19 +75,20 @@ export default function FriendRequestCard({
             flexWrap: 'wrap',
           }}
         >
-          <span
+          <UserName
+            user={user}
+            preferUsername
             style={{
               fontSize: 14,
               fontWeight: 700,
               color: '#e5e3ff',
               lineHeight: 1.3,
+              maxWidth: '100%',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}
-          >
-            {user.username}
-          </span>
+          />
           <span
             style={{
               fontSize: 12,

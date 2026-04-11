@@ -20,21 +20,31 @@ export async function GET(request: NextRequest, { params }: Params) {
 
     const { id: notebookId, sessionId } = await params;
 
+    const userSelect = {
+      id: true,
+      username: true,
+      name: true,
+      avatarUrl: true,
+      nameStyle: true,
+      equippedTitleId: true,
+      equippedFrameId: true,
+    } as const;
+
     const session = await db.coWorkSession.findFirst({
       where: { id: sessionId, notebookId, isActive: true },
       include: {
-        host: { select: { id: true, username: true, avatarUrl: true } },
+        host: { select: userSelect },
         participants: {
           where: { isActive: true },
           include: {
-            user: { select: { id: true, username: true, avatarUrl: true } },
+            user: { select: userSelect },
           },
           orderBy: { joinedAt: 'asc' },
         },
         pageLocks: {
           where: { expiresAt: { gt: new Date() } },
           include: {
-            lockedBy: { select: { id: true, username: true, avatarUrl: true } },
+            lockedBy: { select: userSelect },
           },
         },
       },

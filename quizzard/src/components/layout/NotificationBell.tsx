@@ -41,15 +41,20 @@ export default function NotificationBell() {
               lastSeenIdRef.current = latest.id;
               isInitialLoadRef.current = false;
             } else if (latest.id !== lastSeenIdRef.current) {
-              // New notification detected
+              // New notification detected. `cosmetic_unlocked` gets its own
+              // richer toast via <UnlockProvider> (see cosmetics/UnlockToast),
+              // so we skip the generic bell pop for those to avoid stacking
+              // two toasts for the same event. The unread count still bumps.
               lastSeenIdRef.current = latest.id;
-              setToastNotification({
-                id: latest.id,
-                type: latest.type,
-                data: latest.data,
-                read: false,
-                createdAt: typeof latest.createdAt === 'string' ? latest.createdAt : new Date(latest.createdAt).toISOString(),
-              });
+              if (latest.type !== 'cosmetic_unlocked') {
+                setToastNotification({
+                  id: latest.id,
+                  type: latest.type,
+                  data: latest.data,
+                  read: false,
+                  createdAt: typeof latest.createdAt === 'string' ? latest.createdAt : new Date(latest.createdAt).toISOString(),
+                });
+              }
             }
           } else {
             if (isInitialLoadRef.current) {

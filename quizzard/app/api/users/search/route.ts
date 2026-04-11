@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         id: { not: userId },
         username: { contains: query, mode: 'insensitive' },
       },
-      select: { id: true, username: true, name: true, avatarUrl: true },
+      select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
       take: 20,
     });
 

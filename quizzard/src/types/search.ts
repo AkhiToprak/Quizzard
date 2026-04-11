@@ -4,6 +4,11 @@ export interface UserResult {
   name: string | null;
   avatarUrl: string | null;
   friendshipStatus: string;
+  // Cosmetic styling — carried through so search rows render with the
+  // same font/color/title/frame as every other username surface.
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedTitleId?: string | null;
+  equippedFrameId?: string | null;
 }
 
 export interface NotebookResult {
@@ -20,8 +25,13 @@ export interface CommunityNotebookResult {
   name: string;
   title: string | null;
   subject: string | null;
+  ownerId: string;
   ownerUsername: string;
+  ownerName: string | null;
   ownerAvatarUrl: string | null;
+  ownerNameStyle?: { fontId?: string; colorId?: string } | null;
+  ownerEquippedTitleId?: string | null;
+  ownerEquippedFrameId?: string | null;
 }
 
 export interface PageResult {

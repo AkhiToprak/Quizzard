@@ -6,7 +6,9 @@ export type AdminAction =
   | 'user.delete'
   | 'post.delete'
   | 'comment.delete'
-  | 'community_notebook.delete';
+  | 'community_notebook.delete'
+  | 'cosmetic.grant'
+  | 'cosmetic.revoke';
 
 /**
  * Log an admin action for auditing purposes.

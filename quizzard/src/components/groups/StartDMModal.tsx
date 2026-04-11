@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 const COLORS = {
   cardBg: '#21213e',
@@ -22,6 +24,9 @@ interface Friend {
   username: string;
   name: string | null;
   avatarUrl: string | null;
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
 }
 
 interface Props {
@@ -46,8 +51,22 @@ export default function StartDMModal({ open, onClose }: Props) {
         const res = await fetch('/api/friends');
         if (res.ok) {
           const json = await res.json();
-          setFriends((json.data?.friends || []).map((f: { id: string; username: string; name?: string | null; avatarUrl?: string | null }) => ({
-            id: f.id, username: f.username, name: f.name || null, avatarUrl: f.avatarUrl || null,
+          setFriends((json.data?.friends || []).map((f: {
+            id: string;
+            username: string;
+            name?: string | null;
+            avatarUrl?: string | null;
+            nameStyle?: { fontId?: string; colorId?: string } | null;
+            equippedFrameId?: string | null;
+            equippedTitleId?: string | null;
+          }) => ({
+            id: f.id,
+            username: f.username,
+            name: f.name || null,
+            avatarUrl: f.avatarUrl || null,
+            nameStyle: f.nameStyle ?? null,
+            equippedFrameId: f.equippedFrameId ?? null,
+            equippedTitleId: f.equippedTitleId ?? null,
           })));
         }
       } catch { /* ignore */ }
@@ -147,21 +166,13 @@ export default function StartDMModal({ open, onClose }: Props) {
                       transition: `background 0.15s ${EASING}`,
                     }}
                   >
-                    {friend.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={friend.avatarUrl} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{
-                        width: 40, height: 40, borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 16, fontWeight: 700, color: '#fff',
-                      }}>
-                        {(friend.name?.[0] || friend.username[0] || '?').toUpperCase()}
-                      </div>
-                    )}
+                    <UserAvatar user={friend} size={40} radius="50%" />
                     <div>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary, margin: 0 }}>{friend.name || friend.username}</p>
+                      <UserName
+                        user={friend}
+                        as="p"
+                        style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary, margin: 0 }}
+                      />
                       <p style={{ fontSize: 12, color: COLORS.textMuted, margin: 0 }}>@{friend.username}</p>
                     </div>
                     <span className="material-symbols-outlined" style={{ marginLeft: 'auto', fontSize: 20, color: COLORS.textMuted }}>

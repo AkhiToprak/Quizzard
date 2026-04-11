@@ -39,10 +39,25 @@ export async function GET(
         profilePrivate: true,
         hideAchievements: true,
         createdAt: true,
+        nameStyle: true,
+        equippedTitleId: true,
+        equippedFrameId: true,
+        equippedBackgroundId: true,
       },
     });
 
     if (!user) return notFoundResponse('User not found');
+
+    // The public showcase row renders the slugs the target user has earned.
+    // We return the raw slug list — the catalog on the client knows everything
+    // else (label, type, required level). No sensitive data, so it's safe to
+    // include even for non-friends of public profiles.
+    const unlocks = await db.userCosmetic.findMany({
+      where: { userId: user.id },
+      select: { cosmeticId: true },
+      orderBy: { unlockedAt: 'desc' },
+    });
+    const unlockedCosmeticIds = unlocks.map((row) => row.cosmeticId);
 
     const isOwnProfile = viewerId === user.id;
     let friendshipStatus: string | null = null;
@@ -75,7 +90,10 @@ export async function GET(
 
     const isFriend = friendshipStatus === 'accepted';
 
-    // Private profile: only show limited info to non-friends
+    // Private profile: only show limited info to non-friends.
+    // Cosmetic styling (name font/color, equipped title/frame) is public —
+    // it still paints the name in the header even when the rest of the
+    // profile is hidden.
     if (user.profilePrivate && !isFriend && !isOwnProfile) {
       return successResponse({
         id: user.id,
@@ -84,6 +102,11 @@ export async function GET(
         avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
         profilePrivate: true,
+        nameStyle: user.nameStyle,
+        equippedTitleId: user.equippedTitleId,
+        equippedFrameId: user.equippedFrameId,
+        equippedBackgroundId: user.equippedBackgroundId,
+        unlockedCosmeticIds,
         friendshipStatus,
         friendshipId,
       });
@@ -91,6 +114,7 @@ export async function GET(
 
     return successResponse({
       ...user,
+      unlockedCosmeticIds,
       friendshipStatus,
       friendshipId,
     });

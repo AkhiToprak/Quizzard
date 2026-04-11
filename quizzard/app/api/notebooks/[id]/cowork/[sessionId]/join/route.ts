@@ -105,7 +105,15 @@ export async function POST(request: NextRequest, { params }: Params) {
     // fetch.
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, username: true, avatarUrl: true },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatarUrl: true,
+        nameStyle: true,
+        equippedTitleId: true,
+        equippedFrameId: true,
+      },
     });
     if (user) {
       await wsEmit({

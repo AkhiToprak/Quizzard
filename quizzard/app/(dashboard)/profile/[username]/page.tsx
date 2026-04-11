@@ -6,6 +6,11 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import TrophyShelf from '@/components/features/TrophyShelf';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
+import { ProfileBackground } from '@/components/cosmetics/ProfileBackground';
+import { CosmeticsShowcase } from '@/components/cosmetics/CosmeticsShowcase';
+import { COSMETICS } from '@/lib/cosmetics/catalog';
 
 interface PublicProfileData {
   id: string;
@@ -22,16 +27,11 @@ interface PublicProfileData {
   createdAt: string;
   friendshipStatus: string | null;
   friendshipId: string | null;
-}
-
-function getInitials(name?: string | null): string {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedTitleId?: string | null;
+  equippedFrameId?: string | null;
+  equippedBackgroundId?: string | null;
+  unlockedCosmeticIds?: string[];
 }
 
 function formatDate(iso: string): string {
@@ -194,6 +194,13 @@ export default function PublicProfilePage() {
   const isPrivate = profile.profilePrivate && !isOwnProfile && friendshipStatus !== 'accepted';
   const hasDetails = DETAIL_ITEMS.some((item) => profile[item.key] != null);
   const showAchievements = !profile.hideAchievements && !isPrivate;
+  const headerRadius = isPhone ? 20 : 24;
+  const hasFrame = Boolean(
+    profile.equippedFrameId &&
+      COSMETICS[profile.equippedFrameId]?.type === 'frame' &&
+      (COSMETICS[profile.equippedFrameId] as { component?: string })?.component !==
+        'none'
+  );
 
   return (
     <div
@@ -209,8 +216,10 @@ export default function PublicProfilePage() {
       {/* Profile Header */}
       <div
         style={{
+          position: 'relative',
+          overflow: 'hidden',
           background: '#21213e',
-          borderRadius: isPhone ? '20px' : '24px',
+          borderRadius: headerRadius,
           padding: isPhone ? '28px 20px' : '40px',
           display: 'flex',
           flexDirection: 'column',
@@ -218,46 +227,35 @@ export default function PublicProfilePage() {
           textAlign: 'center',
         }}
       >
+        <ProfileBackground
+          backgroundId={profile.equippedBackgroundId}
+          radius={headerRadius}
+        />
         {/* Avatar */}
-        {profile.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={profile.avatarUrl}
-            alt={profile.name || profile.username}
-            style={{
-              width: isPhone ? '80px' : '96px',
-              height: isPhone ? '80px' : '96px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              marginBottom: '16px',
-              border: '3px solid rgba(174,137,255,0.3)',
-            }}
+        <div style={{ marginBottom: '16px', position: 'relative', zIndex: 1 }}>
+          <UserAvatar
+            user={profile}
+            size={isPhone ? 80 : 96}
+            radius="50%"
+            style={
+              hasFrame ? undefined : { border: '3px solid rgba(174,137,255,0.3)' }
+            }
           />
-        ) : (
-          <div
-            style={{
-              width: isPhone ? '80px' : '96px',
-              height: isPhone ? '80px' : '96px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: isPhone ? '28px' : '32px',
-              fontWeight: 700,
-              color: '#ffffff',
-              marginBottom: '16px',
-              border: '3px solid rgba(174,137,255,0.3)',
-            }}
-          >
-            {getInitials(profile.name || profile.username)}
-          </div>
-        )}
+        </div>
 
         {/* Name & Username */}
-        <h1 style={{ fontSize: isPhone ? '20px' : '24px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>
-          {profile.name || profile.username}
-        </h1>
+        <UserName
+          user={profile}
+          as="div"
+          showTitle
+          style={{
+            fontSize: isPhone ? 20 : 24,
+            fontWeight: 700,
+            color: '#e5e3ff',
+            marginBottom: 4,
+            justifyContent: 'center',
+          }}
+        />
         <p style={{ fontSize: isPhone ? '13px' : '14px', color: '#aaa8c8', margin: '0 0 12px' }}>
           @{profile.username}
         </p>
@@ -527,6 +525,17 @@ export default function PublicProfilePage() {
             );
           })}
         </div>
+      )}
+
+      {/* Cosmetics Showcase — only when not private and there's something
+          beyond the level-1 defaults to show. The component itself renders
+          nothing when the filtered list is empty, so we can safely mount it
+          and rely on its internal guard. */}
+      {!isPrivate && profile.unlockedCosmeticIds && (
+        <CosmeticsShowcase
+          unlockedIds={profile.unlockedCosmeticIds}
+          isPhone={isPhone}
+        />
       )}
 
       {/* Achievements */}

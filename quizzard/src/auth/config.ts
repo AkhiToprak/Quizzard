@@ -37,6 +37,10 @@ export const authOptions: NextAuthOptions = {
             role: true,
             tier: true,
             scholarName: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+            equippedBackgroundId: true,
             banned: true,
             banReason: true,
             failedLoginAttempts: true,
@@ -113,6 +117,10 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           tier: user.tier,
           scholarName: user.scholarName ?? undefined,
+          nameStyle: (user.nameStyle as { fontId?: string; colorId?: string } | null) ?? undefined,
+          equippedTitleId: user.equippedTitleId ?? undefined,
+          equippedFrameId: user.equippedFrameId ?? undefined,
+          equippedBackgroundId: user.equippedBackgroundId ?? undefined,
         };
       },
     }),
@@ -127,6 +135,10 @@ export const authOptions: NextAuthOptions = {
           role?: string;
           tier?: string;
           scholarName?: string;
+          nameStyle?: { fontId?: string; colorId?: string };
+          equippedTitleId?: string;
+          equippedFrameId?: string;
+          equippedBackgroundId?: string;
         };
         token.id = user.id;
         token.username = u.username;
@@ -135,8 +147,13 @@ export const authOptions: NextAuthOptions = {
         token.role = u.role;
         token.tier = u.tier;
         token.scholarName = u.scholarName;
+        token.nameStyle = u.nameStyle;
+        token.equippedTitleId = u.equippedTitleId;
+        token.equippedFrameId = u.equippedFrameId;
+        token.equippedBackgroundId = u.equippedBackgroundId;
       }
-      // Re-read from DB when session is explicitly updated (e.g. after onboarding)
+      // Re-read from DB when session is explicitly updated (e.g. after onboarding
+      // or after the user equips a new cosmetic in profile settings).
       if (trigger === 'update' && token.id) {
         const freshUser = await db.user.findUnique({
           where: { id: token.id as string },
@@ -147,6 +164,10 @@ export const authOptions: NextAuthOptions = {
             role: true,
             tier: true,
             scholarName: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+            equippedBackgroundId: true,
           },
         });
         if (freshUser) {
@@ -156,6 +177,11 @@ export const authOptions: NextAuthOptions = {
           token.role = freshUser.role;
           token.tier = freshUser.tier;
           token.scholarName = freshUser.scholarName ?? undefined;
+          token.nameStyle =
+            (freshUser.nameStyle as { fontId?: string; colorId?: string } | null) ?? undefined;
+          token.equippedTitleId = freshUser.equippedTitleId ?? undefined;
+          token.equippedFrameId = freshUser.equippedFrameId ?? undefined;
+          token.equippedBackgroundId = freshUser.equippedBackgroundId ?? undefined;
         }
       }
       return token;
@@ -169,6 +195,10 @@ export const authOptions: NextAuthOptions = {
         session.user.role = (token.role as string) ?? 'user';
         session.user.tier = (token.tier as string) ?? 'FREE';
         session.user.scholarName = token.scholarName as string | undefined;
+        session.user.nameStyle = token.nameStyle;
+        session.user.equippedTitleId = token.equippedTitleId;
+        session.user.equippedFrameId = token.equippedFrameId;
+        session.user.equippedBackgroundId = token.equippedBackgroundId;
       }
       return session;
     },

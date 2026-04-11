@@ -3,11 +3,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import CoWorkInviteModal from '@/components/notebook/CoWorkInviteModal';
 import { useCoworkSocket } from '@/lib/cowork-socket';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 interface Participant {
   id: string;
   userId: string;
-  user: { id: string; username: string; avatarUrl: string | null };
+  user: {
+    id: string;
+    username: string;
+    name?: string | null;
+    avatarUrl: string | null;
+    nameStyle?: { fontId?: string; colorId?: string } | null;
+    equippedFrameId?: string | null;
+    equippedTitleId?: string | null;
+  };
   joinedAt: string;
 }
 
@@ -20,21 +29,6 @@ interface CoWorkBarProps {
 }
 
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
-
-const AVATAR_GRADIENTS = [
-  'linear-gradient(135deg, #ae89ff, #884efb)',
-  'linear-gradient(135deg, #ff89ae, #fb4e88)',
-  'linear-gradient(135deg, #89ffd4, #4efba5)',
-  'linear-gradient(135deg, #ffde59, #fbae4e)',
-];
-
-function getAvatarGradient(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
-}
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -303,42 +297,18 @@ export default function CoWorkBar({
           {shown.map((p, i) => (
             <div
               key={p.id}
-              title={p.user.username}
+              title={p.user.name || p.user.username}
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 8,
                 border: '2px solid #1a1a36',
+                borderRadius: 8,
                 marginLeft: i > 0 ? -8 : 0,
                 zIndex: shown.length - i,
                 position: 'relative',
-                overflow: 'hidden',
                 flexShrink: 0,
+                display: 'inline-flex',
               }}
             >
-              {p.user.avatarUrl ? (
-                <img
-                  src={p.user.avatarUrl}
-                  alt={p.user.username}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    background: getAvatarGradient(p.userId),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: '#fff',
-                  }}
-                >
-                  {p.user.username[0].toUpperCase()}
-                </div>
-              )}
+              <UserAvatar user={p.user} size={28} radius={6} />
             </div>
           ))}
           {overflow > 0 && (

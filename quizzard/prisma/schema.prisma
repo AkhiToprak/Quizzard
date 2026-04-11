@@ -95,6 +95,14 @@ model User {
   achievements           Achievement[]
   xp                     Int                @default(0)
   level                  Int                @default(1)
+  // Cosmetics — see src/lib/cosmetics/catalog.ts for the canonical list.
+  // nameStyle is denormalized so username rendering never needs a join.
+  // Shape: { fontId?: string, colorId?: string } — both reference catalog slugs.
+  nameStyle              Json?
+  equippedTitleId        String?
+  equippedFrameId        String?
+  equippedBackgroundId   String?
+  cosmetics              UserCosmetic[]
   exams                  Exam[]
   todos                  Todo[]
   usageRecords           UsageRecord[]
@@ -417,9 +425,11 @@ model Page {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  section       Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section       Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   images        PageImage[]
   locks         PageLock[]
+  revisions     PageRevision[]
+  contentAudits PageContentAudit[]
 
   @@index([sectionId])
   @@map("pages")
@@ -439,6 +449,63 @@ model PageImage {
 
   @@index([pageId])
   @@map("page_images")
+}
+
+// ----------------------------------------------------------------------------
+// PageRevision — point-in-time snapshots of a page's content.
+//
+// Written by the PUT /pages/[pageId] handler on every successful content
+// update. Kept at ~50 most-recent-per-page by a trigger (see migration).
+// Exists for two reasons:
+//   1. Instant recovery if content is ever wiped (re-insert the last good
+//      row's content back into pages.content).
+//   2. Future product feature: user-facing version history / undo.
+// Snapshots are stored as JSONB so they compress well and indexing stays
+// cheap. Retention bounds total storage: 50 revisions * N pages.
+// ----------------------------------------------------------------------------
+model PageRevision {
+  id          String   @id @default(cuid())
+  pageId      String
+  title       String
+  content     Json     // Full TipTap JSON at snapshot time
+  textContent String?  // Plain text mirror at snapshot time
+  createdBy   String?  // User id of the save author, if known
+  createdAt   DateTime @default(now())
+
+  page        Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, createdAt])
+  @@map("page_revisions")
+}
+
+// ----------------------------------------------------------------------------
+// PageContentAudit — tamper-evident audit trail for page.content mutations.
+//
+// Written by the PUT /pages/[pageId] handler BEFORE the actual update, so
+// every attempted write is captured — successful or not. Includes client
+// request metadata (IP, user-agent) so that if a rogue write ever reaches
+// the DB we can trace it back to the exact session within seconds.
+//
+// `result` is 'accepted' | 'refused_empty_overwrite' | 'error'. Failed
+// writes are logged too — that's the whole point.
+// ----------------------------------------------------------------------------
+model PageContentAudit {
+  id              String   @id @default(cuid())
+  pageId          String
+  userId          String?
+  clientIp        String?
+  userAgent       String?
+  incomingIsEmpty Boolean
+  existingIsEmpty Boolean
+  result          String   // 'accepted' | 'refused_empty_overwrite' | 'error'
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  page            Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, createdAt])
+  @@index([result, createdAt])
+  @@map("page_content_audits")
 }
 
 // ============================================================================
@@ -1104,6 +1171,28 @@ model Achievement {
   @@unique([userId, badge])
   @@index([userId])
   @@map("achievements")
+}
+
+// ----------------------------------------------------------------------------
+// UserCosmetic — a row per (user, cosmetic) unlock.
+//
+// cosmeticId is a stable slug that references an entry in the code-side
+// catalog at src/lib/cosmetics/catalog.ts. Deliberately NO foreign key to a
+// Cosmetic table — the catalog lives in code so adding a new unlockable is a
+// typed, zero-migration change. The tradeoff is that orphaned rows may exist
+// if a catalog entry is ever removed; the renderer treats unknown slugs as
+// no-ops, so this is safe.
+// ----------------------------------------------------------------------------
+model UserCosmetic {
+  userId     String
+  cosmeticId String
+  unlockedAt DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, cosmeticId])
+  @@index([userId])
+  @@map("user_cosmetics")
 }
 
 // ============================================================================

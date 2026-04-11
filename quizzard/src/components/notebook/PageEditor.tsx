@@ -176,23 +176,37 @@ export default function PageEditor({
   const handleUpsellClose = useCallback(() => setUpsellOpen(false), []);
 
   /* ─── Co-work remote cursors ────────────────────────────────────────── */
-  // Map<userId, { x, y, name, lastSeenAt }> in container-relative pixels.
+  // Map<userId, { x, y, user, lastSeenAt }> in container-relative pixels.
   // Cursors are dropped after 8 seconds of silence to handle the case where
   // a peer's tab is closed without a clean disconnect.
-  type RemoteCursorEntry = { x: number; y: number; name: string; lastSeenAt: number };
+  type RemoteCursorUser = {
+    id: string;
+    username?: string | null;
+    name?: string | null;
+    nameStyle?: { fontId?: string; colorId?: string } | null;
+    equippedTitleId?: string | null;
+    equippedFrameId?: string | null;
+  };
+  type RemoteCursorEntry = {
+    x: number;
+    y: number;
+    user: RemoteCursorUser;
+    lastSeenAt: number;
+  };
   const [remoteCursors, setRemoteCursors] = useState<Map<string, RemoteCursorEntry>>(
     new Map()
   );
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const coworkSocket = useCoworkSocket(coWorkSessionId ?? null);
 
-  // Cache participant usernames so cursor events can render a name without
-  // a per-event fetch. We rely on the participants list returned from the
-  // session GET endpoint, fetched once when the session id changes.
-  const participantNamesRef = useRef<Map<string, string>>(new Map());
+  // Cache participant user shapes (including cosmetic styling) so cursor
+  // events can render a styled name without a per-event fetch. Fetched
+  // once when the session id changes. Peers who join mid-session render
+  // their cursor with a fallback name until the next refetch.
+  const participantUsersRef = useRef<Map<string, RemoteCursorUser>>(new Map());
   useEffect(() => {
     if (!coWorkSessionId) {
-      participantNamesRef.current.clear();
+      participantUsersRef.current.clear();
       return;
     }
     let cancelled = false;
@@ -204,13 +218,13 @@ export default function PageEditor({
         if (!res.ok || cancelled) return;
         const json = await res.json();
         const participants = json.data?.participants || [];
-        const next = new Map<string, string>();
+        const next = new Map<string, RemoteCursorUser>();
         for (const p of participants) {
-          if (p.user?.id && p.user?.username) {
-            next.set(p.user.id, p.user.username);
+          if (p.user?.id) {
+            next.set(p.user.id, p.user as RemoteCursorUser);
           }
         }
-        participantNamesRef.current = next;
+        participantUsersRef.current = next;
       } catch {
         // silent
       }
@@ -340,13 +354,14 @@ export default function PageEditor({
       if (data.pageId && data.pageId !== pageId) return;
       // Don't show our own cursor
       if (data.userId === currentUserId) return;
-      const name = participantNamesRef.current.get(data.userId) || 'Anon';
+      const cached = participantUsersRef.current.get(data.userId);
+      const user: RemoteCursorUser = cached ?? { id: data.userId, username: 'Anon' };
       setRemoteCursors((prev) => {
         const next = new Map(prev);
         next.set(data.userId, {
           x: data.x,
           y: data.y,
-          name,
+          user,
           lastSeenAt: performance.now(),
         });
         return next;
@@ -1244,7 +1259,7 @@ export default function PageEditor({
             <RemoteCursor
               key={userId}
               userId={userId}
-              name={entry.name}
+              user={entry.user}
               x={entry.x}
               y={entry.y}
             />

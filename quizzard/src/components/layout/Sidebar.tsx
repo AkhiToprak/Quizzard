@@ -8,16 +8,8 @@ import { useSession, signOut } from 'next-auth/react';
 import FriendsList from '@/components/social/FriendsList';
 import AddFriendModal from '@/components/social/AddFriendModal';
 import TierBadge from '@/components/ui/TierBadge';
-
-function getInitials(name?: string | null): string {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -209,52 +201,22 @@ export default function Sidebar() {
               padding: '16px 24px',
             }}
           >
-            {session.user.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={session.user.avatarUrl}
-                alt={session.user.name || 'Avatar'}
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  flexShrink: 0,
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  color: '#ffffff',
-                  flexShrink: 0,
-                }}
-              >
-                {getInitials(session.user.name)}
-              </div>
-            )}
+            <UserAvatar user={session.user} size={40} radius="50%" />
             <div style={{ minWidth: 0 }}>
-              <p
+              <UserName
+                as="p"
+                user={session.user}
                 style={{
                   fontSize: '14px',
-                  fontWeight: '700',
+                  fontWeight: 700,
                   color: '#e5e3ff',
                   margin: 0,
+                  maxWidth: '100%',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}
-              >
-                {session.user.name}
-              </p>
+              />
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                 <TierBadge tier={session.user.tier || 'FREE'} role={session.user.role} />
               </div>

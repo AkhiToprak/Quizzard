@@ -56,7 +56,11 @@ export async function GET(request: NextRequest, { params }: Params) {
           select: {
             id: true,
             username: true,
+            name: true,
             avatarUrl: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
           },
         },
       },
@@ -124,7 +128,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       },
       include: {
         user: {
-          select: { id: true, username: true, avatarUrl: true },
+          select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
         },
       },
     });

@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import SaveDestinationModal from './SaveDestinationModal';
 import CoworkInviteCard from '@/components/cowork/CoworkInviteCard';
 import type { CoworkInvitePayload } from '@/lib/cowork-join';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 const COLORS = {
   pageBg: '#1a1a36',
@@ -22,10 +24,20 @@ const COLORS = {
   border: '#555578',
 } as const;
 
+interface ChatMessageSender {
+  id: string;
+  name: string | null;
+  username: string;
+  avatarUrl: string | null;
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
+}
+
 interface ChatMessageData {
   id: string;
   senderId: string | null;
-  sender: { id: string; name: string | null; username: string; avatarUrl: string | null } | null;
+  sender: ChatMessageSender | null;
   type: string;
   content: string;
   metadata: unknown;
@@ -51,26 +63,6 @@ function timeAgo(dateStr: string): string {
   if (diffHr < 24) return `${diffHr}h ago`;
   const diffDay = Math.floor(diffHr / 24);
   return `${diffDay}d ago`;
-}
-
-function Avatar({ user, size = 36 }: { user: { name?: string | null; avatarUrl?: string | null; username: string }; size?: number }) {
-  const initial = (user.name?.[0] || user.username[0] || '?').toUpperCase();
-  if (user.avatarUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={user.avatarUrl} alt="" style={{ width: size, height: size, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
-    );
-  }
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: 12,
-      background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.deepPurple2} 100%)`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: size * 0.38, fontWeight: 700, color: '#fff', flexShrink: 0,
-    }}>
-      {initial}
-    </div>
-  );
 }
 
 function MessageStatusIcon({ status, isOwn }: { status?: string; isOwn: boolean }) {
@@ -145,7 +137,7 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
         }}
       >
         {message.sender && (
-          <Avatar user={message.sender} size={32} />
+          <UserAvatar user={message.sender} size={32} radius={12} />
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
@@ -157,7 +149,12 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
               fontWeight: 600,
             }}
           >
-            {hostName} · {timeAgo(message.createdAt)}
+            {message.sender ? (
+              <UserName user={message.sender} showTitle fallback="A member" />
+            ) : (
+              hostName
+            )}{' '}
+            · {timeAgo(message.createdAt)}
           </div>
           <CoworkInviteCard
             payload={payload}
@@ -222,10 +219,18 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
 
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexDirection: isOwn ? 'row-reverse' : 'row', maxWidth: '70%', marginLeft: isOwn ? 'auto' : 0, marginRight: isOwn ? 0 : 'auto' }}>
-        {message.sender && <Avatar user={message.sender} size={40} />}
+        {message.sender && <UserAvatar user={message.sender} size={40} radius={12} />}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: isOwn ? 'flex-end' : 'flex-start' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexDirection: isOwn ? 'row-reverse' : 'row' }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: isOwn ? COLORS.yellow : COLORS.primary }}>{isOwn ? 'You' : message.sender?.name || message.sender?.username}</span>
+            {isOwn ? (
+              <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.yellow }}>You</span>
+            ) : (
+              <UserName
+                user={message.sender}
+                showTitle
+                style={{ fontSize: 13, fontWeight: 700, color: COLORS.primary }}
+              />
+            )}
             <span style={{ fontSize: 10, fontWeight: 500, color: `${COLORS.textMuted}b3`, display: 'inline-flex', alignItems: 'center' }}>
               {timeAgo(message.createdAt)}
               <MessageStatusIcon status={message.status} isOwn={isOwn} />
@@ -289,10 +294,18 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
   // Regular text message
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexDirection: isOwn ? 'row-reverse' : 'row', maxWidth: '70%', marginLeft: isOwn ? 'auto' : 0, marginRight: isOwn ? 0 : 'auto' }}>
-      {message.sender && <Avatar user={message.sender} size={40} />}
+      {message.sender && <UserAvatar user={message.sender} size={40} radius={12} />}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: isOwn ? 'flex-end' : 'flex-start' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexDirection: isOwn ? 'row-reverse' : 'row' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: isOwn ? COLORS.yellow : COLORS.primary }}>{isOwn ? 'You' : message.sender?.name || message.sender?.username}</span>
+          {isOwn ? (
+            <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.yellow }}>You</span>
+          ) : (
+            <UserName
+              user={message.sender}
+              showTitle
+              style={{ fontSize: 13, fontWeight: 700, color: COLORS.primary }}
+            />
+          )}
           <span style={{ fontSize: 10, fontWeight: 500, color: `${COLORS.textMuted}b3`, display: 'inline-flex', alignItems: 'center' }}>
             {timeAgo(message.createdAt)}
             <MessageStatusIcon status={message.status} isOwn={isOwn} />

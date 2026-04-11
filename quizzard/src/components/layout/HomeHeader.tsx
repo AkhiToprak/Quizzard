@@ -11,6 +11,8 @@ import { useBreakpoint } from '@/hooks/useBreakpoint';
 import SearchDropdown from '@/components/search/SearchDropdown';
 import TierBadge from '@/components/ui/TierBadge';
 import TimerWidget from './TimerWidget';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 
@@ -26,21 +28,6 @@ const COLORS = {
   error: '#fd6f85',
   border: '#555578',
 } as const;
-
-const AVATAR_COLORS = [
-  'linear-gradient(135deg, #ae89ff, #884efb)',
-  'linear-gradient(135deg, #ff89ae, #fb4e88)',
-  'linear-gradient(135deg, #89ffd4, #4efba5)',
-  'linear-gradient(135deg, #ffde59, #fbae4e)',
-];
-
-function getAvatarGradient(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
 
 export default function HomeHeader() {
   const { data: session } = useSession();
@@ -260,30 +247,7 @@ export default function HomeHeader() {
                   flexShrink: 0,
                 }}
               >
-                {user?.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.username || ''}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: 8,
-                      background: getAvatarGradient(user?.id || ''),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: '#fff',
-                    }}
-                  >
-                    {(user?.username || user?.name || '?')[0].toUpperCase()}
-                  </div>
-                )}
+                <UserAvatar user={user} size={36} radius={8} />
               </button>
 
               {/* Avatar dropdown menu */}
@@ -328,7 +292,7 @@ export default function HomeHeader() {
                         gap: 6,
                       }}
                     >
-                      {user?.name || user?.username}
+                      <UserName user={user} />
                       <TierBadge tier={user?.tier || 'FREE'} role={user?.role} />
                     </div>
                     {user?.username && (

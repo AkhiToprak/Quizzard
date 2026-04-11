@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 interface FriendsListProps {
   compact?: boolean;
@@ -12,6 +14,9 @@ interface FriendUser {
   username: string;
   name?: string | null;
   avatarUrl?: string | null;
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
 }
 
 interface Friend {
@@ -20,6 +25,9 @@ interface Friend {
   username: string;
   name?: string | null;
   avatarUrl?: string | null;
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
 }
 
 interface FriendRequest {
@@ -35,43 +43,15 @@ function Avatar({
   user,
   size = 32,
 }: {
-  user: { name?: string | null; avatarUrl?: string | null; username: string };
+  user: {
+    name?: string | null;
+    avatarUrl?: string | null;
+    username: string;
+    equippedFrameId?: string | null;
+  };
   size?: number;
 }) {
-  const initial = user.username[0].toUpperCase();
-  if (user.avatarUrl) {
-    return (
-      <img
-        src={user.avatarUrl}
-        alt=""
-        style={{
-          width: size,
-          height: size,
-          borderRadius: '50%',
-          objectFit: 'cover',
-        }}
-      />
-    );
-  }
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: size * 0.4,
-        fontWeight: 700,
-        color: '#fff',
-        flexShrink: 0,
-      }}
-    >
-      {initial}
-    </div>
-  );
+  return <UserAvatar user={user} size={size} radius="50%" />;
 }
 
 function SkeletonRow({ compact }: { compact: boolean }) {
@@ -310,18 +290,19 @@ export default function FriendsList({ compact = false, onAddFriendClick }: Frien
                   onMouseLeave={() => setHoveredFriendId(null)}
                 >
                   <Avatar user={friend} size={32} />
-                  <span
+                  <UserName
+                    user={friend}
+                    preferUsername
                     style={{
                       fontSize: 14,
                       fontWeight: 700,
                       color: '#e5e3ff',
+                      maxWidth: '100%',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
                     }}
-                  >
-                    {friend.username}
-                  </span>
+                  />
                 </div>
               ))}
             </div>
@@ -504,18 +485,20 @@ export default function FriendsList({ compact = false, onAddFriendClick }: Frien
                 >
                   <Avatar user={request.user} size={32} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
+                    <UserName
+                      as="div"
+                      user={request.user}
+                      preferUsername
                       style={{
                         fontSize: 14,
                         fontWeight: 700,
                         color: '#e5e3ff',
+                        maxWidth: '100%',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                       }}
-                    >
-                      {request.user.username}
-                    </div>
+                    />
                     {request.user.name && (
                       <div
                         style={{
@@ -691,18 +674,20 @@ export default function FriendsList({ compact = false, onAddFriendClick }: Frien
             >
               <Avatar user={friend} size={32} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div
+                <UserName
+                  as="div"
+                  user={friend}
+                  preferUsername
                   style={{
                     fontSize: 14,
                     fontWeight: 700,
                     color: '#e5e3ff',
+                    maxWidth: '100%',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                   }}
-                >
-                  {friend.username}
-                </div>
+                />
                 {friend.name && (
                   <div
                     style={{

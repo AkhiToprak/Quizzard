@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDirectUpload } from '@/hooks/useDirectUpload';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 interface ShareNotebookModalProps {
   open: boolean;
@@ -16,6 +18,9 @@ interface Friend {
   username: string;
   name: string;
   avatarUrl: string | null;
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
 }
 
 interface ShareInfo {
@@ -47,21 +52,6 @@ const EASING = 'cubic-bezier(0.22,1,0.36,1)';
 type Tab = 'community' | 'friend' | 'link';
 type Visibility = 'public' | 'friends';
 type ShareType = 'copy' | 'live_view';
-
-const AVATAR_COLORS = [
-  'linear-gradient(135deg, #ae89ff, #884efb)',
-  'linear-gradient(135deg, #ff89ae, #fb4e88)',
-  'linear-gradient(135deg, #89ffd4, #4efba5)',
-  'linear-gradient(135deg, #ffde59, #fbae4e)',
-];
-
-function getAvatarGradient(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
 
 export default function ShareNotebookModal({
   open,
@@ -1020,42 +1010,16 @@ export default function ShareNotebookModal({
                   </div>
 
                   {/* Avatar */}
-                  {friend.avatarUrl ? (
-                    <img
-                      src={friend.avatarUrl}
-                      alt={friend.username}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 10,
-                        objectFit: 'cover',
-                        flexShrink: 0,
-                      }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 10,
-                        background: getAvatarGradient(friend.id),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: '#fff',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {(friend.username || friend.name || '?')[0].toUpperCase()}
-                    </div>
-                  )}
+                  <UserAvatar user={friend} size={32} radius={10} alt={friend.username} />
 
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
+                    <UserName
+                      user={friend}
+                      preferUsername
+                      as="div"
                       style={{
+                        display: 'block',
                         fontSize: 13,
                         fontWeight: 600,
                         color: COLORS.textPrimary,
@@ -1063,9 +1027,7 @@ export default function ShareNotebookModal({
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                       }}
-                    >
-                      {friend.username}
-                    </div>
+                    />
                     {friend.name && (
                       <div
                         style={{

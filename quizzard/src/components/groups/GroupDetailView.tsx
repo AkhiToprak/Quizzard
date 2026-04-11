@@ -10,6 +10,8 @@ import GroupMemberList from './GroupMemberList';
 import GroupSettings from './GroupSettings';
 import InviteMemberModal from './InviteMemberModal';
 import TimerWidget from '@/components/layout/TimerWidget';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 const COLORS = {
   pageBg: '#1a1a36',
@@ -33,6 +35,19 @@ interface Member {
   avatarUrl: string | null;
   role: string;
   joinedAt: string;
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
+}
+
+interface BasicUser {
+  id: string;
+  name: string | null;
+  username: string;
+  avatarUrl: string | null;
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
 }
 
 interface GroupData {
@@ -41,13 +56,13 @@ interface GroupData {
   description: string | null;
   avatarUrl: string | null;
   ownerId: string;
-  owner: { id: string; name: string | null; username: string; avatarUrl: string | null };
+  owner: BasicUser;
   type: string;
   allowMemberChat: boolean;
   allowMemberSharing: boolean;
   allowMemberInvites: boolean;
   members: Member[];
-  pendingInvites?: { id: string; invitee: { id: string; name: string | null; username: string; avatarUrl: string | null }; createdAt: string }[];
+  pendingInvites?: { id: string; invitee: BasicUser; createdAt: string }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -162,19 +177,7 @@ export default function GroupDetailView({ groupId }: Props) {
         </button>
         {/* Avatar: DM shows other user's pic (circular), groups show group icon */}
         {isDM && otherUser ? (
-          otherUser.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={otherUser.avatarUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
-          ) : (
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontWeight: 700, color: '#fff',
-            }}>
-              {(otherUser.name?.[0] || otherUser.username[0] || '?').toUpperCase()}
-            </div>
-          )
+          <UserAvatar user={otherUser} size={32} radius="50%" />
         ) : (
           group.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -191,7 +194,15 @@ export default function GroupDetailView({ groupId }: Props) {
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{ fontSize: 14, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: '-0.02em', margin: 0 }}>
-            {isDM && otherUser ? (otherUser.name || otherUser.username) : group.name}
+            {isDM && otherUser ? (
+              <UserName
+                user={otherUser}
+                as="span"
+                style={{ fontSize: 14, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: '-0.02em' }}
+              />
+            ) : (
+              group.name
+            )}
           </h1>
           {!isDM && (
             <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>{group.members.length} member{group.members.length !== 1 ? 's' : ''}</p>

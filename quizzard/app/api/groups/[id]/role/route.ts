@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       data: { role },
       include: {
         user: {
-          select: { id: true, name: true, username: true, avatarUrl: true },
+          select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
         },
       },
     });

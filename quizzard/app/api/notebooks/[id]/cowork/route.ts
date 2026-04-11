@@ -106,11 +106,11 @@ export async function GET(request: NextRequest, { params }: Params) {
     const session = await db.coWorkSession.findFirst({
       where: { notebookId, isActive: true },
       include: {
-        host: { select: { id: true, username: true, avatarUrl: true } },
+        host: { select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } },
         participants: {
           where: { isActive: true },
           include: {
-            user: { select: { id: true, username: true, avatarUrl: true } },
+            user: { select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } },
           },
           orderBy: { joinedAt: 'asc' },
         },

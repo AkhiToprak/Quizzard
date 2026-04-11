@@ -5,6 +5,13 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import TrophyShelf from '@/components/features/TrophyShelf';
 import AvatarEditor from '@/components/ui/AvatarEditor';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
+import {
+  CosmeticsPanel,
+  type CosmeticsSelection,
+} from '@/components/cosmetics/CosmeticsPanel';
+import { ProfileBackground } from '@/components/cosmetics/ProfileBackground';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 type UsernameStatus = 'idle' | 'typing' | 'checking' | 'available' | 'taken' | 'invalid';
@@ -23,6 +30,10 @@ interface ProfileData {
   profilePrivate: boolean;
   hideAchievements: boolean;
   createdAt: string;
+  nameStyle: { fontId?: string; colorId?: string } | null;
+  equippedTitleId: string | null;
+  equippedFrameId: string | null;
+  equippedBackgroundId: string | null;
 }
 
 interface FormState {
@@ -36,15 +47,13 @@ interface FormState {
   hideAchievements: boolean;
 }
 
-function getInitials(name?: string | null): string {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
+const EMPTY_COSMETICS: CosmeticsSelection = {
+  equippedTitleId: null,
+  fontId: null,
+  colorId: null,
+  equippedFrameId: null,
+  equippedBackgroundId: null,
+};
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -102,6 +111,8 @@ export default function ProfilePage() {
     profilePrivate: false,
     hideAchievements: false,
   });
+  const [cosmeticsForm, setCosmeticsForm] =
+    useState<CosmeticsSelection>(EMPTY_COSMETICS);
 
   // Mage level (computed from XP)
   const [mageLevel, setMageLevel] = useState<number | null>(null);
@@ -146,6 +157,13 @@ export default function ProfilePage() {
       lineOfWork: profile.lineOfWork || '',
       profilePrivate: profile.profilePrivate,
       hideAchievements: profile.hideAchievements,
+    });
+    setCosmeticsForm({
+      equippedTitleId: profile.equippedTitleId,
+      fontId: profile.nameStyle?.fontId ?? null,
+      colorId: profile.nameStyle?.colorId ?? null,
+      equippedFrameId: profile.equippedFrameId,
+      equippedBackgroundId: profile.equippedBackgroundId,
     });
     setEditing(true);
   };
@@ -253,6 +271,17 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Cosmetics: collapse font/color into a single `nameStyle` object (or
+      // null when both are unset) to match the profile PUT contract.
+      const hasNameStyle =
+        cosmeticsForm.fontId != null || cosmeticsForm.colorId != null;
+      const nameStylePayload = hasNameStyle
+        ? {
+            fontId: cosmeticsForm.fontId ?? undefined,
+            colorId: cosmeticsForm.colorId ?? undefined,
+          }
+        : null;
+
       const res = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -265,12 +294,19 @@ export default function ProfilePage() {
           lineOfWork: form.lineOfWork || null,
           profilePrivate: form.profilePrivate,
           hideAchievements: form.hideAchievements,
+          nameStyle: nameStylePayload,
+          equippedTitleId: cosmeticsForm.equippedTitleId,
+          equippedFrameId: cosmeticsForm.equippedFrameId,
+          equippedBackgroundId: cosmeticsForm.equippedBackgroundId,
         }),
       });
       if (res.ok) {
         const json = await res.json();
         const updated = json?.data ?? json;
         setProfile(updated);
+        // Keep the session cookie's cached user in sync so every
+        // <UserName>/<UserAvatar> surface across the app re-paints.
+        await updateSession();
         setEditing(false);
       }
     } catch {
@@ -330,6 +366,7 @@ export default function ProfilePage() {
       {/* Profile Header */}
       <div
         style={{
+          position: 'relative',
           background: '#21213e',
           borderRadius: isPhone ? '20px' : '24px',
           padding: isPhone ? '28px 20px' : '40px',
@@ -337,55 +374,66 @@ export default function ProfilePage() {
           flexDirection: 'column',
           alignItems: 'center',
           textAlign: 'center',
+          overflow: 'hidden',
         }}
       >
+        {/* Equipped background layer — sits behind the content. Default /
+            unset renders nothing and the flat #21213e shows through. */}
+        <ProfileBackground
+          backgroundId={profile.equippedBackgroundId}
+          radius={isPhone ? 20 : 24}
+        />
+
         {/* Avatar */}
-        {profile.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={profile.avatarUrl}
-            alt={profile.name || profile.username}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            marginBottom: '16px',
+          }}
+        >
+          <UserAvatar
+            user={profile}
+            size={isPhone ? 80 : 96}
+            radius="50%"
             style={{
-              width: isPhone ? '80px' : '96px',
-              height: isPhone ? '80px' : '96px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              marginBottom: '16px',
-              border: '3px solid rgba(174,137,255,0.3)',
+              border: profile.equippedFrameId ? 'none' : '3px solid rgba(174,137,255,0.3)',
             }}
           />
-        ) : (
-          <div
-            style={{
-              width: isPhone ? '80px' : '96px',
-              height: isPhone ? '80px' : '96px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: isPhone ? '28px' : '32px',
-              fontWeight: 700,
-              color: '#ffffff',
-              marginBottom: '16px',
-              border: '3px solid rgba(174,137,255,0.3)',
-            }}
-          >
-            {getInitials(profile.name || profile.username)}
-          </div>
-        )}
+        </div>
 
-        {/* Name & Username */}
-        <h1 style={{ fontSize: isPhone ? '20px' : '24px', fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}>
-          {profile.name || profile.username}
-        </h1>
-        <p style={{ fontSize: isPhone ? '13px' : '14px', color: '#aaa8c8', margin: '0 0 12px' }}>
+        {/* Name & Title */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <UserName
+            user={profile}
+            as="div"
+            showTitle
+            style={{
+              fontSize: isPhone ? 20 : 24,
+              fontWeight: 700,
+              color: '#e5e3ff',
+              marginBottom: 4,
+              justifyContent: 'center',
+            }}
+          />
+        </div>
+        <p
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            fontSize: isPhone ? '13px' : '14px',
+            color: '#aaa8c8',
+            margin: '0 0 12px',
+          }}
+        >
           @{profile.username}
         </p>
 
         {/* Mage Level */}
         <div
           style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
@@ -407,6 +455,8 @@ export default function ProfilePage() {
         {/* Member Since */}
         <div
           style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
@@ -423,6 +473,8 @@ export default function ProfilePage() {
         {/* Privacy badges */}
         <div
           style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'flex',
             gap: '8px',
             marginTop: '12px',
@@ -476,6 +528,8 @@ export default function ProfilePage() {
         <button
           onClick={openEditModal}
           style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
@@ -836,6 +890,61 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* ── Appearance (unlockable cosmetics) ── */}
+          <div
+            style={{
+              borderTop: '1px solid rgba(170,168,200,0.1)',
+              paddingTop: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+            }}
+          >
+            <div>
+              <h4
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#e5e3ff',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '18px', color: '#ae89ff' }}
+                >
+                  auto_awesome
+                </span>
+                Appearance
+              </h4>
+              <p
+                style={{
+                  fontSize: '12px',
+                  color: '#8888a8',
+                  margin: '4px 0 0',
+                  lineHeight: 1.5,
+                }}
+              >
+                Level up to unlock new titles, fonts, colors, frames, and profile
+                backgrounds. Locked items show the required level.
+              </p>
+            </div>
+
+            <CosmeticsPanel
+              value={cosmeticsForm}
+              onChange={setCosmeticsForm}
+              previewUser={{
+                name: form.name || profile.name,
+                username: profile.username,
+                avatarUrl: profile.avatarUrl,
+              }}
+              compact={isPhone}
+            />
+          </div>
+
           {/* Save / Cancel */}
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
             <button
@@ -957,38 +1066,16 @@ export default function ProfilePage() {
 
             {/* Avatar section */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-              {profile.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={profile.avatarUrl}
-                  alt={profile.name || profile.username}
-                  style={{
-                    width: '96px',
-                    height: '96px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '3px solid rgba(174,137,255,0.3)',
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '96px',
-                    height: '96px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '32px',
-                    fontWeight: 700,
-                    color: '#ffffff',
-                    border: '3px solid rgba(174,137,255,0.3)',
-                  }}
-                >
-                  {getInitials(profile.name || profile.username)}
-                </div>
-              )}
+              <UserAvatar
+                user={profile}
+                size={96}
+                radius="50%"
+                style={{
+                  border: profile.equippedFrameId
+                    ? 'none'
+                    : '3px solid rgba(174,137,255,0.3)',
+                }}
+              />
               <button
                 onClick={() => setAvatarEditorOpen(true)}
                 style={{

@@ -277,7 +277,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const shares = await db.sharedNotebook.findMany({
       where: { notebookId, sharedById: userId },
       include: {
-        sharedWith: { select: { id: true, username: true, avatarUrl: true } },
+        sharedWith: { select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: 100,

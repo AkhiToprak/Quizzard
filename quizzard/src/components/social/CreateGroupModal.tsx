@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 interface CreateGroupModalProps {
   open: boolean;
@@ -14,6 +16,9 @@ interface Friend {
   username: string;
   name: string | null;
   avatarUrl: string | null;
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedFrameId?: string | null;
+  equippedTitleId?: string | null;
 }
 
 const COLORS = {
@@ -80,8 +85,22 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
         const res = await fetch('/api/friends');
         if (res.ok) {
           const json = await res.json();
-          setFriends((json.data?.friends || []).map((f: { id: string; username: string; name?: string | null; avatarUrl?: string | null }) => ({
-            id: f.id, username: f.username, name: f.name || null, avatarUrl: f.avatarUrl || null,
+          setFriends((json.data?.friends || []).map((f: {
+            id: string;
+            username: string;
+            name?: string | null;
+            avatarUrl?: string | null;
+            nameStyle?: { fontId?: string; colorId?: string } | null;
+            equippedFrameId?: string | null;
+            equippedTitleId?: string | null;
+          }) => ({
+            id: f.id,
+            username: f.username,
+            name: f.name || null,
+            avatarUrl: f.avatarUrl || null,
+            nameStyle: f.nameStyle ?? null,
+            equippedFrameId: f.equippedFrameId ?? null,
+            equippedTitleId: f.equippedTitleId ?? null,
           })));
         }
       } catch { /* ignore */ }
@@ -461,21 +480,13 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
                       padding: '10px 12px', borderRadius: 12,
                       background: COLORS.elevated,
                     }}>
-                      {friend.avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={friend.avatarUrl} alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{
-                          width: 32, height: 32, borderRadius: 8,
-                          background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 13, fontWeight: 700, color: '#fff',
-                        }}>
-                          {(friend.name?.[0] || friend.username[0] || '?').toUpperCase()}
-                        </div>
-                      )}
+                      <UserAvatar user={friend} size={32} radius={8} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary, margin: 0 }}>{friend.name || friend.username}</p>
+                        <UserName
+                          user={friend}
+                          as="p"
+                          style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary, margin: 0 }}
+                        />
                         <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>@{friend.username}</p>
                       </div>
                       {isInvited ? (

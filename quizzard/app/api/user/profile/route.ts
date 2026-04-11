@@ -9,6 +9,7 @@ import {
 } from '@/lib/api-response';
 import { Prisma } from '@prisma/client';
 import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
+import { COSMETICS } from '@/lib/cosmetics/catalog';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
@@ -34,6 +35,10 @@ export async function GET(request: NextRequest) {
         hideAchievements: true,
         customGreeting: true,
         scholarName: true,
+        nameStyle: true,
+        equippedTitleId: true,
+        equippedFrameId: true,
+        equippedBackgroundId: true,
         createdAt: true,
       },
     });
@@ -65,6 +70,10 @@ export async function PUT(request: NextRequest) {
       hideAchievements,
       customGreeting,
       scholarName,
+      nameStyle,
+      equippedTitleId,
+      equippedFrameId,
+      equippedBackgroundId,
     } = body;
 
     const data: Record<string, unknown> = {};
@@ -187,6 +196,93 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Cosmetic equipping. For each equip request we verify (1) the id exists
+    // in the catalog and matches the expected type, and (2) the user owns it
+    // via UserCosmetic. Ownership is checked in a single batched query at the
+    // end of this block to avoid multiple round-trips.
+    const cosmeticChecks: { field: string; value: string; expectedType: string }[] = [];
+
+    if (nameStyle !== undefined) {
+      if (nameStyle === null) {
+        data.nameStyle = Prisma.JsonNull;
+      } else if (
+        typeof nameStyle !== 'object' ||
+        Array.isArray(nameStyle) ||
+        (nameStyle.fontId !== undefined && typeof nameStyle.fontId !== 'string') ||
+        (nameStyle.colorId !== undefined && typeof nameStyle.colorId !== 'string')
+      ) {
+        return badRequestResponse('nameStyle must be { fontId?, colorId? }');
+      } else {
+        const cleaned: { fontId?: string; colorId?: string } = {};
+        if (typeof nameStyle.fontId === 'string') {
+          const entry = COSMETICS[nameStyle.fontId];
+          if (!entry || entry.type !== 'nameFont') {
+            return badRequestResponse('Unknown nameStyle.fontId');
+          }
+          cosmeticChecks.push({ field: 'nameStyle.fontId', value: nameStyle.fontId, expectedType: 'nameFont' });
+          cleaned.fontId = nameStyle.fontId;
+        }
+        if (typeof nameStyle.colorId === 'string') {
+          const entry = COSMETICS[nameStyle.colorId];
+          if (!entry || entry.type !== 'nameColor') {
+            return badRequestResponse('Unknown nameStyle.colorId');
+          }
+          cosmeticChecks.push({ field: 'nameStyle.colorId', value: nameStyle.colorId, expectedType: 'nameColor' });
+          cleaned.colorId = nameStyle.colorId;
+        }
+        data.nameStyle = cleaned;
+      }
+    }
+
+    const equippedFields: [
+      'equippedTitleId' | 'equippedFrameId' | 'equippedBackgroundId',
+      unknown,
+      'title' | 'frame' | 'background',
+    ][] = [
+      ['equippedTitleId', equippedTitleId, 'title'],
+      ['equippedFrameId', equippedFrameId, 'frame'],
+      ['equippedBackgroundId', equippedBackgroundId, 'background'],
+    ];
+    for (const [field, value, expectedType] of equippedFields) {
+      if (value === undefined) continue;
+      if (value === null) {
+        data[field] = null;
+        continue;
+      }
+      if (typeof value !== 'string') {
+        return badRequestResponse(`${field} must be a string or null`);
+      }
+      const entry = COSMETICS[value];
+      if (!entry || entry.type !== expectedType) {
+        return badRequestResponse(`Unknown ${field}`);
+      }
+      cosmeticChecks.push({ field, value, expectedType });
+      data[field] = value;
+    }
+
+    // Ownership check: all referenced cosmetics must be in UserCosmetic for
+    // this user. Allow-list the 'default' sentinels (level 1 entries) so
+    // users can always revert to the default without owning a row.
+    if (cosmeticChecks.length > 0) {
+      const idsToCheck = cosmeticChecks
+        .map((c) => c.value)
+        .filter((id) => {
+          const entry = COSMETICS[id];
+          return entry ? entry.requiredLevel > 1 : false;
+        });
+      if (idsToCheck.length > 0) {
+        const owned = await db.userCosmetic.findMany({
+          where: { userId, cosmeticId: { in: idsToCheck } },
+          select: { cosmeticId: true },
+        });
+        const ownedSet = new Set(owned.map((r) => r.cosmeticId));
+        const missing = idsToCheck.find((id) => !ownedSet.has(id));
+        if (missing) {
+          return badRequestResponse(`You do not own cosmetic ${missing}`);
+        }
+      }
+    }
+
     if (Object.keys(data).length === 0) {
       return badRequestResponse('No valid fields to update');
     }
@@ -222,6 +318,10 @@ export async function PUT(request: NextRequest) {
           hideAchievements: true,
           customGreeting: true,
           scholarName: true,
+          nameStyle: true,
+          equippedTitleId: true,
+          equippedFrameId: true,
+          equippedBackgroundId: true,
           createdAt: true,
         },
       });

@@ -3,16 +3,8 @@
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import TierBadge from '@/components/ui/TierBadge';
-
-function getInitials(name?: string | null): string {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 function getPageTitle(pathname: string): string {
   if (pathname === '/dashboard') return 'Dashboard';
@@ -70,41 +62,14 @@ export default function Header() {
                 gap: '8px',
               }}
             >
-              Hello, <span style={{ color: '#e5e3ff' }}>{session.user.name}</span>
+              Hello,{' '}
+              <UserName
+                user={session.user}
+                style={{ color: '#e5e3ff' }}
+              />
               <TierBadge tier={session.user.tier || 'FREE'} role={session.user.role} />
             </span>
-            {session.user.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={session.user.avatarUrl}
-                alt={session.user.name || 'Avatar'}
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '12px',
-                  objectFit: 'cover',
-                  flexShrink: 0,
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #ae89ff 0%, #8348f6 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  color: '#ffffff',
-                  flexShrink: 0,
-                }}
-              >
-                {getInitials(session.user.name)}
-              </div>
-            )}
+            <UserAvatar user={session.user} size={40} />
           </div>
         )}
 

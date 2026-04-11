@@ -33,13 +33,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
       where: { id },
       include: {
         owner: {
-          select: { id: true, name: true, username: true, avatarUrl: true },
+          select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
         },
         members: {
           where: { status: 'accepted' },
           include: {
             user: {
-              select: { id: true, name: true, username: true, avatarUrl: true },
+              select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
             },
           },
           orderBy: { joinedAt: 'asc' },
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
           where: { status: 'pending' },
           include: {
             invitee: {
-              select: { id: true, name: true, username: true, avatarUrl: true },
+              select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
             },
           },
           orderBy: { createdAt: 'desc' },
@@ -156,7 +156,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       data: updateData,
       include: {
         owner: {
-          select: { id: true, name: true, username: true, avatarUrl: true },
+          select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
         },
       },
     });

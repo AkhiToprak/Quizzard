@@ -68,7 +68,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     // Check if page is already locked
     const existingLock = await db.pageLock.findUnique({
       where: { sessionId_pageId: { sessionId, pageId } },
-      include: { lockedBy: { select: { id: true, username: true } } },
+      include: { lockedBy: { select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } } },
     });
 
     if (existingLock) {

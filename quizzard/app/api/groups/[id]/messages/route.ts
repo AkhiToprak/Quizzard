@@ -12,7 +12,15 @@ import { canPerformAction } from '@/lib/group-permissions';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-const SENDER_SELECT = { id: true, name: true, username: true, avatarUrl: true } as const;
+const SENDER_SELECT = {
+  id: true,
+  name: true,
+  username: true,
+  avatarUrl: true,
+  nameStyle: true,
+  equippedTitleId: true,
+  equippedFrameId: true,
+} as const;
 
 // GET /api/groups/:id/messages — paginated messages (newest first)
 export async function GET(request: NextRequest, context: RouteContext) {

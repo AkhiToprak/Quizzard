@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import TierBadge from '@/components/ui/TierBadge';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { UserName } from '@/components/user/UserName';
+import { UserAvatar } from '@/components/user/UserAvatar';
 
 interface BurgerMenuProps {
   open: boolean;
@@ -26,21 +28,6 @@ const COLORS = {
   error: '#fd6f85',
   border: '#555578',
 } as const;
-
-const AVATAR_COLORS = [
-  'linear-gradient(135deg, #ae89ff, #884efb)',
-  'linear-gradient(135deg, #ff89ae, #fb4e88)',
-  'linear-gradient(135deg, #89ffd4, #4efba5)',
-  'linear-gradient(135deg, #ffde59, #fbae4e)',
-];
-
-function getAvatarGradient(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -147,37 +134,12 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
             gap: 12,
           }}
         >
-          {user?.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt={user.username || ''}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                objectFit: 'cover',
-                border: '2px solid rgba(174,137,255,0.3)',
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                background: getAvatarGradient(user?.id || ''),
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 24,
-                fontWeight: 700,
-                color: '#fff',
-                border: '2px solid rgba(174,137,255,0.3)',
-              }}
-            >
-              {(user?.username || user?.name || '?')[0].toUpperCase()}
-            </div>
-          )}
+          <UserAvatar
+            user={user}
+            size={64}
+            radius="50%"
+            style={{ border: '2px solid rgba(174,137,255,0.3)' }}
+          />
           <div style={{ textAlign: 'center' }}>
             <div
               style={{
@@ -190,7 +152,7 @@ export default function BurgerMenu({ open, onClose }: BurgerMenuProps) {
                 gap: 6,
               }}
             >
-              {user?.name || user?.username || 'User'}
+              <UserName user={user} fallback="User" />
               <TierBadge tier={user?.tier || 'FREE'} role={user?.role} />
             </div>
             {user?.username && (

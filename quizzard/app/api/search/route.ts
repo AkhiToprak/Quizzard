@@ -49,7 +49,15 @@ export async function GET(request: NextRequest) {
             { name: { contains: query, mode: 'insensitive' } },
           ],
         },
-        select: { id: true, username: true, name: true, avatarUrl: true },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          avatarUrl: true,
+          nameStyle: true,
+          equippedTitleId: true,
+          equippedFrameId: true,
+        },
         take: 5,
       });
 
@@ -144,7 +152,17 @@ export async function GET(request: NextRequest) {
         },
         include: {
           notebook: { select: { name: true, subject: true } },
-          sharedBy: { select: { username: true, avatarUrl: true } },
+          sharedBy: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              avatarUrl: true,
+              nameStyle: true,
+              equippedTitleId: true,
+              equippedFrameId: true,
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
         take: 5,
@@ -155,8 +173,13 @@ export async function GET(request: NextRequest) {
         name: s.notebook.name,
         title: s.title,
         subject: s.notebook.subject,
+        ownerId: s.sharedBy.id,
         ownerUsername: s.sharedBy.username,
+        ownerName: s.sharedBy.name,
         ownerAvatarUrl: s.sharedBy.avatarUrl,
+        ownerNameStyle: s.sharedBy.nameStyle,
+        ownerEquippedTitleId: s.sharedBy.equippedTitleId,
+        ownerEquippedFrameId: s.sharedBy.equippedFrameId,
       }));
     }
 

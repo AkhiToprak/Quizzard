@@ -16,7 +16,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 const VALID_CONTENT_TYPES = ['notebook', 'folder', 'document', 'flashcard_set', 'quiz_set'] as const;
 type ContentType = (typeof VALID_CONTENT_TYPES)[number];
 
-const SHARER_SELECT = { id: true, name: true, username: true, avatarUrl: true } as const;
+const SHARER_SELECT = { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } as const;
 
 // GET /api/groups/:id/shared — list shared content
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     // Get sharer info for response and chat message
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, username: true, avatarUrl: true },
+      select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
     });
 
     // Create a rich content_share message in the chat
