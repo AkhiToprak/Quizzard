@@ -50,7 +50,12 @@ function formatDate(dateStr: string): string {
   });
 }
 
-export default function ActivityHeatmap() {
+interface ActivityHeatmapProps {
+  /** When set, fetch this user's activity instead of the authed user's. */
+  userId?: string;
+}
+
+export default function ActivityHeatmap({ userId }: ActivityHeatmapProps = {}) {
   const { isPhone, isPhoneOrTablet } = useBreakpoint();
   const [dayMap, setDayMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -68,7 +73,11 @@ export default function ActivityHeatmap() {
   const TOTAL_WEEKS = isPhone ? 26 : 53;
 
   useEffect(() => {
-    fetch('/api/user/activity-heatmap?days=365')
+    const url = userId
+      ? `/api/user/activity-heatmap?days=365&userId=${encodeURIComponent(userId)}`
+      : '/api/user/activity-heatmap?days=365';
+    setLoading(true);
+    fetch(url)
       .then((r) => r.json())
       .then((res) => {
         const data: DayData[] = res?.data?.data ?? res?.data ?? [];
@@ -80,7 +89,7 @@ export default function ActivityHeatmap() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [userId]);
 
   // Build the grid: 53 columns x 7 rows, ending today
   const today = new Date();
@@ -171,7 +180,8 @@ export default function ActivityHeatmap() {
             Activity
           </h3>
           <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
-            Your contributions over the last {isPhone ? '6 months' : 'year'}
+            {userId ? 'Contributions' : 'Your contributions'} over the last{' '}
+            {isPhone ? '6 months' : 'year'}
           </p>
         </div>
         <div

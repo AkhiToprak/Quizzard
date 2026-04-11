@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import TrophyShelf from '@/components/features/TrophyShelf';
+import ActivityHeatmap from '@/components/features/ActivityHeatmap';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { UserName } from '@/components/user/UserName';
 import { UserAvatar } from '@/components/user/UserAvatar';
@@ -540,6 +541,9 @@ export default function PublicProfilePage() {
           isPhone={isPhone}
         />
       )}
+
+      {/* Activity heatmap — same gating as cosmetics showcase */}
+      {!isPrivate && <ActivityHeatmap userId={profile.id} />}
 
       {/* Achievements */}
       {showAchievements && <TrophyShelf userId={profile.id} />}

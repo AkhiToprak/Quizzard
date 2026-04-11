@@ -5,10 +5,17 @@ import { successResponse, unauthorizedResponse, internalErrorResponse } from '@/
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) return unauthorizedResponse();
+    const authUserId = await getAuthUserId(request);
 
     const url = new URL(request.url);
+    const targetUserId = url.searchParams.get('userId');
+
+    // Allow viewing another user's activity via ?userId=. The profile page
+    // gates visibility behind !isPrivate, matching how achievements and
+    // cosmetics are handled.
+    const userId = targetUserId && targetUserId !== authUserId ? targetUserId : authUserId;
+    if (!userId) return unauthorizedResponse();
+
     const days = Math.min(Number(url.searchParams.get('days')) || 365, 365);
 
     const startDate = new Date();
