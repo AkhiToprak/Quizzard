@@ -46,13 +46,25 @@ function getColor(minutes: number): string {
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
+  // Cells are keyed by UTC date (to match the server's DATE(minute) group),
+  // so format them in UTC as well — otherwise a CEST user hovers "Apr 11"
+  // and sees "Apr 10" in the tooltip.
+  const d = new Date(dateStr + 'T00:00:00Z');
   return d.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    timeZone: 'UTC',
   });
+}
+
+/** "2026-04-11" from a Date, using UTC components. */
+function toUtcDateStr(d: Date): string {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 interface ActivityHeatmapProps {
@@ -96,16 +108,21 @@ export default function ActivityHeatmap({ userId }: ActivityHeatmapProps = {}) {
       .finally(() => setLoading(false));
   }, [userId]);
 
-  // Build the grid: 53 columns x 7 rows, ending today
+  // Build the grid: 53 columns x 7 rows, ending today.
+  // Everything here is in UTC to stay in lockstep with the server, which
+  // buckets minutes via Postgres `DATE("minute")` in UTC. Building the grid
+  // in local time would produce an off-by-one for users in non-UTC zones
+  // (e.g. CEST → today's cell gets labelled with yesterday's UTC date and
+  // today's data disappears).
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayDay = today.getDay(); // 0=Sun, 6=Sat
+  today.setUTCHours(0, 0, 0, 0);
+  const todayDay = today.getUTCDay(); // 0=Sun, 6=Sat
 
   // The grid ends on today. The last column contains today.
-  // Total cells = TOTAL_WEEKS * 7, but we only show up to today.
   const totalDays = (TOTAL_WEEKS - 1) * 7 + todayDay + 1;
   const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - totalDays + 1);
+  startDate.setUTCDate(startDate.getUTCDate() - totalDays + 1);
+  const startDay = startDate.getUTCDay();
 
   // Build cells
   const cells: { date: string; count: number; week: number; day: number }[] = [];
@@ -114,14 +131,11 @@ export default function ActivityHeatmap({ userId }: ActivityHeatmapProps = {}) {
 
   for (let i = 0; i < totalDays; i++) {
     const d = new Date(startDate);
-    d.setDate(d.getDate() + i);
-    const dateStr = d.toISOString().split('T')[0];
-    const dayOfWeek = d.getDay();
-    const week = Math.floor(i / 7);
+    d.setUTCDate(d.getUTCDate() + i);
+    const dateStr = toUtcDateStr(d);
 
-    // Adjust: the grid starts from the startDate's day of week
-    // We need to calculate the correct column
-    const startDay = startDate.getDay();
+    // The grid starts from startDate's day-of-week, so offset the column
+    // index by startDay to land the first cell in the correct row.
     const adjustedIndex = i + startDay;
     const col = Math.floor(adjustedIndex / 7);
     const row = adjustedIndex % 7;
@@ -129,7 +143,7 @@ export default function ActivityHeatmap({ userId }: ActivityHeatmapProps = {}) {
     cells.push({ date: dateStr, count: dayMap[dateStr] ?? 0, week: col, day: row });
 
     // Track month labels
-    const month = d.getMonth();
+    const month = d.getUTCMonth();
     if (month !== lastMonth) {
       monthLabels.push({ label: MONTH_NAMES[month], week: col });
       lastMonth = month;
