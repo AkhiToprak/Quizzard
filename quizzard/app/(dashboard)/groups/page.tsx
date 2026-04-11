@@ -16,6 +16,11 @@ interface GroupMember {
   name: string | null;
   username: string;
   avatarUrl: string | null;
+  // Cosmetic fields — forwarded by /api/groups so DMCard can paint the
+  // peer's equipped frame / title / name font in the list.
+  nameStyle?: { fontId?: string; colorId?: string } | null;
+  equippedTitleId?: string | null;
+  equippedFrameId?: string | null;
 }
 
 interface Group {

@@ -35,14 +35,37 @@ export async function GET(request: NextRequest) {
               },
             },
             owner: {
-              select: { id: true, name: true, username: true, avatarUrl: true },
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                avatarUrl: true,
+                nameStyle: true,
+                equippedTitleId: true,
+                equippedFrameId: true,
+              },
             },
-            // Include members for DMs so we can show the other user's info
+            // Include members for DMs so we can show the other user's info.
+            // Cosmetic fields (nameStyle / equippedTitleId / equippedFrameId)
+            // are needed so the DM list card can paint the peer's equipped
+            // frame + title + name font. Without them the list rendered as a
+            // plain avatar + unstyled name even after the user saved
+            // cosmetics — the query simply never shipped them over.
             members: {
               where: { status: 'accepted' },
               select: {
                 userId: true,
-                user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                    avatarUrl: true,
+                    nameStyle: true,
+                    equippedTitleId: true,
+                    equippedFrameId: true,
+                  },
+                },
               },
             },
             // Latest message for unread detection

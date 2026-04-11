@@ -87,6 +87,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
         name: m.user.name,
         username: m.user.username,
         avatarUrl: m.user.avatarUrl,
+        // Forward cosmetic fields so <UserAvatar>/<UserName> in the DM
+        // header, chat byline, and member list all render equipped
+        // frame / title / name style correctly.
+        nameStyle: m.user.nameStyle,
+        equippedTitleId: m.user.equippedTitleId,
+        equippedFrameId: m.user.equippedFrameId,
         role: m.role,
         joinedAt: m.joinedAt,
       })),
