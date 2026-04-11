@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Epilogue, Oswald, Plus_Jakarta_Sans } from 'next/font/google';
+import {
+  Epilogue,
+  JetBrains_Mono,
+  Oswald,
+  Playfair_Display,
+  Plus_Jakarta_Sans,
+} from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
 
@@ -22,6 +28,24 @@ const oswald = Oswald({
   variable: '--font-oswald',
   subsets: ['latin'],
   weight: ['200', '300', '400', '500', '600', '700'],
+  display: 'swap',
+});
+
+// Cosmetic-only fonts. Loaded here so the name-font unlockables in
+// src/lib/cosmetics/catalog.ts actually render instead of falling back to
+// Georgia / ui-monospace. Kept subset-light because only a handful of users
+// will ever equip them.
+const playfair = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
 });
 
@@ -58,7 +82,7 @@ export default function RootLayout({
         <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
       </head>
       <body
-        className={`${epilogue.variable} ${oswald.variable} ${plusJakartaSans.variable} antialiased`}
+        className={`${epilogue.variable} ${oswald.variable} ${plusJakartaSans.variable} ${playfair.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

@@ -88,6 +88,13 @@ export function UserName({
     ? user?.username || user?.name || fallback
     : user?.name || user?.username || fallback;
   const resolved = plain ? {} : resolveNameStyle(user?.nameStyle ?? null);
+  // Split font from color/gradient. The font cascades from the OUTER element
+  // so nothing a caller passes via `style` can accidentally overwrite it
+  // (several surfaces hardcode `fontFamily: 'var(--font-display)'` on the
+  // outer wrapper — that used to silently defeat the cosmetic font). Color
+  // and gradient stay on the inner span so the equipped title doesn't get
+  // painted with the name's gradient.
+  const { fontFamily: resolvedFont, ...resolvedColor } = resolved;
   const Element = as;
 
   const titleEntry =
@@ -97,12 +104,22 @@ export function UserName({
   return (
     <Element
       className={className}
-      style={{ display: 'inline-flex', alignItems: 'baseline', gap: '6px', ...style }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'baseline',
+        gap: '6px',
+        ...style,
+        // Force the cosmetic font to win over any fontFamily in `style`.
+        ...(resolvedFont ? { fontFamily: resolvedFont } : {}),
+      }}
     >
-      <span style={resolved}>{displayName}</span>
+      <span style={resolvedColor}>{displayName}</span>
       {titleLabel && (
         <span
           style={{
+            // Pin the title to the body font so it stays readable even when
+            // the name picks a display/mono font.
+            fontFamily: 'var(--font-sans)',
             fontSize: '0.75em',
             color: 'var(--on-surface-variant)',
             fontWeight: 500,

@@ -80,40 +80,44 @@ export type Cosmetic =
 
 export const COSMETICS: Record<string, Cosmetic> = {
   // --- Titles -------------------------------------------------------------
+  // Slugs are preserved (production data already references them by id) but
+  // labels are rebranded to fit the Notemage arcane-scholar theme. Adding a
+  // new title? Mint a new slug — do NOT rename an existing one or you'll
+  // orphan every row in UserCosmetic that points at it.
   'title.newcomer': {
     id: 'title.newcomer',
     type: 'title',
-    label: 'Newcomer',
+    label: 'Initiate',
     requiredLevel: 1,
   },
   'title.apprentice': {
     id: 'title.apprentice',
     type: 'title',
-    label: 'Apprentice',
+    label: 'Rune-Reader',
     requiredLevel: 3,
   },
   'title.night-owl': {
     id: 'title.night-owl',
     type: 'title',
-    label: 'Night Owl',
+    label: 'Moonlit Scribe',
     requiredLevel: 5,
   },
   'title.flashcard-fiend': {
     id: 'title.flashcard-fiend',
     type: 'title',
-    label: 'Flashcard Fiend',
+    label: 'Ink Alchemist',
     requiredLevel: 10,
   },
   'title.scholar': {
     id: 'title.scholar',
     type: 'title',
-    label: 'Scholar',
+    label: 'Loremaster',
     requiredLevel: 15,
   },
   'title.polymath': {
     id: 'title.polymath',
     type: 'title',
-    label: 'Polymath',
+    label: 'Grand Sage',
     requiredLevel: 20,
   },
   'title.archmage': {
@@ -148,15 +152,19 @@ export const COSMETICS: Record<string, Cosmetic> = {
   'font.serif': {
     id: 'font.serif',
     type: 'nameFont',
-    label: 'Serif',
-    css: '"Playfair Display", Georgia, serif',
+    label: 'Playfair',
+    // `--font-serif` is wired to Playfair Display via next/font in
+    // app/layout.tsx → globals.css. Falling back to a raw font-family string
+    // here is a trap: Google Fonts isn't in the stylesheet, so the browser
+    // would silently render Georgia.
+    css: 'var(--font-serif)',
     requiredLevel: 12,
   },
   'font.mono': {
     id: 'font.mono',
     type: 'nameFont',
-    label: 'Mono',
-    css: '"JetBrains Mono", ui-monospace, monospace',
+    label: 'JetBrains',
+    css: 'var(--font-mono)',
     requiredLevel: 18,
   },
 

@@ -844,9 +844,11 @@ export function CosmeticsPanel({
             showTitle
             as="div"
             style={{
+              // Intentionally no `fontFamily` — UserName applies the cosmetic
+              // font on its outer element, and any hardcoded fontFamily here
+              // would override what the user just picked in the rail.
               fontSize: compact ? 20 : 24,
               fontWeight: 800,
-              fontFamily: 'var(--font-display)',
               color: '#e5e3ff',
               lineHeight: 1.1,
             }}
