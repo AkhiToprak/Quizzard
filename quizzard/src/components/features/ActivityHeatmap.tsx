@@ -56,7 +56,7 @@ interface ActivityHeatmapProps {
 }
 
 export default function ActivityHeatmap({ userId }: ActivityHeatmapProps = {}) {
-  const { isPhone, isPhoneOrTablet } = useBreakpoint();
+  const { isPhone } = useBreakpoint();
   const [dayMap, setDayMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -226,7 +226,10 @@ export default function ActivityHeatmap({ userId }: ActivityHeatmapProps = {}) {
         <div data-heatmap-wrapper style={{ position: 'relative', overflow: 'visible' }}>
           <div
             style={{
-              overflowX: isPhoneOrTablet ? 'auto' : 'visible',
+              // Always 'auto' so the grid scrolls when the parent card is
+              // narrower than the heatmap (e.g. the 720px-capped profile
+              // page). On wider containers no scrollbar appears.
+              overflowX: 'auto',
               overflowY: 'visible',
               WebkitOverflowScrolling: 'touch',
             }}
