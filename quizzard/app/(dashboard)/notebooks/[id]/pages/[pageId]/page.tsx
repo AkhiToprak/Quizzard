@@ -131,7 +131,12 @@ export default function PageEditorPage({
 
   const editor =
     pageType === 'canvas' ? (
-      <InfiniteCanvas notebookId={notebookId} pageId={pageId} />
+      <InfiniteCanvas
+        notebookId={notebookId}
+        pageId={pageId}
+        coWorkSessionId={coworkSession?.sessionId || null}
+        currentUserId={currentUserId || undefined}
+      />
     ) : (
       <PageEditor
         notebookId={notebookId}

@@ -16,6 +16,7 @@ import {
 import '@excalidraw/excalidraw/index.css';
 import type {
   AppState,
+  BinaryFileData,
   BinaryFiles,
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
@@ -24,6 +25,9 @@ import type {
   ExcalidrawElement,
   OrderedExcalidrawElement,
 } from '@excalidraw/excalidraw/element/types';
+import { useCoworkSocket } from '@/lib/cowork-socket';
+import RemoteCursor from './RemoteCursor';
+import PageLockIndicator from './PageLockIndicator';
 
 interface CanvasPageData {
   id: string;
@@ -37,6 +41,14 @@ interface CanvasPageData {
 interface InfiniteCanvasProps {
   notebookId: string;
   pageId: string;
+  /**
+   * Active cowork session id if this page is being viewed inside a
+   * co-work session. `null` / `undefined` means "not in a session" —
+   * the canvas behaves exactly like the solo-editing path.
+   */
+  coWorkSessionId?: string | null;
+  /** Current user id, needed for cursor self-filtering + lock API. */
+  currentUserId?: string | null;
 }
 
 /**
@@ -272,7 +284,12 @@ function toExcalidrawInitialData(raw: unknown): ExcalidrawInitialDataState | nul
   };
 }
 
-export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasProps) {
+export default function InfiniteCanvas({
+  notebookId,
+  pageId,
+  coWorkSessionId,
+  currentUserId,
+}: InfiniteCanvasProps) {
   const [page, setPage] = useState<CanvasPageData | null>(null);
   const [title, setTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -291,6 +308,97 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
   const backgroundStyleRef = useRef<BackgroundStyle>('blank');
   const patternElementRef = useRef<SVGPatternElement | null>(null);
   titleRef.current = title;
+
+  /* ─── Co-work state ─────────────────────────────────────────────────── *
+   * Mirrors PageEditor's cowork plumbing but adapted for Excalidraw's
+   * scene-based model.
+   *
+   *   - `lockedByOther`  — whoever mounted the page first holds the lock
+   *     via the existing /lock/:pageId endpoint. 409 → locked by someone
+   *     else → we flip to read-only.
+   *   - `coworkEditOpen` — host-toggleable "open editing" broadcast from
+   *     the CoWorkBar that lifts the lock for everyone.
+   *   - `effectiveReadOnly` — what actually gates the canvas. Passed to
+   *     Excalidraw's `viewModeEnabled` prop and used to short-circuit the
+   *     save pipeline so non-host edits never reach the server.
+   *
+   * The handleChange callback reads this via a ref so we don't have to
+   * re-create the memoized callback (and its stable identity against
+   * Excalidraw) every time the read-only flag flips. */
+  const [lockedByOther, setLockedByOther] = useState(false);
+  const [coworkEditOpen, setCoworkEditOpen] = useState(false);
+  const effectiveReadOnly = coWorkSessionId
+    ? lockedByOther && !coworkEditOpen
+    : false;
+  const effectiveReadOnlyRef = useRef(effectiveReadOnly);
+  useEffect(() => {
+    effectiveReadOnlyRef.current = effectiveReadOnly;
+  }, [effectiveReadOnly]);
+
+  const coworkSocket = useCoworkSocket(coWorkSessionId ?? null);
+  // Stable ref so save() can emit broadcasts without listing the socket
+  // in its deps (which would invalidate the callback on every socket
+  // render and break the debounced save identity).
+  const coworkSocketRef = useRef<typeof coworkSocket>(null);
+  useEffect(() => {
+    coworkSocketRef.current = coworkSocket;
+  }, [coworkSocket]);
+
+  /* Remote cursor overlays. Stored in SCENE coordinates and re-projected
+   * to viewport pixels on every Excalidraw onChange via `viewport` state.
+   * Cursors get garbage-collected after 8s of silence to handle tabs that
+   * disconnect without a clean leave. */
+  type RemoteCursorEntry = {
+    sceneX: number;
+    sceneY: number;
+    name: string;
+    lastSeenAt: number;
+  };
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, RemoteCursorEntry>>(
+    new Map()
+  );
+  // Viewport tracker — updated imperatively inside handleChange. We only
+  // bump React state when one of the three values actually changes, so
+  // pointer-only frames (no pan/zoom) don't trigger re-renders of the
+  // cursor overlay.
+  const [viewport, setViewport] = useState({
+    scrollX: 0,
+    scrollY: 0,
+    zoom: 1,
+  });
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+  // Cache participant usernames so cursor events can render a name
+  // without a per-event fetch, fetched once when the session id changes.
+  const participantNamesRef = useRef<Map<string, string>>(new Map());
+  useEffect(() => {
+    if (!coWorkSessionId) {
+      participantNamesRef.current.clear();
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}`
+        );
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        const participants = json.data?.participants || [];
+        const next = new Map<string, string>();
+        for (const p of participants) {
+          if (p.user?.id && p.user?.username) {
+            next.set(p.user.id, p.user.username);
+          }
+        }
+        participantNamesRef.current = next;
+      } catch {
+        // silent
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [coWorkSessionId, notebookId]);
 
   /* ─── Fetch page data ───────────────────────────────────────────────── */
   useEffect(() => {
@@ -330,22 +438,46 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     };
   }, [notebookId, pageId]);
 
-  /* ─── Save pipeline ─────────────────────────────────────────────────── */
+  /* ─── Save pipeline ─────────────────────────────────────────────────── *
+   * When a cowork session is active we also ping all peers via
+   * `cowork:doc_notify` so read-only participants refresh their scene
+   * right after the host's autosave commits — same mechanism PageEditor
+   * uses for text pages. Broadcast is best-effort; a missed notify still
+   * gets picked up by the 5s polling fallback in the refresh effect. */
   const save = useCallback(
     async (canvasState: PersistedScene | Record<string, never>, pageTitle: string) => {
+      // Defence-in-depth: refuse to save while read-only. handleChange,
+      // handleBgColorChange, handleBackgroundStyleChange and
+      // handleTitleChange all guard their own scheduleSave paths, but a
+      // stray call path could still reach save() — bail here too so we
+      // never clobber the host's content from a participant's tab.
+      if (effectiveReadOnlyRef.current) return;
       setSaveStatus('saving');
       try {
-        await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`, {
+        const res = await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title: pageTitle, content: canvasState }),
         });
+        if (!res.ok) {
+          if (isMountedRef.current) setSaveStatus('unsaved');
+          return;
+        }
         if (isMountedRef.current) setSaveStatus('saved');
+
+        // Broadcast doc-change to peers so they refetch immediately
+        // instead of waiting for the 5s polling tick.
+        if (coWorkSessionId && coworkSocketRef.current?.connected) {
+          coworkSocketRef.current.emit('cowork:doc_notify', {
+            sessionId: coWorkSessionId,
+            pageId,
+          });
+        }
       } catch {
         if (isMountedRef.current) setSaveStatus('unsaved');
       }
     },
-    [notebookId, pageId]
+    [notebookId, pageId, coWorkSessionId]
   );
 
   // Keep save in a ref so handleChange can stay perfectly stable.
@@ -411,6 +543,26 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         appState.zoom.value,
       );
 
+      // Remote-cursor overlays are rendered at `(sceneX + scrollX) *
+      // zoom` so we need viewport values in React state — otherwise
+      // peers' cursors would drift when the local user pans or zooms.
+      // Functional setter short-circuits when none of the three values
+      // changed, so pointer-only frames during a draw don't re-render.
+      setViewport((prev) => {
+        if (
+          prev.scrollX === appState.scrollX &&
+          prev.scrollY === appState.scrollY &&
+          prev.zoom === appState.zoom.value
+        ) {
+          return prev;
+        }
+        return {
+          scrollX: appState.scrollX,
+          scrollY: appState.scrollY,
+          zoom: appState.zoom.value,
+        };
+      });
+
       // Track Excalidraw's "waiting for user to click to place an image"
       // state so we can render a hint overlay. pendingImageElementId is
       // non-null only between file-pick and click-to-place; it resets to
@@ -430,6 +582,13 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
       }
 
       lastSceneVersionRef.current = version;
+
+      // Read-only (cowork participant viewing the host's edits): never
+      // schedule a save. We still updated lastSceneVersionRef above so
+      // the next local pan/zoom doesn't re-fire us, but the remote
+      // content — pushed via `updateScene` in the refresh effect —
+      // must not round-trip back to the server from a non-editor tab.
+      if (effectiveReadOnlyRef.current) return;
 
       setSaveStatus('unsaved');
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -465,6 +624,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
     setBgColor(newColor);
     lastBgColorRef.current = newColor;
 
+    if (effectiveReadOnlyRef.current) return;
     setSaveStatus('unsaved');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
@@ -503,6 +663,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
         updatePatternTransform(s.scrollX, s.scrollY, s.zoom.value);
       }
 
+      if (effectiveReadOnlyRef.current) return;
       setSaveStatus('unsaved');
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
@@ -527,6 +688,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
   /* ─── Title change → debounced save (canvas snapshot read from API) ─ */
   const handleTitleChange = useCallback((newTitle: string) => {
     setTitle(newTitle);
+    if (effectiveReadOnlyRef.current) return;
     setSaveStatus('unsaved');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
@@ -559,6 +721,325 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, []);
+
+  /* ─── Co-work: page lock acquisition + heartbeat ────────────────────── *
+   * Same lifecycle as PageEditor's text-page lock: whoever mounts the
+   * page first grabs the lock, refreshes it every 2 minutes, and
+   * releases it on unmount. If someone else already holds it, we flip
+   * `lockedByOther` on and Excalidraw enters viewMode via the
+   * `effectiveReadOnly` prop further down. */
+  useEffect(() => {
+    if (!coWorkSessionId || !currentUserId) return;
+
+    const acquireLock = async () => {
+      try {
+        const res = await fetch(
+          `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`,
+          { method: 'POST' }
+        );
+        if (res.status === 409) {
+          if (isMountedRef.current) setLockedByOther(true);
+        } else if (res.ok) {
+          if (isMountedRef.current) setLockedByOther(false);
+        }
+      } catch {
+        // silent
+      }
+    };
+
+    const releaseLock = async () => {
+      try {
+        await fetch(
+          `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`,
+          { method: 'DELETE' }
+        );
+      } catch {
+        // silent
+      }
+    };
+
+    acquireLock();
+    const heartbeatInterval = setInterval(acquireLock, 2 * 60 * 1000);
+
+    // Best-effort cleanup on tab close. sendBeacon can't send DELETE;
+    // the lock auto-expires after 5 min as a safety net.
+    const handleBeforeUnload = () => {
+      navigator.sendBeacon(
+        `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`
+      );
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearInterval(heartbeatInterval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      releaseLock();
+    };
+  }, [coWorkSessionId, currentUserId, notebookId, pageId]);
+
+  /* ─── Co-work: listen for host's "open editing" toggle ──────────────── */
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId) return;
+    const onEditMode = (data: { sessionId: string; enabled: boolean }) => {
+      if (data.sessionId !== coWorkSessionId) return;
+      setCoworkEditOpen(!!data.enabled);
+    };
+    coworkSocket.on('cowork:edit_mode', onEditMode);
+    return () => {
+      coworkSocket.off('cowork:edit_mode', onEditMode);
+    };
+  }, [coworkSocket, coWorkSessionId]);
+
+  /* ─── Co-work: pull the latest scene from the server and push it into
+   * Excalidraw. Called when this participant is locked out and a
+   * doc_notify arrives, or as a 5s polling fallback. Exposed via
+   * `refreshFromServerRef` so the doc_notify listener effect below
+   * doesn't have to re-declare the refresher.
+   *
+   * After `updateScene` runs, Excalidraw re-snapshots its internal
+   * scene-version counter. We deliberately do NOT pre-sync
+   * lastSceneVersionRef because `handleChange` — fired synchronously
+   * inside updateScene — already short-circuits on effectiveReadOnly
+   * above, so the remote apply never leaks back out as a save. */
+  const refreshFromServerRef = useRef<() => Promise<void>>(async () => {});
+  useEffect(() => {
+    if (!coWorkSessionId) return;
+    if (!effectiveReadOnly) {
+      // Host / unlocked participant is the source of truth — never
+      // overwrite their in-flight edits from server polls.
+      refreshFromServerRef.current = async () => {};
+      return;
+    }
+
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const res = await fetch(
+          `/api/notebooks/${notebookId}/pages/${pageId}`
+        );
+        if (cancelled || !res.ok) return;
+        const json = await res.json();
+        if (!json.success || !json.data?.content) return;
+
+        const api = excalidrawAPIRef.current;
+        if (!api) return;
+
+        const content = json.data.content as Record<string, unknown>;
+        if (!Array.isArray(content.elements)) return;
+
+        // Apply remote scene. viewBackgroundColor stays 'transparent'
+        // because our overlay div paints the real color (see the long
+        // comment on toExcalidrawInitialData for why).
+        api.updateScene({
+          elements: content.elements as readonly ExcalidrawElement[],
+          appState: { viewBackgroundColor: 'transparent' },
+        });
+
+        // Re-ingest any image files referenced by the new scene.
+        // addFiles is a no-op for files Excalidraw already has cached.
+        const rawFiles = content.files;
+        if (rawFiles && typeof rawFiles === 'object') {
+          const filesArr = Object.values(rawFiles as Record<string, BinaryFileData>);
+          if (filesArr.length > 0) {
+            try {
+              api.addFiles(filesArr);
+            } catch {
+              // Malformed legacy rows — silently skip; the elements
+              // referring to missing files render as placeholders.
+            }
+          }
+        }
+
+        // Mirror host's background base color + pattern so the overlay
+        // under Excalidraw matches their view.
+        const parsed = parsePersistedAppState(content);
+        if (isMountedRef.current) {
+          setBgColor(parsed.userBgColor);
+          setBackgroundStyle(parsed.backgroundStyle);
+        }
+        lastBgColorRef.current = parsed.userBgColor;
+        backgroundStyleRef.current = parsed.backgroundStyle;
+
+        if (isMountedRef.current && typeof json.data.title === 'string') {
+          setTitle(json.data.title);
+        }
+      } catch {
+        // silent — next tick will retry
+      }
+    };
+    refreshFromServerRef.current = refresh;
+
+    refresh(); // immediate refresh on entering read-only mode
+    const interval = setInterval(refresh, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [coWorkSessionId, effectiveReadOnly, notebookId, pageId]);
+
+  /* ─── Co-work: doc_notify listener — refresh scene immediately ──────── */
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId) return;
+    const onDocNotify = (data: { sessionId: string; pageId: string }) => {
+      if (data.sessionId !== coWorkSessionId) return;
+      if (data.pageId !== pageId) return;
+      void refreshFromServerRef.current();
+    };
+    coworkSocket.on('cowork:doc_notify', onDocNotify);
+    return () => {
+      coworkSocket.off('cowork:doc_notify', onDocNotify);
+    };
+  }, [coworkSocket, coWorkSessionId, pageId]);
+
+  /* ─── Co-work: sync on socket (re)connect ───────────────────────────── *
+   * Closes the race between the participant landing on the page and
+   * their socket finishing its handshake — any host edits broadcast
+   * during that window would otherwise be missed until the 5s tick. */
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId) return;
+    const syncIfReadOnly = () => {
+      if (!effectiveReadOnly) return;
+      void refreshFromServerRef.current();
+    };
+    coworkSocket.on('connect', syncIfReadOnly);
+    if (coworkSocket.connected) {
+      syncIfReadOnly();
+    }
+    return () => {
+      coworkSocket.off('connect', syncIfReadOnly);
+    };
+  }, [coworkSocket, coWorkSessionId, effectiveReadOnly]);
+
+  /* ─── Co-work cursor: emit own cursor (throttled) ───────────────────── *
+   * Unlike the text editor we emit SCENE coordinates, not viewport
+   * pixels, so each peer can reproject them against their own current
+   * pan/zoom. The scene→viewport math in the receive effect uses the
+   * `viewport` state synced from handleChange above. */
+  const lastCursorScenePosRef = useRef<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId) return;
+    let lastEmit = 0;
+
+    const sendCursor = (sceneX: number, sceneY: number) => {
+      lastCursorScenePosRef.current = { x: sceneX, y: sceneY };
+      coworkSocket.emit('cowork:cursor', {
+        sessionId: coWorkSessionId,
+        pageId,
+        x: sceneX,
+        y: sceneY,
+      });
+    };
+
+    const onMove = (e: PointerEvent) => {
+      const container = canvasWrapperRef.current;
+      const api = excalidrawAPIRef.current;
+      if (!container || !api) return;
+
+      const rect = container.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      if (px < 0 || py < 0 || px > rect.width || py > rect.height) return;
+
+      const now = performance.now();
+      if (now - lastEmit < 60) return;
+      lastEmit = now;
+
+      // Convert viewport pixels to Excalidraw scene coords. Excalidraw
+      // stores `scrollX/Y` as a scene-unit offset that corresponds to
+      // the top-left of the viewport, and `zoom.value` as the current
+      // scale factor. Inverse of `(sceneX + scrollX) * zoom`:
+      //   sceneX = px / zoom - scrollX
+      const s = api.getAppState();
+      const sceneX = px / s.zoom.value - s.scrollX;
+      const sceneY = py / s.zoom.value - s.scrollY;
+      sendCursor(sceneX, sceneY);
+    };
+
+    document.addEventListener('pointermove', onMove);
+
+    // Presence heartbeat: re-emit last scene position every 2s so peers
+    // joining after an idle period see a cursor without waiting for the
+    // host to move.
+    const presenceInterval = setInterval(() => {
+      const pos = lastCursorScenePosRef.current;
+      if (!pos) return;
+      coworkSocket.emit('cowork:cursor', {
+        sessionId: coWorkSessionId,
+        pageId,
+        x: pos.x,
+        y: pos.y,
+      });
+    }, 2000);
+
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      clearInterval(presenceInterval);
+    };
+  }, [coworkSocket, coWorkSessionId, pageId]);
+
+  /* ─── Co-work cursor: subscribe to remote cursors ───────────────────── */
+  useEffect(() => {
+    if (!coworkSocket || !coWorkSessionId) return;
+
+    const onCursor = (data: {
+      sessionId: string;
+      userId: string;
+      pageId: string | null;
+      x: number;
+      y: number;
+    }) => {
+      if (data.sessionId !== coWorkSessionId) return;
+      if (data.pageId && data.pageId !== pageId) return;
+      if (data.userId === currentUserId) return;
+      const name = participantNamesRef.current.get(data.userId) || 'Anon';
+      setRemoteCursors((prev) => {
+        const next = new Map(prev);
+        next.set(data.userId, {
+          sceneX: data.x,
+          sceneY: data.y,
+          name,
+          lastSeenAt: performance.now(),
+        });
+        return next;
+      });
+    };
+
+    const onCursorGone = (data: { sessionId: string; userId: string }) => {
+      if (data.sessionId !== coWorkSessionId) return;
+      setRemoteCursors((prev) => {
+        if (!prev.has(data.userId)) return prev;
+        const next = new Map(prev);
+        next.delete(data.userId);
+        return next;
+      });
+    };
+
+    coworkSocket.on('cowork:cursor', onCursor);
+    coworkSocket.on('cowork:cursor_gone', onCursorGone);
+
+    // GC stale cursors every 2s — peers who disconnected without a
+    // clean leave fall off after ~8s.
+    const sweep = setInterval(() => {
+      const now = performance.now();
+      setRemoteCursors((prev) => {
+        let mutated = false;
+        const next = new Map(prev);
+        for (const [userId, entry] of next) {
+          if (now - entry.lastSeenAt > 8000) {
+            next.delete(userId);
+            mutated = true;
+          }
+        }
+        return mutated ? next : prev;
+      });
+    }, 2000);
+
+    return () => {
+      coworkSocket.off('cowork:cursor', onCursor);
+      coworkSocket.off('cowork:cursor_gone', onCursorGone);
+      clearInterval(sweep);
+    };
+  }, [coworkSocket, coWorkSessionId, pageId, currentUserId]);
 
   /* ─── Sync the pattern overlay transform after a style change ───────── *
    * Switching from 'blank' to a pattern mounts a new <pattern> element
@@ -715,6 +1196,15 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      {/* ── Co-work lock banner ── */}
+      {coWorkSessionId && currentUserId && lockedByOther && (
+        <PageLockIndicator
+          notebookId={notebookId}
+          sessionId={coWorkSessionId}
+          pageId={pageId}
+          currentUserId={currentUserId}
+        />
+      )}
       <style>{`
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
@@ -873,6 +1363,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Untitled Canvas"
+            readOnly={effectiveReadOnly}
             style={{
               flex: 1,
               background: 'none',
@@ -934,7 +1425,7 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
 
       {/* Canvas — absolute-inset wrapper gives Excalidraw a deterministic size */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <div style={{ position: 'absolute', inset: 0 }}>
+        <div ref={canvasWrapperRef} style={{ position: 'absolute', inset: 0 }}>
           {/* Pattern overlay — paints the user's real base color plus the
               selected pattern BEHIND Excalidraw. When a pattern is active,
               Excalidraw's own canvas is rendered with 'transparent' so this
@@ -1016,6 +1507,15 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
               excalidrawAPIRef.current = api;
             }}
             theme="light"
+            // In a cowork session, participants who don't hold the lock
+            // enter Excalidraw's built-in view mode: they can still pan,
+            // zoom and select, but toolbar edits, keyboard shortcuts
+            // for creation, and drag-to-draw are all disabled at the
+            // Excalidraw level. Combined with the handleChange guard
+            // (which drops any scene-version bump while read-only)
+            // this means a non-host tab cannot push edits to the
+            // server even if Excalidraw's view-mode had a bypass.
+            viewModeEnabled={effectiveReadOnly}
             UIOptions={{
               canvasActions: {
                 loadScene: true,
@@ -1169,6 +1669,41 @@ export default function InfiniteCanvas({ notebookId, pageId }: InfiniteCanvasPro
               </MainMenu.ItemCustom>
             </MainMenu>
           </Excalidraw>
+          {/* ── Co-work remote cursor overlays ──
+              Absolute-positioned over the canvas wrapper, re-projected
+              from scene coordinates to viewport pixels using the latest
+              viewport state (synced from Excalidraw's onChange). The
+              overlay layer itself has pointer-events: none so it never
+              steals clicks from Excalidraw.
+              Cursors are hidden when the viewport hasn't initialized
+              yet (zoom still at the default 1 but scrollX/Y not yet
+              primed by Excalidraw's first mount onChange). */}
+          {coWorkSessionId && (
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                pointerEvents: 'none',
+                overflow: 'hidden',
+                zIndex: 80,
+              }}
+            >
+              {Array.from(remoteCursors.entries()).map(([userId, entry]) => {
+                const screenX = (entry.sceneX + viewport.scrollX) * viewport.zoom;
+                const screenY = (entry.sceneY + viewport.scrollY) * viewport.zoom;
+                return (
+                  <RemoteCursor
+                    key={userId}
+                    userId={userId}
+                    name={entry.name}
+                    x={screenX}
+                    y={screenY}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
