@@ -3,8 +3,8 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { createdResponse, badRequestResponse, internalErrorResponse } from '@/lib/api-response';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { enforceIpCap, validateUserUsername } from '@/lib/registration';
 
-const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: NextRequest) {
@@ -20,52 +20,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Hard limit: max 3 accounts per IP address within the last 12 months
-    const whitelistedIps = (process.env.IP_WHITELIST ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!whitelistedIps.includes(ip)) {
-      const twelveMonthsAgo = new Date();
-      twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
-
-      const ipRegistrationCount = await db.ipRegistration.count({
-        where: {
-          ip,
-          createdAt: { gte: twelveMonthsAgo },
-        },
-      });
-
-      if (ipRegistrationCount >= 3) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Maximum number of accounts reached for this network. Please try again later.',
-          },
-          { status: 403 }
-        );
-      }
+    const ipCap = await enforceIpCap(ip);
+    if (!ipCap.ok) {
+      return NextResponse.json({ success: false, error: ipCap.reason }, { status: 403 });
     }
 
     const body = await request.json();
-    const { email, password, name } = body;
-    let { username } = body;
+    const { email, password, name, username: rawUsername } = body;
 
     if (!email || !password) {
       return badRequestResponse('Email and password are required');
     }
 
-    if (!username) {
-      return badRequestResponse('Username is required');
+    const usernameCheck = validateUserUsername(rawUsername);
+    if (!usernameCheck.ok) {
+      return badRequestResponse(usernameCheck.reason);
     }
-
-    // Normalize username to lowercase
-    username = String(username).toLowerCase();
-
-    if (!USERNAME_REGEX.test(username)) {
-      return badRequestResponse(
-        'Username must be 3–20 characters: letters, numbers, underscores only'
-      );
-    }
+    const username = usernameCheck.username;
 
     if (!EMAIL_REGEX.test(String(email))) {
       return badRequestResponse('Invalid email address');

@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.supabase.co',
       },
+      // Google profile pictures (Continue with Google)
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      // Apple Sign In profile assets (when present)
+      {
+        protocol: 'https',
+        hostname: 'appleid.cdn-apple.com',
+      },
     ],
   },
 };

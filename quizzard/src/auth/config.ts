@@ -1,10 +1,87 @@
-import type { NextAuthOptions } from 'next-auth';
+import type { NextAuthOptions, Profile } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import AppleProvider from 'next-auth/providers/apple';
 import bcrypt from 'bcryptjs';
+import { headers } from 'next/headers';
 import { db } from '@/lib/db';
+import {
+  enforceIpCap,
+  generatePlaceholderUsername,
+  getIpFromHeaders,
+} from '@/lib/registration';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 60 * 60 * 1000; // 1 hour
+
+/**
+ * Read the canonical user shape from the DB and stamp it onto the JWT.
+ * Used by both the OAuth first-sign-in path (where `user` is the raw
+ * provider profile) and the `trigger === 'update'` refresh path (after
+ * onboarding / cosmetic changes). Keep this select list aligned with
+ * what CredentialsProvider.authorize() returns so token shape is
+ * identical across auth methods.
+ */
+async function hydrateTokenFromDb(
+  token: Record<string, unknown>,
+  userId: string
+): Promise<void> {
+  const freshUser = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      onboardingComplete: true,
+      username: true,
+      avatarUrl: true,
+      role: true,
+      tier: true,
+      scholarName: true,
+      nameStyle: true,
+      equippedTitleId: true,
+      equippedFrameId: true,
+      equippedBackgroundId: true,
+    },
+  });
+  if (!freshUser) return;
+  token.onboardingComplete = freshUser.onboardingComplete;
+  token.username = freshUser.username;
+  token.avatarUrl = freshUser.avatarUrl ?? undefined;
+  token.role = freshUser.role;
+  token.tier = freshUser.tier;
+  token.scholarName = freshUser.scholarName ?? undefined;
+  token.nameStyle =
+    (freshUser.nameStyle as { fontId?: string; colorId?: string } | null) ?? undefined;
+  token.equippedTitleId = freshUser.equippedTitleId ?? undefined;
+  token.equippedFrameId = freshUser.equippedFrameId ?? undefined;
+  token.equippedBackgroundId = freshUser.equippedBackgroundId ?? undefined;
+}
+
+// Providers are constructed conditionally so the app still boots in dev
+// environments where only some OAuth credentials are configured. Missing
+// env vars → that provider simply isn't wired up.
+const oauthProviders = [] as NextAuthOptions['providers'];
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  oauthProviders.push(
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // We never ask for scopes beyond basic profile + email — avatar comes
+      // from the standard `picture` claim. No Drive/Gmail access.
+    })
+  );
+}
+
+if (process.env.APPLE_ID && process.env.APPLE_CLIENT_SECRET) {
+  oauthProviders.push(
+    AppleProvider({
+      clientId: process.env.APPLE_ID,
+      // APPLE_CLIENT_SECRET is a pre-generated JWT signed with the .p8 key.
+      // Apple JWTs last at most 6 months — rotate via a CI/script step.
+      // See .env.example for the openssl/jwt generation recipe.
+      clientSecret: process.env.APPLE_CLIENT_SECRET,
+    })
+  );
+}
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -13,8 +90,10 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/login',
+    error: '/auth/login',
   },
   providers: [
+    ...oauthProviders,
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -63,14 +142,28 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Always run bcrypt to prevent timing-based user enumeration
+        // AND to prevent leaking "this email is an OAuth-only account" via
+        // response-time side channel. If `user.password` is null (OAuth
+        // account with no credentials set), we compare against the
+        // invalid-hash placeholder, which bcrypt will reject with the same
+        // wall-clock time as a normal wrong-password attempt.
         const passwordMatch = await bcrypt.compare(
           credentials.password,
           user?.password ?? '$2a$12$invalidhashplaceholdervalue1234'
         );
 
-        if (!user || !passwordMatch) {
-          // Track failed attempts for existing users only
-          if (user) {
+        // OAuth-only accounts (password === null) must never authenticate
+        // via the credentials form, even if the bcrypt compare somehow
+        // returned true. This is the explicit guard backing the nullable
+        // password column migration.
+        const isOauthOnly = user !== null && user.password === null;
+
+        if (!user || !passwordMatch || isOauthOnly) {
+          // Track failed attempts only for accounts that actually have a
+          // password to guess. OAuth-only accounts (`isOauthOnly`) are
+          // skipped so an attacker can't lock them out by spamming the
+          // credentials form with a known email.
+          if (user && !isOauthOnly) {
             await db.$executeRaw`UPDATE users SET "failedLoginAttempts" = "failedLoginAttempts" + 1 WHERE id = ${user.id}`;
 
             // Re-read to get the new count
@@ -126,8 +219,124 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
-      if (user) {
+    /**
+     * signIn — the only place new OAuth users are created. Runs on every
+     * sign-in attempt. Credentials returns true immediately (authorize()
+     * already did the work). OAuth providers do the full lookup/link/create
+     * dance here so we own the User table shape end-to-end.
+     */
+    async signIn({ user, account, profile }) {
+      if (!account || account.provider === 'credentials') return true;
+      const provider = account.provider;
+      if (provider !== 'google' && provider !== 'apple') return false;
+
+      // Both providers set email_verified on the profile (Apple only ever
+      // returns verified emails; Google sends a real boolean/string claim).
+      // Require it before we trust the email for lookup or linking.
+      const p = (profile ?? {}) as Profile & {
+        email_verified?: boolean | string;
+        picture?: string;
+      };
+      const emailVerified = p.email_verified === true || p.email_verified === 'true';
+      if (!emailVerified) return false;
+
+      const email = (user.email ?? p.email ?? '').toLowerCase();
+      if (!email) return false;
+
+      const providerAccountId = account.providerAccountId;
+      if (!providerAccountId) return false;
+
+      // 1. Already linked? Just log in.
+      const existingLink = await db.oAuthAccount.findUnique({
+        where: {
+          provider_providerAccountId: { provider, providerAccountId },
+        },
+        select: { userId: true },
+      });
+      if (existingLink) {
+        // Hydrate `user.id` so the jwt callback can re-read from DB.
+        user.id = existingLink.userId;
+        return true;
+      }
+
+      // 2. Email collision? Safe-link or block.
+      const existingByEmail = await db.user.findUnique({
+        where: { email },
+        select: { id: true, password: true, onboardingComplete: true, banned: true },
+      });
+
+      if (existingByEmail) {
+        if (existingByEmail.banned) return false;
+
+        // Safe to silently link only if the existing account either:
+        //   (a) has no password set (already an OAuth account), OR
+        //   (b) never finished onboarding (no real profile data to hijack).
+        // Otherwise we block — the real owner must log in with their
+        // password and explicitly link OAuth from settings.
+        const safeToLink =
+          existingByEmail.password === null || existingByEmail.onboardingComplete === false;
+        if (!safeToLink) {
+          // Surfaces as ?error=OAuthAccountExists on the login page.
+          // We return false, NextAuth redirects to the error page.
+          return '/auth/login?error=OAuthAccountExists';
+        }
+
+        await db.oAuthAccount.create({
+          data: { userId: existingByEmail.id, provider, providerAccountId },
+        });
+        user.id = existingByEmail.id;
+        return true;
+      }
+
+      // 3. New user — enforce IP cap, then create User + OAuthAccount.
+      //    The signIn callback has no NextRequest, but NextAuth routes run
+      //    inside an App Router handler so headers() is available here.
+      let ip = 'unknown';
+      try {
+        // next/headers returns a ReadonlyHeaders synchronously in Next 14;
+        // the ReadonlyHeaders type is assignable to Headers for our helper.
+        const h = headers();
+        ip = getIpFromHeaders(h as unknown as Headers);
+      } catch {
+        // headers() can throw outside a request context — fail open and
+        // skip the IP cap. Provider email verification is our fallback.
+      }
+      const cap = await enforceIpCap(ip);
+      if (!cap.ok) return false;
+
+      const placeholderUsername = generatePlaceholderUsername();
+      const createdUser = await db.$transaction(async (tx) => {
+        const created = await tx.user.create({
+          data: {
+            email,
+            name: (user.name ?? p.name ?? null) as string | null,
+            avatarUrl: (user.image ?? p.picture ?? null) as string | null,
+            password: null,
+            username: placeholderUsername,
+            onboardingComplete: false,
+          },
+        });
+        await tx.oAuthAccount.create({
+          data: { userId: created.id, provider, providerAccountId },
+        });
+        if (ip && ip !== 'unknown') {
+          await tx.ipRegistration.create({ data: { ip } });
+        }
+        return created;
+      });
+
+      user.id = createdUser.id;
+      return true;
+    },
+
+    async jwt({ token, user, trigger, account }) {
+      // CredentialsProvider's authorize() already populates the full shape
+      // on `user`. OAuth providers only populate {id,name,email,image},
+      // so in that case we re-read the DB to hydrate the custom fields.
+      const isOauthSignIn =
+        !!account && account.provider !== 'credentials' && !!user;
+
+      if (user && !isOauthSignIn) {
         const u = user as typeof user & {
           username?: string;
           avatarUrl?: string;
@@ -152,37 +361,19 @@ export const authOptions: NextAuthOptions = {
         token.equippedFrameId = u.equippedFrameId;
         token.equippedBackgroundId = u.equippedBackgroundId;
       }
-      // Re-read from DB when session is explicitly updated (e.g. after onboarding
-      // or after the user equips a new cosmetic in profile settings).
+
+      // OAuth sign-in: user.id was set by the signIn callback (either
+      // to an existing/linked userId or to the newly-created cuid). Hydrate
+      // the token from DB using the same shape as authorize().
+      if (isOauthSignIn && user?.id) {
+        token.id = user.id;
+        await hydrateTokenFromDb(token, user.id);
+      }
+
+      // Re-read from DB when session is explicitly updated (e.g. after
+      // onboarding or after the user equips a new cosmetic).
       if (trigger === 'update' && token.id) {
-        const freshUser = await db.user.findUnique({
-          where: { id: token.id as string },
-          select: {
-            onboardingComplete: true,
-            username: true,
-            avatarUrl: true,
-            role: true,
-            tier: true,
-            scholarName: true,
-            nameStyle: true,
-            equippedTitleId: true,
-            equippedFrameId: true,
-            equippedBackgroundId: true,
-          },
-        });
-        if (freshUser) {
-          token.onboardingComplete = freshUser.onboardingComplete;
-          token.username = freshUser.username;
-          token.avatarUrl = freshUser.avatarUrl ?? undefined;
-          token.role = freshUser.role;
-          token.tier = freshUser.tier;
-          token.scholarName = freshUser.scholarName ?? undefined;
-          token.nameStyle =
-            (freshUser.nameStyle as { fontId?: string; colorId?: string } | null) ?? undefined;
-          token.equippedTitleId = freshUser.equippedTitleId ?? undefined;
-          token.equippedFrameId = freshUser.equippedFrameId ?? undefined;
-          token.equippedBackgroundId = freshUser.equippedBackgroundId ?? undefined;
-        }
+        await hydrateTokenFromDb(token, token.id as string);
       }
       return token;
     },

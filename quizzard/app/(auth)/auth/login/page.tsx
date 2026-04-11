@@ -1,18 +1,57 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { FormEvent, useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function LoginPage() {
+  // useSearchParams in a client page must be wrapped in Suspense for the
+  // Next.js 14 build to succeed — the inner form owns the hook.
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
+
+  // Surface errors redirected here by the NextAuth signIn callback —
+  // the most important one is OAuthAccountExists, which fires when an
+  // OAuth sign-in collides with an existing password account and we
+  // refused to silently link it.
+  useEffect(() => {
+    const err = searchParams.get('error');
+    if (!err) return;
+    if (err === 'OAuthAccountExists') {
+      setError(
+        'An account already exists for this email. Please sign in with your password, then link Google or Apple from settings.'
+      );
+    } else if (err === 'OAuthSignin' || err === 'OAuthCallback' || err === 'Callback') {
+      setError('Something went wrong during sign-in. Please try again.');
+    } else if (err === 'AccessDenied') {
+      setError('Sign-in was denied. If you think this is a mistake, contact support.');
+    }
+  }, [searchParams]);
+
+  const handleOAuth = (provider: 'google' | 'apple') => {
+    setError('');
+    setOauthLoading(provider);
+    // callbackUrl points straight at /auth/register: the middleware will
+    // bounce completed-onboarding users to /dashboard automatically and
+    // keep incomplete users at the wizard, avoiding the / → /dashboard hop.
+    signIn(provider, { callbackUrl: '/auth/register' });
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -338,6 +377,146 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        {/* OAuth divider + providers */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            margin: '28px 0 20px',
+          }}
+        >
+          <div style={{ flex: 1, height: '1px', background: 'rgba(174,137,255,0.15)' }} />
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#737390',
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+            }}
+          >
+            or continue with
+          </span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(174,137,255,0.15)' }} />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <button
+            type="button"
+            onClick={() => handleOAuth('google')}
+            disabled={loading || oauthLoading !== null}
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              background: '#ffffff',
+              border: 'none',
+              borderRadius: '16px',
+              color: '#1f1f1f',
+              fontSize: '15px',
+              fontWeight: 700,
+              cursor:
+                loading || oauthLoading !== null ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              opacity: loading || (oauthLoading && oauthLoading !== 'google') ? 0.5 : 1,
+              transition:
+                'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
+            }}
+            onMouseEnter={(e) => {
+              if (!loading && !oauthLoading) {
+                (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.01)';
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  '0 8px 24px rgba(255,255,255,0.08)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+            }}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 48 48"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill="#FFC107"
+                d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+              />
+              <path
+                fill="#FF3D00"
+                d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+              />
+              <path
+                fill="#4CAF50"
+                d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+              />
+              <path
+                fill="#1976D2"
+                d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+              />
+            </svg>
+            {oauthLoading === 'google' ? 'Redirecting…' : 'Continue with Google'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleOAuth('apple')}
+            disabled={loading || oauthLoading !== null}
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              background: '#000000',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '16px',
+              color: '#ffffff',
+              fontSize: '15px',
+              fontWeight: 700,
+              cursor:
+                loading || oauthLoading !== null ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              opacity: loading || (oauthLoading && oauthLoading !== 'apple') ? 0.5 : 1,
+              transition:
+                'transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
+            }}
+            onMouseEnter={(e) => {
+              if (!loading && !oauthLoading) {
+                (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.01)';
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  '0 8px 24px rgba(0,0,0,0.4)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+            }}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill="currentColor"
+                d="M17.05 12.536c-.028-2.812 2.295-4.162 2.4-4.228-1.308-1.912-3.342-2.173-4.063-2.202-1.731-.175-3.38 1.018-4.258 1.018-.88 0-2.23-.993-3.668-.966-1.889.027-3.631 1.099-4.603 2.791-1.962 3.4-.501 8.424 1.411 11.184.934 1.35 2.05 2.867 3.513 2.812 1.411-.056 1.944-.912 3.651-.912s2.187.912 3.68.884c1.52-.027 2.486-1.377 3.421-2.73 1.078-1.571 1.523-3.098 1.551-3.175-.034-.017-2.978-1.144-3.035-4.476zm-2.788-8.21c.78-.944 1.308-2.257 1.163-3.562-1.128.045-2.49.75-3.299 1.694-.72.834-1.362 2.175-1.189 3.452 1.262.098 2.545-.64 3.325-1.584z"
+              />
+            </svg>
+            {oauthLoading === 'apple' ? 'Redirecting…' : 'Continue with Apple'}
+          </button>
+        </div>
       </div>
 
       {/* Waitlist link */}

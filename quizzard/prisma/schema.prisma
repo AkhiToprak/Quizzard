@@ -26,7 +26,7 @@ model User {
   id                 String    @id @default(cuid())
   email              String    @unique
   name               String?
-  password           String    // Will be hashed with bcrypt
+  password           String?   // Hashed with bcrypt; null for OAuth-only accounts
   role               String    @default("user")  // "user" | "admin"
   banned             Boolean   @default(false)    // Banned users cannot log in
   banReason          String?                      // Optional reason shown to banned user
@@ -114,8 +114,33 @@ model User {
   todos                  Todo[]
   usageRecords           UsageRecord[]
   adminAuditLogs         AdminAuditLog[] @relation("AdminAuditLogs")
+  oauthAccounts          OAuthAccount[]
 
   @@map("users")
+}
+
+// Linked OAuth/SSO accounts (Google, Apple, ...). One User may have many.
+// Silent same-email linking is gated by `User.password == null || !onboardingComplete`
+// in the NextAuth signIn callback — see src/auth/config.ts.
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String   // "google" | "apple"
+  providerAccountId String
+  // Token columns kept nullable for future API access (e.g. Drive import) — cheap insurance.
+  accessToken       String?  @db.Text
+  refreshToken      String?  @db.Text
+  expiresAt         Int?
+  idToken           String?  @db.Text
+  scope             String?
+  tokenType         String?
+  createdAt         DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
 }
 
 // ============================================================================
