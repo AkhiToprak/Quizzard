@@ -84,15 +84,17 @@ export default function ActivityHeatmap({ userId }: ActivityHeatmapProps = {}) {
     count: 0,
   });
 
-  // Derive grid constants from breakpoint
-  const CELL_SIZE = isPhone ? 10 : 13;
-  const CELL_GAP = isPhone ? 2 : 3;
-  const TOTAL_WEEKS = isPhone ? 26 : 53;
+  // Derive grid constants from breakpoint. The card now shows the last
+  // ~30 days (5 weeks × 7 days = 35 cells, ending today) so it stays
+  // glanceable inside the bento grid instead of dominating the page.
+  const CELL_SIZE = isPhone ? 14 : 18;
+  const CELL_GAP = isPhone ? 3 : 4;
+  const TOTAL_WEEKS = 5;
 
   useEffect(() => {
     const url = userId
-      ? `/api/user/activity-heatmap?days=365&userId=${encodeURIComponent(userId)}`
-      : '/api/user/activity-heatmap?days=365';
+      ? `/api/user/activity-heatmap?days=35&userId=${encodeURIComponent(userId)}`
+      : '/api/user/activity-heatmap?days=35';
     setLoading(true);
     fetch(url)
       .then((r) => r.json())
@@ -199,7 +201,7 @@ export default function ActivityHeatmap({ userId }: ActivityHeatmapProps = {}) {
             Activity
           </h3>
           <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
-            Minutes in the app over the last {isPhone ? '6 months' : 'year'}
+            Minutes in the app over the last 30 days
           </p>
         </div>
         <div
