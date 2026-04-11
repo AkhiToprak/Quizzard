@@ -103,6 +103,9 @@ export default function ProfilePage() {
     hideAchievements: false,
   });
 
+  // Mage level (computed from XP)
+  const [mageLevel, setMageLevel] = useState<number | null>(null);
+
   // Edit profile modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
@@ -122,6 +125,14 @@ export default function ProfilePage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    fetch('/api/user/xp')
+      .then((r) => r.json())
+      .then((res) => {
+        const d = res?.data ?? res;
+        if (d?.level !== undefined) setMageLevel(d.level);
+      })
+      .catch(() => {});
   }, []);
 
   const startEditing = () => {
@@ -371,6 +382,27 @@ export default function ProfilePage() {
         <p style={{ fontSize: isPhone ? '13px' : '14px', color: '#aaa8c8', margin: '0 0 12px' }}>
           @{profile.username}
         </p>
+
+        {/* Mage Level */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 12px',
+            background: 'rgba(174,137,255,0.12)',
+            border: '1px solid rgba(174,137,255,0.3)',
+            borderRadius: '20px',
+            marginBottom: '12px',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#ae89ff' }}>
+            auto_awesome
+          </span>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#ae89ff' }}>
+            Mage Level {mageLevel ?? '—'}
+          </span>
+        </div>
 
         {/* Member Since */}
         <div
