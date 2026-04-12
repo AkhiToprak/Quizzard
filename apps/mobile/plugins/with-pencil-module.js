@@ -23,7 +23,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { withXcodeProject, withDangerousMod } = require('@expo/config-plugins');
+const { withXcodeProject, withDangerousMod } = require('expo/config-plugins');
 
 const SOURCES = [
   'PencilInteractionModule.swift',
