@@ -43,7 +43,7 @@ interface TrophyShelfProps {
   userId?: string;
 }
 
-export default function TrophyShelf({ userId }: TrophyShelfProps = {}) {
+export default function TrophyShelf({ userId }: TrophyShelfProps) {
   const { isPhone } = useBreakpoint();
   const [activeTab, setActiveTab] = useState<Category>('all');
   const [data, setData] = useState<AchievementsResponse | null>(null);
