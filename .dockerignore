@@ -1,2 +1,15 @@
-quizzard/node_modules
-quizzard/.next
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/.next/cache
+.git
+.github
+plans
+brand_assets
+screenshots
+notemagelogo.png
+README.md
+LICENSE
+.DS_Store
+**/.DS_Store

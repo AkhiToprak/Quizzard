@@ -1,7 +1,7 @@
 /**
  * Server-side helper for broadcasting events to the standalone ws-server.
  *
- * The ws-server (quizzard/ws-server.ts) exposes an internal `POST /emit`
+ * The ws-server (apps/web/ws-server.ts) exposes an internal `POST /emit`
  * endpoint protected by a shared secret (`WS_INTERNAL_SECRET`). Next.js API
  * routes call this helper after they've successfully written to Postgres,
  * and the ws-server fans out the event to all sockets in the matching room.

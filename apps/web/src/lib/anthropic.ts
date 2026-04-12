@@ -6,7 +6,7 @@ export const anthropic =
   globalForAnthropic.anthropic ||
   new Anthropic({
     // Reads ANTHROPIC_API_KEY from process.env automatically.
-    // To set your key, add it to quizzard/.env.local:
+    // To set your key, add it to apps/web/.env.local:
     //   ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
   });
 
