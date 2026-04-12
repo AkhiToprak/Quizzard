@@ -39,10 +39,10 @@ const MONTH_NAMES = [
 //   20–59      → mid
 //   60+        → full
 function getColor(minutes: number): string {
-  if (minutes === 0) return '#22223a';
-  if (minutes < 20) return '#2d1f5e';
-  if (minutes < 60) return '#6b3fa0';
-  return '#ae89ff';
+  if (minutes === 0) return '#1b1a33';
+  if (minutes < 20) return '#2a1a62';
+  if (minutes < 60) return '#7a43b8';
+  return '#c29bff';
 }
 
 function formatDate(dateStr: string): string {
