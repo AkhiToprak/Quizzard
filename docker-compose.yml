@@ -43,8 +43,6 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@notemage.dev
       PGADMIN_DEFAULT_PASSWORD: admin
-    volumes:
-      - ./pgadmin-servers.json:/pgadmin4/servers.json:ro
     depends_on:
       - db
 

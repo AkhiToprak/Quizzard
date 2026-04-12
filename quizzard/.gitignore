@@ -20,7 +20,7 @@
 # production
 /build
 
-# ws-server compiled bundle (built by `npm run build:ws` / heroku-postbuild)
+# ws-server compiled bundle (built by `npm run build:ws`)
 /ws-dist
 
 # misc
