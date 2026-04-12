@@ -135,14 +135,18 @@ export default function GroupChatMessage({
   const [resolvedSharedId, setResolvedSharedId] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
   const canOpenSenderProfile =
-    isDirectMessage && !isOwn && Boolean(message.sender?.username && message.sender.username.length > 0);
+    isDirectMessage &&
+    !isOwn &&
+    Boolean(message.sender?.username && message.sender.username.length > 0);
 
   const senderProfileHref = canOpenSenderProfile
     ? `/profile/${encodeURIComponent(message.sender?.username || '')}`
     : null;
 
   const renderSenderName = (style?: React.CSSProperties, fallback?: string) => {
-    const senderNameNode = <UserName user={message.sender} showTitle fallback={fallback} style={style} />;
+    const senderNameNode = (
+      <UserName user={message.sender} showTitle fallback={fallback} style={style} />
+    );
     if (!senderProfileHref) return senderNameNode;
     return (
       <Link
@@ -210,12 +214,8 @@ export default function GroupChatMessage({
               fontWeight: 600,
             }}
           >
-            {message.sender ? (
-              renderSenderName(undefined, 'A member')
-            ) : (
-              hostName
-            )}{' '}
-            · {timeAgo(message.createdAt)}
+            {message.sender ? renderSenderName(undefined, 'A member') : hostName} ·{' '}
+            {timeAgo(message.createdAt)}
           </div>
           <CoworkInviteCard
             payload={payload}
