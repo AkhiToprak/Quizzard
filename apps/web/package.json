@@ -1,5 +1,5 @@
 {
-  "name": "notemage",
+  "name": "web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,7 @@
     "start:ws": "npx tsx ws-server.ts",
     "start:ws:prod": "node ws-dist/ws-server.cjs",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
