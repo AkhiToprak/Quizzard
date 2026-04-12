@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     const groups = memberships.map((m) => {
       const lastMsg = m.group.messages[0]?.createdAt || null;
-      const hasUnread = lastMsg ? (!m.lastReadAt || lastMsg > m.lastReadAt) : false;
+      const hasUnread = lastMsg ? !m.lastReadAt || lastMsg > m.lastReadAt : false;
       return {
         id: m.group.id,
         name: m.group.name,
@@ -136,7 +136,10 @@ export async function POST(request: NextRequest) {
       }
 
       // Verify the other user exists
-      const otherUser = await db.user.findUnique({ where: { id: otherUserId }, select: { id: true } });
+      const otherUser = await db.user.findUnique({
+        where: { id: otherUserId },
+        select: { id: true },
+      });
       if (!otherUser) return badRequestResponse('User not found');
 
       // Check for existing DM between these two users

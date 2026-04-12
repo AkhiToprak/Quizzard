@@ -33,8 +33,7 @@ export default function HowItWorks() {
       style={{
         position: 'relative',
         padding: '128px 32px',
-        background:
-          'linear-gradient(180deg, #15142e 0%, #161534 50%, #15142e 100%)',
+        background: 'linear-gradient(180deg, #15142e 0%, #161534 50%, #15142e 100%)',
       }}
     >
       {/* dot grid overlay */}
@@ -46,10 +45,8 @@ export default function HowItWorks() {
           inset: 0,
           opacity: 0.4,
           pointerEvents: 'none',
-          maskImage:
-            'radial-gradient(ellipse at center, #000 30%, transparent 75%)',
-          WebkitMaskImage:
-            'radial-gradient(ellipse at center, #000 30%, transparent 75%)',
+          maskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 75%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 75%)',
         }}
       />
 
@@ -61,8 +58,7 @@ export default function HowItWorks() {
               Three steps to your{' '}
               <span
                 style={{
-                  background:
-                    'linear-gradient(135deg, #ae89ff 0%, #ffde59 100%)',
+                  background: 'linear-gradient(135deg, #ae89ff 0%, #ffde59 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -112,8 +108,7 @@ export default function HowItWorks() {
                 border: '1px solid rgba(174, 137, 255, 0.2)',
                 backdropFilter: 'blur(10px)',
                 WebkitBackdropFilter: 'blur(10px)',
-                boxShadow:
-                  '0 32px 64px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.35)',
+                boxShadow: '0 32px 64px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.35)',
                 textAlign: 'center',
               }}
             >

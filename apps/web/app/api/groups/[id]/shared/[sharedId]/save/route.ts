@@ -48,10 +48,22 @@ export async function POST(request: NextRequest, context: RouteContext) {
         return await saveNotebook(userId, shared.contentId, shared.title, targetFolderId);
       }
       case 'flashcard_set': {
-        return await saveFlashcardSet(userId, shared.contentId, shared.title, targetNotebookId, targetSectionId);
+        return await saveFlashcardSet(
+          userId,
+          shared.contentId,
+          shared.title,
+          targetNotebookId,
+          targetSectionId
+        );
       }
       case 'quiz_set': {
-        return await saveQuizSet(userId, shared.contentId, shared.title, targetNotebookId, targetSectionId);
+        return await saveQuizSet(
+          userId,
+          shared.contentId,
+          shared.title,
+          targetNotebookId,
+          targetSectionId
+        );
       }
       case 'document': {
         return await saveDocument(userId, shared.contentId, shared.title, targetNotebookId);
@@ -64,7 +76,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 }
 
-async function saveNotebook(userId: string, sourceNotebookId: string, title: string, targetFolderId?: string) {
+async function saveNotebook(
+  userId: string,
+  sourceNotebookId: string,
+  title: string,
+  targetFolderId?: string
+) {
   const source = await db.notebook.findUnique({
     where: { id: sourceNotebookId },
     include: {
@@ -142,7 +159,11 @@ async function saveNotebook(userId: string, sourceNotebookId: string, title: str
   });
 }
 
-async function getOrCreateNotebook(userId: string, targetNotebookId: string | undefined, fallbackTitle: string) {
+async function getOrCreateNotebook(
+  userId: string,
+  targetNotebookId: string | undefined,
+  fallbackTitle: string
+) {
   if (targetNotebookId) {
     const nb = await db.notebook.findFirst({ where: { id: targetNotebookId, userId } });
     if (nb) return nb.id;
@@ -154,7 +175,13 @@ async function getOrCreateNotebook(userId: string, targetNotebookId: string | un
   return nb.id;
 }
 
-async function saveFlashcardSet(userId: string, sourceSetId: string, title: string, targetNotebookId?: string, targetSectionId?: string) {
+async function saveFlashcardSet(
+  userId: string,
+  sourceSetId: string,
+  title: string,
+  targetNotebookId?: string,
+  targetSectionId?: string
+) {
   const source = await db.flashcardSet.findUnique({
     where: { id: sourceSetId },
     include: { flashcards: true },
@@ -194,7 +221,13 @@ async function saveFlashcardSet(userId: string, sourceSetId: string, title: stri
   });
 }
 
-async function saveQuizSet(userId: string, sourceSetId: string, title: string, targetNotebookId?: string, targetSectionId?: string) {
+async function saveQuizSet(
+  userId: string,
+  sourceSetId: string,
+  title: string,
+  targetNotebookId?: string,
+  targetSectionId?: string
+) {
   const source = await db.quizSet.findUnique({
     where: { id: sourceSetId },
     include: { questions: true },
@@ -237,7 +270,12 @@ async function saveQuizSet(userId: string, sourceSetId: string, title: string, t
   });
 }
 
-async function saveDocument(userId: string, sourceDocId: string, title: string, targetNotebookId?: string) {
+async function saveDocument(
+  userId: string,
+  sourceDocId: string,
+  title: string,
+  targetNotebookId?: string
+) {
   const source = await db.document.findUnique({
     where: { id: sourceDocId },
   });

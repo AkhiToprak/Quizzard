@@ -62,25 +62,31 @@ export default function InviteMemberModal({ open, onClose, groupId, existingMemb
         if (res.ok) {
           const json = await res.json();
           if (cancelled) return;
-          setFriends((json.data?.friends || []).map((f: {
-            id: string;
-            username: string;
-            name?: string | null;
-            avatarUrl?: string | null;
-            nameStyle?: { fontId?: string; colorId?: string } | null;
-            equippedFrameId?: string | null;
-            equippedTitleId?: string | null;
-          }) => ({
-            id: f.id,
-            username: f.username,
-            name: f.name || null,
-            avatarUrl: f.avatarUrl || null,
-            nameStyle: f.nameStyle ?? null,
-            equippedFrameId: f.equippedFrameId ?? null,
-            equippedTitleId: f.equippedTitleId ?? null,
-          })));
+          setFriends(
+            (json.data?.friends || []).map(
+              (f: {
+                id: string;
+                username: string;
+                name?: string | null;
+                avatarUrl?: string | null;
+                nameStyle?: { fontId?: string; colorId?: string } | null;
+                equippedFrameId?: string | null;
+                equippedTitleId?: string | null;
+              }) => ({
+                id: f.id,
+                username: f.username,
+                name: f.name || null,
+                avatarUrl: f.avatarUrl || null,
+                nameStyle: f.nameStyle ?? null,
+                equippedFrameId: f.equippedFrameId ?? null,
+                equippedTitleId: f.equippedTitleId ?? null,
+              })
+            )
+          );
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       if (!cancelled) setLoading(false);
     });
     return () => {
@@ -94,18 +100,23 @@ export default function InviteMemberModal({ open, onClose, groupId, existingMemb
     return f.username.toLowerCase().includes(s) || (f.name || '').toLowerCase().includes(s);
   });
 
-  const handleInvite = useCallback(async (friendId: string) => {
-    try {
-      const res = await fetch(`/api/groups/${groupId}/invitations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: friendId }),
-      });
-      if (res.ok) {
-        setInvitedIds((prev) => new Set(prev).add(friendId));
+  const handleInvite = useCallback(
+    async (friendId: string) => {
+      try {
+        const res = await fetch(`/api/groups/${groupId}/invitations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: friendId }),
+        });
+        if (res.ok) {
+          setInvitedIds((prev) => new Set(prev).add(friendId));
+        }
+      } catch {
+        /* ignore */
       }
-    } catch { /* ignore */ }
-  }, [groupId]);
+    },
+    [groupId]
+  );
 
   if (!open) return null;
 
@@ -113,27 +124,56 @@ export default function InviteMemberModal({ open, onClose, groupId, existingMemb
     <div
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
+        background: 'rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         padding: 24,
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: COLORS.elevated, borderRadius: 20,
-          width: '100%', maxWidth: 480, maxHeight: '80vh',
-          display: 'flex', flexDirection: 'column',
+          background: COLORS.elevated,
+          borderRadius: 20,
+          width: '100%',
+          maxWidth: 480,
+          maxHeight: '80vh',
+          display: 'flex',
+          flexDirection: 'column',
           boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
         }}
       >
         {/* Header */}
         <div style={{ padding: '24px 24px 16px', borderBottom: `1px solid ${COLORS.border}1a` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: COLORS.textPrimary }}>Invite Member</h3>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: COLORS.textMuted, cursor: 'pointer', padding: 4 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 24 }}>close</span>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 16,
+            }}
+          >
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: COLORS.textPrimary }}>
+              Invite Member
+            </h3>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: COLORS.textMuted,
+                cursor: 'pointer',
+                padding: 4,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
+                close
+              </span>
             </button>
           </div>
           <input
@@ -141,9 +181,15 @@ export default function InviteMemberModal({ open, onClose, groupId, existingMemb
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search friends..."
             style={{
-              width: '100%', padding: '12px 16px',
-              background: COLORS.inputBg, border: 'none', borderRadius: 12,
-              color: COLORS.textPrimary, fontSize: 14, fontFamily: 'inherit', outline: 'none',
+              width: '100%',
+              padding: '12px 16px',
+              background: COLORS.inputBg,
+              border: 'none',
+              borderRadius: 12,
+              color: COLORS.textPrimary,
+              fontSize: 14,
+              fontFamily: 'inherit',
+              outline: 'none',
             }}
           />
         </div>
@@ -151,7 +197,9 @@ export default function InviteMemberModal({ open, onClose, groupId, existingMemb
         {/* List */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 16 }} className="custom-scrollbar">
           {loading ? (
-            <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: 24, fontSize: 14 }}>Loading friends...</p>
+            <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: 24, fontSize: 14 }}>
+              Loading friends...
+            </p>
           ) : filtered.length === 0 ? (
             <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: 24, fontSize: 14 }}>
               {search ? 'No friends match your search' : 'No friends to invite'}
@@ -162,11 +210,17 @@ export default function InviteMemberModal({ open, onClose, groupId, existingMemb
                 const isMember = existingMemberIds.includes(friend.id);
                 const isInvited = invitedIds.has(friend.id);
                 return (
-                  <div key={friend.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '12px 16px', borderRadius: 12,
-                    background: COLORS.cardBg,
-                  }}>
+                  <div
+                    key={friend.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '12px 16px',
+                      borderRadius: 12,
+                      background: COLORS.cardBg,
+                    }}
+                  >
                     <UserAvatar user={friend} size={36} radius={10} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <UserName
@@ -177,23 +231,48 @@ export default function InviteMemberModal({ open, onClose, groupId, existingMemb
                       <p style={{ fontSize: 12, color: COLORS.textMuted }}>@{friend.username}</p>
                     </div>
                     {isMember ? (
-                      <span style={{ fontSize: 12, color: COLORS.textMuted, fontWeight: 600 }}>Already a member</span>
+                      <span style={{ fontSize: 12, color: COLORS.textMuted, fontWeight: 600 }}>
+                        Already a member
+                      </span>
                     ) : isInvited ? (
-                      <span style={{ fontSize: 12, color: COLORS.success, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: COLORS.success,
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                          check_circle
+                        </span>
                         Invited
                       </span>
                     ) : (
                       <button
                         onClick={() => handleInvite(friend.id)}
                         style={{
-                          padding: '6px 16px', borderRadius: 8, border: 'none',
-                          background: `${COLORS.primary}33`, color: COLORS.primary,
-                          fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                          padding: '6px 16px',
+                          borderRadius: 8,
+                          border: 'none',
+                          background: `${COLORS.primary}33`,
+                          color: COLORS.primary,
+                          fontWeight: 700,
+                          fontSize: 12,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
                           transition: `background 0.2s ${EASING}`,
                         }}
-                        onMouseEnter={(e) => { (e.currentTarget).style.background = COLORS.primary; (e.currentTarget).style.color = '#fff'; }}
-                        onMouseLeave={(e) => { (e.currentTarget).style.background = `${COLORS.primary}33`; (e.currentTarget).style.color = COLORS.primary; }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = COLORS.primary;
+                          e.currentTarget.style.color = '#fff';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = `${COLORS.primary}33`;
+                          e.currentTarget.style.color = COLORS.primary;
+                        }}
                       >
                         Invite
                       </button>

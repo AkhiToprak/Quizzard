@@ -46,9 +46,6 @@ export function responsiveStyle(bp: Breakpoint, styles: ResponsiveStyles): CSSPr
  * const padding = responsiveValue(bp, { phone: 16, tablet: 20, desktop: 32 });
  * const cols = responsiveValue(bp, { phone: 1, tablet: 2, desktop: 3 });
  */
-export function responsiveValue<T>(
-  bp: Breakpoint,
-  values: { phone: T; tablet: T; desktop: T }
-): T {
+export function responsiveValue<T>(bp: Breakpoint, values: { phone: T; tablet: T; desktop: T }): T {
   return values[bp];
 }

@@ -124,13 +124,10 @@ export function UserAvatar({
 }: UserAvatarProps) {
   const imageSrc = user?.avatarUrl || user?.image || null;
   const name = user?.name || user?.username || null;
-  const effectiveRadius =
-    radius ?? (size >= 40 ? 12 : Math.max(6, Math.round(size / 3)));
+  const effectiveRadius = radius ?? (size >= 40 ? 12 : Math.max(6, Math.round(size / 3)));
 
   const frame =
-    !plain && size >= FRAME_MIN_SIZE
-      ? resolveFrameStyle(user?.equippedFrameId, size)
-      : null;
+    !plain && size >= FRAME_MIN_SIZE ? resolveFrameStyle(user?.equippedFrameId, size) : null;
 
   // When a frame is equipped the wrapper is circular; force the inner image
   // round too so the avatar doesn't look like a rounded square sitting inside

@@ -57,15 +57,22 @@ function timeAgo(dateStr: string): string {
 function getSubtext(item: SharedItem): string {
   const meta = item.metadata || {};
   switch (item.contentType) {
-    case 'notebook': return item.description || (meta.subject as string) || 'Notebook';
-    case 'folder': return 'Folder';
+    case 'notebook':
+      return item.description || (meta.subject as string) || 'Notebook';
+    case 'folder':
+      return 'Folder';
     case 'document': {
       const size = meta.fileSize as number;
-      return size ? `${(size / 1024 / 1024).toFixed(1)} MB • ${meta.fileType || 'Document'}` : 'Document';
+      return size
+        ? `${(size / 1024 / 1024).toFixed(1)} MB • ${meta.fileType || 'Document'}`
+        : 'Document';
     }
-    case 'flashcard_set': return `${meta.cardCount || '?'} flashcards`;
-    case 'quiz_set': return `${meta.questionCount || '?'} questions`;
-    default: return '';
+    case 'flashcard_set':
+      return `${meta.cardCount || '?'} flashcards`;
+    case 'quiz_set':
+      return `${meta.questionCount || '?'} questions`;
+    default:
+      return '';
   }
 }
 
@@ -73,7 +80,10 @@ export default function GroupSharedContentCard({ item, groupId, canDelete, onDel
   const [hovered, setHovered] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
-  const iconInfo = CONTENT_ICONS[item.contentType] || { icon: 'attachment', color: COLORS.textMuted };
+  const iconInfo = CONTENT_ICONS[item.contentType] || {
+    icon: 'attachment',
+    color: COLORS.textMuted,
+  };
 
   return (
     <div
@@ -81,39 +91,83 @@ export default function GroupSharedContentCard({ item, groupId, canDelete, onDel
       onMouseLeave={() => setHovered(false)}
       style={{
         background: hovered ? COLORS.elevated : COLORS.cardBg,
-        borderRadius: 16, padding: 20,
-        display: 'flex', flexDirection: 'column',
+        borderRadius: 16,
+        padding: 20,
+        display: 'flex',
+        flexDirection: 'column',
         transition: `background 0.2s ${EASING}`,
-        cursor: 'pointer', position: 'relative',
+        cursor: 'pointer',
+        position: 'relative',
       }}
     >
       {/* Header: icon + delete */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 12,
-          background: `${iconInfo.color}1a`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 22, color: iconInfo.color }}>{iconInfo.icon}</span>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: 16,
+        }}
+      >
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            background: `${iconInfo.color}1a`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 22, color: iconInfo.color }}
+          >
+            {iconInfo.icon}
+          </span>
         </div>
         {canDelete && (
           <button
-            onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(item.id);
+            }}
             style={{
-              background: 'none', border: 'none', padding: 6, cursor: 'pointer',
-              color: COLORS.textMuted, opacity: hovered ? 1 : 0,
+              background: 'none',
+              border: 'none',
+              padding: 6,
+              cursor: 'pointer',
+              color: COLORS.textMuted,
+              opacity: hovered ? 1 : 0,
               transition: `opacity 0.2s ${EASING}, color 0.2s ${EASING}`,
             }}
-            onMouseEnter={(e) => { (e.currentTarget).style.color = COLORS.error; }}
-            onMouseLeave={(e) => { (e.currentTarget).style.color = COLORS.textMuted; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = COLORS.error;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = COLORS.textMuted;
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+              delete
+            </span>
           </button>
         )}
       </div>
 
       {/* Title + description */}
-      <h4 style={{ fontSize: 16, fontWeight: 700, color: COLORS.textPrimary, marginBottom: 4, lineHeight: 1.3 }}>{item.title}</h4>
+      <h4
+        style={{
+          fontSize: 16,
+          fontWeight: 700,
+          color: COLORS.textPrimary,
+          marginBottom: 4,
+          lineHeight: 1.3,
+        }}
+      >
+        {item.title}
+      </h4>
       <p style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 16 }}>{getSubtext(item)}</p>
 
       {/* Save to Library */}
@@ -125,17 +179,35 @@ export default function GroupSharedContentCard({ item, groupId, canDelete, onDel
         }}
         disabled={saved}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          width: '100%', padding: '8px 0', borderRadius: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          width: '100%',
+          padding: '8px 0',
+          borderRadius: 10,
           border: saved ? 'none' : `1px solid ${COLORS.border}`,
           background: saved ? `${COLORS.primary}1a` : 'transparent',
           color: saved ? COLORS.primary : COLORS.textSecondary,
-          fontSize: 12, fontWeight: 600, cursor: saved ? 'default' : 'pointer',
-          fontFamily: 'inherit', marginBottom: 12,
+          fontSize: 12,
+          fontWeight: 600,
+          cursor: saved ? 'default' : 'pointer',
+          fontFamily: 'inherit',
+          marginBottom: 12,
           transition: `background 0.2s ${EASING}, color 0.2s ${EASING}, border-color 0.2s ${EASING}`,
         }}
-        onMouseEnter={(e) => { if (!saved) { (e.currentTarget).style.borderColor = COLORS.primary; (e.currentTarget).style.color = COLORS.primary; } }}
-        onMouseLeave={(e) => { if (!saved) { (e.currentTarget).style.borderColor = COLORS.border; (e.currentTarget).style.color = COLORS.textSecondary; } }}
+        onMouseEnter={(e) => {
+          if (!saved) {
+            e.currentTarget.style.borderColor = COLORS.primary;
+            e.currentTarget.style.color = COLORS.primary;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!saved) {
+            e.currentTarget.style.borderColor = COLORS.border;
+            e.currentTarget.style.color = COLORS.textSecondary;
+          }
+        }}
       >
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
           {saved ? 'check_circle' : 'library_add'}
@@ -150,26 +222,52 @@ export default function GroupSharedContentCard({ item, groupId, canDelete, onDel
         sharedId={item.id}
         contentType={item.contentType}
         contentTitle={item.title}
-        onSaved={() => { setSaved(true); setSaveModalOpen(false); }}
+        onSaved={() => {
+          setSaved(true);
+          setSaveModalOpen(false);
+        }}
       />
 
       {/* Sharer */}
       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
         {item.sharedBy.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.sharedBy.avatarUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+          <img
+            src={item.sharedBy.avatarUrl}
+            alt=""
+            style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }}
+          />
         ) : (
-          <div style={{
-            width: 24, height: 24, borderRadius: '50%',
-            background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 10, fontWeight: 700, color: '#fff',
-          }}>
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#fff',
+            }}
+          >
             {(item.sharedBy.name?.[0] || item.sharedBy.username[0] || '?').toUpperCase()}
           </div>
         )}
-        <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.textMuted }}>{item.sharedBy.name || item.sharedBy.username}</span>
-        <span style={{ marginLeft: 'auto', fontSize: 10, color: `${COLORS.textMuted}99`, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.textMuted }}>
+          {item.sharedBy.name || item.sharedBy.username}
+        </span>
+        <span
+          style={{
+            marginLeft: 'auto',
+            fontSize: 10,
+            color: `${COLORS.textMuted}99`,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}
+        >
           {timeAgo(item.createdAt)}
         </span>
       </div>

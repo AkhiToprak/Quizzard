@@ -37,9 +37,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
     // Only the sharer, admin, or owner can delete
     const canDelete =
-      shared.sharedById === userId ||
-      membership.role === 'owner' ||
-      membership.role === 'admin';
+      shared.sharedById === userId || membership.role === 'owner' || membership.role === 'admin';
 
     if (!canDelete) {
       return forbiddenResponse('Only the sharer, admin, or owner can remove shared content');

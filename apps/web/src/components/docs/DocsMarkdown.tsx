@@ -127,9 +127,7 @@ const components: Components = {
   strong: ({ children }) => (
     <strong style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{children}</strong>
   ),
-  em: ({ children }) => (
-    <em style={{ fontStyle: 'italic', color: '#d4caff' }}>{children}</em>
-  ),
+  em: ({ children }) => <em style={{ fontStyle: 'italic', color: '#d4caff' }}>{children}</em>,
   ul: ({ children }) => (
     <ul
       style={{
@@ -255,7 +253,8 @@ const components: Components = {
           textDecoration: 'none',
           borderBottom: '1px solid rgba(174,137,255,0.4)',
           paddingBottom: 1,
-          transition: 'border-color 0.25s cubic-bezier(0.22,1,0.36,1), color 0.25s cubic-bezier(0.22,1,0.36,1)',
+          transition:
+            'border-color 0.25s cubic-bezier(0.22,1,0.36,1), color 0.25s cubic-bezier(0.22,1,0.36,1)',
         }}
       >
         {children}

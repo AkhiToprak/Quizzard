@@ -66,14 +66,11 @@ export async function POST(request: NextRequest, { params }: Params) {
     // Build system prompt based on type
     let systemPrompt: string;
     if (type === 'flashcards') {
-      systemPrompt =
-        `You are ${mageName}, an AI study assistant. The user wants you to create flashcards from the provided page content. Use the create_flashcards tool to generate high-quality flashcards covering the key concepts. Create clear questions and concise answers.`;
+      systemPrompt = `You are ${mageName}, an AI study assistant. The user wants you to create flashcards from the provided page content. Use the create_flashcards tool to generate high-quality flashcards covering the key concepts. Create clear questions and concise answers.`;
     } else if (type === 'quiz') {
-      systemPrompt =
-        `You are ${mageName}, an AI study assistant. The user wants you to create a quiz from the provided page content. Use the create_quiz tool to generate challenging but fair multiple-choice questions. Always provide hints and explanations.`;
+      systemPrompt = `You are ${mageName}, an AI study assistant. The user wants you to create a quiz from the provided page content. Use the create_quiz tool to generate challenging but fair multiple-choice questions. Always provide hints and explanations.`;
     } else {
-      systemPrompt =
-        `You are ${mageName}, an AI study assistant. The user wants you to create a mind map from the provided page content. Use the create_mindmap tool to create a well-structured mind map using Markdown heading hierarchy.`;
+      systemPrompt = `You are ${mageName}, an AI study assistant. The user wants you to create a mind map from the provided page content. Use the create_mindmap tool to create a well-structured mind map using Markdown heading hierarchy.`;
     }
 
     // Call Anthropic

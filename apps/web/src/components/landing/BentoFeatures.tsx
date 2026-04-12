@@ -15,8 +15,7 @@ const cells = [
     icon: 'phone_iphone',
     tag: 'Cross-device',
     title: 'Phone + laptop + tablet',
-    description:
-      'Your notebook follows you. Everything syncs instantly, offline-friendly.',
+    description: 'Your notebook follows you. Everything syncs instantly, offline-friendly.',
     accent: '#b9c3ff',
   },
   {
@@ -46,8 +45,7 @@ export default function BentoFeatures() {
               Built like an app{' '}
               <span
                 style={{
-                  background:
-                    'linear-gradient(135deg, #ae89ff 0%, #ffde59 100%)',
+                  background: 'linear-gradient(135deg, #ae89ff 0%, #ffde59 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -80,8 +78,7 @@ export default function BentoFeatures() {
                 background:
                   'linear-gradient(180deg, rgba(28, 24, 56, 0.7) 0%, rgba(16, 14, 34, 0.75) 100%)',
                 border: `1px solid ${c.accent}33`,
-                boxShadow:
-                  '0 24px 60px rgba(140, 82, 255, 0.06), 0 4px 16px rgba(0,0,0,0.35)',
+                boxShadow: '0 24px 60px rgba(140, 82, 255, 0.06), 0 4px 16px rgba(0,0,0,0.35)',
                 minHeight: 240,
                 overflow: 'hidden',
                 transition:

@@ -66,12 +66,15 @@ export default function GroupChatInput({
     await onSend(content);
   }, [canSend, value, onSend]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  }, [handleSend]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend]
+  );
 
   const handleInput = useCallback(() => {
     const el = textareaRef.current;
@@ -81,13 +84,17 @@ export default function GroupChatInput({
   }, []);
 
   return (
-    <div style={{
-      padding: '16px 24px',
-      background: `${COLORS.elevated}e6`,
-      backdropFilter: 'blur(20px)',
-      borderTop: `1px solid ${COLORS.border}1a`,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: 1200, margin: '0 auto' }}>
+    <div
+      style={{
+        padding: '16px 24px',
+        background: `${COLORS.elevated}e6`,
+        backdropFilter: 'blur(20px)',
+        borderTop: `1px solid ${COLORS.border}1a`,
+      }}
+    >
+      <div
+        style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: 1200, margin: '0 auto' }}
+      >
         <div ref={popoverRef} style={{ position: 'relative', flexShrink: 0 }}>
           <button
             type="button"
@@ -96,16 +103,23 @@ export default function GroupChatInput({
             aria-expanded={popoverOpen}
             aria-label="Open attachment menu"
             style={{
-              width: 36, height: 36, borderRadius: '50%', border: 'none',
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              border: 'none',
               background: popoverOpen ? 'rgba(174, 137, 255, 0.18)' : 'transparent',
               color: popoverOpen ? COLORS.primary : COLORS.textMuted,
               cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               transition: `color 0.2s ${EASING}, background 0.2s ${EASING}, transform 0.25s ${EASING}`,
               transform: popoverOpen ? 'rotate(45deg)' : 'rotate(0deg)',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 24 }}>add_circle</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
+              add_circle
+            </span>
           </button>
 
           {popoverOpen && (
@@ -161,9 +175,7 @@ export default function GroupChatInput({
                   </span>
                   <span style={popoverItemTextStyle}>
                     <span style={popoverItemTitleStyle}>Share content</span>
-                    <span style={popoverItemSubStyle}>
-                      Share a notebook, flashcard set or quiz
-                    </span>
+                    <span style={popoverItemSubStyle}>Share a notebook, flashcard set or quiz</span>
                   </span>
                 </button>
               )}
@@ -200,9 +212,7 @@ export default function GroupChatInput({
                   </span>
                   <span style={popoverItemTextStyle}>
                     <span style={popoverItemTitleStyle}>Start co-work session</span>
-                    <span style={popoverItemSubStyle}>
-                      Pick a page and work on it together
-                    </span>
+                    <span style={popoverItemSubStyle}>Pick a page and work on it together</span>
                   </span>
                 </button>
               )}
@@ -214,15 +224,26 @@ export default function GroupChatInput({
           <textarea
             ref={textareaRef}
             value={value}
-            onChange={(e) => { setValue(e.target.value); handleInput(); }}
+            onChange={(e) => {
+              setValue(e.target.value);
+              handleInput();
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
             rows={1}
             style={{
-              width: '100%', minHeight: 44, maxHeight: 160,
-              background: COLORS.inputBg, border: 'none', borderRadius: 16,
-              padding: '12px 20px', fontSize: 14, color: COLORS.textPrimary,
-              resize: 'none', outline: 'none', lineHeight: 1.4,
+              width: '100%',
+              minHeight: 44,
+              maxHeight: 160,
+              background: COLORS.inputBg,
+              border: 'none',
+              borderRadius: 16,
+              padding: '12px 20px',
+              fontSize: 14,
+              color: COLORS.textPrimary,
+              resize: 'none',
+              outline: 'none',
+              lineHeight: 1.4,
               fontFamily: 'inherit',
             }}
           />
@@ -234,20 +255,28 @@ export default function GroupChatInput({
           onMouseEnter={() => setSendHover(true)}
           onMouseLeave={() => setSendHover(false)}
           style={{
-            display: 'flex', alignItems: 'center', gap: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
             background: canSend ? COLORS.yellow : `${COLORS.yellow}33`,
             color: canSend ? '#5f4f00' : COLORS.textMuted,
-            border: 'none', borderRadius: 16,
-            padding: '12px 24px', fontWeight: 700, fontSize: 14,
+            border: 'none',
+            borderRadius: 16,
+            padding: '12px 24px',
+            fontWeight: 700,
+            fontSize: 14,
             cursor: canSend ? 'pointer' : 'not-allowed',
-            fontFamily: 'inherit', flexShrink: 0,
+            fontFamily: 'inherit',
+            flexShrink: 0,
             transform: sendHover && canSend ? 'scale(1.03)' : 'scale(1)',
             transition: `transform 0.2s ${EASING}, opacity 0.2s ${EASING}`,
             opacity: canSend ? 1 : 0.5,
           }}
         >
           Send
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>send</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            send
+          </span>
         </button>
       </div>
     </div>

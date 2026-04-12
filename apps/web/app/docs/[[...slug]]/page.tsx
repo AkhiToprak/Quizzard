@@ -276,9 +276,7 @@ function DocsSidebar({
                         background: active
                           ? 'linear-gradient(90deg, rgba(174,137,255,0.18) 0%, rgba(174,137,255,0.04) 100%)'
                           : 'transparent',
-                        borderLeft: active
-                          ? '2px solid var(--primary)'
-                          : '2px solid transparent',
+                        borderLeft: active ? '2px solid var(--primary)' : '2px solid transparent',
                         position: 'relative',
                       }}
                     >
@@ -371,9 +369,9 @@ function DocsIndex({ categories }: { categories: { name: string; docs: DocSummar
           fontFamily: 'var(--font-sans)',
         }}
       >
-        Notebooks, the infinite canvas, Mage Chat, flashcards, quizzes, AI-generated
-        presentations, real-time cowork, gamification — every feature, with the steps
-        to get there. Pick a topic on the left, or start with the basics below.
+        Notebooks, the infinite canvas, Mage Chat, flashcards, quizzes, AI-generated presentations,
+        real-time cowork, gamification — every feature, with the steps to get there. Pick a topic on
+        the left, or start with the basics below.
       </p>
 
       {categories.map((cat) => (

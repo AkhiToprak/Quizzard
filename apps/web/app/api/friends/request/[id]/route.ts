@@ -29,7 +29,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const friendship = await db.friendship.findUnique({
       where: { id },
       include: {
-        requester: { select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } },
+        requester: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            avatarUrl: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+          },
+        },
       },
     });
 

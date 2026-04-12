@@ -98,7 +98,9 @@ export default function GroupDetailView({ groupId }: Props) {
         const json = await res.json();
         setGroup(json.data);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setLoading(false);
   }, [groupId]);
 
@@ -124,7 +126,15 @@ export default function GroupDetailView({ groupId }: Props) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: COLORS.textMuted }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          color: COLORS.textMuted,
+        }}
+      >
         <p style={{ fontSize: 14, fontWeight: 500 }}>Loading group...</p>
       </div>
     );
@@ -132,8 +142,20 @@ export default function GroupDetailView({ groupId }: Props) {
 
   if (!group) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: COLORS.textMuted, gap: 12 }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.4 }}>error_outline</span>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          color: COLORS.textMuted,
+          gap: 12,
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.4 }}>
+          error_outline
+        </span>
         <p style={{ fontSize: 14, fontWeight: 500 }}>Group not found or access denied</p>
       </div>
     );
@@ -153,88 +175,127 @@ export default function GroupDetailView({ groupId }: Props) {
   const otherUser = isDM ? group.members.find((m) => m.userId !== currentUserId) : null;
 
   // Filter tabs for DMs — only Chat and Shared
-  const visibleTabs = isDM
-    ? TABS.filter((t) => t.key === 'chat' || t.key === 'shared')
-    : TABS;
+  const visibleTabs = isDM ? TABS.filter((t) => t.key === 'chat' || t.key === 'shared') : TABS;
   const leftTabs = visibleTabs.filter((t) => t.align === 'left');
   const rightTabs = visibleTabs.filter((t) => t.align === 'right');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       {/* Group header */}
-      <div style={{
-        padding: isPhone ? '8px 12px' : '8px 24px',
-        display: 'flex', alignItems: 'center', gap: isPhone ? 8 : 10,
-        borderBottom: `1px solid ${COLORS.border}1a`,
-        background: `${COLORS.pageBg}cc`,
-        backdropFilter: 'blur(20px)',
-        flexShrink: 0,
-        position: 'relative',
-        zIndex: 10,
-      }}>
+      <div
+        style={{
+          padding: isPhone ? '8px 12px' : '8px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: isPhone ? 8 : 10,
+          borderBottom: `1px solid ${COLORS.border}1a`,
+          background: `${COLORS.pageBg}cc`,
+          backdropFilter: 'blur(20px)',
+          flexShrink: 0,
+          position: 'relative',
+          zIndex: 10,
+        }}
+      >
         <button
           onClick={() => router.push('/groups')}
           style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: 'transparent', border: 'none',
-            color: COLORS.textMuted, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            background: 'transparent',
+            border: 'none',
+            color: COLORS.textMuted,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             flexShrink: 0,
             transition: `color 0.2s ${EASING}`,
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = COLORS.textPrimary)}
           onMouseLeave={(e) => (e.currentTarget.style.color = COLORS.textMuted)}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+            arrow_back
+          </span>
         </button>
         {/* Avatar: DM shows other user's pic (circular), groups show group icon */}
         {isDM && otherUser ? (
           <UserAvatar user={otherUser} size={32} radius="50%" />
+        ) : group.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={group.avatarUrl}
+            alt=""
+            style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }}
+          />
         ) : (
-          group.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={group.avatarUrl} alt="" style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }} />
-          ) : (
-            <div style={{
-              width: 28, height: 28, borderRadius: 8,
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
               background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#fff' }}>groups</span>
-            </div>
-          )
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#fff' }}>
+              groups
+            </span>
+          </div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontSize: 14, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: '-0.02em', margin: 0 }}>
+          <h1
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: COLORS.textPrimary,
+              letterSpacing: '-0.02em',
+              margin: 0,
+            }}
+          >
             {isDM && otherUser ? (
               <UserName
                 user={otherUser}
                 as="span"
-                style={{ fontSize: 14, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: '-0.02em' }}
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: COLORS.textPrimary,
+                  letterSpacing: '-0.02em',
+                }}
               />
             ) : (
               group.name
             )}
           </h1>
           {!isDM && (
-            <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>{group.members.length} member{group.members.length !== 1 ? 's' : ''}</p>
+            <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>
+              {group.members.length} member{group.members.length !== 1 ? 's' : ''}
+            </p>
           )}
         </div>
         <TimerWidget />
       </div>
 
       {/* Tab bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 0,
-        padding: isPhone ? '0 12px' : '0 24px',
-        background: `${COLORS.cardBg}80`,
-        backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${COLORS.border}1a`,
-        flexShrink: 0,
-        overflowX: isPhone ? 'auto' : undefined,
-        WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
-        scrollbarWidth: isPhone ? 'none' : undefined,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0,
+          padding: isPhone ? '0 12px' : '0 24px',
+          background: `${COLORS.cardBg}80`,
+          backdropFilter: 'blur(12px)',
+          borderBottom: `1px solid ${COLORS.border}1a`,
+          flexShrink: 0,
+          overflowX: isPhone ? 'auto' : undefined,
+          WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
+          scrollbarWidth: isPhone ? 'none' : undefined,
+        }}
+      >
         {/* Left tabs */}
         <div style={{ display: 'flex', gap: isPhone ? 16 : 32 }}>
           {leftTabs.map((tab) => {
@@ -244,24 +305,41 @@ export default function GroupDetailView({ groupId }: Props) {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 style={{
-                  position: 'relative', padding: isPhone ? '14px 0' : '18px 0',
-                  background: 'none', border: 'none',
-                  fontSize: isPhone ? 13 : 15, fontWeight: active ? 700 : 600,
+                  position: 'relative',
+                  padding: isPhone ? '14px 0' : '18px 0',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: isPhone ? 13 : 15,
+                  fontWeight: active ? 700 : 600,
                   color: active ? COLORS.primary : COLORS.textMuted,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                  display: 'flex', alignItems: 'center', gap: isPhone ? 4 : 8,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: isPhone ? 4 : 8,
                   transition: `color 0.2s ${EASING}`,
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}
               >
-                {tab.icon && <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{tab.icon}</span>}
+                {tab.icon && (
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                    {tab.icon}
+                  </span>
+                )}
                 {tab.label}
                 {active && (
-                  <span style={{
-                    position: 'absolute', bottom: 0, left: 0, width: '100%', height: 2,
-                    background: COLORS.primary, borderRadius: 1,
-                  }} />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      width: '100%',
+                      height: 2,
+                      background: COLORS.primary,
+                      borderRadius: 1,
+                    }}
+                  />
                 )}
               </button>
             );
@@ -281,24 +359,41 @@ export default function GroupDetailView({ groupId }: Props) {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 style={{
-                  position: 'relative', padding: isPhone ? '14px 0' : '18px 0',
-                  background: 'none', border: 'none',
-                  fontSize: isPhone ? 13 : 15, fontWeight: active ? 700 : 600,
+                  position: 'relative',
+                  padding: isPhone ? '14px 0' : '18px 0',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: isPhone ? 13 : 15,
+                  fontWeight: active ? 700 : 600,
                   color: active ? COLORS.primary : COLORS.textMuted,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                  display: 'flex', alignItems: 'center', gap: isPhone ? 4 : 8,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: isPhone ? 4 : 8,
                   transition: `color 0.2s ${EASING}`,
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}
               >
-                {tab.icon && <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{tab.icon}</span>}
+                {tab.icon && (
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                    {tab.icon}
+                  </span>
+                )}
                 {tab.label}
                 {active && (
-                  <span style={{
-                    position: 'absolute', bottom: 0, left: 0, width: '100%', height: 2,
-                    background: COLORS.primary, borderRadius: 1,
-                  }} />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      width: '100%',
+                      height: 2,
+                      background: COLORS.primary,
+                      borderRadius: 1,
+                    }}
+                  />
                 )}
               </button>
             );
@@ -307,12 +402,26 @@ export default function GroupDetailView({ groupId }: Props) {
       </div>
 
       {/* Tab content */}
-      <div style={{ flex: 1, minHeight: 0, overflow: activeTab === 'chat' ? 'hidden' : 'auto' }} className="custom-scrollbar">
+      <div
+        style={{ flex: 1, minHeight: 0, overflow: activeTab === 'chat' ? 'hidden' : 'auto' }}
+        className="custom-scrollbar"
+      >
         {activeTab === 'chat' && (
-          <GroupChat groupId={groupId} groupName={group?.name || ''} currentUserId={currentUserId} canChat={canChat} />
+          <GroupChat
+            groupId={groupId}
+            groupName={group?.name || ''}
+            currentUserId={currentUserId}
+            canChat={canChat}
+          />
         )}
         {activeTab === 'shared' && (
-          <GroupSharedContent groupId={groupId} groupName={group?.name || ''} currentUserId={currentUserId} userRole={userRole} canShare={canShare} />
+          <GroupSharedContent
+            groupId={groupId}
+            groupName={group?.name || ''}
+            currentUserId={currentUserId}
+            userRole={userRole}
+            canShare={canShare}
+          />
         )}
         {activeTab === 'members' && (
           <GroupMemberList

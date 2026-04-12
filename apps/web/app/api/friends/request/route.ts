@@ -39,11 +39,27 @@ export async function POST(request: NextRequest) {
     const addressee = targetUserId
       ? await db.user.findUnique({
           where: { id: targetUserId },
-          select: { id: true, username: true, avatarUrl: true, name: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+          select: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+            name: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+          },
         })
       : await db.user.findFirst({
           where: { username: { equals: String(username), mode: 'insensitive' } },
-          select: { id: true, username: true, avatarUrl: true, name: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+          select: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+            name: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+          },
         });
 
     if (!addressee) {
@@ -76,8 +92,28 @@ export async function POST(request: NextRequest) {
             where: { id: existing.id },
             data: { status: 'accepted' },
             include: {
-              requester: { select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } },
-              addressee: { select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } },
+              requester: {
+                select: {
+                  id: true,
+                  username: true,
+                  name: true,
+                  avatarUrl: true,
+                  nameStyle: true,
+                  equippedTitleId: true,
+                  equippedFrameId: true,
+                },
+              },
+              addressee: {
+                select: {
+                  id: true,
+                  username: true,
+                  name: true,
+                  avatarUrl: true,
+                  nameStyle: true,
+                  equippedTitleId: true,
+                  equippedFrameId: true,
+                },
+              },
             },
           });
 
@@ -126,7 +162,17 @@ export async function POST(request: NextRequest) {
             status: 'pending',
           },
           include: {
-            addressee: { select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } },
+            addressee: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                avatarUrl: true,
+                nameStyle: true,
+                equippedTitleId: true,
+                equippedFrameId: true,
+              },
+            },
           },
         });
 

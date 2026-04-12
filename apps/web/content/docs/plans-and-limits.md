@@ -9,16 +9,16 @@ Notemage is a freemium app with three tiers. The non-AI parts of the app — not
 
 ## Tiers at a glance
 
-| | Free | Plus | Pro |
-|---|---|---|---|
-| **Price** | 0 CHF | 5 CHF / month | 10 CHF / month |
-| **Monthly token budget** | 100,000 | 500,000 | 1,000,000 |
-| **Mage Chat messages / month** | 50 | 100 | Unlimited |
-| **AI flashcard sets / month** | 1 | 4 | Unlimited |
-| **AI quiz sets / month** | 2 | 4 | Unlimited |
-| **AI study plans / month** | 2 | 4 | Unlimited |
-| **AI presentations / month** | 1 | 3 | Unlimited |
-| **Inline AI (rewrite/summarise/expand)** | — | — | Unlimited |
+|                                          | Free    | Plus          | Pro            |
+| ---------------------------------------- | ------- | ------------- | -------------- |
+| **Price**                                | 0 CHF   | 5 CHF / month | 10 CHF / month |
+| **Monthly token budget**                 | 100,000 | 500,000       | 1,000,000      |
+| **Mage Chat messages / month**           | 50      | 100           | Unlimited      |
+| **AI flashcard sets / month**            | 1       | 4             | Unlimited      |
+| **AI quiz sets / month**                 | 2       | 4             | Unlimited      |
+| **AI study plans / month**               | 2       | 4             | Unlimited      |
+| **AI presentations / month**             | 1       | 3             | Unlimited      |
+| **Inline AI (rewrite/summarise/expand)** | —       | —             | Unlimited      |
 
 > **Inline AI is Pro-only.** Free and Plus plans don't have access to the selection-toolbar rewrite/summarise/expand feature at all. See [Inline AI](/docs/inline-ai).
 

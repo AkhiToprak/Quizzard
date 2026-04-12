@@ -62,11 +62,7 @@ export default function Header() {
                 gap: '8px',
               }}
             >
-              Hello,{' '}
-              <UserName
-                user={session.user}
-                style={{ color: '#e5e3ff' }}
-              />
+              Hello, <UserName user={session.user} style={{ color: '#e5e3ff' }} />
               <TierBadge tier={session.user.tier || 'FREE'} role={session.user.role} />
             </span>
             <UserAvatar user={session.user} size={40} />

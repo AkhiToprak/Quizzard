@@ -4,8 +4,7 @@ import { getLegalContent } from '@/lib/legal-content';
 
 export const metadata: Metadata = {
   title: 'Legal Notice — Notemage',
-  description:
-    'Legal Notice / Impressum. Operator and contact information for Notemage.',
+  description: 'Legal Notice / Impressum. Operator and contact information for Notemage.',
 };
 
 export default function LegalNoticePage() {

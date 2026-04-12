@@ -249,9 +249,7 @@ export default function DashboardPage() {
   };
 
   const handleToggleTodo = async (id: string, completed: boolean) => {
-    setTodos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !completed } : t))
-    );
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !completed } : t)));
     try {
       await fetch(`/api/user/todos/${id}`, {
         method: 'PUT',
@@ -260,9 +258,7 @@ export default function DashboardPage() {
       });
       fetchTodos();
     } catch {
-      setTodos((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, completed } : t))
-      );
+      setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed } : t)));
     }
   };
 
@@ -361,14 +357,10 @@ export default function DashboardPage() {
       }}
     >
       {/* Greeting */}
-      <DashboardGreeting
-        userName={session?.user?.name || session?.user?.username || 'Mage'}
-      />
+      <DashboardGreeting userName={session?.user?.name || session?.user?.username || 'Mage'} />
 
       {/* Stats Row — carousel on phone, grid on tablet/desktop */}
-      {isPhone && (
-        <style>{`.stat-carousel::-webkit-scrollbar { display: none; }`}</style>
-      )}
+      {isPhone && <style>{`.stat-carousel::-webkit-scrollbar { display: none; }`}</style>}
       <section
         ref={isPhone ? carouselRef : undefined}
         className={isPhone ? 'stat-carousel' : undefined}
@@ -392,17 +384,7 @@ export default function DashboardPage() {
         }
       >
         {statCards.map(
-          ({
-            label,
-            value,
-            icon,
-            iconFilled,
-            iconColor,
-            iconBg,
-            badge,
-            arrowColor,
-            href,
-          }) => {
+          ({ label, value, icon, iconFilled, iconColor, iconBg, badge, arrowColor, href }) => {
             const isTodo = label === 'Todos';
             const pendingTodos = todos.filter((t) => !t.completed);
 
@@ -499,11 +481,34 @@ export default function DashboardPage() {
 
                 {/* Todo mini-list (only on Todos card) */}
                 {isTodo && (
-                  <div style={{ marginTop: '16px', borderTop: '1px solid rgba(174,137,255,0.08)', paddingTop: '12px' }}>
+                  <div
+                    style={{
+                      marginTop: '16px',
+                      borderTop: '1px solid rgba(174,137,255,0.08)',
+                      paddingTop: '12px',
+                    }}
+                  >
                     {/* Todo items */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto', scrollbarWidth: 'none' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        maxHeight: '140px',
+                        overflowY: 'auto',
+                        scrollbarWidth: 'none',
+                      }}
+                    >
                       {pendingTodos.length === 0 && (
-                        <p style={{ fontSize: '12px', color: '#555578', margin: 0, textAlign: 'center', padding: '8px 0' }}>
+                        <p
+                          style={{
+                            fontSize: '12px',
+                            color: '#555578',
+                            margin: 0,
+                            textAlign: 'center',
+                            padding: '8px 0',
+                          }}
+                        >
                           No pending todos
                         </p>
                       )}
@@ -520,7 +525,10 @@ export default function DashboardPage() {
                           className="todo-row"
                         >
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleToggleTodo(todo.id, todo.completed); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleTodo(todo.id, todo.completed);
+                            }}
                             style={{
                               width: '18px',
                               height: '18px',
@@ -535,8 +543,12 @@ export default function DashboardPage() {
                               justifyContent: 'center',
                               transition: 'border-color 0.2s cubic-bezier(0.22,1,0.36,1)',
                             }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#ae89ff'; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#555578'; }}
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.borderColor = '#ae89ff';
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.borderColor = '#555578';
+                            }}
                           >
                             &nbsp;
                           </button>
@@ -554,7 +566,10 @@ export default function DashboardPage() {
                             {todo.text}
                           </span>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleDeleteTodo(todo.id); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTodo(todo.id);
+                            }}
                             style={{
                               background: 'transparent',
                               border: 'none',
@@ -566,10 +581,17 @@ export default function DashboardPage() {
                               alignItems: 'center',
                               flexShrink: 0,
                             }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.4'; }}
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.opacity = '1';
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.opacity = '0.4';
+                            }}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#fd6f85' }}>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ fontSize: '16px', color: '#fd6f85' }}
+                            >
                               close
                             </span>
                           </button>
@@ -594,7 +616,9 @@ export default function DashboardPage() {
                         type="text"
                         value={todoInput}
                         onChange={(e) => setTodoInput(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') handleAddTodo(); }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddTodo();
+                        }}
                         onClick={(e) => e.stopPropagation()}
                         placeholder="Add a todo..."
                         maxLength={200}
@@ -609,11 +633,20 @@ export default function DashboardPage() {
                           outline: 'none',
                           minWidth: 0,
                         }}
-                        onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(174,137,255,0.3)'; }}
-                        onBlur={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(174,137,255,0.1)'; }}
+                        onFocus={(e) => {
+                          (e.currentTarget as HTMLInputElement).style.borderColor =
+                            'rgba(174,137,255,0.3)';
+                        }}
+                        onBlur={(e) => {
+                          (e.currentTarget as HTMLInputElement).style.borderColor =
+                            'rgba(174,137,255,0.1)';
+                        }}
                       />
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleAddTodo(); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddTodo();
+                        }}
                         disabled={todoLoading || !todoInput.trim()}
                         style={{
                           background: 'rgba(174,137,255,0.15)',
@@ -630,7 +663,10 @@ export default function DashboardPage() {
                           flexShrink: 0,
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ae89ff' }}>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: '18px', color: '#ae89ff' }}
+                        >
                           add
                         </span>
                       </button>
@@ -644,9 +680,7 @@ export default function DashboardPage() {
               <div
                 key={label}
                 style={
-                  isPhone
-                    ? { flex: '0 0 85%', scrollSnapAlign: 'center', minWidth: 0 }
-                    : undefined
+                  isPhone ? { flex: '0 0 85%', scrollSnapAlign: 'center', minWidth: 0 } : undefined
                 }
               >
                 {child}
@@ -655,7 +689,10 @@ export default function DashboardPage() {
 
             if (href) {
               return wrapper(
-                <Link href={href} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+                <Link
+                  href={href}
+                  style={{ textDecoration: 'none', display: 'block', height: '100%' }}
+                >
                   {cardContent}
                 </Link>
               );
@@ -677,7 +714,8 @@ export default function DashboardPage() {
                 height: '8px',
                 borderRadius: '4px',
                 background: i === activeCard ? '#ae89ff' : 'rgba(174,137,255,0.2)',
-                transition: 'width 0.3s cubic-bezier(0.22,1,0.36,1), background 0.3s cubic-bezier(0.22,1,0.36,1)',
+                transition:
+                  'width 0.3s cubic-bezier(0.22,1,0.36,1), background 0.3s cubic-bezier(0.22,1,0.36,1)',
               }}
             />
           ))}
@@ -735,7 +773,14 @@ export default function DashboardPage() {
             >
               event
             </span>
-            <h2 style={{ fontSize: responsiveValue(bp, { phone: '16px', tablet: '17px', desktop: '18px' }), fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
+            <h2
+              style={{
+                fontSize: responsiveValue(bp, { phone: '16px', tablet: '17px', desktop: '18px' }),
+                fontWeight: 700,
+                color: '#e5e3ff',
+                margin: 0,
+              }}
+            >
               Upcoming Exams
             </h2>
           </div>
@@ -789,7 +834,17 @@ export default function DashboardPage() {
             </p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: 'repeat(2, 1fr)', desktop: 'repeat(3, 1fr)' }), gap: '16px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: responsiveValue(bp, {
+                phone: '1fr',
+                tablet: 'repeat(2, 1fr)',
+                desktop: 'repeat(3, 1fr)',
+              }),
+              gap: '16px',
+            }}
+          >
             {exams.slice(0, 3).map((exam) => (
               <ExamCountdown
                 key={exam.id}
@@ -813,7 +868,17 @@ export default function DashboardPage() {
 
       {/* Bento grid */}
       <section>
-        <div style={{ display: 'grid', gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: '2fr 1fr', desktop: '3fr 1fr' }), gap: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }) }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: responsiveValue(bp, {
+              phone: '1fr',
+              tablet: '2fr 1fr',
+              desktop: '3fr 1fr',
+            }),
+            gap: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
+          }}
+        >
           {/* Recent Activity */}
           <div
             style={{
@@ -829,12 +894,25 @@ export default function DashboardPage() {
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                marginBottom: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '32px' }),
+                marginBottom: responsiveValue(bp, {
+                  phone: '16px',
+                  tablet: '20px',
+                  desktop: '32px',
+                }),
               }}
             >
               <div>
                 <h2
-                  style={{ fontSize: responsiveValue(bp, { phone: '16px', tablet: '17px', desktop: '18px' }), fontWeight: 700, color: '#e5e3ff', margin: '0 0 4px' }}
+                  style={{
+                    fontSize: responsiveValue(bp, {
+                      phone: '16px',
+                      tablet: '17px',
+                      desktop: '18px',
+                    }),
+                    fontWeight: 700,
+                    color: '#e5e3ff',
+                    margin: '0 0 4px',
+                  }}
                 >
                   Recent Activity
                 </h2>
@@ -1033,10 +1111,14 @@ export default function DashboardPage() {
                 }}
               >
                 {hasPagesGoal
-                  ? (goalProgress >= 100 ? 'Goal Complete!' : 'Keep Going')
+                  ? goalProgress >= 100
+                    ? 'Goal Complete!'
+                    : 'Keep Going'
                   : hasStudyGoals
                     ? 'Your Goals'
-                    : (goalProgress >= 100 ? 'Goal Complete!' : 'Keep Going')}
+                    : goalProgress >= 100
+                      ? 'Goal Complete!'
+                      : 'Keep Going'}
               </h2>
               {/* Only show pages summary text if the user has a pages goal or no study goals at all */}
               {(hasPagesGoal || !hasStudyGoals) && (
@@ -1080,10 +1162,15 @@ export default function DashboardPage() {
                     // For pages goals, use the auto-tracked todayPages vs dailyGoal
                     const isPagesGoal = goal.type === 'pages';
                     const currentValue = isPagesGoal ? (dashboard?.todayPages ?? 0) : goal.current;
-                    const targetValue = isPagesGoal ? (dashboard?.dailyGoal ?? goal.target) : goal.target;
+                    const targetValue = isPagesGoal
+                      ? (dashboard?.dailyGoal ?? goal.target)
+                      : goal.target;
                     const pct = Math.min(100, Math.round((currentValue / targetValue) * 100));
                     return (
-                      <div key={goal.type} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div
+                        key={goal.type}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+                      >
                         <span
                           className="material-symbols-outlined"
                           style={{
@@ -1106,7 +1193,8 @@ export default function DashboardPage() {
                             }}
                           >
                             <span style={{ color: 'rgba(255,255,255,0.9)' }}>
-                              {meta.label}{isPagesGoal ? ' (today)' : ''}
+                              {meta.label}
+                              {isPagesGoal ? ' (today)' : ''}
                             </span>
                             <span style={{ color: 'rgba(255,255,255,0.6)' }}>
                               {currentValue}/{targetValue} {meta.unit}
@@ -1261,7 +1349,14 @@ export default function DashboardPage() {
               library_add
             </span>
           </div>
-          <h3 style={{ fontSize: responsiveValue(bp, { phone: '18px', tablet: '19px', desktop: '20px' }), fontWeight: 700, color: '#e5e3ff', margin: '0 0 8px' }}>
+          <h3
+            style={{
+              fontSize: responsiveValue(bp, { phone: '18px', tablet: '19px', desktop: '20px' }),
+              fontWeight: 700,
+              color: '#e5e3ff',
+              margin: '0 0 8px',
+            }}
+          >
             Feeling Inspired?
           </h3>
           <p

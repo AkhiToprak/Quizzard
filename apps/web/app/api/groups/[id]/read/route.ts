@@ -1,11 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
-import {
-  successResponse,
-  unauthorizedResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { successResponse, unauthorizedResponse, internalErrorResponse } from '@/lib/api-response';
 
 type RouteContext = { params: Promise<{ id: string }> };
 

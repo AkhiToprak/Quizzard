@@ -206,12 +206,9 @@ function AiTaskPill({ label }: { label: string }) {
         letterSpacing: '0.01em',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        boxShadow:
-          '0 8px 32px rgba(174, 137, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.4)',
+        boxShadow: '0 8px 32px rgba(174, 137, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.4)',
         opacity: mounted ? 1 : 0,
-        transform: mounted
-          ? 'translateY(0) scale(1)'
-          : 'translateY(12px) scale(0.96)',
+        transform: mounted ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.96)',
         transition:
           'opacity 350ms cubic-bezier(0.22, 1, 0.36, 1), transform 350ms cubic-bezier(0.22, 1, 0.36, 1)',
         animation: 'ai-status-pulse 2.4s ease-in-out infinite',

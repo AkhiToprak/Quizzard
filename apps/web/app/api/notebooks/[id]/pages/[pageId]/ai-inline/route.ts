@@ -175,8 +175,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
           try {
             const response = await stream.finalMessage();
-            const totalTokens =
-              response.usage.input_tokens + response.usage.output_tokens;
+            const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
 
             // Token accounting + usage increment AFTER successful completion
             await recordTokenUsage({
@@ -195,8 +194,7 @@ export async function POST(request: NextRequest, { params }: Params) {
             );
             controller.close();
           } catch (err) {
-            const message =
-              err instanceof Error ? err.message : 'AI request failed.';
+            const message = err instanceof Error ? err.message : 'AI request failed.';
             controller.enqueue(sseEvent('error', { error: message }));
             controller.close();
           } finally {

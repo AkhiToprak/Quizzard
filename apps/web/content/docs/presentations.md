@@ -50,11 +50,11 @@ This builds a straightforward deck from each page's text content. No theme colou
 
 ## Which path should you pick?
 
-| Want…                                             | Use                       |
-| ------------------------------------------------- | ------------------------- |
-| A polished, presentable deck the AI builds for me | **Path 1** — Mage Chat    |
-| A no-frills deck of my notes for a quick share    | **Path 2** — page export  |
-| Slides for an in-class flashcard or quiz session  | **Path 3** — set export   |
+| Want…                                             | Use                      |
+| ------------------------------------------------- | ------------------------ |
+| A polished, presentable deck the AI builds for me | **Path 1** — Mage Chat   |
+| A no-frills deck of my notes for a quick share    | **Path 2** — page export |
+| Slides for an in-class flashcard or quiz session  | **Path 3** — set export  |
 
 ## Limits
 

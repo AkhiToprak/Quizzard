@@ -32,11 +32,27 @@ function LoadingSkeleton() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '24px 0' }}>
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexDirection: i % 2 === 0 ? 'row-reverse' : 'row', maxWidth: '60%', marginLeft: i % 2 === 0 ? 'auto' : 0 }}>
-          <div className="groups-skeleton" style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0 }} />
+        <div
+          key={i}
+          style={{
+            display: 'flex',
+            gap: 16,
+            alignItems: 'flex-start',
+            flexDirection: i % 2 === 0 ? 'row-reverse' : 'row',
+            maxWidth: '60%',
+            marginLeft: i % 2 === 0 ? 'auto' : 0,
+          }}
+        >
+          <div
+            className="groups-skeleton"
+            style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0 }}
+          />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div className="groups-skeleton" style={{ width: 100, height: 14, borderRadius: 6 }} />
-            <div className="groups-skeleton" style={{ width: '100%', height: 48, borderRadius: 16 }} />
+            <div
+              className="groups-skeleton"
+              style={{ width: '100%', height: 48, borderRadius: 16 }}
+            />
           </div>
         </div>
       ))}
@@ -88,9 +104,12 @@ export default function GroupChat({ groupId, groupName, currentUserId, canChat =
         onScroll={handleScroll}
         className="custom-scrollbar"
         style={{
-          flex: 1, overflowY: 'auto',
+          flex: 1,
+          overflowY: 'auto',
           padding: '24px 24px 16px',
-          display: 'flex', flexDirection: 'column', gap: 20,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
         }}
       >
         {/* Load more button */}
@@ -99,13 +118,23 @@ export default function GroupChat({ groupId, groupName, currentUserId, canChat =
             <button
               onClick={loadMore}
               style={{
-                background: COLORS.elevated, border: 'none', borderRadius: 9999,
-                padding: '8px 20px', fontSize: 12, fontWeight: 600,
-                color: COLORS.textSecondary, cursor: 'pointer', fontFamily: 'inherit',
+                background: COLORS.elevated,
+                border: 'none',
+                borderRadius: 9999,
+                padding: '8px 20px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: COLORS.textSecondary,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
                 transition: `transform 0.2s ${EASING}`,
               }}
-              onMouseEnter={(e) => { (e.currentTarget).style.transform = 'scale(1.05)'; }}
-              onMouseLeave={(e) => { (e.currentTarget).style.transform = 'scale(1)'; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
               Load older messages
             </button>
@@ -115,9 +144,23 @@ export default function GroupChat({ groupId, groupName, currentUserId, canChat =
         {loading && displayMessages.length === 0 && <LoadingSkeleton />}
 
         {!loading && displayMessages.length === 0 && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: COLORS.textMuted }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.4 }}>chat_bubble_outline</span>
-            <p style={{ fontSize: 14, fontWeight: 500 }}>No messages yet. Start the conversation!</p>
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              color: COLORS.textMuted,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.4 }}>
+              chat_bubble_outline
+            </span>
+            <p style={{ fontSize: 14, fontWeight: 500 }}>
+              No messages yet. Start the conversation!
+            </p>
           </div>
         )}
 
@@ -141,12 +184,23 @@ export default function GroupChat({ groupId, groupName, currentUserId, canChat =
           onStartCoworkClick={() => setStartCoworkOpen(true)}
         />
       ) : (
-        <div style={{
-          padding: '16px 24px', textAlign: 'center',
-          background: `${COLORS.elevated}e6`, borderTop: `1px solid ${COLORS.border}1a`,
-          color: COLORS.textMuted, fontSize: 13, fontWeight: 500,
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: 'middle', marginRight: 6 }}>lock</span>
+        <div
+          style={{
+            padding: '16px 24px',
+            textAlign: 'center',
+            background: `${COLORS.elevated}e6`,
+            borderTop: `1px solid ${COLORS.border}1a`,
+            color: COLORS.textMuted,
+            fontSize: 13,
+            fontWeight: 500,
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 16, verticalAlign: 'middle', marginRight: 6 }}
+          >
+            lock
+          </span>
           Chat is restricted by the teacher
         </div>
       )}

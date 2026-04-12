@@ -9,10 +9,7 @@ import RecentTrophies from '@/components/features/RecentTrophies';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { UserName } from '@/components/user/UserName';
 import { UserAvatar } from '@/components/user/UserAvatar';
-import {
-  CosmeticsPanel,
-  type CosmeticsSelection,
-} from '@/components/cosmetics/CosmeticsPanel';
+import { CosmeticsPanel, type CosmeticsSelection } from '@/components/cosmetics/CosmeticsPanel';
 import { ProfileBackground } from '@/components/cosmetics/ProfileBackground';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -125,15 +122,15 @@ export default function ProfilePage() {
     profilePrivate: false,
     hideAchievements: false,
   });
-  const [cosmeticsForm, setCosmeticsForm] =
-    useState<CosmeticsSelection>(EMPTY_COSMETICS);
+  const [cosmeticsForm, setCosmeticsForm] = useState<CosmeticsSelection>(EMPTY_COSMETICS);
   // Independent save state for the always-visible Appearance card so it
   // can be edited without having to also enter the About edit mode.
   const [cosmeticsDirty, setCosmeticsDirty] = useState(false);
   const [cosmeticsSaving, setCosmeticsSaving] = useState(false);
-  const [cosmeticsFeedback, setCosmeticsFeedback] = useState<
-    { kind: 'saved' | 'error'; message: string } | null
-  >(null);
+  const [cosmeticsFeedback, setCosmeticsFeedback] = useState<{
+    kind: 'saved' | 'error';
+    message: string;
+  } | null>(null);
   // Appearance card is collapsed by default so it doesn't push the page
   // height on first visit. Auto-expands when the user has pending changes
   // to ensure the Save button is reachable.
@@ -219,35 +216,40 @@ export default function ProfilePage() {
   };
 
   // Username availability check
-  const checkUsername = useCallback(async (value: string) => {
-    const normalized = value.toLowerCase();
-    if (!USERNAME_REGEX.test(normalized)) {
-      setUsernameStatus('invalid');
-      setUsernameMessage('3–20 chars, letters, numbers, underscores');
-      return;
-    }
-    if (profile && normalized === profile.username) {
-      setUsernameStatus('idle');
-      setUsernameMessage('');
-      return;
-    }
-    setUsernameStatus('checking');
-    setUsernameMessage('');
-    try {
-      const res = await fetch(`/api/user/check-username?username=${encodeURIComponent(normalized)}`);
-      const json = await res.json();
-      if (json.data?.available) {
-        setUsernameStatus('available');
-        setUsernameMessage('Username is available');
-      } else {
-        setUsernameStatus('taken');
-        setUsernameMessage('Username is already taken');
+  const checkUsername = useCallback(
+    async (value: string) => {
+      const normalized = value.toLowerCase();
+      if (!USERNAME_REGEX.test(normalized)) {
+        setUsernameStatus('invalid');
+        setUsernameMessage('3–20 chars, letters, numbers, underscores');
+        return;
       }
-    } catch {
-      setUsernameStatus('idle');
+      if (profile && normalized === profile.username) {
+        setUsernameStatus('idle');
+        setUsernameMessage('');
+        return;
+      }
+      setUsernameStatus('checking');
       setUsernameMessage('');
-    }
-  }, [profile]);
+      try {
+        const res = await fetch(
+          `/api/user/check-username?username=${encodeURIComponent(normalized)}`
+        );
+        const json = await res.json();
+        if (json.data?.available) {
+          setUsernameStatus('available');
+          setUsernameMessage('Username is available');
+        } else {
+          setUsernameStatus('taken');
+          setUsernameMessage('Username is already taken');
+        }
+      } catch {
+        setUsernameStatus('idle');
+        setUsernameMessage('');
+      }
+    },
+    [profile]
+  );
 
   const handleUsernameChange = (value: string) => {
     setUsernameInput(value);
@@ -260,7 +262,9 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, []);
 
   const openEditModal = () => {
@@ -333,8 +337,7 @@ export default function ProfilePage() {
     setCosmeticsSaving(true);
     setCosmeticsFeedback(null);
     try {
-      const hasNameStyle =
-        cosmeticsForm.fontId != null || cosmeticsForm.colorId != null;
+      const hasNameStyle = cosmeticsForm.fontId != null || cosmeticsForm.colorId != null;
       const nameStylePayload = hasNameStyle
         ? {
             fontId: cosmeticsForm.fontId ?? undefined,
@@ -384,8 +387,7 @@ export default function ProfilePage() {
     try {
       // Cosmetics: collapse font/color into a single `nameStyle` object (or
       // null when both are unset) to match the profile PUT contract.
-      const hasNameStyle =
-        cosmeticsForm.fontId != null || cosmeticsForm.colorId != null;
+      const hasNameStyle = cosmeticsForm.fontId != null || cosmeticsForm.colorId != null;
       const nameStylePayload = hasNameStyle
         ? {
             fontId: cosmeticsForm.fontId ?? undefined,
@@ -429,9 +431,7 @@ export default function ProfilePage() {
         // to be a `catch {}` no-op which made every 4xx look like "save just
         // didn't do anything" — impossible to debug without devtools open.
         const errJson = await res.json().catch(() => null);
-        setSaveError(
-          errJson?.error || `Save failed (${res.status} ${res.statusText})`
-        );
+        setSaveError(errJson?.error || `Save failed (${res.status} ${res.statusText})`);
       }
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Save failed');
@@ -569,7 +569,10 @@ export default function ProfilePage() {
             marginBottom: '12px',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#ae89ff' }}>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: '14px', color: '#ae89ff' }}
+          >
             auto_awesome
           </span>
           <span style={{ fontSize: '12px', fontWeight: 700, color: '#ae89ff' }}>
@@ -700,7 +703,9 @@ export default function ProfilePage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>About</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
+              About
+            </h3>
             <button
               onClick={startEditing}
               style={{
@@ -725,7 +730,9 @@ export default function ProfilePage() {
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                edit
+              </span>
               Edit
             </button>
           </div>
@@ -825,7 +832,13 @@ export default function ProfilePage() {
           </div>
 
           {/* Two-column grid for short fields */}
-          <div style={{ display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr', gap: '16px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr',
+              gap: '16px',
+            }}
+          >
             <div>
               <label style={LABEL_STYLE}>Age</label>
               <input
@@ -1239,10 +1252,7 @@ export default function ProfilePage() {
                   style={{
                     fontSize: '12px',
                     fontWeight: 600,
-                    color:
-                      cosmeticsFeedback.kind === 'saved'
-                        ? '#4efba5'
-                        : '#fd6f85',
+                    color: cosmeticsFeedback.kind === 'saved' ? '#4efba5' : '#fd6f85',
                   }}
                 >
                   {cosmeticsFeedback.message}
@@ -1257,11 +1267,7 @@ export default function ProfilePage() {
                   if (cosmeticsDirty && !cosmeticsSaving) handleSaveCosmetics();
                 }}
                 onKeyDown={(e) => {
-                  if (
-                    (e.key === 'Enter' || e.key === ' ') &&
-                    cosmeticsDirty &&
-                    !cosmeticsSaving
-                  ) {
+                  if ((e.key === 'Enter' || e.key === ' ') && cosmeticsDirty && !cosmeticsSaving) {
                     e.preventDefault();
                     e.stopPropagation();
                     handleSaveCosmetics();
@@ -1270,16 +1276,12 @@ export default function ProfilePage() {
                 style={{
                   padding: '10px 22px',
                   background:
-                    !cosmeticsDirty || cosmeticsSaving
-                      ? 'rgba(174,137,255,0.18)'
-                      : '#ae89ff',
-                  color:
-                    !cosmeticsDirty || cosmeticsSaving ? '#aaa8c8' : '#2a0066',
+                    !cosmeticsDirty || cosmeticsSaving ? 'rgba(174,137,255,0.18)' : '#ae89ff',
+                  color: !cosmeticsDirty || cosmeticsSaving ? '#aaa8c8' : '#2a0066',
                   borderRadius: '12px',
                   fontSize: '13px',
                   fontWeight: 700,
-                  cursor:
-                    !cosmeticsDirty || cosmeticsSaving ? 'default' : 'pointer',
+                  cursor: !cosmeticsDirty || cosmeticsSaving ? 'default' : 'pointer',
                   transition:
                     'transform 0.2s cubic-bezier(0.22,1,0.36,1), background 0.2s cubic-bezier(0.22,1,0.36,1)',
                   userSelect: 'none',
@@ -1287,11 +1289,7 @@ export default function ProfilePage() {
                   alignItems: 'center',
                 }}
               >
-                {cosmeticsSaving
-                  ? 'Saving…'
-                  : cosmeticsDirty
-                    ? 'Save appearance'
-                    : 'Saved'}
+                {cosmeticsSaving ? 'Saving…' : cosmeticsDirty ? 'Save appearance' : 'Saved'}
               </span>
             </div>
           )}
@@ -1328,9 +1326,7 @@ export default function ProfilePage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: isPhone
-            ? '1fr'
-            : 'minmax(220px, 260px) minmax(0, 1fr)',
+          gridTemplateColumns: isPhone ? '1fr' : 'minmax(220px, 260px) minmax(0, 1fr)',
           gap: '24px',
           alignItems: 'stretch',
         }}
@@ -1409,20 +1405,27 @@ export default function ProfilePage() {
                   (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                  close
+                </span>
               </button>
             </div>
 
             {/* Avatar section */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
               <UserAvatar
                 user={profile}
                 size={96}
                 radius="50%"
                 style={{
-                  border: profile.equippedFrameId
-                    ? 'none'
-                    : '3px solid rgba(174,137,255,0.3)',
+                  border: profile.equippedFrameId ? 'none' : '3px solid rgba(174,137,255,0.3)',
                 }}
               />
               <button
@@ -1446,7 +1449,8 @@ export default function ProfilePage() {
                   (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.2)';
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(174,137,255,0.12)';
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    'rgba(174,137,255,0.12)';
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
@@ -1516,7 +1520,11 @@ export default function ProfilePage() {
                   {usernameStatus === 'available' && (
                     <span
                       className="material-symbols-outlined"
-                      style={{ fontSize: '18px', color: '#4dff91', fontVariationSettings: "'FILL' 1" }}
+                      style={{
+                        fontSize: '18px',
+                        color: '#4dff91',
+                        fontVariationSettings: "'FILL' 1",
+                      }}
                     >
                       check_circle
                     </span>
@@ -1524,7 +1532,11 @@ export default function ProfilePage() {
                   {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
                     <span
                       className="material-symbols-outlined"
-                      style={{ fontSize: '18px', color: '#fd6f85', fontVariationSettings: "'FILL' 1" }}
+                      style={{
+                        fontSize: '18px',
+                        color: '#fd6f85',
+                        fontVariationSettings: "'FILL' 1",
+                      }}
                     >
                       cancel
                     </span>
@@ -1571,7 +1583,8 @@ export default function ProfilePage() {
                   transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1)',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(170,168,200,0.08)';
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    'rgba(170,168,200,0.08)';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
@@ -1597,7 +1610,8 @@ export default function ProfilePage() {
                     'transform 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.2s cubic-bezier(0.22,1,0.36,1)',
                 }}
                 onMouseEnter={(e) => {
-                  if (!modalSaving) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)';
+                  if (!modalSaving)
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';

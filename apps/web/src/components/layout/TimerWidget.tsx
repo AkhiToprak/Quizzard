@@ -70,10 +70,10 @@ export default function TimerWidget({ compact }: Props) {
   }, [open]);
 
   // Current accent color based on mode + phase
-  const accent = timer.mode === 'pomodoro' && timer.pomodoroPhase === 'break'
-    ? C.breakColor : C.primary;
-  const accentGlow = timer.mode === 'pomodoro' && timer.pomodoroPhase === 'break'
-    ? C.breakGlow : C.primaryGlow;
+  const accent =
+    timer.mode === 'pomodoro' && timer.pomodoroPhase === 'break' ? C.breakColor : C.primary;
+  const accentGlow =
+    timer.mode === 'pomodoro' && timer.pomodoroPhase === 'break' ? C.breakGlow : C.primaryGlow;
 
   const showTimeInButton = timer.isRunning && !isPhone;
 
@@ -97,13 +97,14 @@ export default function TimerWidget({ compact }: Props) {
                 ? 'rgba(255,255,255,0.06)'
                 : 'transparent'
           }`,
-          background: hovered || open
-            ? timer.isRunning
-              ? `${accent}18`
-              : 'rgba(255,255,255,0.05)'
-            : timer.isRunning
-              ? `${accent}0a`
-              : 'transparent',
+          background:
+            hovered || open
+              ? timer.isRunning
+                ? `${accent}18`
+                : 'rgba(255,255,255,0.05)'
+              : timer.isRunning
+                ? `${accent}0a`
+                : 'transparent',
           color: timer.isRunning ? accent : hovered || open ? C.textPrimary : C.textMuted,
           cursor: 'pointer',
           display: 'flex',
@@ -215,7 +216,9 @@ export default function TimerWidget({ compact }: Props) {
               return (
                 <button
                   key={tab.key}
-                  onClick={() => { if (!disabled) timer.setMode(tab.key); }}
+                  onClick={() => {
+                    if (!disabled) timer.setMode(tab.key);
+                  }}
                   onMouseEnter={() => setHoveredTab(tab.key)}
                   onMouseLeave={() => setHoveredTab(null)}
                   style={{
@@ -229,7 +232,11 @@ export default function TimerWidget({ compact }: Props) {
                       : isHov && !disabled
                         ? 'rgba(255,255,255,0.03)'
                         : 'transparent',
-                    color: active ? C.textPrimary : isHov && !disabled ? C.textSecondary : C.textMuted,
+                    color: active
+                      ? C.textPrimary
+                      : isHov && !disabled
+                        ? C.textSecondary
+                        : C.textMuted,
                     fontSize: 11,
                     fontWeight: active ? 700 : 500,
                     letterSpacing: '0.01em',
@@ -255,11 +262,7 @@ export default function TimerWidget({ compact }: Props) {
           <div style={{ padding: '16px 16px 14px' }}>
             {/* ── Countdown ──────────────────────────────────── */}
             {timer.mode === 'countdown' && (
-              <CountdownPanel
-                timer={timer}
-                hoveredBtn={hoveredBtn}
-                setHoveredBtn={setHoveredBtn}
-              />
+              <CountdownPanel timer={timer} hoveredBtn={hoveredBtn} setHoveredBtn={setHoveredBtn} />
             )}
 
             {/* ── Pomodoro ───────────────────────────────────── */}
@@ -275,11 +278,7 @@ export default function TimerWidget({ compact }: Props) {
 
             {/* ── Stopwatch ──────────────────────────────────── */}
             {timer.mode === 'stopwatch' && (
-              <StopwatchPanel
-                timer={timer}
-                hoveredBtn={hoveredBtn}
-                setHoveredBtn={setHoveredBtn}
-              />
+              <StopwatchPanel timer={timer} hoveredBtn={hoveredBtn} setHoveredBtn={setHoveredBtn} />
             )}
           </div>
         </div>
@@ -366,8 +365,14 @@ function PomodoroPanel({
     else remainSec = parts[0] * 60 + parts[1];
     const totalSec = isWork ? timer.pomodoroWorkMinutes * 60 : timer.pomodoroBreakMinutes * 60;
     if (totalSec === 0) return 0;
-    return 1 - (remainSec / totalSec);
-  }, [timer.displayTime, timer.isRunning, isWork, timer.pomodoroWorkMinutes, timer.pomodoroBreakMinutes]);
+    return 1 - remainSec / totalSec;
+  }, [
+    timer.displayTime,
+    timer.isRunning,
+    isWork,
+    timer.pomodoroWorkMinutes,
+    timer.pomodoroBreakMinutes,
+  ]);
 
   const ringSize = 120;
   const strokeWidth = 4;
@@ -436,10 +441,7 @@ function PomodoroPanel({
                 marginBottom: 2,
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 11, color: accent }}
-              >
+              <span className="material-symbols-outlined" style={{ fontSize: 11, color: accent }}>
                 {isWork ? 'edit' : 'coffee'}
               </span>
               <span

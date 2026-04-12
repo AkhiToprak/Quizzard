@@ -52,7 +52,10 @@ export default function NotificationBell() {
                   type: latest.type,
                   data: latest.data,
                   read: false,
-                  createdAt: typeof latest.createdAt === 'string' ? latest.createdAt : new Date(latest.createdAt).toISOString(),
+                  createdAt:
+                    typeof latest.createdAt === 'string'
+                      ? latest.createdAt
+                      : new Date(latest.createdAt).toISOString(),
                 });
               }
             }

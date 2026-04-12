@@ -14,6 +14,7 @@ The landing page built previously claimed four features that were either partial
 This roadmap closes all four gaps.
 
 **Decisions locked in:**
+
 - Stylus → verification-only pass, no rebuild.
 - Inline AI → **PRO-only** tier gate. FREE + PLUS click the inline AI button and get a yellow upsell toast pointing at `/pricing`.
 - Co-working scope → **full** — presence + locks + chat + cursors.
@@ -26,11 +27,13 @@ This roadmap closes all four gaps.
 **Goal:** Type `/` inside the editor → popup appears → arrow keys / click pick a block type → selected block inserts and closes the popup.
 
 ### Architecture
+
 - New custom TipTap extension: `src/lib/tiptap-slash-command.ts`
 - New React popup component: `src/components/notebook/SlashMenu.tsx`
 - Wire into `src/components/notebook/PageEditor.tsx` alongside existing extensions
 
 ### Implementation notes
+
 - **No new npm deps.** Reuse the manual absolute-positioned dropdown pattern already used 5 times in `EditorToolbar.tsx` (color picker, font-size, font-family, inline-scale, callout). Avoids adding `@tiptap/extension-suggestion` + `tippy.js` for a single popup.
 - Extension uses `addProseMirrorPlugins()` to hook into the transaction stream and detect when the user types `/` at the start of an empty paragraph.
 - Extension exposes its state via a React context + a simple `useSlashMenu()` hook so `SlashMenu.tsx` can read `{ isOpen, position, query }` without prop-drilling.
@@ -39,6 +42,7 @@ This roadmap closes all four gaps.
 - Keyboard: `ArrowUp`/`ArrowDown` to move, `Enter` to select, `Escape` to close, typing filters the list, `Backspace` on the `/` closes it.
 
 ### Menu items (matching the existing toolbar actions)
+
 1. Text — `setParagraph()`
 2. Heading 1–3 — `toggleHeading({ level })`
 3. Bullet list — `toggleBulletList()`
@@ -54,13 +58,14 @@ This roadmap closes all four gaps.
 
 ### Files to create / modify
 
-| File | Action |
-| --- | --- |
-| `src/lib/tiptap-slash-command.ts` | create |
-| `src/components/notebook/SlashMenu.tsx` | create |
+| File                                     | Action                                                     |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| `src/lib/tiptap-slash-command.ts`        | create                                                     |
+| `src/components/notebook/SlashMenu.tsx`  | create                                                     |
 | `src/components/notebook/PageEditor.tsx` | register extension, render `<SlashMenu editor={editor} />` |
 
 ### Reuse verified
+
 - `useSelectionGuard()` from `EditorToolbar.tsx` lines 159–198 — preserve selection when popup focus grabs
 - Dropdown pattern from `EditorToolbar.tsx` (color picker line 271, callout line 794) — positioning + click-outside
 - Existing extension pattern from `tiptap-callout.ts` for `addCommands()` shape
@@ -72,6 +77,7 @@ This roadmap closes all four gaps.
 **Goal:** Select text → floating toolbar appears → "Rewrite / Summarize / Expand" buttons → click → selected text is replaced with the streaming AI response. FREE + PLUS users see the button, click it, and get a yellow upsell toast linking to `/pricing`.
 
 ### Architecture
+
 - New API route: `app/api/notebooks/[id]/pages/[pageId]/ai-inline/route.ts`
 - New floating toolbar: `src/components/notebook/InlineAIToolbar.tsx`
 - New toast component (reusable): `src/components/ui/UpsellToast.tsx`
@@ -79,6 +85,7 @@ This roadmap closes all four gaps.
 - Pricing UI: add feature row to `src/components/pricing/PricingCard.tsx`
 
 ### Tier gate
+
 `src/lib/tiers.ts` already exports `FeatureType`. Add `'ai_inline_edit'` and set limits:
 
 ```
@@ -90,6 +97,7 @@ PRO:   ai_inline_edit: -1    // unlimited
 No Stripe changes needed — Stripe only knows about tiers, not feature keys.
 
 ### API route
+
 `POST /api/notebooks/[id]/pages/[pageId]/ai-inline`
 
 Body: `{ action: 'rewrite' | 'summarize' | 'expand', text: string }`
@@ -105,6 +113,7 @@ Handler reuses the pattern from `app/api/notebooks/[id]/study-plans/generate/rou
 7. On stream `end`: `recordTokenUsage({ notebookId, userId, tokens: usage.input_tokens + usage.output_tokens, description: '[inline-ai] rewrite' })` and `incrementUsage(userId, 'ai_inline_edit')`
 
 ### Floating toolbar
+
 - Listen to `editor.on('selectionUpdate', …)` inside `PageEditor.tsx`
 - Show toolbar only when `!selection.empty` and `selection.to - selection.from > 5`
 - Position: `editor.view.coordsAtPos(selection.from)` → absolute-position 8px above selection's top-left
@@ -118,23 +127,25 @@ Handler reuses the pattern from `app/api/notebooks/[id]/study-plans/generate/rou
 - Toolbar closes on: clicking elsewhere, pressing Escape, selection collapsing
 
 ### Upsell toast
+
 - Reusable `<UpsellToast>` component with yellow gradient (`#ffde59`) and "Upgrade to Pro" link to `/pricing`
 - Triggered from any 429 response where `body.upgrade === true`
 - Auto-dismiss after 6 seconds, with close button
 
 ### Files to create / modify
 
-| File | Action |
-| --- | --- |
-| `src/lib/tiers.ts` | add `ai_inline_edit` key to `FeatureType` + all three tier `limits` objects |
-| `src/components/pricing/PricingCard.tsx` | add `ai_inline_edit` to `featureLabels` + `featureIcons` |
-| `src/components/pricing/FeatureComparison.tsx` | add comparison row |
-| `app/api/notebooks/[id]/pages/[pageId]/ai-inline/route.ts` | create |
-| `src/components/notebook/InlineAIToolbar.tsx` | create |
-| `src/components/ui/UpsellToast.tsx` | create |
-| `src/components/notebook/PageEditor.tsx` | wire toolbar + selectionUpdate listener |
+| File                                                       | Action                                                                      |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `src/lib/tiers.ts`                                         | add `ai_inline_edit` key to `FeatureType` + all three tier `limits` objects |
+| `src/components/pricing/PricingCard.tsx`                   | add `ai_inline_edit` to `featureLabels` + `featureIcons`                    |
+| `src/components/pricing/FeatureComparison.tsx`             | add comparison row                                                          |
+| `app/api/notebooks/[id]/pages/[pageId]/ai-inline/route.ts` | create                                                                      |
+| `src/components/notebook/InlineAIToolbar.tsx`              | create                                                                      |
+| `src/components/ui/UpsellToast.tsx`                        | create                                                                      |
+| `src/components/notebook/PageEditor.tsx`                   | wire toolbar + selectionUpdate listener                                     |
 
 ### Reuse verified
+
 - `anthropic` + `AI_MODEL` from `src/lib/anthropic.ts`
 - `checkTokenBudget` + `recordTokenUsage` from `src/lib/token-budget.ts`
 - `checkUsageLimit` + `incrementUsage` from `src/lib/usage-limits.ts`
@@ -149,9 +160,11 @@ Handler reuses the pattern from `app/api/notebooks/[id]/study-plans/generate/rou
 **Goal:** Confirm the existing stylus barrel-button implementation actually works on real devices, document the result, fix anything broken — but do **not** rebuild.
 
 ### Why only verification
+
 `InfiniteCanvas.tsx` lines 245–272 already handle pointer events correctly per the Excalidraw v0.18 API. Commit `77bad8f` added this. The most likely explanation for the feature being flagged as missing is a specific device mapping bug or a QA gap — rebuilding would almost certainly reintroduce the same code.
 
 ### Test matrix
+
 1. **iPad + Apple Pencil 2** (Safari) — Apple Pencil has no barrel button; test will show "no effect on tap/press", which is a known browser limitation
 2. **iPad + Apple Pencil 2** — verify keyboard shortcut `3` toggles eraser as a fallback
 3. **Surface Pro + Surface Pen** (Edge) — barrel button should fire `e.buttons & 2`, expect eraser activation
@@ -160,6 +173,7 @@ Handler reuses the pattern from `app/api/notebooks/[id]/study-plans/generate/rou
 6. **Ordinary mouse** — should not trigger any switch (pointerType guard)
 
 ### What to do per device
+
 - Add a dev-only debug log at the top of the pointerdown handler: `console.log('[stylus]', e.pointerType, e.buttons.toString(2))`
 - Ship one test commit with the log on a temporary branch; QA the matrix; delete the log before merging
 - Document the result in a new `docs/stylus-support.md` file so nobody wastes time re-testing later
@@ -167,13 +181,14 @@ Handler reuses the pattern from `app/api/notebooks/[id]/study-plans/generate/rou
 
 ### Files to touch
 
-| File | Action |
-| --- | --- |
-| `src/components/notebook/InfiniteCanvas.tsx` | temporary debug log (remove before merge) |
-| `docs/stylus-support.md` | create — document the device matrix + results |
-| `CLAUDE.md` | add one-liner pointing at `docs/stylus-support.md` |
+| File                                         | Action                                             |
+| -------------------------------------------- | -------------------------------------------------- |
+| `src/components/notebook/InfiniteCanvas.tsx` | temporary debug log (remove before merge)          |
+| `docs/stylus-support.md`                     | create — document the device matrix + results      |
+| `CLAUDE.md`                                  | add one-liner pointing at `docs/stylus-support.md` |
 
 ### Landing page copy
+
 If verification finds any device where it doesn't work, update the `NotetakingCanvasSpotlight` bullet from:
 
 > "Stylus + barrel-button eraser support"
@@ -191,6 +206,7 @@ to:
 **Goal:** Real-time session state over WebSockets for cowork sessions, replacing all 10s polling and in-memory chat with events emitted from the existing `ws-server.ts`.
 
 ### Current state (verified)
+
 - `ws-server.ts` exists at the repo root, runs standalone Socket.IO on port 3002, handles global friend presence (`presence:init`, `presence:update`, heartbeat), and has an HMAC auth flow via `app/api/auth/presence-token/route.ts`.
 - `package.json` exposes `npm run dev:ws` and `npm run start:ws`.
 - REST routes in `app/api/notebooks/[id]/cowork/**` handle create / join / leave / lock / end. These stay — they're the source of truth for session state in Postgres. WS becomes the fanout layer.
@@ -219,6 +235,7 @@ PageLock route ───── HTTP POST ─────────► ws broad
 Cursors are **ephemeral** and never touch the DB — that avoids a write flood and a new Prisma migration. Chat is persisted. Presence and locks are pushed from REST → WS.
 
 ### Prisma migration
+
 Add one model (chat persistence). Cursors are deliberately not persisted.
 
 ```prisma
@@ -239,6 +256,7 @@ model CoWorkMessage {
 Add the back-relation in `CoWorkSession` and `User` models.
 
 ### ws-server.ts changes
+
 Add new event handlers on the existing Socket.IO instance:
 
 - `socket.on('cowork:join', async ({ sessionId, token }) => { … })` — validate token, verify participant row in Postgres, `socket.join('session:' + sessionId)`, broadcast `cowork:participant_joined`
@@ -249,10 +267,10 @@ Add new event handlers on the existing Socket.IO instance:
 
 ### New REST routes
 
-| Route | Purpose |
-| --- | --- |
+| Route                                                  | Purpose                                                   |
+| ------------------------------------------------------ | --------------------------------------------------------- |
 | `POST /api/notebooks/[id]/cowork/[sessionId]/messages` | persist chat message to `CoWorkMessage`, return saved row |
-| `GET /api/notebooks/[id]/cowork/[sessionId]/messages` | fetch recent messages (last 50) for session rejoin |
+| `GET /api/notebooks/[id]/cowork/[sessionId]/messages`  | fetch recent messages (last 50) for session rejoin        |
 
 Lock routes `/cowork/[sessionId]/lock/[pageId]/` already exist; add a tiny post-write emitter that calls the ws-server's broadcast (same mechanism as chat).
 
@@ -261,17 +279,20 @@ Lock routes `/cowork/[sessionId]/lock/[pageId]/` already exist; add a tiny post-
 `src/lib/cowork-socket.ts` — new file. A small singleton Socket.IO client bound to the cowork namespace with methods `joinSession()`, `leaveSession()`, `sendCursor()`, `onParticipantJoined()`, `onParticipantLeft()`, `onPageLocked()`, `onPageUnlocked()`, `onMessage()`, `onCursor()`. Handles token refresh from `/api/auth/presence-token`.
 
 `src/components/notebook/CoWorkBar.tsx` changes:
+
 - Remove `setInterval(fetchParticipants, 10000)` polling
 - On mount: call `coworkSocket.joinSession(sessionId)` + subscribe to `onParticipantJoined / onParticipantLeft`
 - On unmount: `coworkSocket.leaveSession(sessionId)`
 
 `src/components/notebook/CoWorkChat.tsx` changes:
+
 - Remove in-memory `msgCounter`
 - On mount: fetch message history via new GET route, subscribe to `onMessage`
 - On send: POST to new REST route (server persists + broadcasts), optimistically append with pending state
 - Remove the "In-memory only" disclaimer at line 178
 
 `src/components/notebook/PageEditor.tsx` and `InfiniteCanvas.tsx` changes:
+
 - Throttle a `mousemove` listener to 60ms, send `{ x, y, pageId }` via `coworkSocket.sendCursor()` — only when a cowork session is active
 - Subscribe to `onCursor` → render a `<RemoteCursor>` overlay per user with their display name and color
 
@@ -279,20 +300,21 @@ Lock routes `/cowork/[sessionId]/lock/[pageId]/` already exist; add a tiny post-
 
 ### Files to create / modify
 
-| File | Action |
-| --- | --- |
-| `prisma/schema.prisma` | add `CoWorkMessage` model + back-relations |
-| `ws-server.ts` | add cowork event handlers + room logic + Prisma client for chat writes |
-| `src/lib/cowork-socket.ts` | create — client singleton |
-| `app/api/notebooks/[id]/cowork/[sessionId]/messages/route.ts` | create — GET list + POST send |
-| `app/api/notebooks/[id]/cowork/[sessionId]/lock/[pageId]/route.ts` | add ws broadcast call after DB write |
-| `src/components/notebook/CoWorkBar.tsx` | replace polling with socket events |
-| `src/components/notebook/CoWorkChat.tsx` | wire to REST + socket, remove in-memory code |
-| `src/components/notebook/RemoteCursor.tsx` | create |
-| `src/components/notebook/PageEditor.tsx` | cursor emitter + remote cursor overlay |
-| `src/components/notebook/InfiniteCanvas.tsx` | cursor emitter + remote cursor overlay |
+| File                                                               | Action                                                                 |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `prisma/schema.prisma`                                             | add `CoWorkMessage` model + back-relations                             |
+| `ws-server.ts`                                                     | add cowork event handlers + room logic + Prisma client for chat writes |
+| `src/lib/cowork-socket.ts`                                         | create — client singleton                                              |
+| `app/api/notebooks/[id]/cowork/[sessionId]/messages/route.ts`      | create — GET list + POST send                                          |
+| `app/api/notebooks/[id]/cowork/[sessionId]/lock/[pageId]/route.ts` | add ws broadcast call after DB write                                   |
+| `src/components/notebook/CoWorkBar.tsx`                            | replace polling with socket events                                     |
+| `src/components/notebook/CoWorkChat.tsx`                           | wire to REST + socket, remove in-memory code                           |
+| `src/components/notebook/RemoteCursor.tsx`                         | create                                                                 |
+| `src/components/notebook/PageEditor.tsx`                           | cursor emitter + remote cursor overlay                                 |
+| `src/components/notebook/InfiniteCanvas.tsx`                       | cursor emitter + remote cursor overlay                                 |
 
 ### Reuse verified
+
 - `ws-server.ts` presence namespace — add alongside, don't rewrite
 - `GET /api/auth/presence-token` for WS auth — same token works, or add a `scope: 'cowork'` claim
 - Existing Prisma models `CoWorkSession`, `CoWorkParticipant`, `PageLock` — don't touch
@@ -334,6 +356,7 @@ Phased so each feature ships independently:
 ## Verification
 
 **Feature A — Slash menu:**
+
 - Type `/` at the start of an empty line → popup appears
 - Arrow keys navigate, Enter selects, Escape closes
 - Type `/heading` → filters to heading options
@@ -341,6 +364,7 @@ Phased so each feature ships independently:
 - `/` in the middle of existing text → popup does NOT appear (only at paragraph start)
 
 **Feature B — Inline AI:**
+
 - As a FREE user: select text → toolbar appears → click Rewrite → yellow upsell toast appears pointing to `/pricing`
 - As a PRO user: select text → click Rewrite → loading shimmer → streaming text replaces selection
 - Check `UsageRecord` table → row for `ai_inline_edit` incremented by 1
@@ -349,12 +373,14 @@ Phased so each feature ships independently:
 - Upgrade a user to PRO via Stripe test mode → inline AI starts working without a logout
 
 **Feature C — Stylus:**
+
 - Run through the 6-device test matrix above
 - Write results into `docs/stylus-support.md`
 - For any failing device, fix the handler and re-test
 - Delete the temporary debug log before merging
 
 **Feature D — Cowork:**
+
 - Two browsers, two logged-in users, one cowork session
 - User A starts a session → user B joins
 - User B's avatar appears in user A's bar within <1s (no more 10s wait)

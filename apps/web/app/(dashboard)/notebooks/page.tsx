@@ -320,7 +320,13 @@ function NotebooksPageContent() {
       : notebooks.filter((nb) => getPresetForSubject(nb.subject)?.label === activeFilter);
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: responsiveValue(bp, { phone: '0 16px', tablet: '0 20px', desktop: '0' }) }}>
+    <div
+      style={{
+        maxWidth: '1280px',
+        margin: '0 auto',
+        padding: responsiveValue(bp, { phone: '0 16px', tablet: '0 20px', desktop: '0' }),
+      }}
+    >
       {/* Breadcrumbs */}
       {(currentFolderId || breadcrumbs.length > 0) && (
         <FolderBreadcrumbs
@@ -647,7 +653,14 @@ function NotebooksPageContent() {
         </div>
 
         {/* Right-side buttons */}
-        <div style={{ marginLeft: isPhone ? undefined : 'auto', display: 'flex', gap: '10px', width: isPhone ? '100%' : undefined }}>
+        <div
+          style={{
+            marginLeft: isPhone ? undefined : 'auto',
+            display: 'flex',
+            gap: '10px',
+            width: isPhone ? '100%' : undefined,
+          }}
+        >
           {/* New Folder button */}
           <button
             onClick={() => {
@@ -742,7 +755,11 @@ function NotebooksPageContent() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: 'repeat(auto-fill, minmax(240px, 1fr))', desktop: 'repeat(auto-fill, minmax(280px, 1fr))' }),
+            gridTemplateColumns: responsiveValue(bp, {
+              phone: '1fr',
+              tablet: 'repeat(auto-fill, minmax(240px, 1fr))',
+              desktop: 'repeat(auto-fill, minmax(280px, 1fr))',
+            }),
             gap: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
           }}
         >
@@ -757,7 +774,11 @@ function NotebooksPageContent() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: responsiveValue(bp, { phone: '1fr', tablet: 'repeat(auto-fill, minmax(240px, 1fr))', desktop: 'repeat(auto-fill, minmax(280px, 1fr))' }),
+            gridTemplateColumns: responsiveValue(bp, {
+              phone: '1fr',
+              tablet: 'repeat(auto-fill, minmax(240px, 1fr))',
+              desktop: 'repeat(auto-fill, minmax(280px, 1fr))',
+            }),
             gap: responsiveValue(bp, { phone: '16px', tablet: '20px', desktop: '24px' }),
           }}
         >
@@ -978,7 +999,6 @@ function NotebooksPageContent() {
           </div>
         </div>
       )}
-
 
       {/* Create / Edit notebook modal */}
       {showForm && (
@@ -1211,7 +1231,6 @@ function NotebooksPageContent() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

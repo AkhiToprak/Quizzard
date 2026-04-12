@@ -3,11 +3,7 @@ import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { getLevelFromXP } from '@/lib/xp';
 import { checkCosmeticUnlocks } from '@/lib/cosmetics/unlock';
-import {
-  successResponse,
-  unauthorizedResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { successResponse, unauthorizedResponse, internalErrorResponse } from '@/lib/api-response';
 
 /**
  * GET /api/user/cosmetics

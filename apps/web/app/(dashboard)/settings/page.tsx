@@ -15,7 +15,14 @@ function getInitials(name?: string | null): string {
     .slice(0, 2);
 }
 
-type Section = 'account' | 'notifications' | 'goals' | 'subscription' | 'privacy' | 'admin' | 'stats';
+type Section =
+  | 'account'
+  | 'notifications'
+  | 'goals'
+  | 'subscription'
+  | 'privacy'
+  | 'admin'
+  | 'stats';
 
 interface AdminStats {
   totalUsers: number;
@@ -80,10 +87,7 @@ function StatCard({
             flexShrink: 0,
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ color: accent, fontSize: '18px' }}
-          >
+          <span className="material-symbols-outlined" style={{ color: accent, fontSize: '18px' }}>
             {icon}
           </span>
         </div>
@@ -110,9 +114,7 @@ function StatCard({
       >
         {value}
       </div>
-      {sub && (
-        <div style={{ fontSize: '12px', color: '#8888a8' }}>{sub}</div>
-      )}
+      {sub && <div style={{ fontSize: '12px', color: '#8888a8' }}>{sub}</div>}
     </div>
   );
 }
@@ -187,12 +189,18 @@ export default function SettingsPage() {
   // Custom greeting state
   const [customGreeting, setCustomGreeting] = useState('');
   const [greetingLoading, setGreetingLoading] = useState(false);
-  const [greetingStatus, setGreetingStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
+  const [greetingStatus, setGreetingStatus] = useState<{
+    type: 'error' | 'success';
+    msg: string;
+  } | null>(null);
 
   // Mage name state
   const [mageNameInput, setMageNameInput] = useState('');
   const [mageNameLoading, setMageNameLoading] = useState(false);
-  const [mageNameStatus, setMageNameStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
+  const [mageNameStatus, setMageNameStatus] = useState<{
+    type: 'error' | 'success';
+    msg: string;
+  } | null>(null);
 
   // Mage level (computed from XP)
   const [mageLevel, setMageLevel] = useState<number | null>(null);
@@ -232,7 +240,10 @@ export default function SettingsPage() {
         body: JSON.stringify({ customGreeting: value }),
       });
       if (res.ok) {
-        setGreetingStatus({ type: 'success', msg: value ? 'Custom greeting saved!' : 'Reset to random greetings.' });
+        setGreetingStatus({
+          type: 'success',
+          msg: value ? 'Custom greeting saved!' : 'Reset to random greetings.',
+        });
         if (!value) setCustomGreeting('');
       } else {
         const json = await res.json();
@@ -255,7 +266,10 @@ export default function SettingsPage() {
         body: JSON.stringify({ scholarName: value }),
       });
       if (res.ok) {
-        setMageNameStatus({ type: 'success', msg: value ? 'Mage name saved!' : 'Reset to default "Mage".' });
+        setMageNameStatus({
+          type: 'success',
+          msg: value ? 'Mage name saved!' : 'Reset to default "Mage".',
+        });
         if (!value) setMageNameInput('');
         await updateSession();
       } else {
@@ -365,22 +379,51 @@ export default function SettingsPage() {
       .then((res) => {
         const d = res?.data ?? res;
         if (Array.isArray(d?.goals)) {
-          setStudyGoals(d.goals.map((g: { type: string; target: number }) => ({ type: g.type, target: g.target })));
+          setStudyGoals(
+            d.goals.map((g: { type: string; target: number }) => ({
+              type: g.type,
+              target: g.target,
+            }))
+          );
         }
       })
       .catch(() => {});
   }, []);
 
   const GOAL_CONFIGS = [
-    { type: 'hours', icon: 'schedule', label: 'Study Hours / Week', unit: 'hrs', presets: [5, 10, 15, 20] },
-    { type: 'pages', icon: 'description', label: 'Pages Written / Week', unit: 'pgs', presets: [5, 10, 20, 50] },
-    { type: 'quizzes', icon: 'psychology', label: 'Quizzes / Week', unit: 'quiz', presets: [3, 5, 10, 20] },
-    { type: 'notebooks', icon: 'auto_stories', label: 'Notebooks / Week', unit: 'nb', presets: [1, 2, 3, 5] },
+    {
+      type: 'hours',
+      icon: 'schedule',
+      label: 'Study Hours / Week',
+      unit: 'hrs',
+      presets: [5, 10, 15, 20],
+    },
+    {
+      type: 'pages',
+      icon: 'description',
+      label: 'Pages Written / Week',
+      unit: 'pgs',
+      presets: [5, 10, 20, 50],
+    },
+    {
+      type: 'quizzes',
+      icon: 'psychology',
+      label: 'Quizzes / Week',
+      unit: 'quiz',
+      presets: [3, 5, 10, 20],
+    },
+    {
+      type: 'notebooks',
+      icon: 'auto_stories',
+      label: 'Notebooks / Week',
+      unit: 'nb',
+      presets: [1, 2, 3, 5],
+    },
   ];
 
   const getStudyGoal = (type: string) => studyGoals.find((g) => g.type === type);
 
-  const toggleStudyGoal = (config: typeof GOAL_CONFIGS[number]) => {
+  const toggleStudyGoal = (config: (typeof GOAL_CONFIGS)[number]) => {
     const existing = getStudyGoal(config.type);
     if (existing) {
       setStudyGoals(studyGoals.filter((g) => g.type !== config.type));
@@ -722,7 +765,17 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', position: 'relative', padding: isPhone ? '0 16px' : undefined, overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
+    <div
+      style={{
+        maxWidth: '1280px',
+        margin: '0 auto',
+        position: 'relative',
+        padding: isPhone ? '0 16px' : undefined,
+        overflow: 'hidden',
+        width: '100%',
+        boxSizing: 'border-box',
+      }}
+    >
       {/* Ambient bg blobs */}
       <div
         style={{
@@ -867,7 +920,10 @@ export default function SettingsPage() {
                     (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: isPhone ? '13px' : '16px' }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: isPhone ? '13px' : '16px' }}
+                  >
                     edit
                   </span>
                 </button>
@@ -885,15 +941,17 @@ export default function SettingsPage() {
             </div>
 
             {/* Settings nav */}
-            <nav style={{
-              display: 'flex',
-              flexDirection: isPhone ? 'row' : 'column',
-              gap: isPhone ? '8px' : '4px',
-              overflowX: isPhone ? 'auto' : undefined,
-              WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
-              scrollbarWidth: isPhone ? 'none' : undefined,
-              paddingBottom: isPhone ? '4px' : undefined,
-            }}>
+            <nav
+              style={{
+                display: 'flex',
+                flexDirection: isPhone ? 'row' : 'column',
+                gap: isPhone ? '8px' : '4px',
+                overflowX: isPhone ? 'auto' : undefined,
+                WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
+                scrollbarWidth: isPhone ? 'none' : undefined,
+                paddingBottom: isPhone ? '4px' : undefined,
+              }}
+            >
               {navItems.map(({ section, icon, label }) => {
                 const active = activeSection === section;
                 return (
@@ -930,7 +988,10 @@ export default function SettingsPage() {
                       }
                     }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: isPhone ? '18px' : '20px' }}>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: isPhone ? '18px' : '20px' }}
+                    >
                       {icon}
                     </span>
                     {label}
@@ -1070,7 +1131,13 @@ export default function SettingsPage() {
                     e.target.style.boxShadow = 'none';
                   }}
                 />
-                <div style={{ display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr', gap: '16px' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr',
+                    gap: '16px',
+                  }}
+                >
                   <input
                     type="password"
                     placeholder="New Password"
@@ -1169,7 +1236,9 @@ export default function SettingsPage() {
                   Dashboard Greeting
                 </h3>
                 <p style={{ fontSize: '13px', color: '#aaa8c8', margin: '4px 0 0 0' }}>
-                  Set a custom greeting. Use {'{'}<span style={{ color: '#ae89ff' }}>name</span>{'}'} to include your name.
+                  Set a custom greeting. Use {'{'}
+                  <span style={{ color: '#ae89ff' }}>name</span>
+                  {'}'} to include your name.
                 </p>
               </div>
             </div>
@@ -1192,7 +1261,14 @@ export default function SettingsPage() {
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                }}
+              >
                 <span style={{ fontSize: '12px', color: '#555578' }}>
                   {customGreeting.length}/120 &middot; Leave empty for random greetings
                 </span>
@@ -1210,7 +1286,10 @@ export default function SettingsPage() {
                             body: JSON.stringify({ customGreeting: null }),
                           });
                           if (res.ok) {
-                            setGreetingStatus({ type: 'success', msg: 'Reset to random greetings.' });
+                            setGreetingStatus({
+                              type: 'success',
+                              msg: 'Reset to random greetings.',
+                            });
                           } else {
                             setGreetingStatus({ type: 'error', msg: 'Failed to clear.' });
                           }
@@ -1337,7 +1416,14 @@ export default function SettingsPage() {
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                }}
+              >
                 <span style={{ fontSize: '12px', color: '#555578' }}>
                   {mageNameInput.length}/30 &middot; Leave empty for default &ldquo;Mage&rdquo;
                 </span>
@@ -1590,9 +1676,7 @@ export default function SettingsPage() {
                         background: '#2d2d52',
                         borderRadius: '20px',
                         padding: '20px',
-                        border: isSelected
-                          ? '2px solid #ae89ff'
-                          : '1px solid #555578',
+                        border: isSelected ? '2px solid #ae89ff' : '1px solid #555578',
                         boxShadow: isSelected ? '0 0 0 4px rgba(174,137,255,0.1)' : 'none',
                         cursor: 'pointer',
                         transition:
@@ -1647,10 +1731,16 @@ export default function SettingsPage() {
                       {isSelected && (
                         <div
                           onClick={(e) => e.stopPropagation()}
-                          style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '6px',
+                            marginTop: '4px',
+                          }}
                         >
                           {config.presets.map((preset) => {
-                            const isActive = goal?.target === preset && !goalCustomInputs[config.type];
+                            const isActive =
+                              goal?.target === preset && !goalCustomInputs[config.type];
                             return (
                               <button
                                 key={preset}
@@ -1685,7 +1775,9 @@ export default function SettingsPage() {
                             style={{
                               width: '52px',
                               background: '#35355c',
-                              border: goalCustomInputs[config.type] ? '1px solid #ae89ff' : '1px solid #555578',
+                              border: goalCustomInputs[config.type]
+                                ? '1px solid #ae89ff'
+                                : '1px solid #555578',
                               borderRadius: '8px',
                               padding: '4px 8px',
                               color: '#e5e3ff',
@@ -1944,7 +2036,13 @@ export default function SettingsPage() {
                 >
                   {subTier === 'FREE' ? 'Upgrade your plan' : 'Change plan'}
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr 1fr', gap: '12px' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr 1fr',
+                    gap: '12px',
+                  }}
+                >
                   {(['FREE', 'PLUS', 'PRO'] as const).map((tier) => {
                     const isCurrent = tier === subTier;
                     const color = tierColors[tier];
@@ -2666,8 +2764,7 @@ export default function SettingsPage() {
                               style={{
                                 fontSize: '11px',
                                 fontStyle: 'italic',
-                                color:
-                                  grantFeedback.kind === 'ok' ? '#4ade80' : '#fd6f85',
+                                color: grantFeedback.kind === 'ok' ? '#4ade80' : '#fd6f85',
                               }}
                             >
                               {grantFeedback.msg}
@@ -2965,9 +3062,7 @@ export default function SettingsPage() {
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: isPhone
-                      ? '1fr'
-                      : 'repeat(auto-fit, minmax(220px, 1fr))',
+                    gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))',
                     gap: '16px',
                   }}
                 >
@@ -3249,7 +3344,8 @@ export default function SettingsPage() {
               fontSize: '13px',
               cursor: 'pointer',
               fontFamily: 'inherit',
-              transition: 'border-color 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1)',
+              transition:
+                'border-color 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1)',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(253,111,133,0.5)';
@@ -3349,7 +3445,8 @@ export default function SettingsPage() {
                 textAlign: 'center',
               }}
             >
-              All your notebooks, flashcards, progress, and data will be permanently deleted. This cannot be undone.
+              All your notebooks, flashcards, progress, and data will be permanently deleted. This
+              cannot be undone.
             </p>
             <div style={{ width: '100%' }}>
               <label
@@ -3435,7 +3532,8 @@ export default function SettingsPage() {
                   cursor: deleting || deleteConfirmText !== 'DELETE' ? 'not-allowed' : 'pointer',
                   fontFamily: 'inherit',
                   opacity: deleting ? 0.7 : deleteConfirmText !== 'DELETE' ? 0.5 : 1,
-                  transition: 'background 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.2s cubic-bezier(0.22,1,0.36,1)',
+                  transition:
+                    'background 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.2s cubic-bezier(0.22,1,0.36,1)',
                 }}
               >
                 {deleting ? 'Deleting…' : 'Yes, delete my account'}

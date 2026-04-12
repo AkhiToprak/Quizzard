@@ -6,10 +6,7 @@ import { useSession } from 'next-auth/react';
 import PageEditor from '@/components/notebook/PageEditor';
 import CoWorkBar from '@/components/notebook/CoWorkBar';
 import CoWorkChat from '@/components/notebook/CoWorkChat';
-import {
-  setCurrentCoworkSession,
-  type CurrentCoworkSession,
-} from '@/lib/cowork-join';
+import { setCurrentCoworkSession, type CurrentCoworkSession } from '@/lib/cowork-join';
 import dynamic from 'next/dynamic';
 
 const InfiniteCanvas = dynamic(() => import('@/components/notebook/InfiniteCanvas'), {
@@ -38,20 +35,14 @@ export default function PageEditorPage({
   // home if unset (e.g. someone deep-linked the URL manually).
   const fromGroupId = searchParams.get('from');
   const { data: session } = useSession();
-  const currentUserId =
-    (session?.user as { id?: string } | undefined)?.id || null;
-  const currentUsername =
-    session?.user?.name || session?.user?.email || 'You';
+  const currentUserId = (session?.user as { id?: string } | undefined)?.id || null;
+  const currentUsername = session?.user?.name || session?.user?.email || 'You';
   const [pageType, setPageType] = useState<string | null>(null);
-  const [coworkSession, setCoworkSession] = useState<CoworkSessionState | null>(
-    null
-  );
+  const [coworkSession, setCoworkSession] = useState<CoworkSessionState | null>(null);
   // Track the cowork param we last reacted to so we can clear stale session
   // state during render when the URL parameter changes (React-canonical
   // "adjusting state during render" pattern, replaces a setState-in-effect).
-  const [seenCoworkParam, setSeenCoworkParam] = useState<string | null>(
-    coworkParam
-  );
+  const [seenCoworkParam, setSeenCoworkParam] = useState<string | null>(coworkParam);
   if (coworkParam !== seenCoworkParam) {
     setSeenCoworkParam(coworkParam);
     if (!coworkParam) setCoworkSession(null);
@@ -83,9 +74,7 @@ export default function PageEditorPage({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(
-          `/api/notebooks/${notebookId}/cowork/${coworkParam}`
-        );
+        const res = await fetch(`/api/notebooks/${notebookId}/cowork/${coworkParam}`);
         if (!res.ok || cancelled) return;
         const json = await res.json();
         const data = json?.data;

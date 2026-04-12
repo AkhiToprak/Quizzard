@@ -277,7 +277,11 @@ export async function PUT(request: NextRequest) {
           if (!entry || entry.type !== 'nameFont') {
             return badRequestResponse('Unknown nameStyle.fontId');
           }
-          cosmeticChecks.push({ field: 'nameStyle.fontId', value: nameStyle.fontId, expectedType: 'nameFont' });
+          cosmeticChecks.push({
+            field: 'nameStyle.fontId',
+            value: nameStyle.fontId,
+            expectedType: 'nameFont',
+          });
           cleaned.fontId = nameStyle.fontId;
         }
         if (typeof nameStyle.colorId === 'string') {
@@ -285,7 +289,11 @@ export async function PUT(request: NextRequest) {
           if (!entry || entry.type !== 'nameColor') {
             return badRequestResponse('Unknown nameStyle.colorId');
           }
-          cosmeticChecks.push({ field: 'nameStyle.colorId', value: nameStyle.colorId, expectedType: 'nameColor' });
+          cosmeticChecks.push({
+            field: 'nameStyle.colorId',
+            value: nameStyle.colorId,
+            expectedType: 'nameColor',
+          });
           cleaned.colorId = nameStyle.colorId;
         }
         data.nameStyle = cleaned;

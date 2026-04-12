@@ -64,9 +64,8 @@ export function useBiometricGuard(): BiometricGuardState {
     // the shell's event registry through `window.NotemageBridge` if it
     // exposes a generic `on` method, otherwise fall back to a no-op.
     type GenericOn = (type: string, cb: (payload?: unknown) => void) => () => void;
-    const bridgeWithOn = (
-      window as unknown as { NotemageBridge?: { on?: GenericOn } }
-    ).NotemageBridge;
+    const bridgeWithOn = (window as unknown as { NotemageBridge?: { on?: GenericOn } })
+      .NotemageBridge;
 
     if (!bridgeWithOn?.on) return;
     const off = bridgeWithOn.on('appResumed', () => {

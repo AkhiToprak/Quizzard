@@ -48,9 +48,7 @@ export default function UsernameStep({
     setStatus('checking');
     setStatusMessage('');
     try {
-      const res = await fetch(
-        `/api/user/check-username?username=${encodeURIComponent(candidate)}`
-      );
+      const res = await fetch(`/api/user/check-username?username=${encodeURIComponent(candidate)}`);
       const json = await res.json();
       if (json.data?.available) {
         setStatus('available');
@@ -213,9 +211,7 @@ export default function UsernameStep({
             />
           )}
           <div style={{ fontSize: '13px', color: '#c0bed8', lineHeight: 1.4 }}>
-            <div style={{ color: '#e5e3ff', fontWeight: 600 }}>
-              {displayName || 'Signed in'}
-            </div>
+            <div style={{ color: '#e5e3ff', fontWeight: 600 }}>{displayName || 'Signed in'}</div>
             <div>We brought these over from your account. Just pick a handle.</div>
           </div>
         </div>

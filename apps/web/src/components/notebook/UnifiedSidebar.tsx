@@ -1155,7 +1155,6 @@ function SectionTreeItem({ section, depth = 0 }: { section: SectionNode; depth?:
           onCancel={() => setShowPageTypeSelector(false)}
         />
       )}
-
     </>
   );
 }

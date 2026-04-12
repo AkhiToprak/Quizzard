@@ -23,8 +23,7 @@ const tools: Tool[] = [
     description:
       'Generate a deck from any page in seconds. Hints, explanations, and image support built in.',
     accent: '#ae89ff',
-    placeholder:
-      'https://placehold.co/620x400/161630/ae89ff/png?text=Flashcards',
+    placeholder: 'https://placehold.co/620x400/161630/ae89ff/png?text=Flashcards',
     docsHref: '/docs/flashcards',
   },
   {
@@ -34,52 +33,43 @@ const tools: Tool[] = [
     description:
       'Multiple choice with hints, explanations, and attempt history. Perfect for exam week.',
     accent: '#ffde59',
-    placeholder:
-      'https://placehold.co/620x400/14122c/ffde59/png?text=Quizzes',
+    placeholder: 'https://placehold.co/620x400/14122c/ffde59/png?text=Quizzes',
     docsHref: '/docs/quizzes',
   },
   {
     icon: 'slideshow',
     tag: 'One-click export',
     title: 'Slides (.pptx)',
-    description:
-      'Turn any set of pages into polished PowerPoint slides — ready to present.',
+    description: 'Turn any set of pages into polished PowerPoint slides — ready to present.',
     accent: '#b9c3ff',
-    placeholder:
-      'https://placehold.co/620x400/12102a/b9c3ff/png?text=Slides',
+    placeholder: 'https://placehold.co/620x400/12102a/b9c3ff/png?text=Slides',
     docsHref: '/docs/presentations',
   },
   {
     icon: 'account_tree',
     tag: 'Visual learning',
     title: 'Mind maps',
-    description:
-      'Hierarchies and connections auto-rendered from your notes via markmap.',
+    description: 'Hierarchies and connections auto-rendered from your notes via markmap.',
     accent: '#8ce5a7',
-    placeholder:
-      'https://placehold.co/620x400/0f0d24/8ce5a7/png?text=Mind+Maps',
+    placeholder: 'https://placehold.co/620x400/0f0d24/8ce5a7/png?text=Mind+Maps',
     docsHref: '/docs/mind-maps',
   },
   {
     icon: 'event',
     tag: 'Stay accountable',
     title: 'Exam countdown',
-    description:
-      'Add exams, get daily goals, and watch a countdown that keeps you moving.',
+    description: 'Add exams, get daily goals, and watch a countdown that keeps you moving.',
     accent: '#fd6f85',
-    placeholder:
-      'https://placehold.co/620x400/1a1030/fd6f85/png?text=Countdown',
+    placeholder: 'https://placehold.co/620x400/1a1030/fd6f85/png?text=Countdown',
     docsHref: '/docs/exams-and-timers#exams',
   },
   {
     icon: 'bolt',
     tag: 'Level up',
     title: 'XP + Streaks',
-    description:
-      'Earn XP for every page, quiz, and study session. Keep your streak alive.',
+    description: 'Earn XP for every page, quiz, and study session. Keep your streak alive.',
     accent: '#c9a6ff',
-    placeholder:
-      'https://placehold.co/620x400/160f2c/c9a6ff/png?text=XP',
+    placeholder: 'https://placehold.co/620x400/160f2c/c9a6ff/png?text=XP',
     docsHref: '/docs/xp-streaks-achievements',
   },
   {
@@ -89,8 +79,7 @@ const tools: Tool[] = [
     description:
       '25-minute sprints with built-in breaks. Stay locked in without leaving your notebook.',
     accent: '#ff9566',
-    placeholder:
-      'https://placehold.co/620x400/1a1025/ff9566/png?text=Pomodoro',
+    placeholder: 'https://placehold.co/620x400/1a1025/ff9566/png?text=Pomodoro',
     docsHref: '/docs/exams-and-timers#pomodoro',
   },
 ];
@@ -107,10 +96,7 @@ export default function LearningToolsCarousel() {
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
-  const scrollTo = useCallback(
-    (i: number) => emblaApi?.scrollTo(i),
-    [emblaApi]
-  );
+  const scrollTo = useCallback((i: number) => emblaApi?.scrollTo(i), [emblaApi]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -143,8 +129,7 @@ export default function LearningToolsCarousel() {
               All your study tools,{' '}
               <span
                 style={{
-                  background:
-                    'linear-gradient(135deg, #ffde59 0%, #ffb347 100%)',
+                  background: 'linear-gradient(135deg, #ffde59 0%, #ffb347 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -210,9 +195,7 @@ export default function LearningToolsCarousel() {
                   width: active ? 28 : 8,
                   height: 8,
                   borderRadius: 'var(--radius-full)',
-                  background: active
-                    ? 'var(--primary)'
-                    : 'rgba(237, 233, 255, 0.18)',
+                  background: active ? 'var(--primary)' : 'rgba(237, 233, 255, 0.18)',
                   border: 'none',
                   cursor: 'pointer',
                   transition:
@@ -282,14 +265,12 @@ function ToolCard({ tool }: { tool: Tool }) {
       style={{
         position: 'relative',
         borderRadius: 'var(--radius-xl)',
-        background:
-          'linear-gradient(180deg, rgba(28, 24, 56, 0.7) 0%, rgba(16, 14, 34, 0.8) 100%)',
+        background: 'linear-gradient(180deg, rgba(28, 24, 56, 0.7) 0%, rgba(16, 14, 34, 0.8) 100%)',
         border: `1px solid ${tool.accent}44`,
         overflow: 'hidden',
         transition:
           'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
-        boxShadow:
-          '0 24px 60px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.35)',
+        boxShadow: '0 24px 60px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.35)',
         cursor: 'pointer',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
@@ -346,10 +327,7 @@ function ToolCard({ tool }: { tool: Tool }) {
             boxShadow: `0 4px 16px ${tool.accent}33`,
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 22, color: tool.accent }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: 22, color: tool.accent }}>
             {tool.icon}
           </span>
         </div>
@@ -440,8 +418,7 @@ function ToolCard({ tool }: { tool: Tool }) {
             className="material-symbols-outlined"
             style={{
               fontSize: 16,
-              transition:
-                'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+              transition: 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
             }}
           >
             arrow_forward

@@ -204,7 +204,14 @@ export default function SlideEditorModal({
         </div>
 
         {/* Body */}
-        <div style={{ display: 'flex', flexDirection: isPhone ? 'column' : 'row', flex: 1, overflow: 'hidden' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isPhone ? 'column' : 'row',
+            flex: 1,
+            overflow: 'hidden',
+          }}
+        >
           {/* Phone: horizontal thumbnail strip at top */}
           {isPhone ? (
             <div
@@ -227,8 +234,10 @@ export default function SlideEditorModal({
                     width: '56px',
                     height: '36px',
                     borderRadius: '6px',
-                    border: i === activeIndex ? '2px solid #8c52ff' : '1px solid rgba(140,82,255,0.15)',
-                    background: i === activeIndex ? 'rgba(140,82,255,0.12)' : 'rgba(140,82,255,0.04)',
+                    border:
+                      i === activeIndex ? '2px solid #8c52ff' : '1px solid rgba(140,82,255,0.15)',
+                    background:
+                      i === activeIndex ? 'rgba(140,82,255,0.12)' : 'rgba(140,82,255,0.04)',
                     color: i === activeIndex ? '#c4a9ff' : 'rgba(237,233,255,0.4)',
                     fontSize: '9px',
                     fontWeight: 600,

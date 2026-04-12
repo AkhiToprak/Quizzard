@@ -127,9 +127,7 @@ export default function NotificationToast({
           animation: leaving ? 'none' : 'toastSlideIn 0.25s cubic-bezier(0.22,1,0.36,1)',
           opacity: leaving ? 0 : 1,
           transform: leaving ? 'translateY(-8px) scale(0.97)' : 'translateY(0) scale(1)',
-          transition: leaving
-            ? `opacity 0.2s ${EASING}, transform 0.2s ${EASING}`
-            : 'none',
+          transition: leaving ? `opacity 0.2s ${EASING}, transform 0.2s ${EASING}` : 'none',
         }}
       >
         {/* Icon */}
@@ -157,9 +155,7 @@ export default function NotificationToast({
           >
             {getNotificationText(notification)}
           </div>
-          <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 3 }}>
-            Just now
-          </div>
+          <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 3 }}>Just now</div>
         </div>
 
         {/* Close button */}

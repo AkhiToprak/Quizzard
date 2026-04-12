@@ -719,7 +719,9 @@ export default function QuizViewer({
                           <div style={{ fontSize: '13px', color: '#ede9ff', fontWeight: 600 }}>
                             {attempt.score}/{attempt.total} correct
                             {i === 0 && (
-                              <span style={{ color: '#c4a9ff', fontSize: '11px', marginLeft: '6px' }}>
+                              <span
+                                style={{ color: '#c4a9ff', fontSize: '11px', marginLeft: '6px' }}
+                              >
                                 Latest
                               </span>
                             )}

@@ -28,10 +28,7 @@ import { COSMETICS } from '@/lib/cosmetics/catalog';
  */
 
 // POST — grant a single cosmetic (or all of them) to the target user
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const adminId = await getAdminUserId(request);
     if (!adminId) return forbiddenResponse('Admin access required');
@@ -156,8 +153,7 @@ export async function DELETE(
     const unequipPatch: Record<string, unknown> = {};
     if (target.equippedTitleId === cosmeticId) unequipPatch.equippedTitleId = null;
     if (target.equippedFrameId === cosmeticId) unequipPatch.equippedFrameId = null;
-    if (target.equippedBackgroundId === cosmeticId)
-      unequipPatch.equippedBackgroundId = null;
+    if (target.equippedBackgroundId === cosmeticId) unequipPatch.equippedBackgroundId = null;
 
     const currentStyle = (target.nameStyle ?? {}) as {
       fontId?: string;

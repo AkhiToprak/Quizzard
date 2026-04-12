@@ -114,20 +114,17 @@ export function markdownToHtml(text: string): string {
     async: false,
   }) as string;
 
-  return raw.replace(
-    /<h([1-6])>([\s\S]*?)<\/h\1>/g,
-    (_match, levelStr: string, inner: string) => {
-      const rawLevel = Number(levelStr);
-      const level = rawLevel > 3 ? 3 : rawLevel;
-      // Strip inline tags (<strong>, <em>, <code>, <a>) from the
-      // heading text. Marked has already HTML-escaped `<`, `>`, `&`,
-      // `"`, and `'` in the text itself, so the remaining entities
-      // are safe inside a double-quoted attribute value.
-      const summary = inner.replace(/<[^>]+>/g, '');
-      return (
-        `<div data-toggle-level="${level}" data-toggle-summary="${summary}" ` +
-        `data-collapsed="false"><p></p></div>`
-      );
-    }
-  );
+  return raw.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/g, (_match, levelStr: string, inner: string) => {
+    const rawLevel = Number(levelStr);
+    const level = rawLevel > 3 ? 3 : rawLevel;
+    // Strip inline tags (<strong>, <em>, <code>, <a>) from the
+    // heading text. Marked has already HTML-escaped `<`, `>`, `&`,
+    // `"`, and `'` in the text itself, so the remaining entities
+    // are safe inside a double-quoted attribute value.
+    const summary = inner.replace(/<[^>]+>/g, '');
+    return (
+      `<div data-toggle-level="${level}" data-toggle-summary="${summary}" ` +
+      `data-collapsed="false"><p></p></div>`
+    );
+  });
 }

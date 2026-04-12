@@ -18,9 +18,10 @@
  */
 
 // Strip trailing slashes so `${WS_INTERNAL_URL}/emit` never becomes `//emit`.
-const WS_INTERNAL_URL = (
-  process.env.WS_INTERNAL_URL || 'http://localhost:3002'
-).replace(/\/+$/, '');
+const WS_INTERNAL_URL = (process.env.WS_INTERNAL_URL || 'http://localhost:3002').replace(
+  /\/+$/,
+  ''
+);
 const WS_INTERNAL_SECRET = process.env.WS_INTERNAL_SECRET || '';
 
 // Log the resolved env state exactly once per cold start so Vercel logs
@@ -54,9 +55,7 @@ export interface WsEmitPayload {
  */
 export async function wsEmit(payload: WsEmitPayload): Promise<void> {
   logEnvOnce();
-  console.log(
-    `[ws-emit] → ${payload.event} to ${payload.room} via ${WS_INTERNAL_URL}/emit`
-  );
+  console.log(`[ws-emit] → ${payload.event} to ${payload.room} via ${WS_INTERNAL_URL}/emit`);
 
   if (!WS_INTERNAL_SECRET) {
     console.warn(
@@ -67,10 +66,7 @@ export async function wsEmit(payload: WsEmitPayload): Promise<void> {
     );
     return;
   }
-  if (
-    !process.env.WS_INTERNAL_URL &&
-    process.env.NODE_ENV === 'production'
-  ) {
+  if (!process.env.WS_INTERNAL_URL && process.env.NODE_ENV === 'production') {
     console.warn(
       '[ws-emit] WS_INTERNAL_URL is not set. Defaulting to http://localhost:3002 ' +
         'which will NOT work from Vercel. Set WS_INTERNAL_URL to your ws-server ' +
@@ -92,29 +88,20 @@ export async function wsEmit(payload: WsEmitPayload): Promise<void> {
       signal: controller.signal,
     });
     if (res.ok) {
-      console.log(
-        `[ws-emit] ✓ ${payload.event} delivered (status ${res.status})`
-      );
+      console.log(`[ws-emit] ✓ ${payload.event} delivered (status ${res.status})`);
     } else if (res.status === 401) {
       console.warn(
         `[ws-emit] ✗ ${payload.event} rejected with 401. ` +
           `WS_INTERNAL_SECRET does NOT match the value configured on ws-server.`
       );
     } else {
-      console.warn(
-        `[ws-emit] ✗ ${payload.event} failed with status ${res.status}`
-      );
+      console.warn(`[ws-emit] ✗ ${payload.event} failed with status ${res.status}`);
     }
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
-      console.warn(
-        `[ws-emit] ✗ ${payload.event} timed out after 2s. ws-server is unreachable.`
-      );
+      console.warn(`[ws-emit] ✗ ${payload.event} timed out after 2s. ws-server is unreachable.`);
     } else {
-      console.warn(
-        `[ws-emit] ✗ ${payload.event} network error:`,
-        (err as Error).message
-      );
+      console.warn(`[ws-emit] ✗ ${payload.event} network error:`, (err as Error).message);
     }
   } finally {
     clearTimeout(timeout);

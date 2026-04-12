@@ -108,8 +108,7 @@ export default function FinalCta() {
           <br />
           <span
             style={{
-              background:
-                'linear-gradient(135deg, #ffde59 0%, #ffc94a 50%, #ffb347 100%)',
+              background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 50%, #ffb347 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -130,8 +129,7 @@ export default function FinalCta() {
             fontFamily: 'var(--font-sans)',
           }}
         >
-          Free forever. No credit card. 60 seconds to your first notebook — and
-          your first spell.
+          Free forever. No credit card. 60 seconds to your first notebook — and your first spell.
         </p>
 
         <div
@@ -150,8 +148,7 @@ export default function FinalCta() {
               gap: 10,
               padding: '18px 32px',
               borderRadius: 'var(--radius-full)',
-              background:
-                'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
+              background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
               color: '#2a2200',
               fontSize: 16,
               fontWeight: 700,
@@ -215,7 +212,8 @@ export default function FinalCta() {
 
       <style jsx>{`
         @keyframes nm-twinkle {
-          0%, 100% {
+          0%,
+          100% {
             opacity: 0.2;
             transform: scale(0.7) rotate(0deg);
           }

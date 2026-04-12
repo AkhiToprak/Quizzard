@@ -216,9 +216,7 @@ export default function AddFriendModal({ open, onClose }: AddFriendModalProps) {
 
   if (!open) return null;
 
-  const renderAvatar = (user: User) => (
-    <UserAvatar user={user} size={40} radius="50%" />
-  );
+  const renderAvatar = (user: User) => <UserAvatar user={user} size={40} radius="50%" />;
 
   const renderActionButton = (user: User) => {
     const isHovered = hoveredButtons[user.id] || false;

@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
       return successResponse({
         count,
         latestUnread: latestUnread
-          ? { id: latestUnread.id, type: latestUnread.type, data: latestUnread.data, createdAt: latestUnread.createdAt }
+          ? {
+              id: latestUnread.id,
+              type: latestUnread.type,
+              data: latestUnread.data,
+              createdAt: latestUnread.createdAt,
+            }
           : null,
       });
     }

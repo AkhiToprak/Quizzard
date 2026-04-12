@@ -128,7 +128,15 @@ export async function POST(request: NextRequest, { params }: Params) {
       },
       include: {
         user: {
-          select: { id: true, username: true, name: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            avatarUrl: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+          },
         },
       },
     });

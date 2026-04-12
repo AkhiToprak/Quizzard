@@ -60,11 +60,7 @@ export function isEffectivelyEmptyTiptapDoc(content: unknown): boolean {
   // Walk every descendant. If any text node carries non-whitespace, or any
   // non-container node type appears (image, code block, table, callout,
   // toggle heading, horizontal rule, etc.), it's not empty.
-  const CONTAINERS = new Set([
-    'doc',
-    'paragraph',
-    'text',
-  ]);
+  const CONTAINERS = new Set(['doc', 'paragraph', 'text']);
 
   const walk = (node: any): boolean => {
     if (!node || typeof node !== 'object') return true;

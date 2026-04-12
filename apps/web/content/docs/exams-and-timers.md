@@ -24,7 +24,7 @@ Exams sort by date, soonest first. Past exams drop off the list automatically.
 
 ### Why link a notebook?
 
-Linking a notebook means the exam card becomes a one-click jump into the right material — you don't have to dig through the dashboard to find what you should be studying for *this* deadline.
+Linking a notebook means the exam card becomes a one-click jump into the right material — you don't have to dig through the dashboard to find what you should be studying for _this_ deadline.
 
 ## Timer widget
 

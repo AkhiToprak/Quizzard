@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CoworkInvitePayload } from '@/lib/cowork-join';
-import {
-  coworkPageUrl,
-  registerHostedCoworkSession,
-} from '@/lib/cowork-join';
+import { coworkPageUrl, registerHostedCoworkSession } from '@/lib/cowork-join';
 
 /**
  * Modal the host opens from the chat `+` popover to start a co-work
@@ -158,10 +155,7 @@ export default function StartCoworkModal({
     setError(null);
 
     try {
-      const res = await fetch(
-        `/api/notebooks/${selectedNotebook.id}/cowork`,
-        { method: 'POST' }
-      );
+      const res = await fetch(`/api/notebooks/${selectedNotebook.id}/cowork`, { method: 'POST' });
 
       if (res.status === 409) {
         setError(
@@ -264,8 +258,7 @@ export default function StartCoworkModal({
             width: 240,
             height: 240,
             borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(81, 112, 255, 0.22) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(81, 112, 255, 0.22) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
@@ -441,16 +434,13 @@ export default function StartCoworkModal({
                             'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s, border-color 0.2s',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background =
-                            'rgba(174, 137, 255, 0.1)';
+                          e.currentTarget.style.background = 'rgba(174, 137, 255, 0.1)';
                           e.currentTarget.style.borderColor = `${color}66`;
                           e.currentTarget.style.transform = 'translateY(-1px)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background =
-                            'rgba(255, 255, 255, 0.025)';
-                          e.currentTarget.style.borderColor =
-                            'rgba(174, 137, 255, 0.18)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.025)';
+                          e.currentTarget.style.borderColor = 'rgba(174, 137, 255, 0.18)';
                           e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >
@@ -579,8 +569,7 @@ export default function StartCoworkModal({
                             width: 8,
                             height: 8,
                             borderRadius: 2,
-                            background:
-                              section.color || DEFAULT_NOTEBOOK_COLOR,
+                            background: section.color || DEFAULT_NOTEBOOK_COLOR,
                           }}
                         />
                         <span
@@ -638,8 +627,7 @@ export default function StartCoworkModal({
                                   cursor: 'pointer',
                                   textAlign: 'left',
                                   fontFamily: 'var(--font-sans)',
-                                  transition:
-                                    'background 0.2s, border-color 0.2s',
+                                  transition: 'background 0.2s, border-color 0.2s',
                                 }}
                               >
                                 <span
@@ -764,24 +752,20 @@ export default function StartCoworkModal({
               color: '#2a2200',
               fontSize: 13,
               fontWeight: 800,
-              cursor:
-                !selectedPage || creating ? 'not-allowed' : 'pointer',
+              cursor: !selectedPage || creating ? 'not-allowed' : 'pointer',
               boxShadow:
                 !selectedPage || creating
                   ? 'none'
                   : '0 12px 28px rgba(255, 222, 89, 0.25), inset 0 1px 0 rgba(255,255,255,0.4)',
               fontFamily: 'var(--font-sans)',
-              transition:
-                'transform 0.2s, box-shadow 0.2s',
+              transition: 'transform 0.2s, box-shadow 0.2s',
             }}
           >
             <span
               className="material-symbols-outlined"
               style={{
                 fontSize: 17,
-                animation: creating
-                  ? 'cowork-modal-spin 1s linear infinite'
-                  : 'none',
+                animation: creating ? 'cowork-modal-spin 1s linear infinite' : 'none',
               }}
             >
               {creating ? 'progress_activity' : 'rocket_launch'}

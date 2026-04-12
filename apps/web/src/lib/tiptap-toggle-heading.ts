@@ -184,18 +184,13 @@ export const ToggleHeading = Node.create<ToggleHeadingOptions>({
               let followingPos = pos + node.nodeSize;
               for (let i = index + 1; i < parent.childCount; i++) {
                 const sibling = parent.child(i);
-                if (
-                  sibling.type.name === 'toggleHeading' &&
-                  Number(sibling.attrs.level) <= level
-                ) {
+                if (sibling.type.name === 'toggleHeading' && Number(sibling.attrs.level) <= level) {
                   break;
                 }
                 decorations.push(
-                  Decoration.node(
-                    followingPos,
-                    followingPos + sibling.nodeSize,
-                    { style: 'display: none;' }
-                  )
+                  Decoration.node(followingPos, followingPos + sibling.nodeSize, {
+                    style: 'display: none;',
+                  })
                 );
                 followingPos += sibling.nodeSize;
               }

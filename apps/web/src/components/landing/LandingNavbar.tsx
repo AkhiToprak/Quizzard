@@ -44,9 +44,7 @@ export default function LandingNavbar() {
             : 'linear-gradient(180deg, rgba(9,8,26,0.65) 0%, rgba(9,8,26,0) 100%)',
           backdropFilter: scrolled ? 'blur(24px) saturate(140%)' : 'blur(0)',
           WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(140%)' : 'blur(0)',
-          borderBottom: scrolled
-            ? '1px solid rgba(140, 82, 255, 0.18)'
-            : '1px solid transparent',
+          borderBottom: scrolled ? '1px solid rgba(140, 82, 255, 0.18)' : '1px solid transparent',
           transition:
             'background 0.35s cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
         }}
@@ -109,12 +107,8 @@ export default function LandingNavbar() {
                     letterSpacing: '0.01em',
                     transition: 'color 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = 'var(--on-surface)')
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = 'rgba(237, 233, 255, 0.72)')
-                  }
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--on-surface)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 233, 255, 0.72)')}
                 >
                   {l.label}
                 </Link>
@@ -157,8 +151,7 @@ export default function LandingNavbar() {
                 fontWeight: 700,
                 textDecoration: 'none',
                 fontFamily: 'var(--font-sans)',
-                boxShadow:
-                  '0 8px 24px rgba(255, 222, 89, 0.18), 0 2px 8px rgba(0,0,0,0.3)',
+                boxShadow: '0 8px 24px rgba(255, 222, 89, 0.18), 0 2px 8px rgba(0,0,0,0.3)',
                 transition:
                   'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
@@ -198,9 +191,7 @@ export default function LandingNavbar() {
               justifyContent: 'center',
             }}
           >
-            <span className="material-symbols-outlined">
-              {menuOpen ? 'close' : 'menu'}
-            </span>
+            <span className="material-symbols-outlined">{menuOpen ? 'close' : 'menu'}</span>
           </button>
 
           <style jsx>{`

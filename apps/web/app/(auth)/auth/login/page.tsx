@@ -416,8 +416,7 @@ function LoginForm() {
               color: '#1f1f1f',
               fontSize: '15px',
               fontWeight: 700,
-              cursor:
-                loading || oauthLoading !== null ? 'not-allowed' : 'pointer',
+              cursor: loading || oauthLoading !== null ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit',
               display: 'flex',
               alignItems: 'center',
@@ -479,8 +478,7 @@ function LoginForm() {
               color: '#ffffff',
               fontSize: '15px',
               fontWeight: 700,
-              cursor:
-                loading || oauthLoading !== null ? 'not-allowed' : 'pointer',
+              cursor: loading || oauthLoading !== null ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit',
               display: 'flex',
               alignItems: 'center',

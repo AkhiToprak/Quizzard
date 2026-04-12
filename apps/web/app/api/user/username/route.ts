@@ -37,8 +37,7 @@ export async function POST(request: NextRequest) {
     });
     if (!currentUser) return unauthorizedResponse();
 
-    const allowed =
-      !currentUser.onboardingComplete || isPlaceholderUsername(currentUser.username);
+    const allowed = !currentUser.onboardingComplete || isPlaceholderUsername(currentUser.username);
     if (!allowed) {
       return badRequestResponse(
         'Username is already set. Change it from profile settings instead.'

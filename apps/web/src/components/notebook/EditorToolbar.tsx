@@ -1409,12 +1409,17 @@ export default function EditorToolbar({
         zIndex: 10,
       }}
     >
-      {isPhone && (
-        <style>{`.editor-toolbar-row::-webkit-scrollbar { display: none; }`}</style>
-      )}
+      {isPhone && <style>{`.editor-toolbar-row::-webkit-scrollbar { display: none; }`}</style>}
 
       {/* Row 1: Font controls + inline formatting */}
-      <div className={isPhone ? 'editor-toolbar-row' : undefined} style={{ ...responsiveRowStyle, borderBottom: '1px solid rgba(237,233,255,0.04)', gap: '4px' }}>
+      <div
+        className={isPhone ? 'editor-toolbar-row' : undefined}
+        style={{
+          ...responsiveRowStyle,
+          borderBottom: '1px solid rgba(237,233,255,0.04)',
+          gap: '4px',
+        }}
+      >
         <FontFamilySelect editor={editor} withSelection={withSelection} />
         <FontSizeControl editor={editor} withSelection={withSelection} />
         <Sep />
@@ -1560,7 +1565,14 @@ export default function EditorToolbar({
 
       {/* Row 3: Pen settings (visible only in pen mode) */}
       {editorMode === 'pen' && (
-        <div className={isPhone ? 'editor-toolbar-row' : undefined} style={{ ...responsiveRowStyle, borderTop: '1px solid rgba(237,233,255,0.04)', gap: '6px' }}>
+        <div
+          className={isPhone ? 'editor-toolbar-row' : undefined}
+          style={{
+            ...responsiveRowStyle,
+            borderTop: '1px solid rgba(237,233,255,0.04)',
+            gap: '6px',
+          }}
+        >
           {/* Pen / Eraser sub-tool */}
           <ToolbarButton
             icon={Pen}

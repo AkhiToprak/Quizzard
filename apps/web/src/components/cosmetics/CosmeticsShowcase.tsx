@@ -226,8 +226,7 @@ function ShowcaseTile({ entry }: { entry: Cosmetic }) {
           overflow: 'hidden',
           background: '#262646',
           border: '1px solid rgba(136,136,168,0.18)',
-          boxShadow:
-            '0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.03)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.03)',
           transform: pulse ? 'scale(1.04)' : 'scale(1)',
           transition:
             'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -266,10 +265,7 @@ function ShowcaseTile({ entry }: { entry: Cosmetic }) {
 // ---------------------------------------------------------------------------
 // The showcase.
 // ---------------------------------------------------------------------------
-export function CosmeticsShowcase({
-  unlockedIds,
-  isPhone = false,
-}: CosmeticsShowcaseProps) {
+export function CosmeticsShowcase({ unlockedIds, isPhone = false }: CosmeticsShowcaseProps) {
   // Resolve slugs to catalog entries, dropping any unknown ids and hiding
   // level-1 defaults (they're the baseline — everyone has them, showing them
   // makes the showcase look uniform and uninteresting). adminOnly entries
@@ -295,9 +291,7 @@ export function CosmeticsShowcase({
       type,
       label,
       icon,
-      entries: resolved
-        .filter((e) => e.type === type)
-        .sort(byLevelThenLabel),
+      entries: resolved.filter((e) => e.type === type).sort(byLevelThenLabel),
     })).filter((g) => g.entries.length > 0);
   }, [resolved]);
 
@@ -348,10 +342,7 @@ export function CosmeticsShowcase({
             color: '#e5e3ff',
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 22, color: '#ae89ff' }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#ae89ff' }}>
             auto_awesome
           </span>
           <h3

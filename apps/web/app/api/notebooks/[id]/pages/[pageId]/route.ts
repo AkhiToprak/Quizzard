@@ -146,8 +146,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     // will easily cross 500KB. The cap here (10MB) matches the upper
     // bound we've observed in real notebooks and stays well under
     // Postgres' jsonb hard limits.
-    const maxContentBytes =
-      existing.pageType === 'canvas' ? 10 * 1024 * 1024 : 500_000;
+    const maxContentBytes = existing.pageType === 'canvas' ? 10 * 1024 * 1024 : 500_000;
     if (content !== undefined && JSON.stringify(content).length > maxContentBytes) {
       return badRequestResponse('Content exceeds maximum size');
     }

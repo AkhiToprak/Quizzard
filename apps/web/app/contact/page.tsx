@@ -24,8 +24,7 @@ export default function ContactPage() {
     e.preventDefault();
     if (!message.trim()) return;
 
-    const topicLabel =
-      TOPICS.find((t) => t.value === topic)?.label ?? 'Message';
+    const topicLabel = TOPICS.find((t) => t.value === topic)?.label ?? 'Message';
     const subject = `[${topicLabel}] From ${name.trim() || 'Notemage'}`;
     const body = [
       `Name: ${name || '(not provided)'}`,
@@ -38,7 +37,7 @@ export default function ContactPage() {
     ].join('\n');
 
     const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-      subject,
+      subject
     )}&body=${encodeURIComponent(body)}`;
     window.location.href = mailto;
   };
@@ -62,8 +61,7 @@ export default function ContactPage() {
       ? {
           borderColor: 'rgba(174, 137, 255, 0.7)',
           background: 'rgba(39, 39, 70, 0.85)',
-          boxShadow:
-            '0 0 0 4px rgba(174, 137, 255, 0.14), 0 8px 24px rgba(174, 137, 255, 0.12)',
+          boxShadow: '0 0 0 4px rgba(174, 137, 255, 0.14), 0 8px 24px rgba(174, 137, 255, 0.12)',
         }
       : {};
 
@@ -258,8 +256,8 @@ export default function ContactPage() {
               fontFamily: 'var(--font-sans)',
             }}
           >
-            Found a bug? Got a feature idea? Just want to chat? Drop a line and
-            I&apos;ll get back to you as soon as I can.
+            Found a bug? Got a feature idea? Just want to chat? Drop a line and I&apos;ll get back
+            to you as soon as I can.
           </p>
         </div>
       </section>
@@ -281,8 +279,7 @@ export default function ContactPage() {
             width: 600,
             height: 600,
             borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(174, 137, 255, 0.08) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(174, 137, 255, 0.08) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
@@ -295,8 +292,7 @@ export default function ContactPage() {
             width: 500,
             height: 500,
             borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(255, 222, 89, 0.05) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(255, 222, 89, 0.05) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
@@ -320,8 +316,7 @@ export default function ContactPage() {
               border: '1px solid rgba(140, 82, 255, 0.22)',
               backdropFilter: 'blur(24px) saturate(140%)',
               WebkitBackdropFilter: 'blur(24px) saturate(140%)',
-              boxShadow:
-                '0 32px 64px rgba(174,137,255,0.08), 0 8px 24px rgba(0,0,0,0.4)',
+              boxShadow: '0 32px 64px rgba(174,137,255,0.08), 0 8px 24px rgba(0,0,0,0.4)',
             }}
             className="nm-contact-form"
           >
@@ -457,9 +452,7 @@ export default function ContactPage() {
                         border: active
                           ? '1px solid rgba(174, 137, 255, 0.55)'
                           : '1px solid rgba(140, 82, 255, 0.22)',
-                        color: active
-                          ? 'var(--on-surface)'
-                          : 'rgba(237, 233, 255, 0.72)',
+                        color: active ? 'var(--on-surface)' : 'rgba(237, 233, 255, 0.72)',
                         fontFamily: 'var(--font-sans)',
                         fontSize: 13,
                         fontWeight: 600,
@@ -467,22 +460,18 @@ export default function ContactPage() {
                         cursor: 'pointer',
                         transition:
                           'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1), color 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
-                        boxShadow: active
-                          ? '0 6px 20px rgba(174, 137, 255, 0.18)'
-                          : 'none',
+                        boxShadow: active ? '0 6px 20px rgba(174, 137, 255, 0.18)' : 'none',
                       }}
                       onMouseEnter={(e) => {
                         if (!active) {
                           e.currentTarget.style.transform = 'translateY(-1px)';
-                          e.currentTarget.style.borderColor =
-                            'rgba(174, 137, 255, 0.4)';
+                          e.currentTarget.style.borderColor = 'rgba(174, 137, 255, 0.4)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!active) {
                           e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.borderColor =
-                            'rgba(140, 82, 255, 0.22)';
+                          e.currentTarget.style.borderColor = 'rgba(140, 82, 255, 0.22)';
                         }
                       }}
                     >
@@ -538,8 +527,7 @@ export default function ContactPage() {
                   lineHeight: 1.5,
                 }}
               >
-                Opens your email client with everything prefilled — no magic
-                tracking, I promise.
+                Opens your email client with everything prefilled — no magic tracking, I promise.
               </p>
               <button
                 type="submit"
@@ -556,8 +544,7 @@ export default function ContactPage() {
                   border: 'none',
                   cursor: 'pointer',
                   fontFamily: 'var(--font-sans)',
-                  boxShadow:
-                    '0 8px 24px rgba(255, 222, 89, 0.18), 0 2px 8px rgba(0,0,0,0.3)',
+                  boxShadow: '0 8px 24px rgba(255, 222, 89, 0.18), 0 2px 8px rgba(0,0,0,0.3)',
                   transition:
                     'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
@@ -573,10 +560,7 @@ export default function ContactPage() {
                 }}
               >
                 Send message
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 18 }}
-                >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                   send
                 </span>
               </button>

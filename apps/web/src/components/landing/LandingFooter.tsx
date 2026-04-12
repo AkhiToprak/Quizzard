@@ -50,8 +50,7 @@ export default function LandingFooter() {
           width: 400,
           height: 400,
           borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(140, 82, 255, 0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(140, 82, 255, 0.12) 0%, transparent 70%)',
           pointerEvents: 'none',
         }}
       />
@@ -98,8 +97,8 @@ export default function LandingFooter() {
                 margin: 0,
               }}
             >
-              Notes, canvas, flashcards, quizzes, and a personal AI tutor — all
-              living inside one magical notebook.
+              Notes, canvas, flashcards, quizzes, and a personal AI tutor — all living inside one
+              magical notebook.
             </p>
 
             <div
@@ -130,22 +129,14 @@ export default function LandingFooter() {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.background =
-                    'rgba(174, 137, 255, 0.18)';
+                  e.currentTarget.style.background = 'rgba(174, 137, 255, 0.18)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.background =
-                    'rgba(174, 137, 255, 0.08)';
+                  e.currentTarget.style.background = 'rgba(174, 137, 255, 0.08)';
                 }}
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  aria-hidden
-                >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M19.321 5.562a5.124 5.124 0 0 1-3.414-1.267 5.124 5.124 0 0 1-1.537-2.723 5.105 5.105 0 0 1-.08-.898h-3.29v13.4a3.022 3.022 0 0 1-5.436 1.817 3.02 3.02 0 0 1-.604-1.817 3.022 3.022 0 0 1 3.022-3.022c.324 0 .634.051.926.145V8.045a6.353 6.353 0 0 0-.926-.067 6.318 6.318 0 0 0-6.318 6.318 6.318 6.318 0 0 0 6.318 6.318 6.318 6.318 0 0 0 6.318-6.318V8.871a8.399 8.399 0 0 0 5.021 1.647V7.229a5.102 5.102 0 0 1-.003-.003 5.124 5.124 0 0 1 .003-1.664z" />
                 </svg>
               </a>
@@ -187,9 +178,7 @@ export default function LandingFooter() {
                         textDecoration: 'none',
                         transition: 'color 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
                       }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = 'var(--on-surface)')
-                      }
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--on-surface)')}
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.color = 'rgba(237, 233, 255, 0.6)')
                       }

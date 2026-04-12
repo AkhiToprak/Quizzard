@@ -1401,7 +1401,10 @@ export default function ShareNotebookModal({
                     marginBottom: -1,
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: isPhone ? 16 : 18 }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: isPhone ? 16 : 18 }}
+                  >
                     {tab.icon}
                   </span>
                   {tab.label}

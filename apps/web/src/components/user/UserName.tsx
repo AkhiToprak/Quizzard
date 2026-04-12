@@ -98,8 +98,7 @@ export function UserName({
   const { fontFamily: resolvedFont, ...resolvedColor } = resolved;
   const Element = as;
 
-  const titleEntry =
-    showTitle && user?.equippedTitleId ? COSMETICS[user.equippedTitleId] : null;
+  const titleEntry = showTitle && user?.equippedTitleId ? COSMETICS[user.equippedTitleId] : null;
   const titleLabel = titleEntry && titleEntry.type === 'title' ? titleEntry.label : null;
 
   return (

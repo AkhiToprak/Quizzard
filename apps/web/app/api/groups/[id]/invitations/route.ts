@@ -34,10 +34,26 @@ export async function GET(request: NextRequest, context: RouteContext) {
       where: { groupId, status: 'pending' },
       include: {
         invitee: {
-          select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+          },
         },
         inviter: {
-          select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -146,10 +162,26 @@ export async function POST(request: NextRequest, context: RouteContext) {
         },
         include: {
           invitee: {
-            select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatarUrl: true,
+              nameStyle: true,
+              equippedTitleId: true,
+              equippedFrameId: true,
+            },
           },
           inviter: {
-            select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatarUrl: true,
+              nameStyle: true,
+              equippedTitleId: true,
+              equippedFrameId: true,
+            },
           },
         },
       }),

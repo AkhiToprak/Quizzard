@@ -67,8 +67,7 @@ export default function SocialsCard({
       }
 
       const json = await res.json();
-      const newStatus =
-        json?.data?.friendship?.status === 'accepted' ? 'accepted' : 'pending_sent';
+      const newStatus = json?.data?.friendship?.status === 'accepted' ? 'accepted' : 'pending_sent';
       const newId = json?.data?.friendship?.id ?? friendshipId;
       onFriendshipChange?.({ status: newStatus, id: newId });
     } catch (err) {
@@ -78,8 +77,7 @@ export default function SocialsCard({
     }
   };
 
-  const showFriendButton =
-    !isOwnProfile && isAuthenticated && friendshipStatus != null;
+  const showFriendButton = !isOwnProfile && isAuthenticated && friendshipStatus != null;
 
   const igHref = instagramHandle ? `https://instagram.com/${instagramHandle}` : undefined;
   const liHref = linkedinUrl ?? undefined;
@@ -121,10 +119,7 @@ export default function SocialsCard({
           gap: '8px',
         }}
       >
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: '16px', color: '#ae89ff' }}
-        >
+        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#ae89ff' }}>
           group
         </span>
         <span
@@ -263,9 +258,7 @@ function SocialTile({ href, brand, label, enabled }: SocialTileProps) {
     height: '44px',
     borderRadius: '14px',
     background: enabled ? 'rgba(174,137,255,0.12)' : 'rgba(136,136,168,0.08)',
-    border: enabled
-      ? '1px solid rgba(174,137,255,0.28)'
-      : '1px solid rgba(136,136,168,0.18)',
+    border: enabled ? '1px solid rgba(174,137,255,0.28)' : '1px solid rgba(136,136,168,0.18)',
     color: enabled ? '#ae89ff' : '#6a6a8c',
     textDecoration: 'none',
     cursor: enabled ? 'pointer' : 'default',
@@ -294,9 +287,7 @@ function SocialTile({ href, brand, label, enabled }: SocialTileProps) {
       onMouseLeave={(e) => {
         const el = e.currentTarget as HTMLAnchorElement;
         el.style.transform = 'scale(1)';
-        el.style.background = enabled
-          ? 'rgba(174,137,255,0.12)'
-          : 'rgba(136,136,168,0.08)';
+        el.style.background = enabled ? 'rgba(174,137,255,0.12)' : 'rgba(136,136,168,0.08)';
       }}
     >
       <BrandIcon brand={brand} />

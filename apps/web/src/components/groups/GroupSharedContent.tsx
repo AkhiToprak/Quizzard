@@ -49,7 +49,13 @@ interface Props {
   canShare?: boolean;
 }
 
-export default function GroupSharedContent({ groupId, groupName, currentUserId, userRole, canShare = true }: Props) {
+export default function GroupSharedContent({
+  groupId,
+  groupName,
+  currentUserId,
+  userRole,
+  canShare = true,
+}: Props) {
   const { isPhone } = useBreakpoint();
   const [items, setItems] = useState<SharedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +73,9 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
         const json = await res.json();
         setItems(json.data?.items || []);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setLoading(false);
   }, [groupId, filter]);
 
@@ -91,55 +99,95 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
       if (res.ok) {
         setItems((prev) => prev.filter((i) => i.id !== sharedId));
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
     <div style={{ padding: isPhone ? 16 : 24 }}>
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        flexDirection: isPhone ? 'column' : 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        alignItems: isPhone ? 'stretch' : 'flex-end',
-        gap: 16,
-        marginBottom: isPhone ? 20 : 32,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: isPhone ? 'column' : 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          alignItems: isPhone ? 'stretch' : 'flex-end',
+          gap: 16,
+          marginBottom: isPhone ? 20 : 32,
+        }}
+      >
         <div>
-          <h2 style={{ fontSize: isPhone ? 22 : 28, fontWeight: 800, color: COLORS.textPrimary, letterSpacing: '-0.02em' }}>Shared Knowledge</h2>
-          <p style={{ fontSize: isPhone ? 13 : 14, color: COLORS.textSecondary, marginTop: 4, maxWidth: 500, fontWeight: 500 }}>
+          <h2
+            style={{
+              fontSize: isPhone ? 22 : 28,
+              fontWeight: 800,
+              color: COLORS.textPrimary,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Shared Knowledge
+          </h2>
+          <p
+            style={{
+              fontSize: isPhone ? 13 : 14,
+              color: COLORS.textSecondary,
+              marginTop: 4,
+              maxWidth: 500,
+              fontWeight: 500,
+            }}
+          >
             Filter through documents, flashcards, and notebooks shared by the group.
           </p>
         </div>
-        {canShare && <button style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          background: COLORS.yellow, color: '#5f4f00', border: 'none',
-          borderRadius: 12, padding: isPhone ? '10px 20px' : '12px 24px', fontWeight: 700, fontSize: 14,
-          cursor: 'pointer', fontFamily: 'inherit',
-          boxShadow: `0 8px 24px rgba(255,222,89,0.15)`,
-          transition: `transform 0.2s ${EASING}`,
-        }}
-          onClick={() => setShareModalOpen(true)}
-          onMouseEnter={(e) => { (e.currentTarget).style.transform = 'scale(1.03)'; }}
-          onMouseLeave={(e) => { (e.currentTarget).style.transform = 'scale(1)'; }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add_circle</span>
-          Share Content
-        </button>}
+        {canShare && (
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              background: COLORS.yellow,
+              color: '#5f4f00',
+              border: 'none',
+              borderRadius: 12,
+              padding: isPhone ? '10px 20px' : '12px 24px',
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              boxShadow: `0 8px 24px rgba(255,222,89,0.15)`,
+              transition: `transform 0.2s ${EASING}`,
+            }}
+            onClick={() => setShareModalOpen(true)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.03)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+              add_circle
+            </span>
+            Share Content
+          </button>
+        )}
       </div>
 
       {/* Filters */}
-      <div style={{
-        display: 'flex',
-        gap: isPhone ? 8 : 12,
-        marginBottom: isPhone ? 16 : 24,
-        overflowX: 'auto',
-        WebkitOverflowScrolling: 'touch',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        paddingBottom: 4,
-      }}
+      <div
+        style={{
+          display: 'flex',
+          gap: isPhone ? 8 : 12,
+          marginBottom: isPhone ? 16 : 24,
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          paddingBottom: 4,
+        }}
         className="scroll-hide-scrollbar"
       >
         {FILTERS.map((f) => {
@@ -150,12 +198,15 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
               onClick={() => setFilter(f.key)}
               style={{
                 padding: isPhone ? '7px 14px' : '8px 20px',
-                borderRadius: 9999, border: 'none',
+                borderRadius: 9999,
+                border: 'none',
                 background: active ? COLORS.primary : COLORS.elevated,
                 color: active ? '#fff' : COLORS.textSecondary,
                 fontWeight: active ? 700 : 600,
                 fontSize: isPhone ? 12 : 13,
-                cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                fontFamily: 'inherit',
                 flexShrink: 0,
                 transition: `background 0.2s ${EASING}, color 0.2s ${EASING}`,
                 boxShadow: active ? `0 4px 12px ${COLORS.primary}33` : 'none',
@@ -169,32 +220,45 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
 
       {/* Grid */}
       {loading ? (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: isPhone ? 14 : 20,
-        }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: isPhone ? 14 : 20,
+          }}
+        >
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="groups-skeleton" style={{ height: 180, borderRadius: 16 }} />
           ))}
         </div>
       ) : items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: COLORS.textMuted }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.4, display: 'block', marginBottom: 12 }}>folder_off</span>
-          <p style={{ fontSize: 14, fontWeight: 500 }}>No shared content yet. Be the first to share!</p>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 48, opacity: 0.4, display: 'block', marginBottom: 12 }}
+          >
+            folder_off
+          </span>
+          <p style={{ fontSize: 14, fontWeight: 500 }}>
+            No shared content yet. Be the first to share!
+          </p>
         </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: isPhone ? 14 : 20,
-        }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isPhone ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: isPhone ? 14 : 20,
+          }}
+        >
           {items.map((item) => (
             <GroupSharedContentCard
               key={item.id}
               item={item}
               groupId={groupId}
-              canDelete={item.sharedBy.id === currentUserId || userRole === 'owner' || userRole === 'admin'}
+              canDelete={
+                item.sharedBy.id === currentUserId || userRole === 'owner' || userRole === 'admin'
+              }
               onDelete={handleDelete}
             />
           ))}

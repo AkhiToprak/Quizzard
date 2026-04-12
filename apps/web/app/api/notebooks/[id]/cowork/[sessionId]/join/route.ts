@@ -58,9 +58,7 @@ export async function POST(request: NextRequest, { params }: Params) {
             where: { groupId_userId: { groupId, userId: session.hostId } },
           }),
         ]);
-        allowed =
-          callerMembership?.status === 'accepted' &&
-          hostMembership?.status === 'accepted';
+        allowed = callerMembership?.status === 'accepted' && hostMembership?.status === 'accepted';
       }
 
       if (!allowed) {

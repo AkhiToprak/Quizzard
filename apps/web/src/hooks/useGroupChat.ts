@@ -63,7 +63,7 @@ export function useGroupChat(groupId: string): UseGroupChatReturn {
         return null;
       }
     },
-    [groupId],
+    [groupId]
   );
 
   // Initial load
@@ -110,7 +110,7 @@ export function useGroupChat(groupId: string): UseGroupChatReturn {
           }
           // Sort newest-first by createdAt
           return Array.from(map.values()).sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
         });
       }, POLL_INTERVAL);
@@ -160,7 +160,7 @@ export function useGroupChat(groupId: string): UseGroupChatReturn {
         map.set(msg.id, msg);
       }
       return Array.from(map.values()).sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     });
   }, [fetchMessages]);
@@ -221,7 +221,7 @@ export function useGroupChat(groupId: string): UseGroupChatReturn {
         if (mountedRef.current) setSending(false);
       }
     },
-    [groupId],
+    [groupId]
   );
 
   return { messages, loading, sending, hasMore, loadMore, sendMessage };

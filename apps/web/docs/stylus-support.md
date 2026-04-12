@@ -14,11 +14,11 @@ On `pointerdown`, if the pointer is a stylus (`pointerType === 'pen'`) AND eithe
 
 Detection rules (from the PointerEvent spec):
 
-| Bit | `buttons` value | Meaning | Triggers eraser? |
-| --- | --- | --- | --- |
-| 0 | `1` | Pen tip contacting surface (primary) | No — normal drawing |
-| 1 | `2` | Barrel / side button | **Yes** — `e.buttons & 2 === 2` |
-| 5 | `32` | Flipped-over eraser tip | **Yes** — `e.buttons & 32 === 32` |
+| Bit | `buttons` value | Meaning                              | Triggers eraser?                  |
+| --- | --------------- | ------------------------------------ | --------------------------------- |
+| 0   | `1`             | Pen tip contacting surface (primary) | No — normal drawing               |
+| 1   | `2`             | Barrel / side button                 | **Yes** — `e.buttons & 2 === 2`   |
+| 5   | `32`            | Flipped-over eraser tip              | **Yes** — `e.buttons & 32 === 32` |
 
 The listener is attached to `document` in the capture phase so it runs before Excalidraw's own pointer handlers. The tool stays on eraser until the user switches back via the toolbar or the `T / P / E / V` keyboard shortcuts — this is intentional and documented in the code comment.
 
@@ -48,17 +48,17 @@ Line-by-line against the pointer-events spec:
 
 Fill in each row as real hardware becomes available. The expected-behavior column is what the code should do based on the spec.
 
-| Device | Browser / OS | Expected | Tested? | Result |
-| --- | --- | --- | --- | --- |
-| Apple Pencil (any gen) | Safari / iPadOS | **Does not work** — see limitations | ☐ | — |
-| Apple Pencil Pro (squeeze) | Safari / iPadOS | **Does not work** — see limitations | ☐ | — |
-| Surface Pen (side button) | Edge / Windows | Switches to eraser on button hold | ☐ | — |
-| Surface Pen (flip to erase) | Edge / Windows | Switches to eraser on flip | ☐ | — |
-| Wacom Intuos + Pro pen | Chrome / macOS | Switches to eraser on barrel press | ☐ | — |
-| Wacom Intuos + Pro pen | Chrome / Windows | Switches to eraser on barrel press | ☐ | — |
-| S Pen | Samsung Internet / Android | Switches to eraser on side button | ☐ | — |
-| Ordinary mouse | any | **Ignored** (pointerType guard) | ☐ | — |
-| Finger touch | any touchscreen | **Ignored** (pointerType guard) | ☐ | — |
+| Device                      | Browser / OS               | Expected                            | Tested? | Result |
+| --------------------------- | -------------------------- | ----------------------------------- | ------- | ------ |
+| Apple Pencil (any gen)      | Safari / iPadOS            | **Does not work** — see limitations | ☐       | —      |
+| Apple Pencil Pro (squeeze)  | Safari / iPadOS            | **Does not work** — see limitations | ☐       | —      |
+| Surface Pen (side button)   | Edge / Windows             | Switches to eraser on button hold   | ☐       | —      |
+| Surface Pen (flip to erase) | Edge / Windows             | Switches to eraser on flip          | ☐       | —      |
+| Wacom Intuos + Pro pen      | Chrome / macOS             | Switches to eraser on barrel press  | ☐       | —      |
+| Wacom Intuos + Pro pen      | Chrome / Windows           | Switches to eraser on barrel press  | ☐       | —      |
+| S Pen                       | Samsung Internet / Android | Switches to eraser on side button   | ☐       | —      |
+| Ordinary mouse              | any                        | **Ignored** (pointerType guard)     | ☐       | —      |
+| Finger touch                | any touchscreen            | **Ignored** (pointerType guard)     | ☐       | —      |
 
 To test, temporarily add this log at the top of the handler in `InfiniteCanvas.tsx` line 260:
 

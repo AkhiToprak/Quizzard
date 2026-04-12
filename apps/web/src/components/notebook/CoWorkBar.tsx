@@ -130,9 +130,7 @@ export default function CoWorkBar({
     fetchParticipants();
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(
-          `/api/notebooks/${notebookId}/cowork/${sessionId}`
-        );
+        const res = await fetch(`/api/notebooks/${notebookId}/cowork/${sessionId}`);
         if (res.status === 404) {
           // Session disappeared — host ended it while we weren't looking.
           onSessionEnd?.();
@@ -407,9 +405,7 @@ export default function CoWorkBar({
               gap: 4,
               padding: '5px 10px',
               borderRadius: 7,
-              background: editOpen
-                ? 'rgba(255,222,89,0.14)'
-                : 'rgba(237,233,255,0.05)',
+              background: editOpen ? 'rgba(255,222,89,0.14)' : 'rgba(237,233,255,0.05)',
               color: editOpen ? '#ffde59' : '#8888a8',
               fontSize: 11,
               fontWeight: 600,

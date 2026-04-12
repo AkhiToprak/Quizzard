@@ -38,7 +38,9 @@ export default function ScholarNameStep({
   const handleNext = () => {
     const trimmed = scholarName.trim();
     if (trimmed && !NAME_REGEX.test(trimmed)) {
-      setValidationError('Name can only contain letters, numbers, spaces, hyphens, and apostrophes.');
+      setValidationError(
+        'Name can only contain letters, numbers, spaces, hyphens, and apostrophes.'
+      );
       return;
     }
     onNext();
@@ -102,10 +104,7 @@ export default function ScholarNameStep({
               boxShadow: '0 0 0 4px rgba(174,137,255,0.2), 0 8px 32px rgba(174,137,255,0.2)',
             }}
           >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: '28px', color: '#fff' }}
-            >
+            <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#fff' }}>
               auto_awesome
             </span>
           </div>
@@ -117,9 +116,8 @@ export default function ScholarNameStep({
               lineHeight: 1.5,
             }}
           >
-            Hey! I&apos;m{' '}
-            <span style={{ color: '#ae89ff', fontWeight: 700 }}>{displayName}</span>, your
-            personal study assistant.
+            Hey! I&apos;m <span style={{ color: '#ae89ff', fontWeight: 700 }}>{displayName}</span>,
+            your personal study assistant.
           </p>
         </div>
       </div>
@@ -173,9 +171,7 @@ export default function ScholarNameStep({
           style={{
             width: '100%',
             padding: '16px',
-            background: loading
-              ? '#555578'
-              : 'linear-gradient(135deg, #ae89ff 0%, #884efb 100%)',
+            background: loading ? '#555578' : 'linear-gradient(135deg, #ae89ff 0%, #884efb 100%)',
             border: 'none',
             borderRadius: '16px',
             color: loading ? '#aaa8c8' : '#2a0066',

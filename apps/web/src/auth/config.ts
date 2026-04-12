@@ -5,11 +5,7 @@ import AppleProvider from 'next-auth/providers/apple';
 import bcrypt from 'bcryptjs';
 import { headers } from 'next/headers';
 import { db } from '@/lib/db';
-import {
-  enforceIpCap,
-  generatePlaceholderUsername,
-  getIpFromHeaders,
-} from '@/lib/registration';
+import { enforceIpCap, generatePlaceholderUsername, getIpFromHeaders } from '@/lib/registration';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 60 * 60 * 1000; // 1 hour
@@ -22,10 +18,7 @@ const LOCKOUT_DURATION_MS = 60 * 60 * 1000; // 1 hour
  * what CredentialsProvider.authorize() returns so token shape is
  * identical across auth methods.
  */
-async function hydrateTokenFromDb(
-  token: Record<string, unknown>,
-  userId: string
-): Promise<void> {
+async function hydrateTokenFromDb(token: Record<string, unknown>, userId: string): Promise<void> {
   const freshUser = await db.user.findUnique({
     where: { id: userId },
     select: {
@@ -333,8 +326,7 @@ export const authOptions: NextAuthOptions = {
       // CredentialsProvider's authorize() already populates the full shape
       // on `user`. OAuth providers only populate {id,name,email,image},
       // so in that case we re-read the DB to hydrate the custom fields.
-      const isOauthSignIn =
-        !!account && account.provider !== 'credentials' && !!user;
+      const isOauthSignIn = !!account && account.provider !== 'credentials' && !!user;
 
       if (user && !isOauthSignIn) {
         const u = user as typeof user & {

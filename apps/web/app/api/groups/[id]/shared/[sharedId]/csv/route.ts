@@ -43,10 +43,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     // Build CSV
     const rows = [['Question', 'Answer']];
     for (const card of flashcardSet.flashcards) {
-      rows.push([
-        escapeCsv(card.question),
-        escapeCsv(card.answer),
-      ]);
+      rows.push([escapeCsv(card.question), escapeCsv(card.answer)]);
     }
 
     const csv = rows.map((row) => row.join(',')).join('\n');

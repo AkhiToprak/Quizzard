@@ -13,10 +13,24 @@ import { checkAndUnlockAchievements } from '@/lib/achievement-checker';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-const VALID_CONTENT_TYPES = ['notebook', 'folder', 'document', 'flashcard_set', 'quiz_set'] as const;
+const VALID_CONTENT_TYPES = [
+  'notebook',
+  'folder',
+  'document',
+  'flashcard_set',
+  'quiz_set',
+] as const;
 type ContentType = (typeof VALID_CONTENT_TYPES)[number];
 
-const SHARER_SELECT = { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true } as const;
+const SHARER_SELECT = {
+  id: true,
+  name: true,
+  username: true,
+  avatarUrl: true,
+  nameStyle: true,
+  equippedTitleId: true,
+  equippedFrameId: true,
+} as const;
 
 // GET /api/groups/:id/shared — list shared content
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -101,7 +115,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       where: { id },
       select: { type: true, allowMemberSharing: true },
     });
-    if (groupInfo && !canPerformAction(groupInfo.type, membership.role, groupInfo.allowMemberSharing)) {
+    if (
+      groupInfo &&
+      !canPerformAction(groupInfo.type, membership.role, groupInfo.allowMemberSharing)
+    ) {
       return forbiddenResponse('Sharing is restricted by the teacher');
     }
 
@@ -191,7 +208,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
     // Get sharer info for response and chat message
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        avatarUrl: true,
+        nameStyle: true,
+        equippedTitleId: true,
+        equippedFrameId: true,
+      },
     });
 
     // Create a rich content_share message in the chat
@@ -234,7 +259,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
             })),
           });
         }
-      } catch { /* notification failure should not break sharing */ }
+      } catch {
+        /* notification failure should not break sharing */
+      }
     })();
 
     checkAndUnlockAchievements(userId).catch(console.error);

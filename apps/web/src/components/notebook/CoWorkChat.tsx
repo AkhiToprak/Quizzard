@@ -92,9 +92,7 @@ export default function CoWorkChat({
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch(
-          `/api/notebooks/${notebookId}/cowork/${sessionId}/messages`
-        );
+        const res = await fetch(`/api/notebooks/${notebookId}/cowork/${sessionId}/messages`);
         if (!res.ok) return;
         const json = await res.json();
         const list: ServerMessage[] = json.data?.messages || [];
@@ -116,15 +114,11 @@ export default function CoWorkChat({
           // flaky), duplicates stuck around forever.
           const stillPending = prev.filter((m) => {
             if (!m.pending) return false;
-            return !list.some(
-              (sm) => sm.userId === m.userId && sm.text === m.text
-            );
+            return !list.some((sm) => sm.userId === m.userId && sm.text === m.text);
           });
 
           return [
-            ...Array.from(byId.values()).sort(
-              (a, b) => a.timestamp - b.timestamp
-            ),
+            ...Array.from(byId.values()).sort((a, b) => a.timestamp - b.timestamp),
             ...stillPending,
           ];
         });
@@ -149,12 +143,7 @@ export default function CoWorkChat({
       setMessages((prev) => {
         // De-dupe: if the optimistic pending message is from the current
         // user with the same text, replace it with the persisted version.
-        const idx = prev.findIndex(
-          (p) =>
-            p.pending &&
-            p.userId === m.userId &&
-            p.text === m.text
-        );
+        const idx = prev.findIndex((p) => p.pending && p.userId === m.userId && p.text === m.text);
         if (idx !== -1) {
           const next = prev.slice();
           next[idx] = fromServer(m);
@@ -193,14 +182,11 @@ export default function CoWorkChat({
     setSending(true);
 
     try {
-      const res = await fetch(
-        `/api/notebooks/${notebookId}/cowork/${sessionId}/messages`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
-        }
-      );
+      const res = await fetch(`/api/notebooks/${notebookId}/cowork/${sessionId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
       if (!res.ok) {
         // Drop the optimistic message on failure
         setMessages((prev) => prev.filter((m) => m.id !== pendingId));

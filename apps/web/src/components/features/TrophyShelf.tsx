@@ -141,15 +141,17 @@ export default function TrophyShelf({ userId }: TrophyShelfProps) {
       </div>
 
       {/* Tabs */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        flexWrap: isPhone ? 'nowrap' : 'wrap',
-        overflowX: isPhone ? 'auto' : undefined,
-        WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
-        scrollbarWidth: isPhone ? 'none' : undefined,
-        paddingBottom: isPhone ? 2 : undefined,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          flexWrap: isPhone ? 'nowrap' : 'wrap',
+          overflowX: isPhone ? 'auto' : undefined,
+          WebkitOverflowScrolling: isPhone ? 'touch' : undefined,
+          scrollbarWidth: isPhone ? 'none' : undefined,
+          paddingBottom: isPhone ? 2 : undefined,
+        }}
+      >
         {CATEGORIES.map((cat) => {
           const isActive = activeTab === cat.key;
           return (

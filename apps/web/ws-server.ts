@@ -58,9 +58,7 @@ if (!NEXTAUTH_SECRET) {
   process.exit(1);
 }
 if (!WS_INTERNAL_SECRET) {
-  console.warn(
-    '[ws-server] WS_INTERNAL_SECRET is not set. /emit endpoint will reject all calls.'
-  );
+  console.warn('[ws-server] WS_INTERNAL_SECRET is not set. /emit endpoint will reject all calls.');
 }
 
 const db = new PrismaClient();
@@ -291,18 +289,14 @@ const io = new Server(httpServer, {
 io.on('connection', async (socket: Socket) => {
   const token = socket.handshake.auth?.token as string;
   if (!token) {
-    console.warn(
-      `[ws-server] connection ${socket.id} rejected: no token in handshake`
-    );
+    console.warn(`[ws-server] connection ${socket.id} rejected: no token in handshake`);
     socket.disconnect(true);
     return;
   }
 
   const verified = verifyPresenceToken(token);
   if (!verified) {
-    console.warn(
-      `[ws-server] connection ${socket.id} rejected: token verification failed`
-    );
+    console.warn(`[ws-server] connection ${socket.id} rejected: token verification failed`);
     socket.emit('auth_error', { message: 'Invalid or expired token' });
     socket.disconnect(true);
     return;
@@ -422,18 +416,15 @@ io.on('connection', async (socket: Socket) => {
   // to everyone (including the sender so the host's own PageEditor picks up
   // the new state from its own listener — single source of truth).
   // No persistence; if the host refreshes, the flag resets to off.
-  socket.on(
-    'cowork:edit_mode',
-    (payload: { sessionId?: string; enabled?: boolean }) => {
-      const sessionId = payload?.sessionId;
-      if (!sessionId || typeof sessionId !== 'string') return;
-      const enabled = !!payload?.enabled;
-      io.to(`session:${sessionId}`).emit('cowork:edit_mode', {
-        sessionId,
-        enabled,
-      });
-    }
-  );
+  socket.on('cowork:edit_mode', (payload: { sessionId?: string; enabled?: boolean }) => {
+    const sessionId = payload?.sessionId;
+    if (!sessionId || typeof sessionId !== 'string') return;
+    const enabled = !!payload?.enabled;
+    io.to(`session:${sessionId}`).emit('cowork:edit_mode', {
+      sessionId,
+      enabled,
+    });
+  });
 
   // ─── Cowork: cursor relay ───
   // Throttling is the client's responsibility; we just relay. Cursors are
@@ -443,12 +434,7 @@ io.on('connection', async (socket: Socket) => {
   let cursorEventCount = 0;
   socket.on(
     'cowork:cursor',
-    (payload: {
-      sessionId?: string;
-      pageId?: string;
-      x?: number;
-      y?: number;
-    }) => {
+    (payload: { sessionId?: string; pageId?: string; x?: number; y?: number }) => {
       const sessionId = payload?.sessionId;
       if (!sessionId || typeof sessionId !== 'string') return;
       if (typeof payload.x !== 'number' || typeof payload.y !== 'number') return;
@@ -478,26 +464,23 @@ io.on('connection', async (socket: Socket) => {
   // Host's autosave pings this after the PUT lands in Postgres so
   // participants can refetch content within ~100-200ms instead of
   // waiting for the polling fallback.
-  socket.on(
-    'cowork:doc_notify',
-    (payload: { sessionId?: string; pageId?: string }) => {
-      const sessionId = payload?.sessionId;
-      if (!sessionId || typeof sessionId !== 'string') return;
-      if (typeof payload.pageId !== 'string') return;
-      const room = `session:${sessionId}`;
-      const roomSockets = io.sockets.adapter.rooms.get(room);
-      const others = Math.max(0, (roomSockets?.size ?? 0) - 1);
-      console.log(
-        `[ws-server] cowork:doc_notify relay from ${userId} → ${room} ` +
-          `page=${payload.pageId} (${others} other socket(s) in room)`
-      );
-      socket.to(room).emit('cowork:doc_notify', {
-        sessionId,
-        pageId: payload.pageId,
-        by: userId,
-      });
-    }
-  );
+  socket.on('cowork:doc_notify', (payload: { sessionId?: string; pageId?: string }) => {
+    const sessionId = payload?.sessionId;
+    if (!sessionId || typeof sessionId !== 'string') return;
+    if (typeof payload.pageId !== 'string') return;
+    const room = `session:${sessionId}`;
+    const roomSockets = io.sockets.adapter.rooms.get(room);
+    const others = Math.max(0, (roomSockets?.size ?? 0) - 1);
+    console.log(
+      `[ws-server] cowork:doc_notify relay from ${userId} → ${room} ` +
+        `page=${payload.pageId} (${others} other socket(s) in room)`
+    );
+    socket.to(room).emit('cowork:doc_notify', {
+      sessionId,
+      pageId: payload.pageId,
+      by: userId,
+    });
+  });
 
   // Disconnect
   socket.on('disconnect', async (reason: string) => {

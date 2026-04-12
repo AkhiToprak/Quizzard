@@ -162,9 +162,8 @@ export default function PublicProfilePage() {
   const headerRadius = isPhone ? 20 : 24;
   const hasFrame = Boolean(
     profile.equippedFrameId &&
-      COSMETICS[profile.equippedFrameId]?.type === 'frame' &&
-      (COSMETICS[profile.equippedFrameId] as { component?: string })?.component !==
-        'none'
+    COSMETICS[profile.equippedFrameId]?.type === 'frame' &&
+    (COSMETICS[profile.equippedFrameId] as { component?: string })?.component !== 'none'
   );
 
   return (
@@ -203,9 +202,7 @@ export default function PublicProfilePage() {
             user={profile}
             size={isPhone ? 80 : 96}
             radius="50%"
-            style={
-              hasFrame ? undefined : { border: '3px solid rgba(174,137,255,0.3)' }
-            }
+            style={hasFrame ? undefined : { border: '3px solid rgba(174,137,255,0.3)' }}
           />
         </div>
 
@@ -278,7 +275,6 @@ export default function PublicProfilePage() {
             Edit Profile
           </Link>
         )}
-
       </div>
 
       {/* Private Profile: Socials card stays visible above the lock notice
@@ -384,9 +380,7 @@ export default function PublicProfilePage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: isPhone
-              ? '1fr'
-              : 'minmax(220px, 260px) minmax(0, 1fr)',
+            gridTemplateColumns: isPhone ? '1fr' : 'minmax(220px, 260px) minmax(0, 1fr)',
             gap: '24px',
             alignItems: 'stretch',
           }}

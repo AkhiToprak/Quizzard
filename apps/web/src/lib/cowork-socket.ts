@@ -147,12 +147,7 @@ function createSession(sessionId: string): SessionEntry {
 
     // Wake up any consumers that mounted before the socket finished
     // initialising — they get the live socket immediately.
-    log(
-      'createSession: notifying',
-      entry.listeners.size,
-      'waiting listener(s) for',
-      sessionId
-    );
+    log('createSession: notifying', entry.listeners.size, 'waiting listener(s) for', sessionId);
     for (const listener of entry.listeners) {
       listener(socket);
     }

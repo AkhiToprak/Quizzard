@@ -95,18 +95,14 @@ export default function HeroCarousel() {
           border: '1px solid rgba(255, 222, 89, 0.35)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          boxShadow:
-            '0 16px 40px rgba(255, 222, 89, 0.1), 0 4px 12px rgba(0,0,0,0.4)',
+          boxShadow: '0 16px 40px rgba(255, 222, 89, 0.1), 0 4px 12px rgba(0,0,0,0.4)',
           display: 'flex',
           alignItems: 'center',
           gap: 8,
           animation: 'nm-float 6s ease-in-out infinite',
         }}
       >
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: 16, color: '#ffde59' }}
-        >
+        <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#ffde59' }}>
           auto_awesome
         </span>
         <span
@@ -232,15 +228,11 @@ export default function HeroCarousel() {
                   gap: 10,
                   padding: active ? '8px 16px' : '8px',
                   borderRadius: 'var(--radius-full)',
-                  background: active
-                    ? 'rgba(174, 137, 255, 0.18)'
-                    : 'transparent',
+                  background: active ? 'rgba(174, 137, 255, 0.18)' : 'transparent',
                   border: active
                     ? '1px solid rgba(174, 137, 255, 0.35)'
                     : '1px solid rgba(237, 233, 255, 0.14)',
-                  color: active
-                    ? 'var(--on-surface)'
-                    : 'rgba(237, 233, 255, 0.45)',
+                  color: active ? 'var(--on-surface)' : 'rgba(237, 233, 255, 0.45)',
                   fontSize: 11,
                   fontFamily: 'var(--font-brand)',
                   letterSpacing: '0.12em',
@@ -312,7 +304,8 @@ export default function HeroCarousel() {
           flex: 0 0 92%;
         }
         @keyframes nm-float {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateY(0px);
           }
           50% {

@@ -80,11 +80,7 @@ interface ActivityHeatmapProps {
   subtitle?: string;
 }
 
-export default function ActivityHeatmap({
-  userId,
-  weeks,
-  subtitle,
-}: ActivityHeatmapProps = {}) {
+export default function ActivityHeatmap({ userId, weeks, subtitle }: ActivityHeatmapProps = {}) {
   const { isPhone } = useBreakpoint();
   const [dayMap, setDayMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -230,8 +226,7 @@ export default function ActivityHeatmap({
             Activity
           </h3>
           <p style={{ fontSize: '13px', color: '#aaa8c8', margin: 0 }}>
-            Minutes in the app over the last{' '}
-            {subtitle ?? (isPhone ? '6 months' : 'year')}
+            Minutes in the app over the last {subtitle ?? (isPhone ? '6 months' : 'year')}
           </p>
         </div>
         <div

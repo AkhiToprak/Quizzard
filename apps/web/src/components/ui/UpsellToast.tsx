@@ -72,9 +72,7 @@ export default function UpsellToast({
         position: 'fixed',
         top: 24,
         left: '50%',
-        transform: open
-          ? 'translate(-50%, 0)'
-          : 'translate(-50%, -120%)',
+        transform: open ? 'translate(-50%, 0)' : 'translate(-50%, -120%)',
         zIndex: 300,
         maxWidth: 460,
         width: 'calc(100% - 32px)',
@@ -104,8 +102,7 @@ export default function UpsellToast({
           width: 36,
           height: 36,
           borderRadius: 10,
-          background:
-            'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
+          background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
           color: '#2a2200',
           display: 'flex',
           alignItems: 'center',
@@ -155,16 +152,14 @@ export default function UpsellToast({
             gap: 6,
             padding: '7px 14px',
             borderRadius: 999,
-            background:
-              'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
+            background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
             color: '#2a2200',
             fontSize: 12,
             fontWeight: 700,
             textDecoration: 'none',
             boxShadow:
               '0 6px 18px rgba(255, 222, 89, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
-            transition:
-              'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px)';

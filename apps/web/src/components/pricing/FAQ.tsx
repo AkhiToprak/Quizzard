@@ -168,7 +168,8 @@ export default function FAQ() {
           letterSpacing: '-0.02em',
           opacity: isRevealed ? 1 : 0,
           transform: isRevealed ? 'translateY(0)' : 'translateY(16px)',
-          transition: 'opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1)',
+          transition:
+            'opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1)',
         }}
       >
         Frequently asked questions

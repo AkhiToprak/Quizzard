@@ -25,8 +25,7 @@ export default function MageSpotlight() {
           height: 640,
           transform: 'translate(-50%, -30%)',
           borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(140, 82, 255, 0.15) 0%, transparent 65%)',
+          background: 'radial-gradient(circle, rgba(140, 82, 255, 0.15) 0%, transparent 65%)',
           pointerEvents: 'none',
         }}
       />
@@ -46,8 +45,7 @@ export default function MageSpotlight() {
               Meet your{' '}
               <span
                 style={{
-                  background:
-                    'linear-gradient(135deg, #ae89ff 0%, #c9a6ff 100%)',
+                  background: 'linear-gradient(135deg, #ae89ff 0%, #c9a6ff 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',

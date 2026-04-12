@@ -52,10 +52,7 @@ const STORAGE_KEY = 'notemage.currentCoworkSession';
  * when the session ends or they leave — without relying on localStorage,
  * which doesn't survive cross-tab joins or refreshes from a cold cache.
  */
-export function coworkPageUrl(
-  payload: CoworkInvitePayload,
-  originGroupId?: string | null
-): string {
+export function coworkPageUrl(payload: CoworkInvitePayload, originGroupId?: string | null): string {
   const base = `/notebooks/${payload.notebookId}/pages/${payload.pageId}?cowork=${payload.sessionId}`;
   return originGroupId ? `${base}&from=${encodeURIComponent(originGroupId)}` : base;
 }
@@ -67,10 +64,7 @@ export function readCurrentCoworkSession(): CurrentCoworkSession | null {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as CurrentCoworkSession;
-    if (
-      typeof parsed?.sessionId !== 'string' ||
-      typeof parsed?.notebookId !== 'string'
-    ) {
+    if (typeof parsed?.sessionId !== 'string' || typeof parsed?.notebookId !== 'string') {
       return null;
     }
     return parsed;
@@ -80,9 +74,7 @@ export function readCurrentCoworkSession(): CurrentCoworkSession | null {
 }
 
 /** Mark a cowork session as the user's current active one (or clear it). */
-export function setCurrentCoworkSession(
-  session: CurrentCoworkSession | null
-): void {
+export function setCurrentCoworkSession(session: CurrentCoworkSession | null): void {
   if (typeof window === 'undefined') return;
   try {
     if (session === null) {
@@ -116,14 +108,12 @@ export async function joinCoworkSession(
   const current = readCurrentCoworkSession();
   if (
     current &&
-    (current.sessionId !== payload.sessionId ||
-      current.notebookId !== payload.notebookId)
+    (current.sessionId !== payload.sessionId || current.notebookId !== payload.notebookId)
   ) {
     try {
-      await fetch(
-        `/api/notebooks/${current.notebookId}/cowork/${current.sessionId}/leave`,
-        { method: 'POST' }
-      );
+      await fetch(`/api/notebooks/${current.notebookId}/cowork/${current.sessionId}/leave`, {
+        method: 'POST',
+      });
     } catch {
       // Swallow network errors on leave — an already-ended session returns
       // 404 which is fine. The important step is the join below.
@@ -133,14 +123,11 @@ export async function joinCoworkSession(
   // 2. Join the new session via the group-gated endpoint.
   let res: Response;
   try {
-    res = await fetch(
-      `/api/notebooks/${payload.notebookId}/cowork/${payload.sessionId}/join`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ groupId }),
-      }
-    );
+    res = await fetch(`/api/notebooks/${payload.notebookId}/cowork/${payload.sessionId}/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId }),
+    });
   } catch {
     throw new Error('network' satisfies CoworkJoinError);
   }
@@ -167,9 +154,7 @@ export async function joinCoworkSession(
  * Mark the host as currently in a session they just started. Called from
  * `StartCoworkModal` immediately after the create-session API returns.
  */
-export function registerHostedCoworkSession(
-  payload: CoworkInvitePayload
-): CurrentCoworkSession {
+export function registerHostedCoworkSession(payload: CoworkInvitePayload): CurrentCoworkSession {
   const entry: CurrentCoworkSession = {
     sessionId: payload.sessionId,
     notebookId: payload.notebookId,

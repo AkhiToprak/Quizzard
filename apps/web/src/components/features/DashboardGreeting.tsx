@@ -43,7 +43,8 @@ export default function DashboardGreeting({ userName }: DashboardGreetingProps) 
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(8px)',
-        transition: 'opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+        transition:
+          'opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
         fontFamily: 'var(--font-display)',
         fontSize: responsiveValue(bp, {
           phone: '22px',

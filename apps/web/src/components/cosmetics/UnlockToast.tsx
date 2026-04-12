@@ -192,10 +192,7 @@ export function UnlockProvider({ children }: { children: React.ReactNode }) {
     ]);
   }, []);
 
-  const ctxValue = React.useMemo<UnlockContextValue>(
-    () => ({ enqueueBySlug }),
-    [enqueueBySlug]
-  );
+  const ctxValue = React.useMemo<UnlockContextValue>(() => ({ enqueueBySlug }), [enqueueBySlug]);
 
   return (
     <UnlockContext.Provider value={ctxValue}>
@@ -244,18 +241,27 @@ function UnlockToast({ unlock, onDismiss }: UnlockToastProps) {
     <>
       <style jsx global>{`
         @keyframes unlock-toast-shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
         }
         @keyframes unlock-toast-glow {
-          0%, 100% { box-shadow:
-            0 20px 60px rgba(174,137,255,0.35),
-            0 0 0 1px rgba(174,137,255,0.55),
-            0 0 40px rgba(255,149,102,0.2); }
-          50% { box-shadow:
-            0 24px 72px rgba(174,137,255,0.45),
-            0 0 0 1px rgba(174,137,255,0.7),
-            0 0 56px rgba(255,149,102,0.3); }
+          0%,
+          100% {
+            box-shadow:
+              0 20px 60px rgba(174, 137, 255, 0.35),
+              0 0 0 1px rgba(174, 137, 255, 0.55),
+              0 0 40px rgba(255, 149, 102, 0.2);
+          }
+          50% {
+            box-shadow:
+              0 24px 72px rgba(174, 137, 255, 0.45),
+              0 0 0 1px rgba(174, 137, 255, 0.7),
+              0 0 56px rgba(255, 149, 102, 0.3);
+          }
         }
       `}</style>
 
@@ -279,17 +285,14 @@ function UnlockToast({ unlock, onDismiss }: UnlockToastProps) {
             maxWidth: 'calc(100vw - 48px)',
             borderRadius: 20,
             overflow: 'hidden',
-            background:
-              'linear-gradient(180deg, #2d2d52 0%, #21213e 100%)',
+            background: 'linear-gradient(180deg, #2d2d52 0%, #21213e 100%)',
             border: '1px solid rgba(174,137,255,0.4)',
             transform: mounted
               ? 'translateX(0) translateY(0) scale(1)'
               : 'translateX(40px) translateY(10px) scale(0.96)',
             opacity: mounted ? 1 : 0,
             transition: `transform 0.45s ${EASING}, opacity 0.4s ${EASING}`,
-            animation: mounted
-              ? 'unlock-toast-glow 2.8s ease-in-out infinite'
-              : undefined,
+            animation: mounted ? 'unlock-toast-glow 2.8s ease-in-out infinite' : undefined,
           }}
         >
           {/* Shimmer stripe across the top */}
@@ -460,8 +463,7 @@ function UnlockToast({ unlock, onDismiss }: UnlockToastProps) {
                   '0 10px 28px rgba(255,111,162,0.45)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.transform =
-                  'translateY(0) scale(1)';
+                (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0) scale(1)';
                 (e.currentTarget as HTMLAnchorElement).style.boxShadow =
                   '0 6px 20px rgba(255,111,162,0.35)';
               }}

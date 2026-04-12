@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  CSSProperties,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { useAiTask } from './AiTaskContext';
 
@@ -66,9 +59,7 @@ export default function InlineAIToolbar({
   onRequiresUpgrade,
   onError,
 }: InlineAIToolbarProps) {
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(
-    null
-  );
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const [busyAction, setBusyAction] = useState<InlineAction | null>(null);
   const [hidden, setHidden] = useState(false);
 
@@ -183,15 +174,12 @@ export default function InlineAIToolbar({
       abortRef.current = controller;
 
       try {
-        const res = await fetch(
-          `/api/notebooks/${notebookId}/pages/${pageId}/ai-inline`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action, text: selectedText }),
-            signal: controller.signal,
-          }
-        );
+        const res = await fetch(`/api/notebooks/${notebookId}/pages/${pageId}/ai-inline`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, text: selectedText }),
+          signal: controller.signal,
+        });
 
         // Tier gate
         if (res.status === 402) {
@@ -332,9 +320,7 @@ export default function InlineAIToolbar({
     padding: '7px 12px',
     borderRadius: 999,
     border: 'none',
-    background: active
-      ? 'rgba(255, 222, 89, 0.2)'
-      : 'transparent',
+    background: active ? 'rgba(255, 222, 89, 0.2)' : 'transparent',
     color: active ? '#ffde59' : 'var(--on-surface)',
     fontSize: 12,
     fontWeight: 600,
@@ -361,8 +347,7 @@ export default function InlineAIToolbar({
           width: 26,
           height: 26,
           borderRadius: 8,
-          background:
-            'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
+          background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
           color: '#2a2200',
           display: 'flex',
           alignItems: 'center',
@@ -397,10 +382,7 @@ export default function InlineAIToolbar({
               e.currentTarget.style.color = 'var(--on-surface)';
             }}
           >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 15 }}
-            >
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>
               {active ? 'progress_activity' : ACTION_ICONS[action]}
             </span>
             {ACTION_LABELS[action]}

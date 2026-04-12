@@ -174,10 +174,7 @@ export default function LegalPageShell({
                 textTransform: 'uppercase',
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 16 }}
-              >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                 arrow_downward
               </span>
               English
@@ -202,10 +199,7 @@ export default function LegalPageShell({
                 textTransform: 'uppercase',
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 16 }}
-              >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                 arrow_downward
               </span>
               Deutsch
@@ -231,8 +225,7 @@ export default function LegalPageShell({
             width: 540,
             height: 540,
             borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(174, 137, 255, 0.06) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(174, 137, 255, 0.06) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
@@ -245,8 +238,7 @@ export default function LegalPageShell({
             width: 460,
             height: 460,
             borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(81, 112, 255, 0.05) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(81, 112, 255, 0.05) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
@@ -337,10 +329,7 @@ export default function LegalPageShell({
                 textTransform: 'uppercase',
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 16 }}
-              >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                 arrow_upward
               </span>
               Back to top

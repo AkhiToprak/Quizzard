@@ -51,12 +51,18 @@ export default function StudyGroupCard({ group, hasUnread, onClick }: StudyGroup
       }}
     >
       {hasUnread && (
-        <div style={{
-          position: 'absolute', top: 12, right: 12,
-          width: 8, height: 8, borderRadius: '50%',
-          background: COLORS.primary,
-          boxShadow: `0 0 8px ${COLORS.primary}cc`,
-        }} />
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: COLORS.primary,
+            boxShadow: `0 0 8px ${COLORS.primary}cc`,
+          }}
+        />
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {group.avatarUrl ? (
@@ -67,20 +73,37 @@ export default function StudyGroupCard({ group, hasUnread, onClick }: StudyGroup
             style={{ width: 40, height: 40, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
           />
         ) : (
-          <div style={{
-            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-            background: `linear-gradient(135deg, ${COLORS.primary}, #8348f6)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, fontWeight: 700, color: '#fff',
-          }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              flexShrink: 0,
+              background: `linear-gradient(135deg, ${COLORS.primary}, #8348f6)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 16,
+              fontWeight: 700,
+              color: '#fff',
+            }}
+          >
             {group.name[0]?.toUpperCase() || '?'}
           </div>
         )}
-        <div style={{
-          fontSize: 17, fontWeight: 700, color: COLORS.textPrimary,
-          letterSpacing: '-0.01em', overflow: 'hidden',
-          textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0,
-        }}>
+        <div
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            color: COLORS.textPrimary,
+            letterSpacing: '-0.01em',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
           {group.name}
         </div>
       </div>

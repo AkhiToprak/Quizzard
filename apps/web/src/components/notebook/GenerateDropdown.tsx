@@ -100,7 +100,16 @@ export default function GenerateDropdown({
         setLoadingType(null);
       }
     },
-    [loading, notebookId, pageId, router, startAiTask, finishAiTask, refreshFlashcardSets, refreshQuizSets]
+    [
+      loading,
+      notebookId,
+      pageId,
+      router,
+      startAiTask,
+      finishAiTask,
+      refreshFlashcardSets,
+      refreshQuizSets,
+    ]
   );
 
   return (

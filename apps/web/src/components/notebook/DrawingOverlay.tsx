@@ -229,7 +229,18 @@ export default function DrawingOverlay({
       setCurrentStroke(newStroke);
       (e.target as SVGSVGElement).setPointerCapture?.(e.pointerId);
     },
-    [mode, activeTool, getSvgPoint, strokes, onStrokesChange, penColor, penWidth, lineStyle, ruler, isPhone]
+    [
+      mode,
+      activeTool,
+      getSvgPoint,
+      strokes,
+      onStrokesChange,
+      penColor,
+      penWidth,
+      lineStyle,
+      ruler,
+      isPhone,
+    ]
   );
 
   const handlePointerMove = useCallback(

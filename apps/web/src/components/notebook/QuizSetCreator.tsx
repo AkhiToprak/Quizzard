@@ -56,9 +56,7 @@ export default function QuizSetCreator({
   }, []);
 
   const updateQuestion = useCallback((index: number, field: 'question' | 'hint', value: string) => {
-    setQuestions((prev) =>
-      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q))
-    );
+    setQuestions((prev) => prev.map((q, i) => (i === index ? { ...q, [field]: value } : q)));
   }, []);
 
   const updateOption = useCallback((qIndex: number, oIndex: number, value: string) => {
@@ -73,9 +71,7 @@ export default function QuizSetCreator({
   }, []);
 
   const setCorrectIndex = useCallback((qIndex: number, correctIndex: number) => {
-    setQuestions((prev) =>
-      prev.map((q, i) => (i === qIndex ? { ...q, correctIndex } : q))
-    );
+    setQuestions((prev) => prev.map((q, i) => (i === qIndex ? { ...q, correctIndex } : q)));
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -332,9 +328,7 @@ export default function QuizSetCreator({
                             ? '2px solid #8c52ff'
                             : '2px solid rgba(140,82,255,0.25)',
                         background:
-                          q.correctIndex === oIndex
-                            ? 'rgba(140,82,255,0.3)'
-                            : 'transparent',
+                          q.correctIndex === oIndex ? 'rgba(140,82,255,0.3)' : 'transparent',
                         cursor: 'pointer',
                         flexShrink: 0,
                         display: 'flex',

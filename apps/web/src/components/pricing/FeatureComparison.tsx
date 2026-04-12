@@ -20,11 +20,29 @@ const COMPARISON_DATA: FeatureCategory[] = [
   {
     category: 'AI Features',
     features: [
-      { name: 'AI Flashcard Sets', icon: 'auto_awesome', free: '1/mo', plus: '4/mo', pro: 'Unlimited*' },
-      { name: 'AI Presentations', icon: 'slideshow', free: '1/mo', plus: '3/mo', pro: 'Unlimited*' },
+      {
+        name: 'AI Flashcard Sets',
+        icon: 'auto_awesome',
+        free: '1/mo',
+        plus: '4/mo',
+        pro: 'Unlimited*',
+      },
+      {
+        name: 'AI Presentations',
+        icon: 'slideshow',
+        free: '1/mo',
+        plus: '3/mo',
+        pro: 'Unlimited*',
+      },
       { name: 'AI Study Plans', icon: 'school', free: '2/mo', plus: '4/mo', pro: 'Unlimited*' },
       { name: 'AI Quizzes', icon: 'quiz', free: '2/mo', plus: '4/mo', pro: 'Unlimited*' },
-      { name: 'Mage Chat Messages', icon: 'forum', free: '50/mo', plus: '100/mo', pro: 'Unlimited*' },
+      {
+        name: 'Mage Chat Messages',
+        icon: 'forum',
+        free: '50/mo',
+        plus: '100/mo',
+        pro: 'Unlimited*',
+      },
       { name: 'Inline AI Editing', icon: 'auto_fix', free: '—', plus: '—', pro: 'Unlimited*' },
       { name: 'And many more...', icon: 'more_horiz', free: '✓', plus: '✓', pro: '✓' },
     ],
@@ -89,9 +107,7 @@ function CellValue({ value, isPro }: { value: string; isPro?: boolean }) {
     );
   }
   if (value === '—') {
-    return (
-      <span style={{ color: 'var(--outline-variant)', fontSize: 14 }}>—</span>
-    );
+    return <span style={{ color: 'var(--outline-variant)', fontSize: 14 }}>—</span>;
   }
   return <span style={{ fontSize: 13, color: 'var(--on-surface-variant)' }}>{value}</span>;
 }
@@ -110,7 +126,8 @@ export default function FeatureComparison() {
         margin: '0 auto',
         opacity: isRevealed ? 1 : 0,
         transform: isRevealed ? 'translateY(0)' : 'translateY(24px)',
-        transition: 'opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1)',
+        transition:
+          'opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1)',
       }}
     >
       <h2
@@ -166,8 +183,7 @@ export default function FeatureComparison() {
                           ? 'var(--primary)'
                           : 'var(--on-surface-variant)',
                     borderBottom: '1px solid rgba(85,85,120,0.15)',
-                    background:
-                      tier === 'Pro' ? 'rgba(255,222,89,0.03)' : 'transparent',
+                    background: tier === 'Pro' ? 'rgba(255,222,89,0.03)' : 'transparent',
                   }}
                 >
                   {tier}
@@ -198,10 +214,7 @@ export default function FeatureComparison() {
                     key={`${catIdx}-${rowIdx}`}
                     className="comparison-row"
                     style={{
-                      background:
-                        rowIdx % 2 === 1
-                          ? 'rgba(33, 33, 62,0.3)'
-                          : 'transparent',
+                      background: rowIdx % 2 === 1 ? 'rgba(33, 33, 62,0.3)' : 'transparent',
                       transition: 'background 0.2s',
                     }}
                   >
@@ -260,9 +273,7 @@ export default function FeatureComparison() {
             }}
           >
             <button
-              onClick={() =>
-                setExpandedMobile(expandedMobile === catIdx ? -1 : catIdx)
-              }
+              onClick={() => setExpandedMobile(expandedMobile === catIdx ? -1 : catIdx)}
               style={{
                 width: '100%',
                 display: 'flex',
@@ -284,12 +295,8 @@ export default function FeatureComparison() {
                 style={{
                   fontSize: 22,
                   color: 'var(--outline)',
-                  transform:
-                    expandedMobile === catIdx
-                      ? 'rotate(180deg)'
-                      : 'rotate(0)',
-                  transition:
-                    'transform 0.35s cubic-bezier(0.22,1,0.36,1)',
+                  transform: expandedMobile === catIdx ? 'rotate(180deg)' : 'rotate(0)',
+                  transition: 'transform 0.35s cubic-bezier(0.22,1,0.36,1)',
                 }}
               >
                 expand_more
@@ -298,10 +305,8 @@ export default function FeatureComparison() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateRows:
-                  expandedMobile === catIdx ? '1fr' : '0fr',
-                transition:
-                  'grid-template-rows 0.4s cubic-bezier(0.22,1,0.36,1)',
+                gridTemplateRows: expandedMobile === catIdx ? '1fr' : '0fr',
+                transition: 'grid-template-rows 0.4s cubic-bezier(0.22,1,0.36,1)',
               }}
             >
               <div style={{ overflow: 'hidden' }}>
@@ -379,14 +384,13 @@ export default function FeatureComparison() {
                             style={{
                               fontSize: 13,
                               fontWeight: 700,
-                              color:
-                                item.value.startsWith('Unlimited')
-                                  ? 'var(--tertiary-container)'
-                                  : item.value === '✓'
-                                    ? 'var(--primary)'
-                                    : item.value === '—'
-                                      ? 'var(--outline-variant)'
-                                      : 'var(--on-surface)',
+                              color: item.value.startsWith('Unlimited')
+                                ? 'var(--tertiary-container)'
+                                : item.value === '✓'
+                                  ? 'var(--primary)'
+                                  : item.value === '—'
+                                    ? 'var(--outline-variant)'
+                                    : 'var(--on-surface)',
                             }}
                           >
                             {item.value.startsWith('Unlimited') ? '∞*' : item.value}

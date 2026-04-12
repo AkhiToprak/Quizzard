@@ -188,15 +188,16 @@ export default function AvatarEditor({ open, onClose, onSaved }: AvatarEditorPro
     onClose();
   };
 
-  if (!open) return (
-    <input
-      ref={fileInputRef}
-      type="file"
-      accept="image/png,image/jpeg,image/webp"
-      style={{ display: 'none' }}
-      onChange={handleFileSelect}
-    />
-  );
+  if (!open)
+    return (
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        style={{ display: 'none' }}
+        onChange={handleFileSelect}
+      />
+    );
 
   return (
     <>
@@ -281,9 +282,7 @@ export default function AvatarEditor({ open, onClose, onSaved }: AvatarEditorPro
               </span>
             </div>
 
-            {error && (
-              <p style={{ color: '#ff6b6b', fontSize: '13px', margin: 0 }}>{error}</p>
-            )}
+            {error && <p style={{ color: '#ff6b6b', fontSize: '13px', margin: 0 }}>{error}</p>}
 
             {/* Action buttons */}
             <div style={{ display: 'flex', gap: '12px', width: '100%' }}>

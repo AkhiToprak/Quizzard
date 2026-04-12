@@ -177,12 +177,12 @@ body {
 *,
 *::before,
 *::after {
-  scrollbar-width: none;           /* Firefox */
-  -ms-overflow-style: none;        /* IE / Edge */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
 }
 
 *::-webkit-scrollbar {
-  display: none;                   /* Chrome, Safari, Opera */
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* ─── Material Symbols ────────────────────────────────────────────────── */

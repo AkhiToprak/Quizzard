@@ -585,8 +585,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
                   msg.role === 'assistant' &&
                   (msg.content.includes('[mindmap_start:') ||
                     msg.content.includes('[presentation_start:'))
-                    ? isPhone ? '100%' : '90%'
-                    : isPhone ? '88%' : '70%',
+                    ? isPhone
+                      ? '100%'
+                      : '90%'
+                    : isPhone
+                      ? '88%'
+                      : '70%',
                 padding: isPhone ? '10px 12px' : '12px 16px',
                 borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                 background:

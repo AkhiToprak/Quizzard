@@ -398,7 +398,14 @@ export default function StudyPlanView({ notebookId, planId, initialData }: Study
               borderRadius: '12px',
             }}
           >
-            <div style={{ display: 'flex', flexWrap: isPhone ? 'wrap' : undefined, gap: '10px', marginBottom: '10px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: isPhone ? 'wrap' : undefined,
+                gap: '10px',
+                marginBottom: '10px',
+              }}
+            >
               <input
                 value={newPhaseTitle}
                 onChange={(e) => setNewPhaseTitle(e.target.value)}

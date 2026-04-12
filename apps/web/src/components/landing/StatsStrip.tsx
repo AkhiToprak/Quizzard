@@ -93,10 +93,7 @@ function ClaimBlock({ claim }: { claim: Claim }) {
           boxShadow: `0 0 28px ${claim.accent}22`,
         }}
       >
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: 28, color: claim.accent }}
-        >
+        <span className="material-symbols-outlined" style={{ fontSize: 28, color: claim.accent }}>
           {claim.icon}
         </span>
       </div>

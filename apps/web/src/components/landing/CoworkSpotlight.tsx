@@ -8,8 +8,7 @@ export default function CoworkSpotlight() {
       style={{
         position: 'relative',
         padding: '128px 32px',
-        background:
-          'linear-gradient(180deg, #15142e 0%, #191736 50%, #15142e 100%)',
+        background: 'linear-gradient(180deg, #15142e 0%, #191736 50%, #15142e 100%)',
         overflow: 'hidden',
       }}
     >
@@ -23,8 +22,7 @@ export default function CoworkSpotlight() {
           width: 640,
           height: 480,
           borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(81, 112, 255, 0.15) 0%, transparent 65%)',
+          background: 'radial-gradient(circle, rgba(81, 112, 255, 0.15) 0%, transparent 65%)',
           pointerEvents: 'none',
         }}
       />
@@ -42,7 +40,14 @@ export default function CoworkSpotlight() {
         className="cowork-grid"
       >
         {/* LEFT — mockup */}
-        <div style={{ position: 'relative', minWidth: 0, overflow: 'hidden', borderRadius: 'var(--radius-xl)' }}>
+        <div
+          style={{
+            position: 'relative',
+            minWidth: 0,
+            overflow: 'hidden',
+            borderRadius: 'var(--radius-xl)',
+          }}
+        >
           <MockFrame
             image="/screenshots/live-session_screenshot.png"
             alt="Notemage live co-working session"
@@ -51,7 +56,6 @@ export default function CoworkSpotlight() {
             accent="rgba(81, 112, 255, 0.35)"
             aspectRatio="3024 / 1668"
           />
-
         </div>
 
         {/* RIGHT — copy */}
@@ -105,8 +109,7 @@ export default function CoworkSpotlight() {
             Study alone.{' '}
             <span
               style={{
-                background:
-                  'linear-gradient(135deg, #b9c3ff 0%, #5170ff 100%)',
+                background: 'linear-gradient(135deg, #b9c3ff 0%, #5170ff 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -127,9 +130,8 @@ export default function CoworkSpotlight() {
               fontFamily: 'var(--font-sans)',
             }}
           >
-            Host a session, share a link, and watch your friends move
-            through the notebook with you. Live cursors, page locks, and
-            side chat — all in the same notebook. Available today.
+            Host a session, share a link, and watch your friends move through the notebook with you.
+            Live cursors, page locks, and side chat — all in the same notebook. Available today.
           </p>
 
           <ul

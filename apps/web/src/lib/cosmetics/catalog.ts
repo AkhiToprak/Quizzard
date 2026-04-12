@@ -17,12 +17,7 @@
  *   3. No migration needed. No API change needed.
  */
 
-export type CosmeticType =
-  | 'title'
-  | 'nameFont'
-  | 'nameColor'
-  | 'frame'
-  | 'background';
+export type CosmeticType = 'title' | 'nameFont' | 'nameColor' | 'frame' | 'background';
 
 interface BaseCosmetic {
   id: string;

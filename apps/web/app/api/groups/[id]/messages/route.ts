@@ -175,7 +175,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
               })),
             });
           }
-        } catch { /* notification failure should not break message sending */ }
+        } catch {
+          /* notification failure should not break message sending */
+        }
       })();
     }
 

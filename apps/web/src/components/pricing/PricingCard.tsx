@@ -122,12 +122,11 @@ export default function PricingCard({
     left: 0,
     right: 0,
     height: 1,
-    background:
-      isPro
-        ? 'linear-gradient(90deg, transparent, rgba(255,222,89,0.4), transparent)'
-        : isPopular
-          ? 'linear-gradient(90deg, transparent, rgba(174,137,255,0.3), transparent)'
-          : 'linear-gradient(90deg, transparent, rgba(136,136,168,0.15), transparent)',
+    background: isPro
+      ? 'linear-gradient(90deg, transparent, rgba(255,222,89,0.4), transparent)'
+      : isPopular
+        ? 'linear-gradient(90deg, transparent, rgba(174,137,255,0.3), transparent)'
+        : 'linear-gradient(90deg, transparent, rgba(136,136,168,0.15), transparent)',
     opacity: hovered || selected ? 1 : 0,
     transition: 'opacity 0.35s cubic-bezier(0.22,1,0.36,1)',
   };
@@ -161,7 +160,6 @@ export default function PricingCard({
           Most Popular
         </div>
       )}
-
 
       {/* Tier name */}
       <h3
@@ -217,81 +215,74 @@ export default function PricingCard({
           flex: 1,
         }}
       >
-        {(Object.entries(config.limits) as [FeatureType, number][]).map(
-          ([feature, limit], idx) => (
-            <li
-              key={feature}
+        {(Object.entries(config.limits) as [FeatureType, number][]).map(([feature, limit], idx) => (
+          <li
+            key={feature}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              fontSize: 14,
+              color: 'var(--on-surface-variant)',
+              lineHeight: 1.4,
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                fontSize: 14,
-                color: 'var(--on-surface-variant)',
-                lineHeight: 1.4,
+                fontSize: 18,
+                color: limit === 0 ? 'var(--outline)' : accent.text,
+                fontVariationSettings: "'FILL' 1",
+                flexShrink: 0,
+                opacity: isRevealed ? 1 : 0,
+                transform: isRevealed ? 'scale(1)' : 'scale(0.5)',
+                transition: `opacity 0.4s cubic-bezier(0.22,1,0.36,1), transform 0.4s cubic-bezier(0.22,1,0.36,1)`,
+                transitionDelay: `${delay + 200 + idx * 50}ms`,
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 18,
-                  color:
-                    limit === 0 ? 'var(--outline)' : accent.text,
-                  fontVariationSettings: "'FILL' 1",
-                  flexShrink: 0,
-                  opacity: isRevealed ? 1 : 0,
-                  transform: isRevealed ? 'scale(1)' : 'scale(0.5)',
-                  transition: `opacity 0.4s cubic-bezier(0.22,1,0.36,1), transform 0.4s cubic-bezier(0.22,1,0.36,1)`,
-                  transitionDelay: `${delay + 200 + idx * 50}ms`,
-                }}
-              >
-                {limit === -1
-                  ? 'all_inclusive'
-                  : limit === 0
-                    ? 'lock'
-                    : 'check_circle'}
-              </span>
-              <span
-                style={
-                  limit === 0
-                    ? {
-                        color: 'var(--outline)',
-                        textDecoration: 'line-through',
-                      }
-                    : undefined
-                }
-              >
-                {limit === -1 ? (
-                  <strong style={{ color: accent.text }}>Unlimited*</strong>
-                ) : limit === 0 ? null : (
-                  limit
-                )}
-                {limit !== 0 && ' '}
-                {FEATURE_LABELS[feature]}
-                {limit > 0 && <span style={{ color: 'var(--outline)' }}>/mo</span>}
-                {limit === 0 && (
-                  <span
-                    style={{
-                      marginLeft: 6,
-                      padding: '1px 6px',
-                      borderRadius: 999,
-                      background: 'rgba(255, 222, 89, 0.14)',
-                      border: '1px solid rgba(255, 222, 89, 0.32)',
-                      color: '#ffde59',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      verticalAlign: 'middle',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Pro
-                  </span>
-                )}
-              </span>
-            </li>
-          )
-        )}
+              {limit === -1 ? 'all_inclusive' : limit === 0 ? 'lock' : 'check_circle'}
+            </span>
+            <span
+              style={
+                limit === 0
+                  ? {
+                      color: 'var(--outline)',
+                      textDecoration: 'line-through',
+                    }
+                  : undefined
+              }
+            >
+              {limit === -1 ? (
+                <strong style={{ color: accent.text }}>Unlimited*</strong>
+              ) : limit === 0 ? null : (
+                limit
+              )}
+              {limit !== 0 && ' '}
+              {FEATURE_LABELS[feature]}
+              {limit > 0 && <span style={{ color: 'var(--outline)' }}>/mo</span>}
+              {limit === 0 && (
+                <span
+                  style={{
+                    marginLeft: 6,
+                    padding: '1px 6px',
+                    borderRadius: 999,
+                    background: 'rgba(255, 222, 89, 0.14)',
+                    border: '1px solid rgba(255, 222, 89, 0.32)',
+                    color: '#ffde59',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    verticalAlign: 'middle',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Pro
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
       </ul>
 
       {/* Pro footnote */}
@@ -305,7 +296,8 @@ export default function PricingCard({
             fontStyle: 'italic',
           }}
         >
-          *Fair use (~1M tokens/mo). Every AI request costs us, so this prevents abuse — but it&apos;s way more than you&apos;d ever need.
+          *Fair use (~1M tokens/mo). Every AI request costs us, so this prevents abuse — but
+          it&apos;s way more than you&apos;d ever need.
         </p>
       )}
 
@@ -331,15 +323,8 @@ export default function PricingCard({
               : isPopular
                 ? 'linear-gradient(135deg, var(--primary), var(--primary-container))'
                 : 'var(--surface-container-high)',
-            color: isPro
-              ? '#22223a'
-              : isPopular
-                ? '#fff'
-                : 'var(--on-surface-variant)',
-            border:
-              tier === 'FREE'
-                ? '1px solid rgba(136,136,168,0.15)'
-                : 'none',
+            color: isPro ? '#22223a' : isPopular ? '#fff' : 'var(--on-surface-variant)',
+            border: tier === 'FREE' ? '1px solid rgba(136,136,168,0.15)' : 'none',
             transform: ctaHovered ? 'translateY(-2px)' : 'translateY(0)',
             boxShadow: ctaHovered
               ? isPro
@@ -369,9 +354,7 @@ export default function PricingCard({
             fontWeight: 600,
             fontSize: 14,
             color: selected ? accent.text : 'var(--outline)',
-            border: selected
-              ? `2px solid ${accent.text}`
-              : '1px solid rgba(136,136,168,0.2)',
+            border: selected ? `2px solid ${accent.text}` : '1px solid rgba(136,136,168,0.2)',
             background: selected ? accent.bg : 'transparent',
             transition:
               'transform 0.2s cubic-bezier(0.22,1,0.36,1), border-color 0.2s, color 0.2s, background 0.2s',

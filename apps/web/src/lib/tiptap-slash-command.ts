@@ -97,12 +97,7 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
               }
 
               // Read the paragraph text from start to cursor.
-              const textBefore = parent.textBetween(
-                0,
-                $from.parentOffset,
-                undefined,
-                '\ufffc'
-              );
+              const textBefore = parent.textBetween(0, $from.parentOffset, undefined, '\ufffc');
 
               // Match: starts with `/`, followed by zero or more word chars,
               // and that's the WHOLE text in the paragraph (so we don't fire
@@ -127,12 +122,7 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
               const clientRect = () => {
                 try {
                   const coords = view.coordsAtPos(range.from);
-                  return new DOMRect(
-                    coords.left,
-                    coords.top,
-                    0,
-                    coords.bottom - coords.top
-                  );
+                  return new DOMRect(coords.left, coords.top, 0, coords.bottom - coords.top);
                 } catch {
                   return null;
                 }

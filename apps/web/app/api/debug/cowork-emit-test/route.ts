@@ -25,12 +25,9 @@ export async function GET(request: NextRequest) {
 
   const sessionIdParam = request.nextUrl.searchParams.get('session');
   const roomParam = request.nextUrl.searchParams.get('room');
-  const room = sessionIdParam
-    ? `session:${sessionIdParam}`
-    : roomParam || 'session:debug-test';
+  const room = sessionIdParam ? `session:${sessionIdParam}` : roomParam || 'session:debug-test';
 
-  const WS_INTERNAL_URL =
-    process.env.WS_INTERNAL_URL || 'http://localhost:3002';
+  const WS_INTERNAL_URL = process.env.WS_INTERNAL_URL || 'http://localhost:3002';
   const WS_INTERNAL_SECRET = process.env.WS_INTERNAL_SECRET || '';
 
   const normalizedUrl = WS_INTERNAL_URL.replace(/\/+$/, ''); // strip trailing slashes
@@ -125,7 +122,7 @@ export async function GET(request: NextRequest) {
             : !res.ok
               ? `Unexpected status ${res.status}. Check the ws-server runtime logs.`
               : probingRealSession && listeners === 0
-                ? 'Broadcast delivered BUT 0 listeners in the room. This means nobody\'s socket is currently in that session room on the ws-server. The host\'s `cowork:join` emit is either not reaching the server or the server is not adding the socket to the room. Check the host\'s browser console for a `[cowork-socket] emitting cowork:join for session ...` log and the ws-server Runtime Logs for the matching join event.'
+                ? "Broadcast delivered BUT 0 listeners in the room. This means nobody's socket is currently in that session room on the ws-server. The host's `cowork:join` emit is either not reaching the server or the server is not adding the socket to the room. Check the host's browser console for a `[cowork-socket] emitting cowork:join for session ...` log and the ws-server Runtime Logs for the matching join event."
                 : probingRealSession && listeners && listeners > 0
                   ? `Broadcast delivered to ${listeners} listener(s). If the host is one of those listeners, they should now see a \`recv debug:ping\` line in their browser console. If they do NOT, there is a client-side subscription bug (unlikely). If they DO, the real-time chain works end-to-end and the original bug is elsewhere.`
                   : 'Broadcast delivered. 0 listeners is expected for the fake "session:debug-test" room.',

@@ -1,11 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
-import {
-  successResponse,
-  unauthorizedResponse,
-  internalErrorResponse,
-} from '@/lib/api-response';
+import { successResponse, unauthorizedResponse, internalErrorResponse } from '@/lib/api-response';
 
 // GET /api/groups/invitations — list my pending invitations across all groups
 export async function GET(request: NextRequest) {
@@ -26,7 +22,15 @@ export async function GET(request: NextRequest) {
           },
         },
         inviter: {
-          select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+          },
         },
       },
       orderBy: { createdAt: 'desc' },

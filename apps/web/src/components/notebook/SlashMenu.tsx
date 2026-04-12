@@ -47,8 +47,7 @@ const ITEMS: MenuItem[] = [
     icon: 'notes',
     group: 'Basic',
     keywords: ['text', 'paragraph', 'p', 'plain'],
-    run: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setParagraph().run(),
+    run: (editor, range) => editor.chain().focus().deleteRange(range).setParagraph().run(),
   },
   {
     id: 'h1',
@@ -58,12 +57,7 @@ const ITEMS: MenuItem[] = [
     group: 'Basic',
     keywords: ['heading', 'h1', 'title', 'big', 'large'],
     run: (editor, range) =>
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setToggleHeading({ level: 1 })
-        .run(),
+      editor.chain().focus().deleteRange(range).setToggleHeading({ level: 1 }).run(),
   },
   {
     id: 'h2',
@@ -73,12 +67,7 @@ const ITEMS: MenuItem[] = [
     group: 'Basic',
     keywords: ['heading', 'h2', 'subtitle', 'medium'],
     run: (editor, range) =>
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setToggleHeading({ level: 2 })
-        .run(),
+      editor.chain().focus().deleteRange(range).setToggleHeading({ level: 2 }).run(),
   },
   {
     id: 'h3',
@@ -88,12 +77,7 @@ const ITEMS: MenuItem[] = [
     group: 'Basic',
     keywords: ['heading', 'h3', 'small'],
     run: (editor, range) =>
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setToggleHeading({ level: 3 })
-        .run(),
+      editor.chain().focus().deleteRange(range).setToggleHeading({ level: 3 }).run(),
   },
   {
     id: 'bullet-list',
@@ -102,8 +86,7 @@ const ITEMS: MenuItem[] = [
     icon: 'format_list_bulleted',
     group: 'Lists',
     keywords: ['bullet', 'list', 'unordered', 'ul'],
-    run: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleBulletList().run(),
+    run: (editor, range) => editor.chain().focus().deleteRange(range).toggleBulletList().run(),
   },
   {
     id: 'ordered-list',
@@ -112,8 +95,7 @@ const ITEMS: MenuItem[] = [
     icon: 'format_list_numbered',
     group: 'Lists',
     keywords: ['number', 'numbered', 'ordered', 'list', 'ol'],
-    run: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
+    run: (editor, range) => editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
   },
   // ── Blocks ────────────────────────────────────────────────
   {
@@ -123,8 +105,7 @@ const ITEMS: MenuItem[] = [
     icon: 'format_quote',
     group: 'Blocks',
     keywords: ['quote', 'blockquote', 'citation'],
-    run: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
+    run: (editor, range) => editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
   },
   {
     id: 'codeblock',
@@ -133,8 +114,7 @@ const ITEMS: MenuItem[] = [
     icon: 'code',
     group: 'Blocks',
     keywords: ['code', 'codeblock', 'snippet', 'pre'],
-    run: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
+    run: (editor, range) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
   },
   {
     id: 'hr',
@@ -143,8 +123,7 @@ const ITEMS: MenuItem[] = [
     icon: 'horizontal_rule',
     group: 'Blocks',
     keywords: ['divider', 'hr', 'line', 'separator', 'rule'],
-    run: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
+    run: (editor, range) => editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
   },
   {
     id: 'table',
@@ -170,12 +149,7 @@ const ITEMS: MenuItem[] = [
     group: 'Callouts',
     keywords: ['callout', 'info', 'note', 'blue'],
     run: (editor, range) =>
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setCallout({ calloutType: 'info' })
-        .run(),
+      editor.chain().focus().deleteRange(range).setCallout({ calloutType: 'info' }).run(),
   },
   {
     id: 'callout-warning',
@@ -185,12 +159,7 @@ const ITEMS: MenuItem[] = [
     group: 'Callouts',
     keywords: ['callout', 'warning', 'caution', 'orange'],
     run: (editor, range) =>
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setCallout({ calloutType: 'warning' })
-        .run(),
+      editor.chain().focus().deleteRange(range).setCallout({ calloutType: 'warning' }).run(),
   },
   {
     id: 'callout-success',
@@ -200,12 +169,7 @@ const ITEMS: MenuItem[] = [
     group: 'Callouts',
     keywords: ['callout', 'success', 'done', 'green'],
     run: (editor, range) =>
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setCallout({ calloutType: 'success' })
-        .run(),
+      editor.chain().focus().deleteRange(range).setCallout({ calloutType: 'success' }).run(),
   },
   {
     id: 'callout-tip',
@@ -215,12 +179,7 @@ const ITEMS: MenuItem[] = [
     group: 'Callouts',
     keywords: ['callout', 'tip', 'hint', 'purple'],
     run: (editor, range) =>
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setCallout({ calloutType: 'tip' })
-        .run(),
+      editor.chain().focus().deleteRange(range).setCallout({ calloutType: 'tip' }).run(),
   },
 ];
 
@@ -232,9 +191,7 @@ interface SlashMenuProps {
 export default function SlashMenu({ state, editor }: SlashMenuProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [dismissedQuery, setDismissedQuery] = useState<string | null>(null);
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(
-    null
-  );
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const itemsRef = useRef<Array<HTMLButtonElement | null>>([]);
 
   const filtered = useMemo(() => {
@@ -283,8 +240,7 @@ export default function SlashMenu({ state, editor }: SlashMenuProps) {
   }, [state.isOpen, state.clientRect, state.range?.from, state.range?.to]);
 
   const isDismissed = dismissedQuery !== null && dismissedQuery === state.query;
-  const visible =
-    state.isOpen && !isDismissed && filtered.length > 0 && editor !== null;
+  const visible = state.isOpen && !isDismissed && filtered.length > 0 && editor !== null;
 
   const runItem = useCallback(
     (item: MenuItem) => {
@@ -330,8 +286,7 @@ export default function SlashMenu({ state, editor }: SlashMenuProps) {
     };
 
     document.addEventListener('keydown', onKeyDown, { capture: true });
-    return () =>
-      document.removeEventListener('keydown', onKeyDown, { capture: true });
+    return () => document.removeEventListener('keydown', onKeyDown, { capture: true });
   }, [visible, filtered, activeIndex, runItem, state.query]);
 
   // Scroll the active item into view as user navigates
@@ -344,8 +299,7 @@ export default function SlashMenu({ state, editor }: SlashMenuProps) {
   if (!visible || !position) return null;
 
   // Group items for header rendering
-  const groups: Array<{ name: string; items: Array<{ item: MenuItem; index: number }> }> =
-    [];
+  const groups: Array<{ name: string; items: Array<{ item: MenuItem; index: number }> }> = [];
   filtered.forEach((item, index) => {
     let group = groups.find((g) => g.name === item.group);
     if (!group) {
@@ -358,14 +312,8 @@ export default function SlashMenu({ state, editor }: SlashMenuProps) {
   // Clamp position to the viewport
   const MENU_WIDTH = 280;
   const MENU_MAX_HEIGHT = 360;
-  const left = Math.min(
-    position.left,
-    Math.max(8, window.innerWidth - MENU_WIDTH - 8)
-  );
-  const top = Math.min(
-    position.top,
-    Math.max(8, window.innerHeight - MENU_MAX_HEIGHT - 8)
-  );
+  const left = Math.min(position.left, Math.max(8, window.innerWidth - MENU_WIDTH - 8));
+  const top = Math.min(position.top, Math.max(8, window.innerHeight - MENU_MAX_HEIGHT - 8));
 
   const wrapperStyle: CSSProperties = {
     position: 'fixed',
@@ -425,9 +373,7 @@ export default function SlashMenu({ state, editor }: SlashMenuProps) {
                   width: '100%',
                   padding: '8px 14px',
                   border: 'none',
-                  background: isActive
-                    ? 'rgba(140, 82, 255, 0.18)'
-                    : 'transparent',
+                  background: isActive ? 'rgba(140, 82, 255, 0.18)' : 'transparent',
                   color: 'var(--on-surface)',
                   textAlign: 'left',
                   cursor: 'pointer',
@@ -441,9 +387,7 @@ export default function SlashMenu({ state, editor }: SlashMenuProps) {
                     height: 32,
                     flexShrink: 0,
                     borderRadius: 8,
-                    background: isActive
-                      ? 'rgba(174, 137, 255, 0.22)'
-                      : 'rgba(174, 137, 255, 0.1)',
+                    background: isActive ? 'rgba(174, 137, 255, 0.22)' : 'rgba(174, 137, 255, 0.1)',
                     border: '1px solid rgba(174, 137, 255, 0.22)',
                     display: 'flex',
                     alignItems: 'center',

@@ -70,16 +70,38 @@ function MessageStatusIcon({ status, isOwn }: { status?: string; isOwn: boolean 
   const color = status === 'read' ? COLORS.primary : `${COLORS.textMuted}99`;
   if (status === 'sending') {
     return (
-      <span className="material-symbols-outlined" style={{ fontSize: 14, color, marginLeft: 4, verticalAlign: 'middle' }}>
+      <span
+        className="material-symbols-outlined"
+        style={{ fontSize: 14, color, marginLeft: 4, verticalAlign: 'middle' }}
+      >
         check
       </span>
     );
   }
   // delivered or read: double check
   return (
-    <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: 4, width: 18, height: 14 }}>
-      <span className="material-symbols-outlined" style={{ fontSize: 14, color, position: 'absolute', left: 0 }}>check</span>
-      <span className="material-symbols-outlined" style={{ fontSize: 14, color, position: 'absolute', left: 5 }}>check</span>
+    <span
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        marginLeft: 4,
+        width: 18,
+        height: 14,
+      }}
+    >
+      <span
+        className="material-symbols-outlined"
+        style={{ fontSize: 14, color, position: 'absolute', left: 0 }}
+      >
+        check
+      </span>
+      <span
+        className="material-symbols-outlined"
+        style={{ fontSize: 14, color, position: 'absolute', left: 5 }}
+      >
+        check
+      </span>
     </span>
   );
 }
@@ -92,7 +114,11 @@ function ContentTypeIcon({ type }: { type: string }) {
     flashcard_set: 'style',
     quiz_set: 'quiz',
   };
-  return <span className="material-symbols-outlined" style={{ fontSize: 24, color: COLORS.primary }}>{icons[type] || 'attachment'}</span>;
+  return (
+    <span className="material-symbols-outlined" style={{ fontSize: 24, color: COLORS.primary }}>
+      {icons[type] || 'attachment'}
+    </span>
+  );
 }
 
 export default function GroupChatMessage({ message, groupId, currentUserId, isOwn }: Props) {
@@ -104,11 +130,18 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
   if (message.type === 'system') {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
-        <span style={{
-          fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
-          color: `${COLORS.textMuted}99`, background: `${COLORS.elevated}80`,
-          padding: '6px 16px', borderRadius: 9999,
-        }}>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            color: `${COLORS.textMuted}99`,
+            background: `${COLORS.elevated}80`,
+            padding: '6px 16px',
+            borderRadius: 9999,
+          }}
+        >
           {message.content}
         </span>
       </div>
@@ -120,10 +153,7 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
   // host's identity stays visible, matching how content_share is laid out.
   if (message.type === 'cowork_invite' && message.metadata) {
     const payload = message.metadata as CoworkInvitePayload;
-    const hostName =
-      message.sender?.name ||
-      message.sender?.username ||
-      'A member';
+    const hostName = message.sender?.name || message.sender?.username || 'A member';
     return (
       <div
         style={{
@@ -136,9 +166,7 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
           flexDirection: isOwn ? 'row-reverse' : 'row',
         }}
       >
-        {message.sender && (
-          <UserAvatar user={message.sender} size={32} radius={12} />
-        )}
+        {message.sender && <UserAvatar user={message.sender} size={32} radius={12} />}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
@@ -187,7 +215,9 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
       if (!sid && meta.contentType && meta.contentId) {
         setResolving(true);
         try {
-          const listRes = await fetch(`/api/groups/${groupId}/shared?contentType=${meta.contentType}&limit=50`);
+          const listRes = await fetch(
+            `/api/groups/${groupId}/shared?contentType=${meta.contentType}&limit=50`
+          );
           if (listRes.ok) {
             const listJson = await listRes.json();
             const match = (listJson.data?.items || []).find(
@@ -195,7 +225,9 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
             );
             if (match) sid = match.id;
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         setResolving(false);
       }
       if (!sid) return;
@@ -218,10 +250,34 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
     }
 
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexDirection: isOwn ? 'row-reverse' : 'row', maxWidth: '70%', marginLeft: isOwn ? 'auto' : 0, marginRight: isOwn ? 0 : 'auto' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 16,
+          flexDirection: isOwn ? 'row-reverse' : 'row',
+          maxWidth: '70%',
+          marginLeft: isOwn ? 'auto' : 0,
+          marginRight: isOwn ? 0 : 'auto',
+        }}
+      >
         {message.sender && <UserAvatar user={message.sender} size={40} radius={12} />}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: isOwn ? 'flex-end' : 'flex-start' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexDirection: isOwn ? 'row-reverse' : 'row' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            alignItems: isOwn ? 'flex-end' : 'flex-start',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 12,
+              flexDirection: isOwn ? 'row-reverse' : 'row',
+            }}
+          >
             {isOwn ? (
               <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.yellow }}>You</span>
             ) : (
@@ -231,24 +287,61 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
                 style={{ fontSize: 13, fontWeight: 700, color: COLORS.primary }}
               />
             )}
-            <span style={{ fontSize: 10, fontWeight: 500, color: `${COLORS.textMuted}b3`, display: 'inline-flex', alignItems: 'center' }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 500,
+                color: `${COLORS.textMuted}b3`,
+                display: 'inline-flex',
+                alignItems: 'center',
+              }}
+            >
               {timeAgo(message.createdAt)}
               <MessageStatusIcon status={message.status} isOwn={isOwn} />
             </span>
           </div>
-          <div style={{
-            background: COLORS.elevated, border: `1px solid ${COLORS.border}33`,
-            padding: 16, borderRadius: 16, minWidth: 240, maxWidth: 340,
-            boxSizing: 'border-box',
-          }}>
+          <div
+            style={{
+              background: COLORS.elevated,
+              border: `1px solid ${COLORS.border}33`,
+              padding: 16,
+              borderRadius: 16,
+              minWidth: 240,
+              maxWidth: 340,
+              boxSizing: 'border-box',
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 44, height: 44, background: `${COLORS.primary}1a`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  background: `${COLORS.primary}1a`,
+                  borderRadius: 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
                 <ContentTypeIcon type={meta.contentType || ''} />
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: COLORS.textPrimary, lineHeight: 1.3, wordBreak: 'break-word' }}>{meta.contentTitle || meta.fileName || 'Shared content'}</h4>
+                <h4
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: COLORS.textPrimary,
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {meta.contentTitle || meta.fileName || 'Shared content'}
+                </h4>
                 {subtextParts.length > 0 && (
-                  <p style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 4 }}>{subtextParts.join(' · ')}</p>
+                  <p style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 4 }}>
+                    {subtextParts.join(' · ')}
+                  </p>
                 )}
               </div>
             </div>
@@ -256,18 +349,34 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
               onClick={handleOpenSaveModal}
               disabled={saved || resolving}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                width: '100%', padding: '8px 0', borderRadius: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                width: '100%',
+                padding: '8px 0',
+                borderRadius: 10,
                 border: saved ? 'none' : `1px solid ${COLORS.border}`,
                 background: saved ? `${COLORS.primary}1a` : 'transparent',
                 color: saved ? COLORS.primary : COLORS.textSecondary,
-                fontSize: 12, fontWeight: 600,
+                fontSize: 12,
+                fontWeight: 600,
                 cursor: saved || resolving ? 'default' : 'pointer',
                 fontFamily: 'inherit',
                 transition: `background 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1), border-color 0.2s cubic-bezier(0.22,1,0.36,1)`,
               }}
-              onMouseEnter={(e) => { if (!saved && !resolving) { e.currentTarget.style.borderColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}
-              onMouseLeave={(e) => { if (!saved && !resolving) { e.currentTarget.style.borderColor = COLORS.border; e.currentTarget.style.color = COLORS.textSecondary; } }}
+              onMouseEnter={(e) => {
+                if (!saved && !resolving) {
+                  e.currentTarget.style.borderColor = COLORS.primary;
+                  e.currentTarget.style.color = COLORS.primary;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!saved && !resolving) {
+                  e.currentTarget.style.borderColor = COLORS.border;
+                  e.currentTarget.style.color = COLORS.textSecondary;
+                }
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                 {saved ? 'check_circle' : 'library_add'}
@@ -284,7 +393,10 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
             sharedId={resolvedSharedId}
             contentType={meta.contentType || ''}
             contentTitle={meta.contentTitle || meta.fileName || 'Shared content'}
-            onSaved={() => { setSaved(true); setSaveModalOpen(false); }}
+            onSaved={() => {
+              setSaved(true);
+              setSaveModalOpen(false);
+            }}
           />
         )}
       </div>
@@ -293,10 +405,34 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
 
   // Regular text message
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexDirection: isOwn ? 'row-reverse' : 'row', maxWidth: '70%', marginLeft: isOwn ? 'auto' : 0, marginRight: isOwn ? 0 : 'auto' }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 16,
+        flexDirection: isOwn ? 'row-reverse' : 'row',
+        maxWidth: '70%',
+        marginLeft: isOwn ? 'auto' : 0,
+        marginRight: isOwn ? 0 : 'auto',
+      }}
+    >
       {message.sender && <UserAvatar user={message.sender} size={40} radius={12} />}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: isOwn ? 'flex-end' : 'flex-start' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexDirection: isOwn ? 'row-reverse' : 'row' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+          alignItems: isOwn ? 'flex-end' : 'flex-start',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 12,
+            flexDirection: isOwn ? 'row-reverse' : 'row',
+          }}
+        >
           {isOwn ? (
             <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.yellow }}>You</span>
           ) : (
@@ -306,22 +442,35 @@ export default function GroupChatMessage({ message, groupId, currentUserId, isOw
               style={{ fontSize: 13, fontWeight: 700, color: COLORS.primary }}
             />
           )}
-          <span style={{ fontSize: 10, fontWeight: 500, color: `${COLORS.textMuted}b3`, display: 'inline-flex', alignItems: 'center' }}>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 500,
+              color: `${COLORS.textMuted}b3`,
+              display: 'inline-flex',
+              alignItems: 'center',
+            }}
+          >
             {timeAgo(message.createdAt)}
             <MessageStatusIcon status={message.status} isOwn={isOwn} />
           </span>
         </div>
-        <div style={{
-          background: isOwn ? `${COLORS.primary}33` : COLORS.cardBg,
-          border: isOwn ? `1px solid ${COLORS.primary}33` : 'none',
-          padding: '12px 20px',
-          borderTopLeftRadius: isOwn ? 20 : 4,
-          borderTopRightRadius: isOwn ? 4 : 20,
-          borderBottomLeftRadius: 20,
-          borderBottomRightRadius: 20,
-          lineHeight: 1.6, fontSize: 14, color: COLORS.textPrimary,
-          whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-        }}>
+        <div
+          style={{
+            background: isOwn ? `${COLORS.primary}33` : COLORS.cardBg,
+            border: isOwn ? `1px solid ${COLORS.primary}33` : 'none',
+            padding: '12px 20px',
+            borderTopLeftRadius: isOwn ? 20 : 4,
+            borderTopRightRadius: isOwn ? 4 : 20,
+            borderBottomLeftRadius: 20,
+            borderBottomRightRadius: 20,
+            lineHeight: 1.6,
+            fontSize: 14,
+            color: COLORS.textPrimary,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          }}
+        >
           {message.content}
         </div>
       </div>

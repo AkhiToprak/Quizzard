@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  COSMETICS,
-  type BackgroundCosmetic,
-} from '@/lib/cosmetics/catalog';
+import { COSMETICS, type BackgroundCosmetic } from '@/lib/cosmetics/catalog';
 
 /**
  * Renders an equipped profile background as an absolutely-positioned layer.
@@ -67,8 +64,7 @@ export function ProfileBackground({
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(17,17,38,0.18) 0%, rgba(17,17,38,0.55) 100%)',
+            background: 'linear-gradient(180deg, rgba(17,17,38,0.18) 0%, rgba(17,17,38,0.55) 100%)',
           }}
         />
       </div>
@@ -149,8 +145,7 @@ export function ProfileBackground({
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(17,17,38,0.12) 0%, rgba(17,17,38,0.58) 100%)',
+            background: 'linear-gradient(180deg, rgba(17,17,38,0.12) 0%, rgba(17,17,38,0.58) 100%)',
           }}
         />
       </div>
@@ -183,10 +178,8 @@ export function ProfileBackground({
               linear-gradient(-45deg, hsla(${hue}, 90%, 78%, 0.14) 1px, transparent 1px)
             `,
             backgroundSize: '28px 28px, 28px 28px',
-            maskImage:
-              'radial-gradient(120% 120% at 50% 30%, #000 40%, transparent 90%)',
-            WebkitMaskImage:
-              'radial-gradient(120% 120% at 50% 30%, #000 40%, transparent 90%)',
+            maskImage: 'radial-gradient(120% 120% at 50% 30%, #000 40%, transparent 90%)',
+            WebkitMaskImage: 'radial-gradient(120% 120% at 50% 30%, #000 40%, transparent 90%)',
           }}
         />
         {/* Horizon glow sweep */}
@@ -203,8 +196,7 @@ export function ProfileBackground({
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(17,17,38,0.05) 0%, rgba(17,17,38,0.5) 100%)',
+            background: 'linear-gradient(180deg, rgba(17,17,38,0.05) 0%, rgba(17,17,38,0.5) 100%)',
           }}
         />
       </div>
@@ -272,54 +264,18 @@ export function ProfileBackground({
           preserveAspectRatio="none"
           style={{ position: 'absolute', inset: 0, opacity: 0.35 }}
         >
-          <line
-            x1="22"
-            y1="32"
-            x2="44"
-            y2="52"
-            stroke="rgba(185,195,255,0.6)"
-            strokeWidth="0.15"
-          />
-          <line
-            x1="44"
-            y1="52"
-            x2="72"
-            y2="58"
-            stroke="rgba(185,195,255,0.6)"
-            strokeWidth="0.15"
-          />
-          <line
-            x1="72"
-            y1="58"
-            x2="90"
-            y2="42"
-            stroke="rgba(185,195,255,0.6)"
-            strokeWidth="0.15"
-          />
-          <line
-            x1="52"
-            y1="12"
-            x2="64"
-            y2="36"
-            stroke="rgba(185,195,255,0.6)"
-            strokeWidth="0.15"
-          />
-          <line
-            x1="64"
-            y1="36"
-            x2="44"
-            y2="52"
-            stroke="rgba(185,195,255,0.6)"
-            strokeWidth="0.15"
-          />
+          <line x1="22" y1="32" x2="44" y2="52" stroke="rgba(185,195,255,0.6)" strokeWidth="0.15" />
+          <line x1="44" y1="52" x2="72" y2="58" stroke="rgba(185,195,255,0.6)" strokeWidth="0.15" />
+          <line x1="72" y1="58" x2="90" y2="42" stroke="rgba(185,195,255,0.6)" strokeWidth="0.15" />
+          <line x1="52" y1="12" x2="64" y2="36" stroke="rgba(185,195,255,0.6)" strokeWidth="0.15" />
+          <line x1="64" y1="36" x2="44" y2="52" stroke="rgba(185,195,255,0.6)" strokeWidth="0.15" />
         </svg>
         {/* Readability falloff */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(6,6,26,0.1) 0%, rgba(6,6,26,0.55) 100%)',
+            background: 'linear-gradient(180deg, rgba(6,6,26,0.1) 0%, rgba(6,6,26,0.55) 100%)',
           }}
         />
       </div>
@@ -373,8 +329,7 @@ export function ProfileBackground({
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(17,17,38,0.15) 0%, rgba(17,17,38,0.55) 100%)',
+            background: 'linear-gradient(180deg, rgba(17,17,38,0.15) 0%, rgba(17,17,38,0.55) 100%)',
           }}
         />
       </div>

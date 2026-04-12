@@ -8,11 +8,7 @@ import { HexColorPicker, HexColorInput } from 'react-colorful';
 // `dynamic(..., { ssr: false })`. That means we can safely import Excalidraw
 // (and its compound `MainMenu` component) directly, which preserves the
 // static members like `MainMenu.DefaultItems.ClearCanvas`.
-import {
-  Excalidraw,
-  MainMenu,
-  getSceneVersion,
-} from '@excalidraw/excalidraw';
+import { Excalidraw, MainMenu, getSceneVersion } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import type {
   AppState,
@@ -60,12 +56,7 @@ interface InfiniteCanvasProps {
  */
 type BackgroundStyle = 'blank' | 'dotted' | 'lined' | 'grid';
 
-const BACKGROUND_STYLES: readonly BackgroundStyle[] = [
-  'blank',
-  'dotted',
-  'lined',
-  'grid',
-] as const;
+const BACKGROUND_STYLES: readonly BackgroundStyle[] = ['blank', 'dotted', 'lined', 'grid'] as const;
 
 type PersistedScene = {
   elements: readonly ExcalidrawElement[];
@@ -105,13 +96,10 @@ function parsePersistedAppState(raw: unknown): {
   // Ignore stale 'transparent' values — we use that only as a live marker
   // while a pattern is active; the user's real color should always be saved.
   const userBgColor =
-    typeof rawColor === 'string' && rawColor !== 'transparent'
-      ? rawColor
-      : DEFAULT_BG;
+    typeof rawColor === 'string' && rawColor !== 'transparent' ? rawColor : DEFAULT_BG;
   const rawStyle = savedAppState.backgroundStyle;
   const backgroundStyle: BackgroundStyle =
-    typeof rawStyle === 'string' &&
-    (BACKGROUND_STYLES as readonly string[]).includes(rawStyle)
+    typeof rawStyle === 'string' && (BACKGROUND_STYLES as readonly string[]).includes(rawStyle)
       ? (rawStyle as BackgroundStyle)
       : 'blank';
   return { userBgColor, backgroundStyle };
@@ -147,9 +135,7 @@ function getLuminance(hex: string): number {
  * reads as subtle paper texture, not a loud grid.
  */
 function getInkColor(hex: string): string {
-  return getLuminance(hex) < 0.5
-    ? 'rgba(255,255,255,0.12)'
-    : 'rgba(0,0,0,0.14)';
+  return getLuminance(hex) < 0.5 ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.14)';
 }
 
 /**
@@ -224,9 +210,7 @@ function StyleTileSwatch({ style }: { style: BackgroundStyle }) {
       <svg width={36} height={20} style={{ display: 'block' }}>
         <rect width={36} height={20} rx={3} fill={bg} />
         {[6, 14, 22, 30].flatMap((cx) =>
-          [6, 14].map((cy) => (
-            <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1} fill={ink} />
-          )),
+          [6, 14].map((cy) => <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1} fill={ink} />)
         )}
       </svg>
     );
@@ -328,9 +312,7 @@ export default function InfiniteCanvas({
    * Excalidraw) every time the read-only flag flips. */
   const [lockedByOther, setLockedByOther] = useState(false);
   const [coworkEditOpen, setCoworkEditOpen] = useState(false);
-  const effectiveReadOnly = coWorkSessionId
-    ? lockedByOther && !coworkEditOpen
-    : false;
+  const effectiveReadOnly = coWorkSessionId ? lockedByOther && !coworkEditOpen : false;
   const effectiveReadOnlyRef = useRef(effectiveReadOnly);
   useEffect(() => {
     effectiveReadOnlyRef.current = effectiveReadOnly;
@@ -363,9 +345,7 @@ export default function InfiniteCanvas({
     user: RemoteCursorUser;
     lastSeenAt: number;
   };
-  const [remoteCursors, setRemoteCursors] = useState<Map<string, RemoteCursorEntry>>(
-    new Map()
-  );
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, RemoteCursorEntry>>(new Map());
   // Viewport tracker — updated imperatively inside handleChange. We only
   // bump React state when one of the three values actually changes, so
   // pointer-only frames (no pan/zoom) don't trigger re-renders of the
@@ -389,9 +369,7 @@ export default function InfiniteCanvas({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(
-          `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}`
-        );
+        const res = await fetch(`/api/notebooks/${notebookId}/cowork/${coWorkSessionId}`);
         if (!res.ok || cancelled) return;
         const json = await res.json();
         const participants = json.data?.participants || [];
@@ -511,21 +489,15 @@ export default function InfiniteCanvas({
    * that, zooming in would make grid lines chunky and ugly.
    *
    * No-ops when the current style is 'blank' or the ref isn't mounted. */
-  const updatePatternTransform = useCallback(
-    (scrollX: number, scrollY: number, zoom: number) => {
-      const pat = patternElementRef.current;
-      if (!pat) return;
-      const base = PATTERN_BASE[backgroundStyleRef.current];
-      if (base.width === 0) return;
-      const ox = -scrollX * zoom;
-      const oy = -scrollY * zoom;
-      pat.setAttribute(
-        'patternTransform',
-        `translate(${ox} ${oy}) scale(${zoom})`,
-      );
-    },
-    [],
-  );
+  const updatePatternTransform = useCallback((scrollX: number, scrollY: number, zoom: number) => {
+    const pat = patternElementRef.current;
+    if (!pat) return;
+    const base = PATTERN_BASE[backgroundStyleRef.current];
+    if (base.width === 0) return;
+    const ox = -scrollX * zoom;
+    const oy = -scrollY * zoom;
+    pat.setAttribute('patternTransform', `translate(${ox} ${oy}) scale(${zoom})`);
+  }, []);
 
   /* ─── Excalidraw onChange — version-gated + 2s debounce ─────────────── *
    * Fires on every Excalidraw interaction (including pointer moves and
@@ -540,19 +512,11 @@ export default function InfiniteCanvas({
    * call so the SVG pattern overlay tracks pan/zoom smoothly without
    * causing a React re-render. */
   const handleChange = useCallback(
-    (
-      elements: readonly OrderedExcalidrawElement[],
-      appState: AppState,
-      files: BinaryFiles
-    ) => {
+    (elements: readonly OrderedExcalidrawElement[], appState: AppState, files: BinaryFiles) => {
       // Sync the pattern overlay on every interaction — covers pan, zoom,
       // draw, erase, etc. No React re-render; pure imperative attribute
       // updates on the mounted <pattern> element.
-      updatePatternTransform(
-        appState.scrollX,
-        appState.scrollY,
-        appState.zoom.value,
-      );
+      updatePatternTransform(appState.scrollX, appState.scrollY, appState.zoom.value);
 
       // Remote-cursor overlays are rendered at `(sceneX + scrollX) *
       // zoom` so we need viewport values in React state — otherwise
@@ -650,7 +614,7 @@ export default function InfiniteCanvas({
           },
           files: current.getFiles(),
         },
-        titleRef.current,
+        titleRef.current
       );
     }, 2000);
   }, []);
@@ -689,11 +653,11 @@ export default function InfiniteCanvas({
             },
             files: current.getFiles(),
           },
-          titleRef.current,
+          titleRef.current
         );
       }, 2000);
     },
-    [updatePatternTransform],
+    [updatePatternTransform]
   );
 
   /* ─── Title change → debounced save (canvas snapshot read from API) ─ */
@@ -760,10 +724,9 @@ export default function InfiniteCanvas({
 
     const releaseLock = async () => {
       try {
-        await fetch(
-          `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`,
-          { method: 'DELETE' }
-        );
+        await fetch(`/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`, {
+          method: 'DELETE',
+        });
       } catch {
         // silent
       }
@@ -775,9 +738,7 @@ export default function InfiniteCanvas({
     // Best-effort cleanup on tab close. sendBeacon can't send DELETE;
     // the lock auto-expires after 5 min as a safety net.
     const handleBeforeUnload = () => {
-      navigator.sendBeacon(
-        `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`
-      );
+      navigator.sendBeacon(`/api/notebooks/${notebookId}/cowork/${coWorkSessionId}/lock/${pageId}`);
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
@@ -825,9 +786,7 @@ export default function InfiniteCanvas({
     let cancelled = false;
     const refresh = async () => {
       try {
-        const res = await fetch(
-          `/api/notebooks/${notebookId}/pages/${pageId}`
-        );
+        const res = await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`);
         if (cancelled || !res.ok) return;
         const json = await res.json();
         if (!json.success || !json.data?.content) return;
@@ -1160,8 +1119,7 @@ export default function InfiniteCanvas({
     };
 
     document.addEventListener('keydown', handleKeyDown, { capture: true });
-    return () =>
-      document.removeEventListener('keydown', handleKeyDown, { capture: true });
+    return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, [page]);
 
   /* ─── Derive initial data from fetched page (memoized per page) ─────── */
@@ -1497,11 +1455,7 @@ export default function InfiniteCanvas({
                     {renderPatternBody(backgroundStyle, getInkColor(bgColor))}
                   </pattern>
                 </defs>
-                <rect
-                  width="100%"
-                  height="100%"
-                  fill={`url(#canvas-bg-pattern-${pageId})`}
-                />
+                <rect width="100%" height="100%" fill={`url(#canvas-bg-pattern-${pageId})`} />
               </svg>
             )}
           </div>
@@ -1522,8 +1476,7 @@ export default function InfiniteCanvas({
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 border: '1px solid rgba(174,137,255,0.35)',
-                boxShadow:
-                  '0 8px 32px rgba(174,137,255,0.15), 0 2px 8px rgba(0,0,0,0.4)',
+                boxShadow: '0 8px 32px rgba(174,137,255,0.15), 0 2px 8px rgba(0,0,0,0.4)',
                 color: '#ede9ff',
                 fontFamily: 'inherit',
                 fontSize: '13px',
@@ -1628,10 +1581,7 @@ export default function InfiniteCanvas({
                           role="radio"
                           aria-checked={selected}
                           aria-label={styleOption}
-                          title={
-                            styleOption.charAt(0).toUpperCase() +
-                            styleOption.slice(1)
-                          }
+                          title={styleOption.charAt(0).toUpperCase() + styleOption.slice(1)}
                           onClick={() => handleBackgroundStyleChange(styleOption)}
                           style={{
                             height: '32px',
@@ -1639,16 +1589,13 @@ export default function InfiniteCanvas({
                             border: selected
                               ? '1px solid rgba(174,137,255,0.9)'
                               : '1px solid rgba(237,233,255,0.12)',
-                            background: selected
-                              ? 'rgba(174,137,255,0.12)'
-                              : 'rgba(0,0,0,0.35)',
+                            background: selected ? 'rgba(174,137,255,0.12)' : 'rgba(0,0,0,0.35)',
                             cursor: 'pointer',
                             padding: 0,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            transition:
-                              'border-color 0.2s, background 0.2s',
+                            transition: 'border-color 0.2s, background 0.2s',
                           }}
                         >
                           <StyleTileSwatch style={styleOption} />

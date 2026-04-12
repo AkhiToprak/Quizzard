@@ -64,9 +64,7 @@ export default function CoworkInviteCard({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(
-          `/api/notebooks/${payload.notebookId}/cowork/${payload.sessionId}`
-        );
+        const res = await fetch(`/api/notebooks/${payload.notebookId}/cowork/${payload.sessionId}`);
         if (cancelled) return;
 
         if (res.status === 404) {
@@ -170,9 +168,7 @@ export default function CoworkInviteCard({
             padding: '4px 10px',
             borderRadius: 999,
             background:
-              sessionState === 'live'
-                ? 'rgba(74, 222, 128, 0.12)'
-                : 'rgba(136, 136, 168, 0.14)',
+              sessionState === 'live' ? 'rgba(74, 222, 128, 0.12)' : 'rgba(136, 136, 168, 0.14)',
             border: `1px solid ${sessionState === 'live' ? 'rgba(74, 222, 128, 0.35)' : 'rgba(136, 136, 168, 0.25)'}`,
             fontFamily: 'var(--font-brand)',
             fontSize: 10,
@@ -187,16 +183,10 @@ export default function CoworkInviteCard({
               width: 6,
               height: 6,
               borderRadius: '50%',
-              background:
-                sessionState === 'live' ? '#4ade80' : '#8888a8',
-              boxShadow:
-                sessionState === 'live'
-                  ? '0 0 8px rgba(74, 222, 128, 0.7)'
-                  : 'none',
+              background: sessionState === 'live' ? '#4ade80' : '#8888a8',
+              boxShadow: sessionState === 'live' ? '0 0 8px rgba(74, 222, 128, 0.7)' : 'none',
               animation:
-                sessionState === 'live'
-                  ? 'cowork-invite-pulse 2s ease-in-out infinite'
-                  : 'none',
+                sessionState === 'live' ? 'cowork-invite-pulse 2s ease-in-out infinite' : 'none',
             }}
           />
           {sessionState === 'live' ? 'Live · Co-work' : 'Session ended'}
@@ -253,10 +243,7 @@ export default function CoworkInviteCard({
           color: 'rgba(237, 233, 255, 0.72)',
         }}
       >
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: 17, color: accentColor }}
-        >
+        <span className="material-symbols-outlined" style={{ fontSize: 17, color: accentColor }}>
           {payload.pageType === 'canvas' ? 'draw' : 'description'}
         </span>
         <span
@@ -317,8 +304,7 @@ export default function CoworkInviteCard({
             fontSize: 13,
             fontWeight: 800,
             letterSpacing: '0.01em',
-            cursor:
-              joining || sessionState === 'loading' ? 'wait' : 'pointer',
+            cursor: joining || sessionState === 'loading' ? 'wait' : 'pointer',
             boxShadow:
               '0 12px 28px rgba(255, 222, 89, 0.24), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)',
             transition:
@@ -346,11 +332,7 @@ export default function CoworkInviteCard({
           >
             {joining ? 'progress_activity' : isHost ? 'play_arrow' : 'login'}
           </span>
-          {joining
-            ? 'Joining…'
-            : isHost
-              ? 'Resume session'
-              : 'Join session'}
+          {joining ? 'Joining…' : isHost ? 'Resume session' : 'Join session'}
         </button>
       )}
 

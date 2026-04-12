@@ -181,7 +181,9 @@ export default function CreateChatModal({
           background: 'linear-gradient(160deg, #1a1a36 0%, #151530 100%)',
           border: isPhone ? 'none' : '1px solid rgba(140,82,255,0.2)',
           borderRadius: isPhone ? 0 : '20px',
-          boxShadow: isPhone ? 'none' : '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07) inset',
+          boxShadow: isPhone
+            ? 'none'
+            : '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07) inset',
           fontFamily: 'inherit',
           overflow: isPhone ? 'auto' : 'hidden',
           margin: isPhone ? 0 : undefined,

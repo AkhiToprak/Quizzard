@@ -72,7 +72,15 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     // Check the target user exists
     const targetUser = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        avatarUrl: true,
+        nameStyle: true,
+        equippedTitleId: true,
+        equippedFrameId: true,
+      },
     });
 
     if (!targetUser) {
@@ -87,7 +95,15 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       },
       include: {
         user: {
-          select: { id: true, name: true, username: true, avatarUrl: true, nameStyle: true, equippedTitleId: true, equippedFrameId: true },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+            nameStyle: true,
+            equippedTitleId: true,
+            equippedFrameId: true,
+          },
         },
       },
     });

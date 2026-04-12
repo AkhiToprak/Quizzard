@@ -41,7 +41,10 @@ export default function GroupInvitePage() {
     (async () => {
       try {
         const res = await fetch('/api/groups/invitations');
-        if (!res.ok) { setNotFound(true); return; }
+        if (!res.ok) {
+          setNotFound(true);
+          return;
+        }
         const json = await res.json();
         const invitations: Invitation[] = json.data || [];
         const match = invitations.find((inv) => inv.groupId === groupId);
@@ -62,14 +65,11 @@ export default function GroupInvitePage() {
     if (!invitation || acting) return;
     setActing(true);
     try {
-      const res = await fetch(
-        `/api/groups/${invitation.groupId}/invitations/${invitation.id}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action }),
-        }
-      );
+      const res = await fetch(`/api/groups/${invitation.groupId}/invitations/${invitation.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
       if (!res.ok) throw new Error();
 
       if (action === 'accept') {
@@ -84,7 +84,9 @@ export default function GroupInvitePage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}
+      >
         <span
           className="material-symbols-outlined"
           style={{ fontSize: 48, color: '#ae89ff', animation: 'spin 1s linear infinite' }}
@@ -128,7 +130,9 @@ export default function GroupInvitePage() {
             fontFamily: 'inherit',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            arrow_back
+          </span>
           Back to Groups
         </button>
       </div>
@@ -179,9 +183,7 @@ export default function GroupInvitePage() {
         )}
 
         {/* Group name */}
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#e5e3ff', margin: 0 }}>
-          {group.name}
-        </h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#e5e3ff', margin: 0 }}>{group.name}</h1>
 
         {/* Description */}
         {group.description && (
@@ -191,9 +193,13 @@ export default function GroupInvitePage() {
         )}
 
         {/* Meta info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: '#8888a8', fontSize: 13 }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 16, color: '#8888a8', fontSize: 13 }}
+        >
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>group</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              group
+            </span>
             {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
           </span>
         </div>
@@ -236,7 +242,10 @@ export default function GroupInvitePage() {
             </div>
           )}
           <span>
-            Invited by <strong style={{ color: '#e5e3ff', fontWeight: 600 }}>{inviter.name || inviter.username}</strong>
+            Invited by{' '}
+            <strong style={{ color: '#e5e3ff', fontWeight: 600 }}>
+              {inviter.name || inviter.username}
+            </strong>
           </span>
         </div>
 

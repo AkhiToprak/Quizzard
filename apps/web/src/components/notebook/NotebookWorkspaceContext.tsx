@@ -212,7 +212,14 @@ export function NotebookWorkspaceProvider({
     fetchStudyPlans();
     fetchFlashcardSets();
     fetchQuizSets();
-  }, [fetchNotebook, fetchSections, fetchChats, fetchStudyPlans, fetchFlashcardSets, fetchQuizSets]);
+  }, [
+    fetchNotebook,
+    fetchSections,
+    fetchChats,
+    fetchStudyPlans,
+    fetchFlashcardSets,
+    fetchQuizSets,
+  ]);
 
   // Derive activeSectionId from activePageId after sections load
   useEffect(() => {

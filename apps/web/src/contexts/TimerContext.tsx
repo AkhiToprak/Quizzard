@@ -159,7 +159,8 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         // Resuming — recalculate end from remaining
         const remainStr = displayTime.split(':').map(Number);
         let remainSec = 0;
-        if (remainStr.length === 3) remainSec = remainStr[0] * 3600 + remainStr[1] * 60 + remainStr[2];
+        if (remainStr.length === 3)
+          remainSec = remainStr[0] * 3600 + remainStr[1] * 60 + remainStr[2];
         else remainSec = remainStr[0] * 60 + remainStr[1];
         if (remainSec <= 0) {
           targetEndRef.current = Date.now() + totalMs;
@@ -179,7 +180,8 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       if (targetEndRef.current && !isRunning) {
         const remainStr = displayTime.split(':').map(Number);
         let remainSec = 0;
-        if (remainStr.length === 3) remainSec = remainStr[0] * 3600 + remainStr[1] * 60 + remainStr[2];
+        if (remainStr.length === 3)
+          remainSec = remainStr[0] * 3600 + remainStr[1] * 60 + remainStr[2];
         else remainSec = remainStr[0] * 60 + remainStr[1];
         if (remainSec <= 0) {
           targetEndRef.current = Date.now() + totalMs;
@@ -196,7 +198,16 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     }
 
     setIsRunning(true);
-  }, [mode, countdownHours, countdownMinutes, pomodoroWorkMinutes, pomodoroBreakMinutes, pomodoroPhase, isRunning, displayTime]);
+  }, [
+    mode,
+    countdownHours,
+    countdownMinutes,
+    pomodoroWorkMinutes,
+    pomodoroBreakMinutes,
+    pomodoroPhase,
+    isRunning,
+    displayTime,
+  ]);
 
   const pause = useCallback(() => {
     if (mode === 'stopwatch' && startedAtRef.current) {

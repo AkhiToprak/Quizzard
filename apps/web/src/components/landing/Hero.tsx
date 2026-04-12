@@ -77,10 +77,7 @@ export default function Hero() {
               WebkitBackdropFilter: 'blur(10px)',
             }}
           >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 16, color: '#ffde59' }}
-            >
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#ffde59' }}>
               auto_awesome
             </span>
             <span
@@ -114,8 +111,7 @@ export default function Hero() {
             <br />
             <span
               style={{
-                background:
-                  'linear-gradient(135deg, #ffde59 0%, #ffc94a 40%, #ffb347 100%)',
+                background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 40%, #ffb347 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -136,8 +132,8 @@ export default function Hero() {
               fontFamily: 'var(--font-sans)',
             }}
           >
-            Text notes, infinite canvas, flashcards, quizzes, and a personal AI
-            tutor — all living inside one magical notebook.
+            Text notes, infinite canvas, flashcards, quizzes, and a personal AI tutor — all living
+            inside one magical notebook.
           </p>
 
           {/* CTAs */}
@@ -156,8 +152,7 @@ export default function Hero() {
                 gap: 10,
                 padding: '16px 28px',
                 borderRadius: 'var(--radius-full)',
-                background:
-                  'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
+                background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
                 color: '#2a2200',
                 fontSize: 15,
                 fontWeight: 700,
@@ -220,7 +215,6 @@ export default function Hero() {
               Watch the magic
             </Link>
           </div>
-
         </div>
 
         {/* RIGHT — carousel */}
@@ -239,8 +233,7 @@ export default function Hero() {
           right: 0,
           height: 140,
           pointerEvents: 'none',
-          background:
-            'linear-gradient(180deg, rgba(9,8,26,0) 0%, #15142e 100%)',
+          background: 'linear-gradient(180deg, rgba(9,8,26,0) 0%, #15142e 100%)',
         }}
       />
 

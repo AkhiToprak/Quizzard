@@ -207,8 +207,7 @@ export default function AboutPage() {
             width: 640,
             height: 640,
             borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(174, 137, 255, 0.09) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(174, 137, 255, 0.09) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
@@ -221,8 +220,7 @@ export default function AboutPage() {
             width: 520,
             height: 520,
             borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(255, 222, 89, 0.05) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(255, 222, 89, 0.05) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
@@ -261,10 +259,9 @@ export default function AboutPage() {
             >
               N
             </span>
-            otemage was created by me, a single dev who&apos;s studying
-            computer science and was fed up with the bad UI of the competitors,
-            and the constant tab switching, and on top of that the noisy ads
-            if you don&apos;t pay the monthly{' '}
+            otemage was created by me, a single dev who&apos;s studying computer science and was fed
+            up with the bad UI of the competitors, and the constant tab switching, and on top of
+            that the noisy ads if you don&apos;t pay the monthly{' '}
             <span
               style={{
                 color: 'var(--on-surface)',
@@ -301,8 +298,7 @@ export default function AboutPage() {
               border: '1px solid rgba(174, 137, 255, 0.22)',
               textAlign: 'center',
               overflow: 'hidden',
-              boxShadow:
-                '0 32px 64px rgba(174,137,255,0.06), 0 8px 24px rgba(0,0,0,0.4)',
+              boxShadow: '0 32px 64px rgba(174,137,255,0.06), 0 8px 24px rgba(0,0,0,0.4)',
             }}
           >
             {/* Giant decorative quote mark */}
@@ -388,8 +384,7 @@ export default function AboutPage() {
             >
               keeping the core features of my app free
             </span>
-            . You only have to pay for the usage of AI, because well… I have
-            to pay for it{' '}
+            . You only have to pay for the usage of AI, because well… I have to pay for it{' '}
             <span
               style={{
                 display: 'inline-block',
@@ -411,8 +406,8 @@ export default function AboutPage() {
               margin: '32px 0 0',
             }}
           >
-            So if you encounter any bugs, feel free to contact me, and I will
-            get to fixing it as best as I can!
+            So if you encounter any bugs, feel free to contact me, and I will get to fixing it as
+            best as I can!
           </p>
 
           {/* Contact CTA */}
@@ -431,8 +426,7 @@ export default function AboutPage() {
                 fontWeight: 700,
                 textDecoration: 'none',
                 fontFamily: 'var(--font-sans)',
-                boxShadow:
-                  '0 8px 24px rgba(255, 222, 89, 0.18), 0 2px 8px rgba(0,0,0,0.3)',
+                boxShadow: '0 8px 24px rgba(255, 222, 89, 0.18), 0 2px 8px rgba(0,0,0,0.3)',
                 transition:
                   'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
@@ -476,17 +470,13 @@ export default function AboutPage() {
             }}
           >
             Notemage is an app targeted at{' '}
-            <span style={{ color: 'var(--on-surface)', fontWeight: 700 }}>
-              students
-            </span>{' '}
-            who want everything they need in terms of studying tools in a
-            single app, with a nice UI, and{' '}
+            <span style={{ color: 'var(--on-surface)', fontWeight: 700 }}>students</span> who want
+            everything they need in terms of studying tools in a single app, with a nice UI, and{' '}
             <span style={{ color: 'var(--primary)', fontWeight: 700 }}>
               a dev that actually cares
             </span>{' '}
-            about your wants and needs, and not a huge corporation that
-            couldn&apos;t be bothered with the fact that you don&apos;t like
-            the UI.{' '}
+            about your wants and needs, and not a huge corporation that couldn&apos;t be bothered
+            with the fact that you don&apos;t like the UI.{' '}
             <span
               style={{
                 fontStyle: 'italic',
@@ -505,12 +495,10 @@ export default function AboutPage() {
               width: 'min(460px, 100%)',
               margin: '112px auto 0',
               padding: '32px 36px 36px',
-              background:
-                'linear-gradient(180deg, #fff6d0 0%, #ffde59 100%)',
+              background: 'linear-gradient(180deg, #fff6d0 0%, #ffde59 100%)',
               color: '#2a2200',
               borderRadius: 6,
-              boxShadow:
-                '0 36px 72px rgba(255, 222, 89, 0.18), 0 16px 32px rgba(0, 0, 0, 0.45)',
+              boxShadow: '0 36px 72px rgba(255, 222, 89, 0.18), 0 16px 32px rgba(0, 0, 0, 0.45)',
               transform: 'rotate(-1.2deg)',
               fontFamily: 'var(--font-sans)',
             }}

@@ -33,8 +33,7 @@ export default function NotetakingCanvasSpotlight() {
               Type it, or{' '}
               <span
                 style={{
-                  background:
-                    'linear-gradient(135deg, #ae89ff 0%, #8c52ff 60%, #ffde59 100%)',
+                  background: 'linear-gradient(135deg, #ae89ff 0%, #8c52ff 60%, #ffde59 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -114,11 +113,9 @@ function FeatureCard({
         position: 'relative',
         padding: 32,
         borderRadius: 'var(--radius-xl)',
-        background:
-          'linear-gradient(180deg, rgba(28, 24, 56, 0.7) 0%, rgba(18, 16, 38, 0.7) 100%)',
+        background: 'linear-gradient(180deg, rgba(28, 24, 56, 0.7) 0%, rgba(18, 16, 38, 0.7) 100%)',
         border: `1px solid ${accent}`,
-        boxShadow:
-          '0 32px 80px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.4)',
+        boxShadow: '0 32px 80px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.4)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         display: 'flex',

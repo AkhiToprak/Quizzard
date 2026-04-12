@@ -216,9 +216,7 @@ function SwatchShell({
           borderRadius: SWATCH_RADIUS,
           overflow: 'hidden',
           background: '#2a2a4c',
-          border: selected
-            ? '2px solid #ae89ff'
-            : '1px solid rgba(136,136,168,0.18)',
+          border: selected ? '2px solid #ae89ff' : '1px solid rgba(136,136,168,0.18)',
           boxShadow: selected
             ? '0 0 0 3px rgba(174,137,255,0.18), 0 8px 24px rgba(174,137,255,0.22)'
             : '0 2px 8px rgba(0,0,0,0.25)',
@@ -287,16 +285,14 @@ function SwatchShell({
             right: -6,
             padding: '3px 8px',
             borderRadius: 999,
-            background:
-              'linear-gradient(90deg, #ffde59 0%, #ff9566 70%, #ff5fa2 100%)',
+            background: 'linear-gradient(90deg, #ffde59 0%, #ff9566 70%, #ff5fa2 100%)',
             color: '#2a0066',
             fontSize: 9,
             fontWeight: 900,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             fontFamily: 'var(--font-brand)',
-            boxShadow:
-              '0 4px 14px rgba(255,149,102,0.45), 0 0 0 2px rgba(17,17,38,0.85)',
+            boxShadow: '0 4px 14px rgba(255,149,102,0.45), 0 0 0 2px rgba(17,17,38,0.85)',
             pointerEvents: 'none',
             zIndex: 2,
           }}
@@ -365,17 +361,10 @@ function Rail({
     // Only handle our navigation keys — let everything else (Tab, typing
     // into nested inputs that might appear later, etc.) pass through.
     const { key } = event;
-    if (
-      key !== 'ArrowLeft' &&
-      key !== 'ArrowRight' &&
-      key !== 'Home' &&
-      key !== 'End'
-    ) {
+    if (key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Home' && key !== 'End') {
       return;
     }
-    const buttons = Array.from(
-      scroller.querySelectorAll<HTMLButtonElement>('button')
-    );
+    const buttons = Array.from(scroller.querySelectorAll<HTMLButtonElement>('button'));
     if (buttons.length === 0) return;
 
     const active = document.activeElement as HTMLElement | null;
@@ -391,9 +380,7 @@ function Rail({
     } else {
       // ArrowLeft
       nextIdx =
-        currentIdx < 0
-          ? buttons.length - 1
-          : (currentIdx - 1 + buttons.length) % buttons.length;
+        currentIdx < 0 ? buttons.length - 1 : (currentIdx - 1 + buttons.length) % buttons.length;
     }
 
     event.preventDefault();
@@ -612,8 +599,7 @@ function BackgroundSwatchBody({ entry }: { entry: BackgroundCosmetic }) {
           padding: '6px 8px 8px',
           display: 'flex',
           justifyContent: 'center',
-          background:
-            'linear-gradient(180deg, transparent 0%, rgba(17,17,38,0.7) 100%)',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(17,17,38,0.7) 100%)',
         }}
       >
         <span
@@ -651,22 +637,10 @@ export function CosmeticsPanel({
   const { data, loading, error } = useCosmetics();
 
   // Catalog subsets, sorted by level asc.
-  const titles = React.useMemo(
-    () => getCosmeticsByType('title').sort(byLevelThenLabel),
-    []
-  );
-  const fonts = React.useMemo(
-    () => getCosmeticsByType('nameFont').sort(byLevelThenLabel),
-    []
-  );
-  const colors = React.useMemo(
-    () => getCosmeticsByType('nameColor').sort(byLevelThenLabel),
-    []
-  );
-  const frames = React.useMemo(
-    () => getCosmeticsByType('frame').sort(byLevelThenLabel),
-    []
-  );
+  const titles = React.useMemo(() => getCosmeticsByType('title').sort(byLevelThenLabel), []);
+  const fonts = React.useMemo(() => getCosmeticsByType('nameFont').sort(byLevelThenLabel), []);
+  const colors = React.useMemo(() => getCosmeticsByType('nameColor').sort(byLevelThenLabel), []);
+  const frames = React.useMemo(() => getCosmeticsByType('frame').sort(byLevelThenLabel), []);
   const backgrounds = React.useMemo(
     () => getCosmeticsByType('background').sort(byLevelThenLabel),
     []
@@ -729,8 +703,11 @@ export function CosmeticsPanel({
   // Hoisted up here so the hook order stays stable regardless of the
   // `isAdmin` prop. The upload itself targets the `admin-background`
   // purpose, which re-checks the caller's role server-side.
-  const { upload: uploadAdminBg, isUploading: adminBgUploading, error: adminBgError } =
-    useDirectUpload();
+  const {
+    upload: uploadAdminBg,
+    isUploading: adminBgUploading,
+    error: adminBgError,
+  } = useDirectUpload();
   const [adminBgFeedback, setAdminBgFeedback] = React.useState<string | null>(null);
   const adminFileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -852,17 +829,28 @@ export function CosmeticsPanel({
       {/* keyframes + focus ring injected once, local to the panel */}
       <style jsx global>{`
         @keyframes cosmetic-shake {
-          0%, 100% { transform: translateX(0); }
-          20% { transform: translateX(-4px); }
-          40% { transform: translateX(4px); }
-          60% { transform: translateX(-3px); }
-          80% { transform: translateX(3px); }
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          20% {
+            transform: translateX(-4px);
+          }
+          40% {
+            transform: translateX(4px);
+          }
+          60% {
+            transform: translateX(-3px);
+          }
+          80% {
+            transform: translateX(3px);
+          }
         }
         .cosmetic-swatch-btn:focus-visible {
           box-shadow:
             0 0 0 2px #1c1c38,
             0 0 0 4px #ae89ff,
-            0 10px 32px rgba(174,137,255,0.28);
+            0 10px 32px rgba(174, 137, 255, 0.28);
         }
       `}</style>
 
@@ -965,10 +953,7 @@ export function CosmeticsPanel({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span
-              className="material-symbols-outlined"
-              style={{ color: '#ffde59', fontSize: 22 }}
-            >
+            <span className="material-symbols-outlined" style={{ color: '#ffde59', fontSize: 22 }}>
               admin_panel_settings
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -990,8 +975,8 @@ export function CosmeticsPanel({
                   marginTop: 2,
                 }}
               >
-                Upload a GIF (or any image) and it overrides the catalog
-                background on your profile. Only you see this control.
+                Upload a GIF (or any image) and it overrides the catalog background on your profile.
+                Only you see this control.
               </div>
             </div>
           </div>
@@ -1018,10 +1003,7 @@ export function CosmeticsPanel({
                 transition: `background 0.2s ${EASING}`,
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 16 }}
-              >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                 {adminBgUploading ? 'progress_activity' : 'upload'}
               </span>
               {adminBgUploading ? 'Uploading…' : 'Upload GIF / image'}
@@ -1046,10 +1028,7 @@ export function CosmeticsPanel({
                   fontFamily: 'inherit',
                 }}
               >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 16 }}
-                >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                   close
                 </span>
                 Clear custom
@@ -1098,10 +1077,7 @@ export function CosmeticsPanel({
               justifyContent: 'center',
             }}
           >
-            <span
-              className="material-symbols-outlined"
-              style={{ color: '#6a6a8c', fontSize: 26 }}
-            >
+            <span className="material-symbols-outlined" style={{ color: '#6a6a8c', fontSize: 26 }}>
               block
             </span>
           </div>

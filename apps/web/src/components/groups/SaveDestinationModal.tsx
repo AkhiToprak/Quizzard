@@ -44,7 +44,13 @@ interface Props {
 }
 
 export default function SaveDestinationModal({
-  open, onClose, groupId, sharedId, contentType, contentTitle, onSaved,
+  open,
+  onClose,
+  groupId,
+  sharedId,
+  contentType,
+  contentTitle,
+  onSaved,
 }: Props) {
   const [folders, setFolders] = useState<FolderOption[]>([]);
   const [notebooks, setNotebooks] = useState<NotebookOption[]>([]);
@@ -68,7 +74,9 @@ export default function SaveDestinationModal({
   const needsSection = contentType === 'flashcard_set' || contentType === 'quiz_set';
   // Folder browsing for non-notebook types
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-  const [folderPath, setFolderPath] = useState<{ id: string | null; name: string }[]>([{ id: null, name: 'My Library' }]);
+  const [folderPath, setFolderPath] = useState<{ id: string | null; name: string }[]>([
+    { id: null, name: 'My Library' },
+  ]);
 
   const [search, setSearch] = useState('');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -112,11 +120,13 @@ export default function SaveDestinationModal({
         const res = await fetch(`/api/notebooks/${selectedNotebookId}/sections`);
         if (res.ok) {
           const json = await res.json();
-          const raw = json.data?.sections || json.data || [];
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setSections(raw.map((s: any) => ({ id: s.id, title: s.title, sortOrder: s.sortOrder || 0 })));
+          const raw: Array<{ id: string; title: string; sortOrder?: number }> =
+            json.data?.sections || json.data || [];
+          setSections(raw.map((s) => ({ id: s.id, title: s.title, sortOrder: s.sortOrder || 0 })));
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       setSectionsLoading(false);
     })();
   }, [selectedNotebookId, needsSection]);
@@ -130,7 +140,9 @@ export default function SaveDestinationModal({
         const json = await res.json();
         setFolders(json.data || []);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   useEffect(() => {
@@ -150,7 +162,9 @@ export default function SaveDestinationModal({
 
   useEffect(() => {
     if (!open) return;
-    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
@@ -222,7 +236,10 @@ export default function SaveDestinationModal({
     ? folders.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
     : folders;
 
-  const canSave = isNotebook || createNew || (needsSection ? (selectedNotebookId && selectedSectionId) : selectedNotebookId);
+  const canSave =
+    isNotebook ||
+    createNew ||
+    (needsSection ? selectedNotebookId && selectedSectionId : selectedNotebookId);
 
   return (
     <>
@@ -235,57 +252,117 @@ export default function SaveDestinationModal({
       `}</style>
 
       <div
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
         style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-          zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           animation: 'sdmFadeIn 0.2s ease-out',
         }}
       >
-        <div role="dialog" aria-modal="true" style={{
-          maxWidth: 520, width: 'calc(100% - 32px)', maxHeight: 'calc(100vh - 64px)',
-          background: COLORS.cardBg, borderRadius: 24,
-          boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
-          animation: `sdmSlideUp 0.3s ${EASING}`,
-          display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        }}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            maxWidth: 520,
+            width: 'calc(100% - 32px)',
+            maxHeight: 'calc(100vh - 64px)',
+            background: COLORS.cardBg,
+            borderRadius: 24,
+            boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+            animation: `sdmSlideUp 0.3s ${EASING}`,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
           {/* Header */}
           <div style={{ padding: '24px 28px 16px', borderBottom: `1px solid ${COLORS.border}1a` }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.textPrimary, margin: 0 }}>Save to Library</h2>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 4,
+              }}
+            >
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.textPrimary, margin: 0 }}>
+                Save to Library
+              </h2>
               <button
                 onClick={onClose}
                 onMouseEnter={() => setHoveredClose(true)}
                 onMouseLeave={() => setHoveredClose(false)}
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-                  borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 4,
+                  borderRadius: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   color: hoveredClose ? COLORS.textPrimary : COLORS.textMuted,
                   transition: `color 0.2s ${EASING}`,
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 22 }}>close</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
+                  close
+                </span>
               </button>
             </div>
             <p style={{ fontSize: 13, color: COLORS.textSecondary, margin: 0 }}>{contentTitle}</p>
           </div>
 
           {/* Breadcrumb */}
-          <div style={{ padding: '12px 28px 0', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+          <div
+            style={{
+              padding: '12px 28px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              flexWrap: 'wrap',
+            }}
+          >
             {folderPath.map((crumb, idx) => (
               <React.Fragment key={crumb.id ?? 'root'}>
-                {idx > 0 && <span className="material-symbols-outlined" style={{ fontSize: 16, color: COLORS.textMuted }}>chevron_right</span>}
+                {idx > 0 && (
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 16, color: COLORS.textMuted }}
+                  >
+                    chevron_right
+                  </span>
+                )}
                 <button
                   onClick={() => navigateToFolder(crumb.id, crumb.name)}
                   style={{
-                    background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
-                    borderRadius: 6, fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    fontFamily: 'inherit',
                     color: idx === folderPath.length - 1 ? COLORS.textPrimary : COLORS.textMuted,
                     transition: `color 0.15s ${EASING}`,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.primary; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = idx === folderPath.length - 1 ? COLORS.textPrimary : COLORS.textMuted; }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = COLORS.primary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color =
+                      idx === folderPath.length - 1 ? COLORS.textPrimary : COLORS.textMuted;
+                  }}
                 >
                   {crumb.name}
                 </button>
@@ -296,37 +373,90 @@ export default function SaveDestinationModal({
           {/* Search */}
           <div style={{ padding: '8px 20px 0' }}>
             <div style={{ position: 'relative' }}>
-              <span className="material-symbols-outlined" style={{
-                position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-                fontSize: 18, color: COLORS.textMuted, pointerEvents: 'none',
-              }}>search</span>
-              <input
-                type="text" placeholder={isNotebook ? 'Search folders...' : 'Search...'}
-                value={search} onChange={(e) => setSearch(e.target.value)}
+              <span
+                className="material-symbols-outlined"
                 style={{
-                  width: '100%', background: COLORS.inputBg, border: `1px solid ${COLORS.border}`,
-                  borderRadius: 10, padding: '10px 12px 10px 38px', fontSize: 13,
-                  color: COLORS.textPrimary, outline: 'none', boxSizing: 'border-box',
+                  position: 'absolute',
+                  left: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontSize: 18,
+                  color: COLORS.textMuted,
+                  pointerEvents: 'none',
+                }}
+              >
+                search
+              </span>
+              <input
+                type="text"
+                placeholder={isNotebook ? 'Search folders...' : 'Search...'}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: COLORS.inputBg,
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: 10,
+                  padding: '10px 12px 10px 38px',
+                  fontSize: 13,
+                  color: COLORS.textPrimary,
+                  outline: 'none',
+                  boxSizing: 'border-box',
                   transition: `border-color 0.2s ${EASING}`,
                 }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.primary; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.primary;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.border;
+                }}
               />
             </div>
           </div>
 
-          {error && <div style={{ padding: '8px 28px 0', fontSize: 13, color: '#fd6f85' }}>{error}</div>}
+          {error && (
+            <div style={{ padding: '8px 28px 0', fontSize: 13, color: '#fd6f85' }}>{error}</div>
+          )}
 
           {/* Content list */}
-          <div className="sdm-scroll" style={{ flex: 1, overflowY: 'auto', padding: '8px 12px 12px', maxHeight: 340 }}>
+          <div
+            className="sdm-scroll"
+            style={{ flex: 1, overflowY: 'auto', padding: '8px 12px 12px', maxHeight: 340 }}
+          >
             {loading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 0' }}>
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: COLORS.elevated, flexShrink: 0 }} />
+                  <div
+                    key={i}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px' }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        background: COLORS.elevated,
+                        flexShrink: 0,
+                      }}
+                    />
                     <div style={{ flex: 1 }}>
-                      <div style={{ width: '55%', height: 14, borderRadius: 6, background: COLORS.elevated, marginBottom: 5 }} />
-                      <div style={{ width: '30%', height: 11, borderRadius: 6, background: COLORS.elevated }} />
+                      <div
+                        style={{
+                          width: '55%',
+                          height: 14,
+                          borderRadius: 6,
+                          background: COLORS.elevated,
+                          marginBottom: 5,
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: '30%',
+                          height: 11,
+                          borderRadius: 6,
+                          background: COLORS.elevated,
+                        }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -338,9 +468,14 @@ export default function SaveDestinationModal({
                   <>
                     {/* Save to current folder (root or whatever we browsed to) */}
                     <ItemRow
-                      icon="save" iconBg={COLORS.primary}
+                      icon="save"
+                      iconBg={COLORS.primary}
                       label={currentFolderId ? 'Save here' : 'Save to root (no folder)'}
-                      sublabel={currentFolderId ? `Inside "${folderPath[folderPath.length - 1]?.name}"` : 'Top level of your library'}
+                      sublabel={
+                        currentFolderId
+                          ? `Inside "${folderPath[folderPath.length - 1]?.name}"`
+                          : 'Top level of your library'
+                      }
                       selected={selectedFolderId === '__current__'}
                       hovered={hoveredItem === '__current__'}
                       onHover={(h) => setHoveredItem(h ? '__current__' : null)}
@@ -355,7 +490,9 @@ export default function SaveDestinationModal({
                         hovered={hoveredItem === f.id}
                         onHover={(h) => setHoveredItem(h ? f.id : null)}
                         onNavigate={() => navigateToFolder(f.id, f.name)}
-                        onSelect={() => { setSelectedFolderId(f.id); }}
+                        onSelect={() => {
+                          setSelectedFolderId(f.id);
+                        }}
                         selected={selectedFolderId === f.id}
                       />
                     ))}
@@ -371,13 +508,17 @@ export default function SaveDestinationModal({
                     {/* Create new notebook — NOT available for flashcard/quiz sets */}
                     {!needsSection && (
                       <ItemRow
-                        icon="add" iconBg={COLORS.primary}
+                        icon="add"
+                        iconBg={COLORS.primary}
                         label="Create New Notebook"
                         sublabel="Save into a brand new notebook"
                         selected={createNew}
                         hovered={hoveredItem === '__new__'}
                         onHover={(h) => setHoveredItem(h ? '__new__' : null)}
-                        onClick={() => { setCreateNew(true); setSelectedNotebookId(null); }}
+                        onClick={() => {
+                          setCreateNew(true);
+                          setSelectedNotebookId(null);
+                        }}
                         dashed
                       />
                     )}
@@ -385,7 +526,8 @@ export default function SaveDestinationModal({
                     {/* Download as CSV — only for flashcard sets */}
                     {contentType === 'flashcard_set' && (
                       <ItemRow
-                        icon="download" iconBg={COLORS.yellow}
+                        icon="download"
+                        iconBg={COLORS.yellow}
                         iconColor="#5f4f00"
                         label="Download as CSV"
                         sublabel="Export flashcards to a spreadsheet"
@@ -396,7 +538,9 @@ export default function SaveDestinationModal({
                           if (downloadingCsv) return;
                           setDownloadingCsv(true);
                           try {
-                            const res = await fetch(`/api/groups/${groupId}/shared/${sharedId}/csv`);
+                            const res = await fetch(
+                              `/api/groups/${groupId}/shared/${sharedId}/csv`
+                            );
                             if (res.ok) {
                               const blob = await res.blob();
                               const url = URL.createObjectURL(blob);
@@ -406,7 +550,9 @@ export default function SaveDestinationModal({
                               a.click();
                               URL.revokeObjectURL(url);
                             }
-                          } catch { /* ignore */ }
+                          } catch {
+                            /* ignore */
+                          }
                           setDownloadingCsv(false);
                         }}
                         dashed
@@ -430,66 +576,122 @@ export default function SaveDestinationModal({
                       return (
                         <ItemRow
                           key={nb.id}
-                          icon="auto_stories" iconBg={`linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`}
+                          icon="auto_stories"
+                          iconBg={`linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`}
                           iconColor="#fff"
                           label={nb.name}
                           sublabel={nb.subject || undefined}
                           selected={isSelected}
                           hovered={hoveredItem === nb.id}
                           onHover={(h) => setHoveredItem(h ? nb.id : null)}
-                          onClick={() => { setSelectedNotebookId(nb.id); setCreateNew(false); }}
+                          onClick={() => {
+                            setSelectedNotebookId(nb.id);
+                            setCreateNew(false);
+                          }}
                         />
                       );
                     })}
 
                     {filteredFolders.length === 0 && notebooksInFolder.length === 0 && !loading && (
-                      <EmptyState search={search} icon={search ? 'search_off' : 'auto_stories'} text={search ? 'No results' : 'Empty folder'} />
+                      <EmptyState
+                        search={search}
+                        icon={search ? 'search_off' : 'auto_stories'}
+                        text={search ? 'No results' : 'Empty folder'}
+                      />
                     )}
 
                     {/* Section picker — shown after selecting a notebook for flashcard/quiz types */}
                     {needsSection && selectedNotebookId && !createNew && (
-                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.border}1a` }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.textMuted, marginBottom: 8, paddingLeft: 4 }}>
+                      <div
+                        style={{
+                          marginTop: 12,
+                          paddingTop: 12,
+                          borderTop: `1px solid ${COLORS.border}1a`,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            color: COLORS.textMuted,
+                            marginBottom: 8,
+                            paddingLeft: 4,
+                          }}
+                        >
                           Choose a section
                         </div>
 
                         {/* Create new section */}
                         {!creatingSection ? (
                           <ItemRow
-                            icon="add" iconBg={COLORS.primary}
+                            icon="add"
+                            iconBg={COLORS.primary}
                             label="Create New Section"
                             sublabel="Name a new section for this content"
                             selected={false}
                             hovered={hoveredItem === '__new_section__'}
                             onHover={(h) => setHoveredItem(h ? '__new_section__' : null)}
-                            onClick={() => { setCreatingSection(true); setSelectedSectionId(null); setNewSectionName(''); }}
+                            onClick={() => {
+                              setCreatingSection(true);
+                              setSelectedSectionId(null);
+                              setNewSectionName('');
+                            }}
                             dashed
                           />
                         ) : (
-                          <div style={{
-                            display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
-                            border: `2px solid ${COLORS.primary}`, borderRadius: 12,
-                            background: `${COLORS.primary}0d`, marginBottom: 2,
-                          }}>
-                            <div style={{
-                              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                              background: `${COLORS.primary}1a`,
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: 18, color: COLORS.primary }}>add</span>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              padding: '8px 12px',
+                              border: `2px solid ${COLORS.primary}`,
+                              borderRadius: 12,
+                              background: `${COLORS.primary}0d`,
+                              marginBottom: 2,
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: 10,
+                                flexShrink: 0,
+                                background: `${COLORS.primary}1a`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: 18, color: COLORS.primary }}
+                              >
+                                add
+                              </span>
                             </div>
                             <input
                               autoFocus
                               value={newSectionName}
                               onChange={(e) => setNewSectionName(e.target.value)}
                               onKeyDown={(e) => {
-                                if (e.key === 'Escape') { setCreatingSection(false); setNewSectionName(''); }
+                                if (e.key === 'Escape') {
+                                  setCreatingSection(false);
+                                  setNewSectionName('');
+                                }
                               }}
                               placeholder="Section name..."
                               maxLength={100}
                               style={{
-                                flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                                color: COLORS.textPrimary, fontSize: 14, fontWeight: 600,
+                                flex: 1,
+                                background: 'transparent',
+                                border: 'none',
+                                outline: 'none',
+                                color: COLORS.textPrimary,
+                                fontSize: 14,
+                                fontWeight: 600,
                                 fontFamily: 'inherit',
                               }}
                             />
@@ -497,29 +699,47 @@ export default function SaveDestinationModal({
                               onClick={async () => {
                                 if (!newSectionName.trim() || !selectedNotebookId) return;
                                 try {
-                                  const res = await fetch(`/api/notebooks/${selectedNotebookId}/sections`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ title: newSectionName.trim() }),
-                                  });
+                                  const res = await fetch(
+                                    `/api/notebooks/${selectedNotebookId}/sections`,
+                                    {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ title: newSectionName.trim() }),
+                                    }
+                                  );
                                   if (res.ok) {
                                     const json = await res.json();
                                     const newId = json.data?.id;
                                     if (newId) {
-                                      setSections((prev) => [...prev, { id: newId, title: newSectionName.trim(), sortOrder: prev.length }]);
+                                      setSections((prev) => [
+                                        ...prev,
+                                        {
+                                          id: newId,
+                                          title: newSectionName.trim(),
+                                          sortOrder: prev.length,
+                                        },
+                                      ]);
                                       setSelectedSectionId(newId);
                                       setCreatingSection(false);
                                       setNewSectionName('');
                                     }
                                   }
-                                } catch { /* ignore */ }
+                                } catch {
+                                  /* ignore */
+                                }
                               }}
                               disabled={!newSectionName.trim()}
                               style={{
-                                background: newSectionName.trim() ? COLORS.primary : COLORS.elevated,
+                                background: newSectionName.trim()
+                                  ? COLORS.primary
+                                  : COLORS.elevated,
                                 color: newSectionName.trim() ? '#fff' : COLORS.textMuted,
-                                border: 'none', borderRadius: 8, padding: '6px 12px',
-                                fontSize: 12, fontWeight: 700, cursor: newSectionName.trim() ? 'pointer' : 'default',
+                                border: 'none',
+                                borderRadius: 8,
+                                padding: '6px 12px',
+                                fontSize: 12,
+                                fontWeight: 700,
+                                cursor: newSectionName.trim() ? 'pointer' : 'default',
                                 fontFamily: 'inherit',
                               }}
                             >
@@ -529,19 +749,41 @@ export default function SaveDestinationModal({
                         )}
 
                         {sectionsLoading ? (
-                          <div style={{ padding: '16px 0', textAlign: 'center', color: COLORS.textMuted, fontSize: 13 }}>Loading sections...</div>
+                          <div
+                            style={{
+                              padding: '16px 0',
+                              textAlign: 'center',
+                              color: COLORS.textMuted,
+                              fontSize: 13,
+                            }}
+                          >
+                            Loading sections...
+                          </div>
                         ) : sections.length === 0 && !creatingSection ? (
-                          <div style={{ padding: '16px 0', textAlign: 'center', color: COLORS.textMuted, fontSize: 13 }}>No sections yet — create one above</div>
+                          <div
+                            style={{
+                              padding: '16px 0',
+                              textAlign: 'center',
+                              color: COLORS.textMuted,
+                              fontSize: 13,
+                            }}
+                          >
+                            No sections yet — create one above
+                          </div>
                         ) : (
                           sections.map((s) => (
                             <ItemRow
                               key={s.id}
-                              icon="segment" iconBg={COLORS.primary}
+                              icon="segment"
+                              iconBg={COLORS.primary}
                               label={s.title}
                               selected={selectedSectionId === s.id}
                               hovered={hoveredItem === `section-${s.id}`}
                               onHover={(h) => setHoveredItem(h ? `section-${s.id}` : null)}
-                              onClick={() => { setSelectedSectionId(s.id); setCreatingSection(false); }}
+                              onClick={() => {
+                                setSelectedSectionId(s.id);
+                                setCreatingSection(false);
+                              }}
                             />
                           ))
                         )}
@@ -559,15 +801,23 @@ export default function SaveDestinationModal({
               onClick={handleSave}
               disabled={saving || saved || (!isNotebook && !canSave)}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                width: '100%', padding: '12px 0', borderRadius: 12, border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                width: '100%',
+                padding: '12px 0',
+                borderRadius: 12,
+                border: 'none',
                 background: saved
                   ? COLORS.success
-                  : (isNotebook || canSave)
-                  ? `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`
-                  : COLORS.elevated,
-                color: saved ? '#000' : (isNotebook || canSave) ? '#fff' : COLORS.textMuted,
-                fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
+                  : isNotebook || canSave
+                    ? `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.deepPurple2})`
+                    : COLORS.elevated,
+                color: saved ? '#000' : isNotebook || canSave ? '#fff' : COLORS.textMuted,
+                fontSize: 14,
+                fontWeight: 700,
+                fontFamily: 'inherit',
                 cursor: saving || saved || (!isNotebook && !canSave) ? 'default' : 'pointer',
                 opacity: saving ? 0.7 : 1,
                 transition: `opacity 0.2s ${EASING}`,
@@ -576,7 +826,18 @@ export default function SaveDestinationModal({
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                 {saved ? 'check_circle' : saving ? 'progress_activity' : 'library_add'}
               </span>
-              {saved ? 'Saved to Library!' : saving ? 'Saving...' : getSaveLabel(isNotebook, createNew, selectedNotebookId, selectedFolderId, needsSection, selectedSectionId)}
+              {saved
+                ? 'Saved to Library!'
+                : saving
+                  ? 'Saving...'
+                  : getSaveLabel(
+                      isNotebook,
+                      createNew,
+                      selectedNotebookId,
+                      selectedFolderId,
+                      needsSection,
+                      selectedSectionId
+                    )}
             </button>
           </div>
         </div>
@@ -585,9 +846,17 @@ export default function SaveDestinationModal({
   );
 }
 
-function getSaveLabel(isNotebook: boolean, createNew: boolean, selectedNotebookId: string | null, selectedFolderId: string | null, needsSection?: boolean, selectedSectionId?: string | null): string {
+function getSaveLabel(
+  isNotebook: boolean,
+  createNew: boolean,
+  selectedNotebookId: string | null,
+  selectedFolderId: string | null,
+  needsSection?: boolean,
+  selectedSectionId?: string | null
+): string {
   if (isNotebook) {
-    if (selectedFolderId === '__current__' || selectedFolderId === null) return 'Clone Notebook Here';
+    if (selectedFolderId === '__current__' || selectedFolderId === null)
+      return 'Clone Notebook Here';
     return 'Clone into Folder';
   }
   if (createNew) return 'Save to New Notebook';
@@ -598,11 +867,27 @@ function getSaveLabel(isNotebook: boolean, createNew: boolean, selectedNotebookI
 
 /* ── Shared sub-components ── */
 
-function ItemRow({ icon, iconBg, iconColor, label, sublabel, selected, hovered, onHover, onClick, dashed }: {
-  icon: string; iconBg: string; iconColor?: string;
-  label: string; sublabel?: string;
-  selected: boolean; hovered: boolean;
-  onHover: (h: boolean) => void; onClick: () => void;
+function ItemRow({
+  icon,
+  iconBg,
+  iconColor,
+  label,
+  sublabel,
+  selected,
+  hovered,
+  onHover,
+  onClick,
+  dashed,
+}: {
+  icon: string;
+  iconBg: string;
+  iconColor?: string;
+  label: string;
+  sublabel?: string;
+  selected: boolean;
+  hovered: boolean;
+  onHover: (h: boolean) => void;
+  onClick: () => void;
   dashed?: boolean;
 }) {
   return (
@@ -611,83 +896,197 @@ function ItemRow({ icon, iconBg, iconColor, label, sublabel, selected, hovered, 
       onMouseLeave={() => onHover(false)}
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
-        border: selected ? `2px solid ${COLORS.primary}` : dashed && !selected ? `2px dashed ${hovered ? COLORS.primary : COLORS.border}` : '2px solid transparent',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '10px 12px',
+        borderRadius: 12,
+        cursor: 'pointer',
+        border: selected
+          ? `2px solid ${COLORS.primary}`
+          : dashed && !selected
+            ? `2px dashed ${hovered ? COLORS.primary : COLORS.border}`
+            : '2px solid transparent',
         background: selected ? `${COLORS.primary}0d` : hovered ? COLORS.elevated : 'transparent',
         transition: `background 0.15s ${EASING}, border-color 0.15s ${EASING}`,
         marginBottom: 2,
       }}
     >
-      <div style={{
-        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-        background: iconBg.includes('gradient') ? iconBg : `${iconBg}1a`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <span className="material-symbols-outlined" style={{
-          fontSize: 18, color: iconColor || (iconBg.includes('gradient') ? '#fff' : iconBg),
-        }}>{icon}</span>
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          flexShrink: 0,
+          background: iconBg.includes('gradient') ? iconBg : `${iconBg}1a`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <span
+          className="material-symbols-outlined"
+          style={{
+            fontSize: 18,
+            color: iconColor || (iconBg.includes('gradient') ? '#fff' : iconBg),
+          }}
+        >
+          {icon}
+        </span>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 14, fontWeight: 600, color: dashed && !selected ? COLORS.primary : COLORS.textPrimary,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>{label}</div>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: dashed && !selected ? COLORS.primary : COLORS.textPrimary,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {label}
+        </div>
         {sublabel && (
-          <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sublabel}</div>
+          <div
+            style={{
+              fontSize: 12,
+              color: COLORS.textMuted,
+              marginTop: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {sublabel}
+          </div>
         )}
       </div>
-      {selected && <span className="material-symbols-outlined" style={{ fontSize: 20, color: COLORS.primary, flexShrink: 0 }}>check_circle</span>}
+      {selected && (
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 20, color: COLORS.primary, flexShrink: 0 }}
+        >
+          check_circle
+        </span>
+      )}
     </div>
   );
 }
 
-function FolderRow({ folder, hovered, onHover, onNavigate, onSelect, selected }: {
-  folder: FolderOption; hovered: boolean;
-  onHover: (h: boolean) => void; onNavigate: () => void;
-  onSelect?: () => void; selected?: boolean;
+function FolderRow({
+  folder,
+  hovered,
+  onHover,
+  onNavigate,
+  onSelect,
+  selected,
+}: {
+  folder: FolderOption;
+  hovered: boolean;
+  onHover: (h: boolean) => void;
+  onNavigate: () => void;
+  onSelect?: () => void;
+  selected?: boolean;
 }) {
   return (
     <div
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 12,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '10px 12px',
+        borderRadius: 12,
         border: selected ? `2px solid ${COLORS.primary}` : '2px solid transparent',
         background: selected ? `${COLORS.primary}0d` : hovered ? COLORS.elevated : 'transparent',
         transition: `background 0.15s ${EASING}, border-color 0.15s ${EASING}`,
-        marginBottom: 2, cursor: 'pointer',
+        marginBottom: 2,
+        cursor: 'pointer',
       }}
     >
       {/* Click folder name to select OR navigate */}
-      <div onClick={onSelect || onNavigate} style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0, cursor: 'pointer' }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-          background: folder.color ? `${folder.color}33` : `${COLORS.yellow}1a`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: folder.color || COLORS.yellow }}>folder</span>
+      <div
+        onClick={onSelect || onNavigate}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          flex: 1,
+          minWidth: 0,
+          cursor: 'pointer',
+        }}
+      >
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            flexShrink: 0,
+            background: folder.color ? `${folder.color}33` : `${COLORS.yellow}1a`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 18, color: folder.color || COLORS.yellow }}
+          >
+            folder
+          </span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: COLORS.textPrimary,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
             {folder.name}
           </div>
           <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 1 }}>
-            {folder._count?.notebooks || 0} notebooks{folder._count?.children ? ` · ${folder._count.children} subfolders` : ''}
+            {folder._count?.notebooks || 0} notebooks
+            {folder._count?.children ? ` · ${folder._count.children} subfolders` : ''}
           </div>
         </div>
       </div>
-      {selected && <span className="material-symbols-outlined" style={{ fontSize: 20, color: COLORS.primary, flexShrink: 0 }}>check_circle</span>}
+      {selected && (
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 20, color: COLORS.primary, flexShrink: 0 }}
+        >
+          check_circle
+        </span>
+      )}
       {/* Navigate arrow */}
       <button
-        onClick={(e) => { e.stopPropagation(); onNavigate(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onNavigate();
+        }}
         style={{
-          background: 'none', border: 'none', padding: 4, cursor: 'pointer',
-          color: hovered ? COLORS.primary : COLORS.textMuted, borderRadius: 6,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          background: 'none',
+          border: 'none',
+          padding: 4,
+          cursor: 'pointer',
+          color: hovered ? COLORS.primary : COLORS.textMuted,
+          borderRadius: 6,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
           transition: `color 0.15s ${EASING}`,
         }}
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chevron_right</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+          chevron_right
+        </span>
       </button>
     </div>
   );
@@ -696,7 +1095,12 @@ function FolderRow({ folder, hovered, onHover, onNavigate, onSelect, selected }:
 function EmptyState({ search, icon, text }: { search: string; icon: string; text: string }) {
   return (
     <div style={{ textAlign: 'center', padding: '32px 16px', color: COLORS.textMuted }}>
-      <span className="material-symbols-outlined" style={{ fontSize: 36, opacity: 0.4, display: 'block', marginBottom: 8 }}>{icon}</span>
+      <span
+        className="material-symbols-outlined"
+        style={{ fontSize: 36, opacity: 0.4, display: 'block', marginBottom: 8 }}
+      >
+        {icon}
+      </span>
       <p style={{ fontSize: 13, margin: 0 }}>{search ? 'No results found' : text}</p>
     </div>
   );

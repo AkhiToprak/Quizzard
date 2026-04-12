@@ -85,42 +85,53 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
         const res = await fetch('/api/friends');
         if (res.ok) {
           const json = await res.json();
-          setFriends((json.data?.friends || []).map((f: {
-            id: string;
-            username: string;
-            name?: string | null;
-            avatarUrl?: string | null;
-            nameStyle?: { fontId?: string; colorId?: string } | null;
-            equippedFrameId?: string | null;
-            equippedTitleId?: string | null;
-          }) => ({
-            id: f.id,
-            username: f.username,
-            name: f.name || null,
-            avatarUrl: f.avatarUrl || null,
-            nameStyle: f.nameStyle ?? null,
-            equippedFrameId: f.equippedFrameId ?? null,
-            equippedTitleId: f.equippedTitleId ?? null,
-          })));
+          setFriends(
+            (json.data?.friends || []).map(
+              (f: {
+                id: string;
+                username: string;
+                name?: string | null;
+                avatarUrl?: string | null;
+                nameStyle?: { fontId?: string; colorId?: string } | null;
+                equippedFrameId?: string | null;
+                equippedTitleId?: string | null;
+              }) => ({
+                id: f.id,
+                username: f.username,
+                name: f.name || null,
+                avatarUrl: f.avatarUrl || null,
+                nameStyle: f.nameStyle ?? null,
+                equippedFrameId: f.equippedFrameId ?? null,
+                equippedTitleId: f.equippedTitleId ?? null,
+              })
+            )
+          );
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       setFriendsLoading(false);
     })();
   }, [step]);
 
-  const handleInvite = useCallback(async (friendId: string) => {
-    if (!createdGroupId) return;
-    try {
-      const res = await fetch(`/api/groups/${createdGroupId}/invitations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: friendId }),
-      });
-      if (res.ok) {
-        setInvitedIds((prev) => new Set(prev).add(friendId));
+  const handleInvite = useCallback(
+    async (friendId: string) => {
+      if (!createdGroupId) return;
+      try {
+        const res = await fetch(`/api/groups/${createdGroupId}/invitations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: friendId }),
+        });
+        if (res.ok) {
+          setInvitedIds((prev) => new Set(prev).add(friendId));
+        }
+      } catch {
+        /* ignore */
       }
-    } catch { /* ignore */ }
-  }, [createdGroupId]);
+    },
+    [createdGroupId]
+  );
 
   const handleFinish = () => {
     onCreated();
@@ -151,7 +162,11 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
       const res = await fetch('/api/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), description: description.trim() || null, type: groupType }),
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim() || null,
+          type: groupType,
+        }),
       });
 
       if (!res.ok) {
@@ -299,240 +314,341 @@ export default function CreateGroupModal({ open, onClose, onCreated }: CreateGro
           </div>
 
           {step === 'create' ? (
-          /* Create Form */
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
-          >
-            {/* Type selector */}
-            <div style={{ display: 'flex', gap: 8 }}>
-              {([
-                { key: 'study_group' as const, label: 'Study Group', icon: 'groups' },
-                { key: 'class' as const, label: 'Class', icon: 'school' },
-              ]).map((opt) => {
-                const active = groupType === opt.key;
-                return (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    onClick={() => setGroupType(opt.key)}
-                    style={{
-                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      padding: '12px 16px', borderRadius: 12, border: 'none',
-                      background: active ? `${COLORS.primary}22` : COLORS.inputBg,
-                      color: active ? COLORS.primary : COLORS.textMuted,
-                      fontWeight: active ? 700 : 500, fontSize: 13,
-                      cursor: 'pointer', fontFamily: 'inherit',
-                      outline: active ? `2px solid ${COLORS.primary}55` : '2px solid transparent',
-                      transition: `all 0.2s ${EASING}`,
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{opt.icon}</span>
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-            {groupType === 'class' && (
-              <div style={{
-                padding: '10px 14px', borderRadius: 10,
-                background: '#ffde5912', border: '1px solid #ffde5933',
-                fontSize: 12, color: '#ffde59', lineHeight: 1.5,
-              }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 6 }}>info</span>
-                You&apos;ll be the teacher. Students can&apos;t share or chat unless you enable it in settings.
+            /* Create Form */
+            <form
+              onSubmit={handleSubmit}
+              style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
+            >
+              {/* Type selector */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[
+                  { key: 'study_group' as const, label: 'Study Group', icon: 'groups' },
+                  { key: 'class' as const, label: 'Class', icon: 'school' },
+                ].map((opt) => {
+                  const active = groupType === opt.key;
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setGroupType(opt.key)}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        padding: '12px 16px',
+                        borderRadius: 12,
+                        border: 'none',
+                        background: active ? `${COLORS.primary}22` : COLORS.inputBg,
+                        color: active ? COLORS.primary : COLORS.textMuted,
+                        fontWeight: active ? 700 : 500,
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        outline: active ? `2px solid ${COLORS.primary}55` : '2px solid transparent',
+                        transition: `all 0.2s ${EASING}`,
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                        {opt.icon}
+                      </span>
+                      {opt.label}
+                    </button>
+                  );
+                })}
               </div>
-            )}
+              {groupType === 'class' && (
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    background: '#ffde5912',
+                    border: '1px solid #ffde5933',
+                    fontSize: 12,
+                    color: '#ffde59',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 6 }}
+                  >
+                    info
+                  </span>
+                  You&apos;ll be the teacher. Students can&apos;t share or chat unless you enable it
+                  in settings.
+                </div>
+              )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}>
-                {groupType === 'class' ? 'Class Name *' : 'Group Name *'}
-              </label>
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="e.g. Calculus Study Group"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                maxLength={100}
-                style={inputStyle(false)}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = COLORS.primary;
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(174, 137, 255, 0.15)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = COLORS.border;
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
-            </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}>
+                  {groupType === 'class' ? 'Class Name *' : 'Group Name *'}
+                </label>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="e.g. Calculus Study Group"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  maxLength={100}
+                  style={inputStyle(false)}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = COLORS.primary;
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(174, 137, 255, 0.15)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = COLORS.border;
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}>
-                Description
-              </label>
-              <textarea
-                placeholder="What will your group study together?"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                maxLength={500}
-                style={inputStyle(false)}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = COLORS.primary;
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(174, 137, 255, 0.15)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = COLORS.border;
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
-            </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.textSecondary }}>
+                  Description
+                </label>
+                <textarea
+                  placeholder="What will your group study together?"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  maxLength={500}
+                  style={inputStyle(false)}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = COLORS.primary;
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(174, 137, 255, 0.15)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = COLORS.border;
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
 
-            {error && (
-              <div
+              {error && (
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: COLORS.error,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                    error
+                  </span>
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !name.trim()}
+                onMouseEnter={() => setHoveredSubmit(true)}
+                onMouseLeave={() => setHoveredSubmit(false)}
                 style={{
-                  fontSize: 13,
-                  color: COLORS.error,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
+                  background:
+                    loading || !name.trim()
+                      ? COLORS.elevated
+                      : hoveredSubmit
+                        ? COLORS.deepPurple
+                        : COLORS.primary,
+                  color: loading || !name.trim() ? COLORS.textMuted : '#1a0040',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  borderRadius: 12,
+                  padding: '14px 24px',
+                  border: 'none',
+                  cursor: loading || !name.trim() ? 'not-allowed' : 'pointer',
+                  transition: `background 0.2s ${EASING}, color 0.2s ${EASING}, transform 0.15s ${EASING}`,
+                  transform: hoveredSubmit && !loading && name.trim() ? 'scale(1.01)' : 'scale(1)',
+                  letterSpacing: '-0.01em',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  error
-                </span>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !name.trim()}
-              onMouseEnter={() => setHoveredSubmit(true)}
-              onMouseLeave={() => setHoveredSubmit(false)}
-              style={{
-                background:
-                  loading || !name.trim()
-                    ? COLORS.elevated
-                    : hoveredSubmit
-                      ? COLORS.deepPurple
-                      : COLORS.primary,
-                color: loading || !name.trim() ? COLORS.textMuted : '#1a0040',
-                fontSize: 14,
-                fontWeight: 700,
-                borderRadius: 12,
-                padding: '14px 24px',
-                border: 'none',
-                cursor: loading || !name.trim() ? 'not-allowed' : 'pointer',
-                transition: `background 0.2s ${EASING}, color 0.2s ${EASING}, transform 0.15s ${EASING}`,
-                transform: hoveredSubmit && !loading && name.trim() ? 'scale(1.01)' : 'scale(1)',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {loading ? 'Creating...' : 'Create Group'}
-            </button>
-          </form>
+                {loading ? 'Creating...' : 'Create Group'}
+              </button>
+            </form>
           ) : (
-          /* Invite Step */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <p style={{ fontSize: 13, color: COLORS.textSecondary, margin: 0 }}>
-              Invite friends to <span style={{ color: COLORS.textPrimary, fontWeight: 600 }}>{name}</span>
-            </p>
+            /* Invite Step */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ fontSize: 13, color: COLORS.textSecondary, margin: 0 }}>
+                Invite friends to{' '}
+                <span style={{ color: COLORS.textPrimary, fontWeight: 600 }}>{name}</span>
+              </p>
 
-            <input
-              value={friendSearch}
-              onChange={(e) => setFriendSearch(e.target.value)}
-              placeholder="Search friends..."
-              style={{
-                width: '100%', padding: '12px 16px',
-                background: COLORS.inputBg, border: `1px solid ${COLORS.border}`,
-                borderRadius: 12, color: COLORS.textPrimary,
-                fontSize: 14, fontFamily: 'inherit', outline: 'none',
-                boxSizing: 'border-box' as const,
-              }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.primary; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border; }}
-            />
+              <input
+                value={friendSearch}
+                onChange={(e) => setFriendSearch(e.target.value)}
+                placeholder="Search friends..."
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: COLORS.inputBg,
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: 12,
+                  color: COLORS.textPrimary,
+                  fontSize: 14,
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  boxSizing: 'border-box' as const,
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.primary;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.border;
+                }}
+              />
 
-            <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }} className="custom-scrollbar">
-              {friendsLoading ? (
-                <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: 24, fontSize: 14 }}>Loading friends...</p>
-              ) : friends.filter((f) => {
-                if (!friendSearch) return true;
-                const s = friendSearch.toLowerCase();
-                return f.username.toLowerCase().includes(s) || (f.name || '').toLowerCase().includes(s);
-              }).length === 0 ? (
-                <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: 24, fontSize: 14 }}>
-                  {friendSearch ? 'No friends match your search' : 'No friends to invite yet'}
-                </p>
-              ) : (
-                friends.filter((f) => {
-                  if (!friendSearch) return true;
-                  const s = friendSearch.toLowerCase();
-                  return f.username.toLowerCase().includes(s) || (f.name || '').toLowerCase().includes(s);
-                }).map((friend) => {
-                  const isInvited = invitedIds.has(friend.id);
-                  return (
-                    <div key={friend.id} style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '10px 12px', borderRadius: 12,
-                      background: COLORS.elevated,
-                    }}>
-                      <UserAvatar user={friend} size={32} radius={8} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <UserName
-                          user={friend}
-                          as="p"
-                          style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary, margin: 0 }}
-                        />
-                        <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>@{friend.username}</p>
-                      </div>
-                      {isInvited ? (
-                        <span style={{ fontSize: 12, color: COLORS.success, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
-                          Invited
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => handleInvite(friend.id)}
+              <div
+                style={{
+                  maxHeight: 260,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}
+                className="custom-scrollbar"
+              >
+                {friendsLoading ? (
+                  <p
+                    style={{
+                      textAlign: 'center',
+                      color: COLORS.textMuted,
+                      padding: 24,
+                      fontSize: 14,
+                    }}
+                  >
+                    Loading friends...
+                  </p>
+                ) : friends.filter((f) => {
+                    if (!friendSearch) return true;
+                    const s = friendSearch.toLowerCase();
+                    return (
+                      f.username.toLowerCase().includes(s) ||
+                      (f.name || '').toLowerCase().includes(s)
+                    );
+                  }).length === 0 ? (
+                  <p
+                    style={{
+                      textAlign: 'center',
+                      color: COLORS.textMuted,
+                      padding: 24,
+                      fontSize: 14,
+                    }}
+                  >
+                    {friendSearch ? 'No friends match your search' : 'No friends to invite yet'}
+                  </p>
+                ) : (
+                  friends
+                    .filter((f) => {
+                      if (!friendSearch) return true;
+                      const s = friendSearch.toLowerCase();
+                      return (
+                        f.username.toLowerCase().includes(s) ||
+                        (f.name || '').toLowerCase().includes(s)
+                      );
+                    })
+                    .map((friend) => {
+                      const isInvited = invitedIds.has(friend.id);
+                      return (
+                        <div
+                          key={friend.id}
                           style={{
-                            padding: '5px 14px', borderRadius: 8, border: 'none',
-                            background: `${COLORS.primary}33`, color: COLORS.primary,
-                            fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
-                            transition: `background 0.2s ${EASING}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            padding: '10px 12px',
+                            borderRadius: 12,
+                            background: COLORS.elevated,
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.primary; e.currentTarget.style.color = '#fff'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = `${COLORS.primary}33`; e.currentTarget.style.color = COLORS.primary; }}
                         >
-                          Invite
-                        </button>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                          <UserAvatar user={friend} size={32} radius={8} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <UserName
+                              user={friend}
+                              as="p"
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: COLORS.textPrimary,
+                                margin: 0,
+                              }}
+                            />
+                            <p style={{ fontSize: 11, color: COLORS.textMuted, margin: 0 }}>
+                              @{friend.username}
+                            </p>
+                          </div>
+                          {isInvited ? (
+                            <span
+                              style={{
+                                fontSize: 12,
+                                color: COLORS.success,
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                              }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                                check_circle
+                              </span>
+                              Invited
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleInvite(friend.id)}
+                              style={{
+                                padding: '5px 14px',
+                                borderRadius: 8,
+                                border: 'none',
+                                background: `${COLORS.primary}33`,
+                                color: COLORS.primary,
+                                fontWeight: 700,
+                                fontSize: 12,
+                                cursor: 'pointer',
+                                fontFamily: 'inherit',
+                                transition: `background 0.2s ${EASING}`,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = COLORS.primary;
+                                e.currentTarget.style.color = '#fff';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = `${COLORS.primary}33`;
+                                e.currentTarget.style.color = COLORS.primary;
+                              }}
+                            >
+                              Invite
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                )}
+              </div>
 
-            <button
-              onClick={handleFinish}
-              style={{
-                background: COLORS.primary,
-                color: '#1a0040',
-                fontSize: 14,
-                fontWeight: 700,
-                borderRadius: 12,
-                padding: '14px 24px',
-                border: 'none',
-                cursor: 'pointer',
-                transition: `background 0.2s ${EASING}, transform 0.15s ${EASING}`,
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {invitedIds.size > 0 ? 'Done' : 'Skip'}
-            </button>
-          </div>
+              <button
+                onClick={handleFinish}
+                style={{
+                  background: COLORS.primary,
+                  color: '#1a0040',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  borderRadius: 12,
+                  padding: '14px 24px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: `background 0.2s ${EASING}, transform 0.15s ${EASING}`,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {invitedIds.size > 0 ? 'Done' : 'Skip'}
+              </button>
+            </div>
           )}
         </div>
       </div>

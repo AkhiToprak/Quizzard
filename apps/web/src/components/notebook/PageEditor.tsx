@@ -37,10 +37,7 @@ import { isEffectivelyEmptyTiptapDoc } from '@/lib/tiptap-is-empty';
 import { looksLikeMarkdown, markdownToHtml } from '@/lib/markdown-to-html';
 import { DOMParser as PMDOMParser } from '@tiptap/pm/model';
 import { CellSelection } from '@tiptap/pm/tables';
-import {
-  SlashCommand,
-  type SlashCommandState,
-} from '@/lib/tiptap-slash-command';
+import { SlashCommand, type SlashCommandState } from '@/lib/tiptap-slash-command';
 import SlashMenu from './SlashMenu';
 import InlineAIToolbar from './InlineAIToolbar';
 import UpsellToast from '@/components/ui/UpsellToast';
@@ -88,11 +85,7 @@ function migrateHeadingsToToggle(doc: any): any {
     let next = node;
 
     // Force expanded state on every toggle heading we see.
-    if (
-      node.type === 'toggleHeading' &&
-      node.attrs &&
-      node.attrs.collapsed
-    ) {
+    if (node.type === 'toggleHeading' && node.attrs && node.attrs.collapsed) {
       next = { ...node, attrs: { ...node.attrs, collapsed: false } };
     }
 
@@ -193,9 +186,7 @@ export default function PageEditor({
     user: RemoteCursorUser;
     lastSeenAt: number;
   };
-  const [remoteCursors, setRemoteCursors] = useState<Map<string, RemoteCursorEntry>>(
-    new Map()
-  );
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, RemoteCursorEntry>>(new Map());
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const coworkSocket = useCoworkSocket(coWorkSessionId ?? null);
 
@@ -212,9 +203,7 @@ export default function PageEditor({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(
-          `/api/notebooks/${notebookId}/cowork/${coWorkSessionId}`
-        );
+        const res = await fetch(`/api/notebooks/${notebookId}/cowork/${coWorkSessionId}`);
         if (!res.ok || cancelled) return;
         const json = await res.json();
         const participants = json.data?.participants || [];
@@ -293,12 +282,7 @@ export default function PageEditor({
       // only for the "is the pointer inside the editor?" check.
       const viewportX = e.clientX - rect.left;
       const viewportY = e.clientY - rect.top;
-      if (
-        viewportX < 0 ||
-        viewportY < 0 ||
-        viewportX > rect.width ||
-        viewportY > rect.height
-      ) {
+      if (viewportX < 0 || viewportY < 0 || viewportX > rect.width || viewportY > rect.height) {
         return;
       }
 
@@ -578,9 +562,7 @@ export default function PageEditor({
   //   - In a cowork session and the host has enabled open editing → anyone
   //     can type regardless of who holds the lock
   //   - Otherwise → locked out when someone else holds the lock
-  const effectiveReadOnly = coWorkSessionId
-    ? lockedByOther && !coworkEditOpen
-    : lockedByOther;
+  const effectiveReadOnly = coWorkSessionId ? lockedByOther && !coworkEditOpen : lockedByOther;
 
   // NB: `page` and `effectiveReadOnly` are deliberately NOT in the
   // useEditor deps list. Earlier:
@@ -702,10 +684,9 @@ export default function PageEditor({
           const html = markdownToHtml(text);
           const container = document.createElement('div');
           container.innerHTML = html;
-          const slice = PMDOMParser.fromSchema(view.state.schema).parseSlice(
-            container,
-            { preserveWhitespace: false }
-          );
+          const slice = PMDOMParser.fromSchema(view.state.schema).parseSlice(container, {
+            preserveWhitespace: false,
+          });
           view.dispatch(view.state.tr.replaceSelection(slice).scrollIntoView());
           event.preventDefault();
           return true;
@@ -785,10 +766,7 @@ export default function PageEditor({
     if (page.content) {
       // Real content from the server — push it into the editor.
       lastKnownContentWasEmptyRef.current = isEffectivelyEmptyTiptapDoc(page.content);
-      editor.commands.setContent(
-        migrateHeadingsToToggle(page.content),
-        { emitUpdate: false }
-      );
+      editor.commands.setContent(migrateHeadingsToToggle(page.content), { emitUpdate: false });
     } else {
       // Brand-new / empty page. Leave the editor at its default empty
       // doc. Record that we KNOW the last-seen state was empty so the
@@ -826,9 +804,7 @@ export default function PageEditor({
     let cancelled = false;
     const refresh = async () => {
       try {
-        const res = await fetch(
-          `/api/notebooks/${notebookId}/pages/${pageId}`
-        );
+        const res = await fetch(`/api/notebooks/${notebookId}/pages/${pageId}`);
         if (cancelled || !res.ok) return;
         const json = await res.json();
         if (!json.success || !json.data?.content) return;
@@ -837,10 +813,9 @@ export default function PageEditor({
         const remoteJson = JSON.stringify(json.data.content);
         if (currentJson === remoteJson) return;
 
-        editor.commands.setContent(
-          migrateHeadingsToToggle(json.data.content),
-          { emitUpdate: false }
-        );
+        editor.commands.setContent(migrateHeadingsToToggle(json.data.content), {
+          emitUpdate: false,
+        });
         // Update title only. Do NOT call setPage(json.data) — that
         // would re-trigger the useEditor dep chain historically and
         // tear down the cowork socket (see long comment above the
@@ -1156,7 +1131,12 @@ export default function PageEditor({
       )}
 
       {/* ── Title + save status ── */}
-      <div style={{ padding: isPhone ? '20px 16px 0' : isTablet ? '24px 28px 0' : '32px 56px 0', flexShrink: 0 }}>
+      <div
+        style={{
+          padding: isPhone ? '20px 16px 0' : isTablet ? '24px 28px 0' : '32px 56px 0',
+          flexShrink: 0,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
           <input
             value={title}
@@ -1245,7 +1225,13 @@ export default function PageEditor({
 
       {/* ── Editor canvas (full width, infinite scroll) ── */}
       <div ref={editorContainerRef} style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-        <div style={{ padding: isPhone ? '16px 16px 60px' : isTablet ? '20px 28px 80px' : '28px 56px 80px', minHeight: '100%', position: 'relative' }}>
+        <div
+          style={{
+            padding: isPhone ? '16px 16px 60px' : isTablet ? '20px 28px 80px' : '28px 56px 80px',
+            minHeight: '100%',
+            position: 'relative',
+          }}
+        >
           <EditorContent editor={editor} />
           <SlashMenu state={slashState} editor={editor} />
           <InlineAIToolbar
@@ -1256,13 +1242,7 @@ export default function PageEditor({
           />
           {/* Co-work remote cursor overlays */}
           {Array.from(remoteCursors.entries()).map(([userId, entry]) => (
-            <RemoteCursor
-              key={userId}
-              userId={userId}
-              user={entry.user}
-              x={entry.x}
-              y={entry.y}
-            />
+            <RemoteCursor key={userId} userId={userId} user={entry.user} x={entry.x} y={entry.y} />
           ))}
           <DrawingOverlay
             strokes={strokes}
