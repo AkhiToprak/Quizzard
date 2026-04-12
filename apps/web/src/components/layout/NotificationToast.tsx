@@ -35,7 +35,10 @@ export default function NotificationToast({
   const [closeHovered, setCloseHovered] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remainingRef = useRef(AUTO_DISMISS_MS);
-  const startTimeRef = useRef(Date.now());
+  // Lazy-initialized inside startDismissTimer (called from mount effect) so
+  // we don't call Date.now() during render — that's an impure call which
+  // breaks both react-hooks/set-state-in-effect lint and React Compiler.
+  const startTimeRef = useRef(0);
 
   const startDismissTimer = useCallback(() => {
     startTimeRef.current = Date.now();

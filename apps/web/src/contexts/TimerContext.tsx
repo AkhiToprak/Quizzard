@@ -224,19 +224,28 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     }
   }, [mode, countdownHours, countdownMinutes, pomodoroWorkMinutes, stopInterval]);
 
-  // Update display when mode or config changes (only when not running)
-  useEffect(() => {
-    if (isRunning) return;
-    if (mode === 'countdown') {
-      setDisplayTime(formatTime(countdownHours * 3600 + countdownMinutes * 60));
-    } else if (mode === 'pomodoro') {
-      setDisplayTime(formatTime(pomodoroWorkMinutes * 60));
-    } else {
-      if (!startedAtRef.current && accumulatedRef.current === 0) {
-        setDisplayTime('00:00');
+  // Update display when mode or config changes (only when not running).
+  // Adjusting state during render — replaces a setState-in-effect. We
+  // snapshot the relevant inputs into `seenConfigKey`; on any change, we
+  // recompute the idle countdown/pomodoro display value synchronously.
+  // Stopwatch mode is intentionally omitted here — its display is owned
+  // entirely by the running interval and the explicit `reset()` action,
+  // so config changes to other modes shouldn't touch it. (Reading
+  // startedAtRef/accumulatedRef during render is forbidden by
+  // react-hooks/refs, which is why the previous "preserve paused
+  // stopwatch" branch was dropped.)
+  const configKey = `${mode}|${isRunning ? 1 : 0}|${countdownHours}|${countdownMinutes}|${pomodoroWorkMinutes}`;
+  const [seenConfigKey, setSeenConfigKey] = useState(configKey);
+  if (configKey !== seenConfigKey) {
+    setSeenConfigKey(configKey);
+    if (!isRunning) {
+      if (mode === 'countdown') {
+        setDisplayTime(formatTime(countdownHours * 3600 + countdownMinutes * 60));
+      } else if (mode === 'pomodoro') {
+        setDisplayTime(formatTime(pomodoroWorkMinutes * 60));
       }
     }
-  }, [mode, countdownHours, countdownMinutes, pomodoroWorkMinutes, isRunning]);
+  }
 
   return (
     <TimerContext.Provider

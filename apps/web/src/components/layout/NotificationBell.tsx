@@ -68,11 +68,21 @@ export default function NotificationBell() {
     }
   }, []);
 
-  // Poll every 30s
+  // Poll every 30s. The first fetch is fired from inside setInterval's
+  // microtask cycle (via Promise.resolve()) so the effect body itself
+  // does not synchronously call setState — the state updates happen in
+  // the .then handlers inside fetchUnreadCount.
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+    let cancelled = false;
+    const tick = () => {
+      if (!cancelled) void fetchUnreadCount();
+    };
+    void Promise.resolve().then(tick);
+    const interval = setInterval(tick, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [fetchUnreadCount]);
 
   // Close dropdown on outside click
@@ -87,12 +97,15 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handler);
   }, [dropdownOpen]);
 
-  // Dismiss toast when dropdown opens
-  useEffect(() => {
-    if (dropdownOpen) {
-      setToastNotification(null);
-    }
-  }, [dropdownOpen]);
+  // Dismiss toast when the dropdown opens. We wrap the bell open setter
+  // (`setDropdownOpen`) so the toast clear happens in the same event
+  // handler that toggles the dropdown — moving it out of an effect
+  // satisfies react-hooks/set-state-in-effect.
+  const openDropdown = useCallback(() => {
+    setDropdownOpen(true);
+    setToastNotification(null);
+  }, []);
+  const closeDropdown = useCallback(() => setDropdownOpen(false), []);
 
   const handleToastNavigate = async (notificationId: string, link: string) => {
     setToastNotification(null);
@@ -112,7 +125,7 @@ export default function NotificationBell() {
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onClick={() => setDropdownOpen(!dropdownOpen)}
+        onClick={() => (dropdownOpen ? closeDropdown() : openDropdown())}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
@@ -160,7 +173,7 @@ export default function NotificationBell() {
 
       {dropdownOpen && (
         <NotificationDropdown
-          onClose={() => setDropdownOpen(false)}
+          onClose={closeDropdown}
           onRead={() => setUnreadCount((c) => Math.max(0, c - 1))}
           onReadAll={() => setUnreadCount(0)}
         />

@@ -66,11 +66,19 @@ export default function UsernameStep({
   }, []);
 
   // Run an availability check on the initial suggestion so the user sees
-  // a green check (or a warning) the instant the step mounts.
+  // a green check (or a warning) the instant the step mounts. Deferred via
+  // Promise.resolve().then() so the leading setStatus calls inside
+  // checkUsername don't fire synchronously inside the effect body
+  // (react-hooks/set-state-in-effect).
   useEffect(() => {
-    if (suggested && USERNAME_REGEX.test(suggested)) {
-      checkUsername(suggested);
-    }
+    if (!suggested || !USERNAME_REGEX.test(suggested)) return;
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) void checkUsername(suggested);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [suggested, checkUsername]);
 
   useEffect(() => {

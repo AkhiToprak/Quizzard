@@ -46,6 +46,16 @@ export default function PageEditorPage({
   const [coworkSession, setCoworkSession] = useState<CoworkSessionState | null>(
     null
   );
+  // Track the cowork param we last reacted to so we can clear stale session
+  // state during render when the URL parameter changes (React-canonical
+  // "adjusting state during render" pattern, replaces a setState-in-effect).
+  const [seenCoworkParam, setSeenCoworkParam] = useState<string | null>(
+    coworkParam
+  );
+  if (coworkParam !== seenCoworkParam) {
+    setSeenCoworkParam(coworkParam);
+    if (!coworkParam) setCoworkSession(null);
+  }
 
   useEffect(() => {
     fetch(`/api/notebooks/${notebookId}/pages/${pageId}`)
@@ -66,12 +76,10 @@ export default function PageEditorPage({
     } catch {}
   }, [notebookId, pageId]);
 
-  // Load cowork session state when ?cowork=<sessionId> is present
+  // Load cowork session state when ?cowork=<sessionId> is present.
+  // No null-branch setState here — the reset happens above during render.
   useEffect(() => {
-    if (!coworkParam) {
-      setCoworkSession(null);
-      return;
-    }
+    if (!coworkParam) return;
     let cancelled = false;
     (async () => {
       try {

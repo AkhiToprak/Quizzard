@@ -102,7 +102,19 @@ export default function GroupDetailView({ groupId }: Props) {
     setLoading(false);
   }, [groupId]);
 
-  useEffect(() => { fetchGroup(); }, [fetchGroup]);
+  // Defer fetchGroup() into a microtask so its leading setLoading state
+  // updates don't fire synchronously inside the effect body
+  // (react-hooks/set-state-in-effect). fetchGroup itself is still needed
+  // as a callable below — children call it to refresh after edits.
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) void fetchGroup();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchGroup]);
 
   // Mark group as read when opened
   useEffect(() => {

@@ -40,9 +40,12 @@ export default function UpsellToast({
 }: UpsellToastProps) {
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    if (open) setMounted(true);
-  }, [open]);
+  // Adjusting state during render — when `open` flips to true, mount
+  // immediately so the entry animation runs on the same commit. Replaces a
+  // setState-in-effect.
+  if (open && !mounted) {
+    setMounted(true);
+  }
 
   // Auto-dismiss
   useEffect(() => {

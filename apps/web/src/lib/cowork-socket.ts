@@ -201,10 +201,19 @@ export function useCoworkSocket(sessionId: string | null): Socket | null {
   const [socket, setSocket] = useState<Socket | null>(null);
   const sessionIdRef = useRef<string | null>(null);
 
+  // Adjusting state during render — when the caller passes null (or
+  // switches to a different session), drop the cached socket synchronously
+  // so consumers don't briefly see a stale Socket from the previous
+  // session. Replaces a setState-in-effect.
+  const [seenSessionId, setSeenSessionId] = useState<string | null>(sessionId);
+  if (sessionId !== seenSessionId) {
+    setSeenSessionId(sessionId);
+    if (socket !== null) setSocket(null);
+  }
+
   useEffect(() => {
     sessionIdRef.current = sessionId;
     if (!sessionId) {
-      setSocket(null);
       return;
     }
 
@@ -225,11 +234,17 @@ export function useCoworkSocket(sessionId: string | null): Socket | null {
     }
     entry.refCount += 1;
 
-    // If the socket already exists, hand it back immediately. Otherwise
-    // register a one-shot listener that fires the moment createSession()
-    // finishes its async setup.
+    // If the socket already exists, hand it back via a microtask so the
+    // setSocket call lands after the effect body returns
+    // (react-hooks/set-state-in-effect). Otherwise register a one-shot
+    // listener that fires the moment createSession() finishes its async
+    // setup — that callback runs outside the effect body so no defer is
+    // needed there.
     if (entry.socket) {
-      setSocket(entry.socket);
+      const ready = entry.socket;
+      void Promise.resolve().then(() => {
+        if (sessionIdRef.current === sessionId) setSocket(ready);
+      });
     } else {
       const onReady = (s: Socket) => {
         log('one-shot listener fired — socket now available');

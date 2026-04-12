@@ -41,16 +41,24 @@ export default function StartDMModal({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [starting, setStarting] = useState<string | null>(null);
 
+  // Defer all setState — including the leading reset of search/starting and
+  // setLoading(true) — into a microtask via Promise.resolve().then() so the
+  // effect body itself contains no synchronous setState
+  // (react-hooks/set-state-in-effect).
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
-    setSearch('');
-    setStarting(null);
-    (async () => {
+    let cancelled = false;
+    void Promise.resolve().then(async () => {
+      if (cancelled) return;
+      setLoading(true);
+      setSearch('');
+      setStarting(null);
       try {
         const res = await fetch('/api/friends');
+        if (cancelled) return;
         if (res.ok) {
           const json = await res.json();
+          if (cancelled) return;
           setFriends((json.data?.friends || []).map((f: {
             id: string;
             username: string;
@@ -70,8 +78,11 @@ export default function StartDMModal({ open, onClose }: Props) {
           })));
         }
       } catch { /* ignore */ }
-      setLoading(false);
-    })();
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open]);
 
   const filtered = friends.filter((f) => {

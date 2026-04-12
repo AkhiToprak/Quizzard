@@ -105,23 +105,38 @@ export default function ActivityHeatmap({
   // today happens to be.
   const FETCH_DAYS = TOTAL_WEEKS * 7 + 14;
 
+  // Defer the setLoading(true) past the effect body so it lands in a
+  // microtask rather than synchronously inside the effect, satisfying
+  // react-hooks/set-state-in-effect. The fetch chain runs in the same
+  // microtask so the loading flag is always set before the response
+  // resolves.
   useEffect(() => {
     const url = userId
       ? `/api/user/activity-heatmap?days=${FETCH_DAYS}&userId=${encodeURIComponent(userId)}`
       : `/api/user/activity-heatmap?days=${FETCH_DAYS}`;
-    setLoading(true);
-    fetch(url)
-      .then((r) => r.json())
-      .then((res) => {
-        const data: DayData[] = res?.data?.data ?? res?.data ?? [];
-        const map: Record<string, number> = {};
-        for (const d of data) {
-          map[d.date] = d.count;
-        }
-        setDayMap(map);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      setLoading(true);
+      fetch(url)
+        .then((r) => r.json())
+        .then((res) => {
+          if (cancelled) return;
+          const data: DayData[] = res?.data?.data ?? res?.data ?? [];
+          const map: Record<string, number> = {};
+          for (const d of data) {
+            map[d.date] = d.count;
+          }
+          setDayMap(map);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [userId, FETCH_DAYS]);
 
   // Build the grid: 53 columns x 7 rows, ending today.

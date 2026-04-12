@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useSyncExternalStore } from 'react';
 
 export type Breakpoint = 'phone' | 'tablet' | 'desktop';
 
@@ -27,6 +27,22 @@ function getBreakpoint(): Breakpoint {
   return 'desktop';
 }
 
+function subscribe(callback: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const phoneMql = window.matchMedia(PHONE_QUERY);
+  const tabletMql = window.matchMedia(TABLET_QUERY);
+  phoneMql.addEventListener('change', callback);
+  tabletMql.addEventListener('change', callback);
+  return () => {
+    phoneMql.removeEventListener('change', callback);
+    tabletMql.removeEventListener('change', callback);
+  };
+}
+
+function getServerSnapshot(): Breakpoint {
+  return 'desktop';
+}
+
 /**
  * Reactive breakpoint hook for responsive inline styles.
  *
@@ -35,30 +51,13 @@ function getBreakpoint(): Breakpoint {
  * - tablet:  768–1023px (iPad Mini, iPad, iPad Air)
  * - desktop: 1024px+   (iPad Pro landscape, laptops, monitors)
  *
- * SSR-safe: defaults to 'desktop', hydrates on mount.
+ * SSR-safe: defaults to 'desktop', hydrates on mount via
+ * `useSyncExternalStore` (the React-canonical pattern for subscribing
+ * to external stores like matchMedia, replacing the older
+ * useEffect+setState pattern flagged by react-hooks/set-state-in-effect).
  */
 export function useBreakpoint(): BreakpointResult {
-  const [bp, setBp] = useState<Breakpoint>('desktop');
-
-  const update = useCallback(() => {
-    setBp(getBreakpoint());
-  }, []);
-
-  useEffect(() => {
-    // Hydrate immediately
-    update();
-
-    const phoneMql = window.matchMedia(PHONE_QUERY);
-    const tabletMql = window.matchMedia(TABLET_QUERY);
-
-    phoneMql.addEventListener('change', update);
-    tabletMql.addEventListener('change', update);
-
-    return () => {
-      phoneMql.removeEventListener('change', update);
-      tabletMql.removeEventListener('change', update);
-    };
-  }, [update]);
+  const bp = useSyncExternalStore(subscribe, getBreakpoint, getServerSnapshot);
 
   return {
     bp,

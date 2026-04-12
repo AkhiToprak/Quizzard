@@ -247,29 +247,38 @@ export default function SlashMenu({ state, editor }: SlashMenuProps) {
     });
   }, [state.query]);
 
-  // Reset selection when the query changes
-  useEffect(() => {
+  // Adjusting state during render (React-canonical pattern, replaces two
+  // setState-in-effect resets). When the slash query changes (or the menu
+  // toggles open), reset the active selection to 0 and clear any stale
+  // dismissed-query flag. seenQueryKey is a frozen snapshot of the props
+  // we last reacted to, so we only run the resets on actual change.
+  const queryKey = `${state.isOpen ? '1' : '0'}::${state.query}`;
+  const [seenQueryKey, setSeenQueryKey] = useState(queryKey);
+  if (queryKey !== seenQueryKey) {
+    setSeenQueryKey(queryKey);
     setActiveIndex(0);
-  }, [state.query, state.isOpen]);
-
-  // Clear dismissed flag when the query changes
-  useEffect(() => {
     if (dismissedQuery !== null && dismissedQuery !== state.query) {
       setDismissedQuery(null);
     }
-  }, [state.query, dismissedQuery]);
+  }
 
-  // Recompute popup position whenever the slash position changes
+  // Reset cached position synchronously during render when the menu closes
+  // — same adjusting-state pattern. The layout effect below only runs the
+  // "compute new position from DOM rect" path, never the null reset.
+  const [seenIsOpen, setSeenIsOpen] = useState(state.isOpen);
+  if (state.isOpen !== seenIsOpen) {
+    setSeenIsOpen(state.isOpen);
+    if (!state.isOpen && position !== null) setPosition(null);
+  }
+
+  // Recompute popup position whenever the slash position changes. Only the
+  // success path calls setPosition; failure paths just bail out (the stale
+  // value gets cleared by the adjusting-state hook above when isOpen flips).
   useLayoutEffect(() => {
-    if (!state.isOpen || !state.clientRect) {
-      setPosition(null);
-      return;
-    }
+    if (!state.isOpen || !state.clientRect) return;
     const rect = state.clientRect();
-    if (!rect) {
-      setPosition(null);
-      return;
-    }
+    if (!rect) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPosition({ top: rect.bottom + 8, left: rect.left });
   }, [state.isOpen, state.clientRect, state.range?.from, state.range?.to]);
 

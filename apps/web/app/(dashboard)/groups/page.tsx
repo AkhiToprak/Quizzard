@@ -189,10 +189,14 @@ export default function GroupsPage() {
       if (!res.ok) throw new Error('Failed to fetch groups');
       const data = await res.json();
       const raw = data.data?.groups ?? data.data ?? [];
+      type RawGroup = Omit<Group, '_count'> & {
+        _count?: Group['_count'];
+        memberCount?: number;
+        notebookCount?: number;
+      };
       setGroups(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Array.isArray(raw)
-          ? raw.map((g: any) => ({
+          ? (raw as RawGroup[]).map((g) => ({
               ...g,
               _count: g._count ?? {
                 members: g.memberCount ?? 0,

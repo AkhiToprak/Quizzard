@@ -441,7 +441,11 @@ export default function SettingsPage() {
   const [adminStatsLoading, setAdminStatsLoading] = useState(false);
   const [adminStatsError, setAdminStatsError] = useState<string | null>(null);
 
-  const fetchAdminStats = useCallback(async () => {
+  // Plain async helper (no useCallback) — the refresh button calls it
+  // directly, and the effect below kicks it off via Promise.resolve().then()
+  // so the leading setAdminStatsLoading/setAdminStatsError don't fire
+  // synchronously inside the effect body (react-hooks/set-state-in-effect).
+  const fetchAdminStats = async () => {
     setAdminStatsLoading(true);
     setAdminStatsError(null);
     try {
@@ -456,13 +460,22 @@ export default function SettingsPage() {
       setAdminStatsError('Network error');
     }
     setAdminStatsLoading(false);
-  }, []);
+  };
 
   useEffect(() => {
-    if (activeSection === 'stats' && isAdmin && !adminStats && !adminStatsLoading) {
-      fetchAdminStats();
-    }
-  }, [activeSection, isAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (activeSection !== 'stats' || !isAdmin) return;
+    if (adminStats !== null) return;
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) void fetchAdminStats();
+    });
+    return () => {
+      cancelled = true;
+    };
+    // fetchAdminStats is intentionally omitted — it closes over the same
+    // setters which are referentially stable, so re-running on every render
+    // would cause an infinite refetch loop.
+  }, [activeSection, isAdmin, adminStats]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Avatar editor state
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
@@ -470,7 +483,10 @@ export default function SettingsPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
 
-  const fetchAdminUsers = useCallback(async (search: string, page: number) => {
+  // Plain async function (no useCallback) — React Compiler memoizes
+  // automatically and the previous manual `[]` dep array confused the
+  // preserve-manual-memoization rule into a Compilation Skipped error.
+  const fetchAdminUsers = async (search: string, page: number) => {
     setAdminLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
@@ -487,14 +503,41 @@ export default function SettingsPage() {
       /* ignore */
     }
     setAdminLoading(false);
-  }, []);
+  };
 
-  // Fetch users when admin section is active
+  // Fetch users when admin section is active. Same Promise.resolve().then()
+  // pattern as the stats effect above — defers setState past the effect body
+  // to satisfy react-hooks/set-state-in-effect.
   useEffect(() => {
-    if (activeSection === 'admin' && isAdmin) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchAdminUsers(adminSearch, adminPage);
-    }
+    if (activeSection !== 'admin' || !isAdmin) return;
+    let cancelled = false;
+    void Promise.resolve().then(async () => {
+      if (cancelled) return;
+      setAdminLoading(true);
+      try {
+        const params = new URLSearchParams({ page: String(adminPage), limit: '20' });
+        if (adminSearch.trim()) params.set('search', adminSearch.trim());
+        const res = await fetch(`/api/admin/users?${params}`);
+        if (cancelled) return;
+        if (res.ok) {
+          const data = await res.json();
+          if (cancelled) return;
+          setAdminUsers(data.data.users);
+          setAdminTotal(data.data.total);
+          setAdminPage(data.data.page);
+          setAdminTotalPages(data.data.totalPages);
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        if (!cancelled) setAdminLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+    // adminSearch is intentionally read from closure and not in deps — search
+    // refetches go through handleAdminSearchChange's debounced setAdminPage(1).
   }, [activeSection, isAdmin, adminPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounced search

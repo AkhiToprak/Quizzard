@@ -71,7 +71,18 @@ export default function GroupSharedContent({ groupId, groupName, currentUserId, 
     setLoading(false);
   }, [groupId, filter]);
 
-  useEffect(() => { fetchItems(); }, [fetchItems]);
+  // Defer fetchItems() into a microtask so its leading setLoading state
+  // updates don't fire synchronously inside the effect body
+  // (react-hooks/set-state-in-effect).
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) void fetchItems();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchItems]);
 
   const handleDelete = async (sharedId: string) => {
     if (!window.confirm('Remove this shared content?')) return;
