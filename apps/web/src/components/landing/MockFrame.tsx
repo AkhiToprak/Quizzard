@@ -37,13 +37,11 @@ export default function MockFrame({
       style={{
         position: 'relative',
         borderRadius: 'var(--radius-xl)',
-        background: 'rgba(30, 26, 60, 0.92)',
+        background: '#1e1a3c',
         border: `1px solid ${accent}`,
         boxShadow:
           '0 48px 120px rgba(140, 82, 255, 0.16), 0 16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
         overflow: 'hidden',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
         ...style,
       }}
     >
@@ -55,7 +53,7 @@ export default function MockFrame({
           gap: 12,
           padding: '12px 16px',
           borderBottom: '1px solid rgba(140, 82, 255, 0.18)',
-          background: 'rgba(22, 20, 46, 0.9)',
+          background: '#16142e',
           minWidth: 0,
         }}
       >

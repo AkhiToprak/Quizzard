@@ -39,12 +39,10 @@ export default function LandingNavbar() {
           right: 0,
           zIndex: 60,
           padding: '16px 0',
-          background: scrolled ? 'rgba(9, 8, 26, 0.78)' : 'rgba(9, 8, 26, 0.4)',
-          backdropFilter: scrolled ? 'blur(24px) saturate(140%)' : 'blur(0)',
-          WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(140%)' : 'blur(0)',
+          background: scrolled ? '#0e0c22' : 'transparent',
           borderBottom: scrolled ? '1px solid rgba(140, 82, 255, 0.18)' : '1px solid transparent',
           transition:
-            'background 0.35s cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+            'background 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
         <nav
@@ -212,9 +210,7 @@ export default function LandingNavbar() {
             position: 'fixed',
             inset: 0,
             zIndex: 55,
-            background: 'rgba(9, 8, 26, 0.96)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
+            background: '#09081a',
             padding: '96px 32px 32px',
             display: 'flex',
             flexDirection: 'column',

@@ -159,24 +159,22 @@ export default function FinalCta() {
               gap: 8,
               padding: '18px 28px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(174, 137, 255, 0.08)',
+              background: '#1e1b3e',
               border: '1px solid rgba(174, 137, 255, 0.32)',
               color: 'var(--on-surface)',
               fontSize: 16,
               fontWeight: 600,
               textDecoration: 'none',
               fontFamily: 'var(--font-sans)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
               transition:
                 'background 0.35s cubic-bezier(0.22, 1, 0.36, 1), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(174, 137, 255, 0.18)';
+              e.currentTarget.style.background = '#2a2550';
               e.currentTarget.style.transform = 'translateY(-4px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(174, 137, 255, 0.08)';
+              e.currentTarget.style.background = '#1e1b3e';
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >

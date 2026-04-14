@@ -256,15 +256,13 @@ function ToolCard({ tool }: { tool: Tool }) {
       style={{
         position: 'relative',
         borderRadius: 'var(--radius-xl)',
-        background: 'rgba(22, 20, 44, 0.75)',
+        background: '#16142c',
         border: `1px solid ${tool.accent}44`,
         overflow: 'hidden',
         transition:
           'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
         boxShadow: '0 24px 60px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.35)',
         cursor: 'pointer',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-6px)';
@@ -308,13 +306,11 @@ function ToolCard({ tool }: { tool: Tool }) {
             width: 44,
             height: 44,
             borderRadius: 'var(--radius-md)',
-            background: 'rgba(16, 16, 42, 0.8)',
+            background: '#10102a',
             border: `1px solid ${tool.accent}66`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
             boxShadow: `0 4px 16px ${tool.accent}33`,
           }}
         >

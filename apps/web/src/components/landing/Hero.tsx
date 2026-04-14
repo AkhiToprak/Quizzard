@@ -55,11 +55,9 @@ export default function Hero() {
               gap: 10,
               padding: '8px 16px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(174, 137, 255, 0.15)',
+              background: '#25204a',
               border: '1px solid rgba(174, 137, 255, 0.3)',
               marginBottom: 32,
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#ffde59' }}>
@@ -170,24 +168,22 @@ export default function Hero() {
                 gap: 10,
                 padding: '16px 26px',
                 borderRadius: 'var(--radius-full)',
-                background: 'rgba(174, 137, 255, 0.08)',
+                background: '#1e1b3e',
                 border: '1px solid rgba(174, 137, 255, 0.3)',
                 color: 'var(--on-surface)',
                 fontSize: 15,
                 fontWeight: 600,
                 textDecoration: 'none',
                 fontFamily: 'var(--font-sans)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
                 transition:
                   'background 0.35s cubic-bezier(0.22, 1, 0.36, 1), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(174, 137, 255, 0.18)';
+                e.currentTarget.style.background = '#2a2550';
                 e.currentTarget.style.transform = 'translateY(-3px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(174, 137, 255, 0.08)';
+                e.currentTarget.style.background = '#1e1b3e';
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >

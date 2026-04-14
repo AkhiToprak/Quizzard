@@ -93,10 +93,8 @@ export default function HowItWorks() {
                 position: 'relative',
                 padding: 28,
                 borderRadius: 'var(--radius-xl)',
-                background: 'rgba(22, 20, 46, 0.8)',
+                background: '#16142e',
                 border: '1px solid rgba(174, 137, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
                 boxShadow: '0 32px 64px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.35)',
                 textAlign: 'center',
               }}
