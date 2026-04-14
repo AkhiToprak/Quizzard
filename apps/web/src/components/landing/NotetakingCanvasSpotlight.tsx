@@ -31,16 +31,7 @@ export default function NotetakingCanvasSpotlight() {
           title={
             <>
               Type it, or{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #ae89ff 0%, #8c52ff 60%, #ffde59 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                draw it.
-              </span>
+              <span style={{ color: '#ae89ff' }}>draw it.</span>
             </>
           }
           description="Some ideas are words. Others are arrows and doodles. Notemage supports both, inside every notebook, without ever switching tabs."
@@ -113,7 +104,7 @@ function FeatureCard({
         position: 'relative',
         padding: 32,
         borderRadius: 'var(--radius-xl)',
-        background: 'linear-gradient(180deg, rgba(28, 24, 56, 0.7) 0%, rgba(18, 16, 38, 0.7) 100%)',
+        background: 'rgba(24, 22, 48, 0.7)',
         border: `1px solid ${accent}`,
         boxShadow: '0 32px 80px rgba(140, 82, 255, 0.08), 0 8px 24px rgba(0,0,0,0.4)',
         backdropFilter: 'blur(8px)',

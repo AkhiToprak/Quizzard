@@ -15,20 +15,6 @@ export default function Hero() {
         background: '#15142e',
       }}
     >
-      {/* Layered radial glows */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          background: [
-            'radial-gradient(900px 700px at 50% -10%, rgba(140, 82, 255, 0.14) 0%, transparent 55%)',
-            'radial-gradient(600px 480px at 88% 10%, rgba(81, 112, 255, 0.10) 0%, transparent 60%)',
-            'radial-gradient(420px 380px at 6% 85%, rgba(255, 222, 89, 0.06) 0%, transparent 60%)',
-          ].join(','),
-        }}
-      />
       {/* Grain overlay */}
       <div
         aria-hidden
@@ -69,8 +55,7 @@ export default function Hero() {
               gap: 10,
               padding: '8px 16px',
               borderRadius: 'var(--radius-full)',
-              background:
-                'linear-gradient(135deg, rgba(174, 137, 255, 0.18) 0%, rgba(255, 222, 89, 0.12) 100%)',
+              background: 'rgba(174, 137, 255, 0.15)',
               border: '1px solid rgba(174, 137, 255, 0.3)',
               marginBottom: 32,
               backdropFilter: 'blur(10px)',
@@ -111,10 +96,7 @@ export default function Hero() {
             <br />
             <span
               style={{
-                background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 40%, #ffb347 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                color: '#ffde59',
                 fontStyle: 'italic',
               }}
             >
@@ -152,7 +134,7 @@ export default function Hero() {
                 gap: 10,
                 padding: '16px 28px',
                 borderRadius: 'var(--radius-full)',
-                background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
+                background: '#ffde59',
                 color: '#2a2200',
                 fontSize: 15,
                 fontWeight: 700,
@@ -222,20 +204,6 @@ export default function Hero() {
           <HeroCarousel />
         </div>
       </div>
-
-      {/* Bottom soft fade to next section */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 140,
-          pointerEvents: 'none',
-          background: 'linear-gradient(180deg, rgba(9,8,26,0) 0%, #15142e 100%)',
-        }}
-      />
 
       <style jsx>{`
         @media (max-width: 1023px) {

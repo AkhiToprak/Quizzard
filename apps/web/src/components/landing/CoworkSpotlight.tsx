@@ -8,24 +8,10 @@ export default function CoworkSpotlight() {
       style={{
         position: 'relative',
         padding: '128px 32px',
-        background: 'linear-gradient(180deg, #15142e 0%, #191736 50%, #15142e 100%)',
+        background: '#15142e',
         overflow: 'hidden',
       }}
     >
-      {/* blue tinted glow */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          top: '20%',
-          right: '-10%',
-          width: 640,
-          height: 480,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(81, 112, 255, 0.15) 0%, transparent 65%)',
-          pointerEvents: 'none',
-        }}
-      />
 
       <div
         style={{
@@ -107,17 +93,7 @@ export default function CoworkSpotlight() {
             }}
           >
             Study alone.{' '}
-            <span
-              style={{
-                background: 'linear-gradient(135deg, #b9c3ff 0%, #5170ff 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                fontStyle: 'italic',
-              }}
-            >
-              Together.
-            </span>
+            <span style={{ color: '#b9c3ff', fontStyle: 'italic' }}>Together.</span>
           </h2>
 
           <p

@@ -37,8 +37,7 @@ export default function MockFrame({
       style={{
         position: 'relative',
         borderRadius: 'var(--radius-xl)',
-        background:
-          'linear-gradient(180deg, rgba(44, 36, 80, 0.9) 0%, rgba(20, 18, 44, 0.95) 100%)',
+        background: 'rgba(30, 26, 60, 0.92)',
         border: `1px solid ${accent}`,
         boxShadow:
           '0 48px 120px rgba(140, 82, 255, 0.16), 0 16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
@@ -56,8 +55,7 @@ export default function MockFrame({
           gap: 12,
           padding: '12px 16px',
           borderBottom: '1px solid rgba(140, 82, 255, 0.18)',
-          background:
-            'linear-gradient(180deg, rgba(28, 24, 56, 0.9) 0%, rgba(18, 16, 38, 0.9) 100%)',
+          background: 'rgba(22, 20, 46, 0.9)',
           minWidth: 0,
         }}
       >
@@ -165,8 +163,7 @@ export default function MockFrame({
           position: 'relative',
           aspectRatio,
           width: '100%',
-          background:
-            'radial-gradient(120% 80% at 50% 0%, rgba(140, 82, 255, 0.14) 0%, transparent 60%), #181732',
+          background: '#181732',
         }}
       >
         {image ? (

@@ -127,16 +127,7 @@ export default function LearningToolsCarousel() {
           title={
             <>
               All your study tools,{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #ffde59 0%, #ffb347 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                one tap away.
-              </span>
+              <span style={{ color: '#ffde59' }}>one tap away.</span>
             </>
           }
           description="Turn any page into a quiz, a flashcard deck, a mind map, or a polished slide export — without opening a single other app."
@@ -265,7 +256,7 @@ function ToolCard({ tool }: { tool: Tool }) {
       style={{
         position: 'relative',
         borderRadius: 'var(--radius-xl)',
-        background: 'linear-gradient(180deg, rgba(28, 24, 56, 0.7) 0%, rgba(16, 14, 34, 0.8) 100%)',
+        background: 'rgba(22, 20, 44, 0.75)',
         border: `1px solid ${tool.accent}44`,
         overflow: 'hidden',
         transition:
@@ -292,7 +283,7 @@ function ToolCard({ tool }: { tool: Tool }) {
         style={{
           position: 'relative',
           aspectRatio: '5 / 3',
-          background: `radial-gradient(120% 80% at 50% 0%, ${tool.accent}22 0%, transparent 60%), #181732`,
+          background: '#181732',
           overflow: 'hidden',
           borderBottom: `1px solid ${tool.accent}22`,
         }}

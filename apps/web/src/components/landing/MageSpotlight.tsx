@@ -9,26 +9,10 @@ export default function MageSpotlight() {
       style={{
         position: 'relative',
         padding: '128px 32px',
-        background:
-          'radial-gradient(1000px 600px at 50% 0%, rgba(140, 82, 255, 0.12) 0%, transparent 60%), #15142e',
+        background: '#181734',
         overflow: 'hidden',
       }}
     >
-      {/* Decorative orb */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: 640,
-          height: 640,
-          transform: 'translate(-50%, -30%)',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(140, 82, 255, 0.15) 0%, transparent 65%)',
-          pointerEvents: 'none',
-        }}
-      />
 
       <div
         style={{
@@ -43,16 +27,7 @@ export default function MageSpotlight() {
           title={
             <>
               Meet your{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #ae89ff 0%, #c9a6ff 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                personal tutor.
-              </span>
+              <span style={{ color: '#ae89ff' }}>personal tutor.</span>
             </>
           }
           description="Ask anything, anywhere in your notebook. Mage reads your pages, your PDFs, your slides — and answers with citations you can actually trust."

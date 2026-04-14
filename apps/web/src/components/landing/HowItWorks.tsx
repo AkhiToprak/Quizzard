@@ -33,7 +33,7 @@ export default function HowItWorks() {
       style={{
         position: 'relative',
         padding: '128px 32px',
-        background: 'linear-gradient(180deg, #15142e 0%, #161534 50%, #15142e 100%)',
+        background: '#161534',
       }}
     >
       {/* dot grid overlay */}
@@ -56,16 +56,7 @@ export default function HowItWorks() {
           title={
             <>
               Three steps to your{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #ae89ff 0%, #ffde59 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                first spell.
-              </span>
+              <span style={{ color: '#ae89ff' }}>first spell.</span>
             </>
           }
           description="No tutorial hell. You'll be studying with AI in under 60 seconds."
@@ -90,8 +81,7 @@ export default function HowItWorks() {
               left: '12%',
               right: '12%',
               height: 2,
-              background:
-                'linear-gradient(90deg, transparent, rgba(174, 137, 255, 0.3), rgba(255, 222, 89, 0.3), transparent)',
+              background: 'rgba(174, 137, 255, 0.25)',
               pointerEvents: 'none',
             }}
           />
@@ -103,8 +93,7 @@ export default function HowItWorks() {
                 position: 'relative',
                 padding: 28,
                 borderRadius: 'var(--radius-xl)',
-                background:
-                  'linear-gradient(180deg, rgba(28, 24, 56, 0.78) 0%, rgba(16, 14, 34, 0.82) 100%)',
+                background: 'rgba(22, 20, 46, 0.8)',
                 border: '1px solid rgba(174, 137, 255, 0.2)',
                 backdropFilter: 'blur(10px)',
                 WebkitBackdropFilter: 'blur(10px)',
@@ -118,8 +107,7 @@ export default function HowItWorks() {
                   width: 72,
                   height: 72,
                   borderRadius: '50%',
-                  background:
-                    'radial-gradient(circle, rgba(174, 137, 255, 0.22) 0%, rgba(140, 82, 255, 0.08) 70%)',
+                  background: 'rgba(174, 137, 255, 0.14)',
                   border: '1px solid rgba(174, 137, 255, 0.4)',
                   display: 'flex',
                   alignItems: 'center',

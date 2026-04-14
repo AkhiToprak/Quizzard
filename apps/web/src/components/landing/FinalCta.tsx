@@ -13,21 +13,6 @@ export default function FinalCta() {
         textAlign: 'center',
       }}
     >
-      {/* Layered glows */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          background: [
-            'radial-gradient(900px 600px at 50% 50%, rgba(140, 82, 255, 0.18) 0%, transparent 60%)',
-            'radial-gradient(500px 360px at 20% 80%, rgba(255, 222, 89, 0.08) 0%, transparent 60%)',
-            'radial-gradient(480px 360px at 80% 20%, rgba(81, 112, 255, 0.12) 0%, transparent 60%)',
-          ].join(','),
-        }}
-      />
-
       {/* Sparkles */}
       {[
         { top: '20%', left: '12%', size: 20, delay: '0s' },
@@ -106,17 +91,7 @@ export default function FinalCta() {
         >
           Your next exam
           <br />
-          <span
-            style={{
-              background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 50%, #ffb347 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              fontStyle: 'italic',
-            }}
-          >
-            starts here.
-          </span>
+          <span style={{ color: '#ffde59', fontStyle: 'italic' }}>starts here.</span>
         </h2>
 
         <p
@@ -148,7 +123,7 @@ export default function FinalCta() {
               gap: 10,
               padding: '18px 32px',
               borderRadius: 'var(--radius-full)',
-              background: 'linear-gradient(135deg, #ffde59 0%, #ffc94a 100%)',
+              background: '#ffde59',
               color: '#2a2200',
               fontSize: 16,
               fontWeight: 700,

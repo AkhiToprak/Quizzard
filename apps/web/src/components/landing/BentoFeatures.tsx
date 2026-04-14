@@ -43,16 +43,7 @@ export default function BentoFeatures() {
           title={
             <>
               Built like an app{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #ae89ff 0%, #ffde59 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                you’ll actually open.
-              </span>
+              <span style={{ color: '#ae89ff' }}>you’ll actually open.</span>
             </>
           }
           description="The small things that don’t fit on a carousel but make the day-to-day feel good."
@@ -75,8 +66,7 @@ export default function BentoFeatures() {
                 position: 'relative',
                 padding: 28,
                 borderRadius: 'var(--radius-xl)',
-                background:
-                  'linear-gradient(180deg, rgba(28, 24, 56, 0.7) 0%, rgba(16, 14, 34, 0.75) 100%)',
+                background: 'rgba(22, 20, 44, 0.72)',
                 border: `1px solid ${c.accent}33`,
                 boxShadow: '0 24px 60px rgba(140, 82, 255, 0.06), 0 4px 16px rgba(0,0,0,0.35)',
                 minHeight: 240,
@@ -96,21 +86,6 @@ export default function BentoFeatures() {
                   '0 24px 60px rgba(140, 82, 255, 0.06), 0 4px 16px rgba(0,0,0,0.35)';
               }}
             >
-              {/* Decorative glow */}
-              <div
-                aria-hidden
-                style={{
-                  position: 'absolute',
-                  top: -40,
-                  right: -40,
-                  width: 180,
-                  height: 180,
-                  borderRadius: '50%',
-                  background: `radial-gradient(circle, ${c.accent}22 0%, transparent 65%)`,
-                  pointerEvents: 'none',
-                }}
-              />
-
               <div
                 style={{
                   position: 'relative',

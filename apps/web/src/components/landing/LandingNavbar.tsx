@@ -39,9 +39,7 @@ export default function LandingNavbar() {
           right: 0,
           zIndex: 60,
           padding: '16px 0',
-          background: scrolled
-            ? 'rgba(9, 8, 26, 0.78)'
-            : 'linear-gradient(180deg, rgba(9,8,26,0.65) 0%, rgba(9,8,26,0) 100%)',
+          background: scrolled ? 'rgba(9, 8, 26, 0.78)' : 'rgba(9, 8, 26, 0.4)',
           backdropFilter: scrolled ? 'blur(24px) saturate(140%)' : 'blur(0)',
           WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(140%)' : 'blur(0)',
           borderBottom: scrolled ? '1px solid rgba(140, 82, 255, 0.18)' : '1px solid transparent',

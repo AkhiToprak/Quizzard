@@ -34,26 +34,11 @@ export default function LandingFooter() {
       style={{
         position: 'relative',
         padding: '96px 32px 48px',
-        background:
-          'linear-gradient(180deg, rgba(16, 16, 42, 0.0) 0%, rgba(16, 16, 42, 0.85) 40%, #0e0d20 100%)',
+        background: '#0e0d20',
         borderTop: '1px solid rgba(140, 82, 255, 0.16)',
         overflow: 'hidden',
       }}
     >
-      {/* Decorative sigil */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          right: -120,
-          bottom: -120,
-          width: 400,
-          height: 400,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(140, 82, 255, 0.12) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
 
       <div
         style={{
