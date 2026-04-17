@@ -115,6 +115,109 @@ export function textToTipTapJSON(text: string): TipTapDoc {
 }
 
 /**
+ * Heuristically detect whether a single line looks like a heading.
+ * Used by the PDF converter — PDFs don't carry semantic structure so we
+ * rely on short, visually distinct lines (all-caps, chapter-style numbering,
+ * title-case-only) to reconstruct a basic outline.
+ */
+function isLikelyHeading(line: string): { isHeading: boolean; level: 1 | 2 | 3 } {
+  const trimmed = line.trim();
+  if (trimmed.length === 0 || trimmed.length > 100) return { isHeading: false, level: 1 };
+  // Too much punctuation looks like prose, not a heading
+  if (/[.!?;:]{1}.{3,}[.!?;:]/.test(trimmed)) return { isHeading: false, level: 1 };
+  // Ends with a sentence-ending period followed by nothing → usually a sentence
+  if (/[a-z]\.$/.test(trimmed)) return { isHeading: false, level: 1 };
+
+  // Chapter / Section patterns
+  if (/^(chapter|kapitel|section|part|teil)\s+[ivxlcdm\d]+/i.test(trimmed)) {
+    return { isHeading: true, level: 1 };
+  }
+  // Numbered headings: "1.", "1.1", "1.1.1"
+  const numMatch = trimmed.match(/^(\d+)(\.\d+){0,2}\.?\s+\S/);
+  if (numMatch && trimmed.length <= 80) {
+    const dots = (numMatch[0].match(/\./g) || []).length;
+    const level = Math.min(3, Math.max(1, dots)) as 1 | 2 | 3;
+    return { isHeading: true, level };
+  }
+  // All caps, short
+  const letters = trimmed.replace(/[^A-Za-zÄÖÜäöüß]/g, '');
+  if (letters.length >= 3 && letters === letters.toUpperCase() && trimmed.length <= 80) {
+    return { isHeading: true, level: 2 };
+  }
+  return { isHeading: false, level: 1 };
+}
+
+/**
+ * Convert plain text extracted from a PDF into TipTap JSON with basic
+ * heading detection. PDFs don't preserve structure, so we reconstruct
+ * paragraphs from line groupings and promote visually distinct lines
+ * (all-caps, numbered, chapter-style) to toggle headings.
+ */
+export function pdfTextToTipTapJSON(text: string): TipTapDoc {
+  const normalized = text.replace(/\r\n?/g, '\n');
+  const blocks = normalized.split(/\n\n+/);
+  const content: TipTapNode[] = [];
+
+  for (const block of blocks) {
+    const trimmed = block.trim();
+    if (!trimmed) continue;
+
+    const lines = trimmed.split('\n');
+
+    // Single-line block: check if it's a heading
+    if (lines.length === 1) {
+      const { isHeading, level } = isLikelyHeading(lines[0]);
+      if (isHeading) {
+        content.push({
+          type: 'toggleHeading',
+          attrs: { level, collapsed: false, summary: lines[0].trim() },
+          content: [{ type: 'paragraph' }],
+        });
+        continue;
+      }
+      content.push({
+        type: 'paragraph',
+        content: [{ type: 'text', text: lines[0].trim() }],
+      });
+      continue;
+    }
+
+    // Multi-line block: check first line for heading, then treat the rest as a paragraph.
+    const firstCheck = isLikelyHeading(lines[0]);
+    let startIndex = 0;
+    if (firstCheck.isHeading) {
+      content.push({
+        type: 'toggleHeading',
+        attrs: { level: firstCheck.level, collapsed: false, summary: lines[0].trim() },
+        content: [{ type: 'paragraph' }],
+      });
+      startIndex = 1;
+    }
+
+    // Join remaining lines into one paragraph, preserving hard breaks
+    // where the original line ended with a visible line break rather
+    // than wrapping. We can't tell perfectly from text alone, so keep
+    // the lines joined by spaces — a reasonable default for body text.
+    const paragraphText = lines.slice(startIndex).join(' ').replace(/\s+/g, ' ').trim();
+    if (paragraphText) {
+      content.push({
+        type: 'paragraph',
+        content: [{ type: 'text', text: paragraphText }],
+      });
+    }
+  }
+
+  if (content.length === 0) {
+    return {
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [] }],
+    };
+  }
+
+  return { type: 'doc', content };
+}
+
+/**
  * Convert HTML string (from mammoth DOCX conversion) to TipTap JSON.
  * Handles the common elements mammoth produces: p, h1-h6, strong/b, em/i,
  * ul, ol, li, blockquote, a, br.

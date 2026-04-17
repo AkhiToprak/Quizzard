@@ -54,6 +54,7 @@ const CALLOUT_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
 import { CALLOUT_STYLES, type CalloutType } from '@/lib/tiptap-callout';
 
 import ImageUploadButton from './ImageUploadButton';
+import PageAppendPdfButton from './PageAppendPdfButton';
 import GenerateDropdown from './GenerateDropdown';
 
 /* ── font options ── */
@@ -1527,6 +1528,12 @@ export default function EditorToolbar({
 
         <Sep />
         <ImageUploadButton
+          editor={editor}
+          notebookId={notebookId}
+          sectionId={sectionId}
+          pageId={pageId}
+        />
+        <PageAppendPdfButton
           editor={editor}
           notebookId={notebookId}
           sectionId={sectionId}

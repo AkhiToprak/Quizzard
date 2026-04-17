@@ -9,7 +9,7 @@ import {
   internalErrorResponse,
 } from '@/lib/api-response';
 import { extractText, ALLOWED_MIME_TYPES } from '@/lib/fileProcessing';
-import { textToTipTapJSON, htmlToTipTapJSON } from '@/lib/contentConverter';
+import { textToTipTapJSON, htmlToTipTapJSON, pdfTextToTipTapJSON } from '@/lib/contentConverter';
 import { downloadFromStorage, validateStoragePath, deleteFile, saveImage } from '@/lib/storage';
 import mammoth from 'mammoth';
 
@@ -60,8 +60,12 @@ export async function POST(request: NextRequest, { params }: Params) {
       // For DOCX, use mammoth to get HTML then convert to TipTap JSON for rich formatting
       const htmlResult = await mammoth.convertToHtml({ buffer });
       content = htmlToTipTapJSON(htmlResult.value);
+    } else if (fileType === 'application/pdf') {
+      // PDFs don't carry structure — use the heading-aware converter
+      const text = await extractText(buffer, fileType);
+      content = pdfTextToTipTapJSON(text);
     } else {
-      // For PDF, TXT, MD — extract plain text then convert
+      // For TXT, MD — extract plain text then convert
       const text = await extractText(buffer, fileType);
       content = textToTipTapJSON(text);
     }

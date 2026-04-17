@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ArrowLeft, Plus } from 'lucide-react';
 import SectionTree, { buildSectionTree } from '@/components/notebook/SectionTree';
 import CreateSectionDialog from '@/components/notebook/CreateSectionDialog';
+import SidebarPdfImportButton from '@/components/notebook/SidebarPdfImportButton';
 import type { SectionData, SectionNode } from '@/components/notebook/SectionTree';
 
 interface NotebookMeta {
@@ -162,13 +163,14 @@ export default function NotebookSidebar({ notebookId }: NotebookSidebarProps) {
         )}
       </div>
 
-      {/* Bottom: New Section button */}
+      {/* Bottom: Import PDF + New Section buttons */}
       <div
         style={{
           padding: '10px 14px',
           borderTop: '1px solid rgba(140,82,255,0.1)',
         }}
       >
+        <SidebarPdfImportButton notebookId={notebookId} onImported={fetchSections} />
         <button
           data-new-section-btn
           onClick={() => setIsCreatingSection(true)}
