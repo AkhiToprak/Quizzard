@@ -25,6 +25,11 @@ export interface TextData {
   color: string;
   fontSize: number;
   offset?: { x: number; y: number };
+  fontFamily?: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strike?: boolean;
 }
 
 export type EditorMode = 'cursor' | 'pen' | 'text';
@@ -48,6 +53,9 @@ interface DrawingOverlayProps {
   lineStyle: LineStyle;
   ruler: RulerState;
   onRulerChange: (ruler: RulerState) => void;
+  /** Notify the parent of the currently selected text annotation (or null)
+   *  so the editor toolbar can retarget its controls at overlay text. */
+  onSelectedTextChange?: (annotation: TextData | null) => void;
 }
 
 /* ── Helpers ── */
@@ -86,6 +94,11 @@ export function hydrateTexts(raw: unknown[]): TextData[] {
       color: typeof t.color === 'string' ? t.color : '#ede9ff',
       fontSize: typeof t.fontSize === 'number' ? t.fontSize : 16,
       offset: (t.offset as { x: number; y: number }) || { x: 0, y: 0 },
+      fontFamily: typeof t.fontFamily === 'string' ? t.fontFamily : undefined,
+      bold: !!t.bold,
+      italic: !!t.italic,
+      underline: !!t.underline,
+      strike: !!t.strike,
     }));
 }
 
@@ -238,6 +251,10 @@ function TextAnnotation({
   const foPointerEventsValue: 'none' | 'auto' = mode === 'pen' ? 'none' : 'auto';
   const showHandles = isSelected && !isEditing && mode === 'cursor';
 
+  const decorations: string[] = [];
+  if (t.underline) decorations.push('underline');
+  if (t.strike) decorations.push('line-through');
+
   const commonStyle: React.CSSProperties = {
     width: liveWidth,
     boxSizing: 'border-box',
@@ -245,7 +262,10 @@ function TextAnnotation({
     color: t.color,
     fontSize: liveFontSize,
     lineHeight: 1.4,
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: t.fontFamily || "'DM Sans', sans-serif",
+    fontWeight: t.bold ? 700 : 400,
+    fontStyle: t.italic ? 'italic' : 'normal',
+    textDecoration: decorations.length ? decorations.join(' ') : 'none',
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
     borderRadius: 4,
@@ -495,6 +515,7 @@ export default function DrawingOverlay({
   lineStyle,
   ruler,
   onRulerChange,
+  onSelectedTextChange,
 }: DrawingOverlayProps) {
   const { isPhone } = useBreakpoint();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -646,6 +667,20 @@ export default function DrawingOverlay({
   useEffect(() => {
     editingTextIdRef.current = editingTextId;
   }, [editingTextId]);
+
+  // Surface the selected (or currently-editing) text annotation to the
+  // parent so the toolbar can target it. Editing takes priority so
+  // typing + changing color/font/size applies to the in-flight text.
+  useEffect(() => {
+    if (!onSelectedTextChange) return;
+    const activeId = editingTextId ?? selectedId;
+    if (!activeId) {
+      onSelectedTextChange(null);
+      return;
+    }
+    const match = texts.find((t) => t.id === activeId);
+    onSelectedTextChange(match ?? null);
+  }, [selectedId, editingTextId, texts, onSelectedTextChange]);
 
   // ── Text-mode click interception at the parent level ──
   // The SVG overlay sits at z-index 100, but clicks over <img> elements

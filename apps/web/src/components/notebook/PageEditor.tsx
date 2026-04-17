@@ -166,6 +166,7 @@ export default function PageEditor({
   });
   const [strokes, setStrokes] = useState<StrokeData[]>([]);
   const [texts, setTexts] = useState<TextData[]>([]);
+  const [selectedTextAnnotation, setSelectedTextAnnotation] = useState<TextData | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
   const titleRef = useRef(title);
@@ -491,6 +492,29 @@ export default function PageEditor({
       scheduleDrawingSave(strokes, newTexts);
     },
     [scheduleDrawingSave, strokes]
+  );
+
+  // Apply an update to the currently-selected text annotation. Used by
+  // the toolbar to retarget color/font/size/bold/italic/etc. at overlay
+  // text when one is selected. Returns true if the update landed, false
+  // if there was nothing to target (so the caller can fall through to
+  // the editor-level behaviour).
+  const updateSelectedAnnotation = useCallback(
+    (updates: Partial<TextData>) => {
+      if (!selectedTextAnnotation) return false;
+      const id = selectedTextAnnotation.id;
+      setTexts((cur) => {
+        const next = cur.map((t) => (t.id === id ? { ...t, ...updates } : t));
+        // Save immediately — the toolbar changes are intentional user actions.
+        scheduleDrawingSave(strokes, next);
+        return next;
+      });
+      // Keep the selected snapshot in sync so consecutive toolbar clicks see
+      // the updated style (e.g. toggling bold off after toggling it on).
+      setSelectedTextAnnotation((cur) => (cur && cur.id === id ? { ...cur, ...updates } : cur));
+      return true;
+    },
+    [selectedTextAnnotation, scheduleDrawingSave, strokes]
   );
 
   useEffect(() => {
@@ -1252,6 +1276,8 @@ export default function PageEditor({
           handleStrokesChange([]);
           handleTextsChange([]);
         }}
+        selectedTextAnnotation={selectedTextAnnotation}
+        onAnnotationUpdate={updateSelectedAnnotation}
       />
 
       {/* ── Editor canvas (full width, infinite scroll) ── */}
@@ -1287,6 +1313,7 @@ export default function PageEditor({
             lineStyle={lineStyle}
             ruler={ruler}
             onRulerChange={setRuler}
+            onSelectedTextChange={setSelectedTextAnnotation}
           />
         </div>
       </div>

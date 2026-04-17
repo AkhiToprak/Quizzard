@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 import { useNotebookWorkspace } from './NotebookWorkspaceContext';
 
-import type { EditorMode, ActiveTool, LineStyle, RulerState } from './DrawingOverlay';
+import type { EditorMode, ActiveTool, LineStyle, RulerState, TextData } from './DrawingOverlay';
 
 const CALLOUT_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   Info,
@@ -149,6 +149,14 @@ interface EditorToolbarProps {
   ruler: RulerState;
   onRulerToggle: () => void;
   onClearDrawing: () => void;
+  /** Currently-selected overlay text annotation (if any). When present,
+   *  the toolbar's font/size/color/bold controls target it instead of
+   *  the editor selection. */
+  selectedTextAnnotation?: TextData | null;
+  /** Apply a partial update to the selected overlay annotation. Returns
+   *  true if the update was applied (i.e. there was something to target),
+   *  false if the caller should fall through to editor behaviour. */
+  onAnnotationUpdate?: (updates: Partial<TextData>) => boolean;
 }
 
 /*
@@ -409,15 +417,21 @@ function ColorPicker({
 function FontFamilySelect({
   editor,
   withSelection,
+  selectedTextAnnotation,
+  onAnnotationUpdate,
 }: {
   editor: Editor;
   withSelection: ReturnType<typeof useSelectionGuard>;
+  selectedTextAnnotation?: TextData | null;
+  onAnnotationUpdate?: (updates: Partial<TextData>) => boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const current = (() => {
-    const fam = editor.getAttributes('textStyle').fontFamily as string | undefined;
+    const fam = selectedTextAnnotation
+      ? selectedTextAnnotation.fontFamily
+      : (editor.getAttributes('textStyle').fontFamily as string | undefined);
     if (!fam) return 'Default';
     const match = FONT_FAMILIES.find((f) => f.value === fam);
     return match?.label ?? 'Default';
@@ -480,10 +494,14 @@ function FontFamilySelect({
               key={f.value}
               onMouseDown={(e) => {
                 e.preventDefault();
-                withSelection((chain) => {
-                  if (f.value) chain.setFontFamily(f.value).run();
-                  else chain.unsetFontFamily().run();
-                });
+                if (selectedTextAnnotation && onAnnotationUpdate) {
+                  onAnnotationUpdate({ fontFamily: f.value || undefined });
+                } else {
+                  withSelection((chain) => {
+                    if (f.value) chain.setFontFamily(f.value).run();
+                    else chain.unsetFontFamily().run();
+                  });
+                }
                 setOpen(false);
               }}
               style={{
@@ -521,14 +539,19 @@ function FontFamilySelect({
 function FontSizeControl({
   editor,
   withSelection,
+  selectedTextAnnotation,
+  onAnnotationUpdate,
 }: {
   editor: Editor;
   withSelection: ReturnType<typeof useSelectionGuard>;
+  selectedTextAnnotation?: TextData | null;
+  onAnnotationUpdate?: (updates: Partial<TextData>) => boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const currentSize = (() => {
+    if (selectedTextAnnotation) return String(selectedTextAnnotation.fontSize);
     const fs = editor.getAttributes('textStyle').fontSize as string | undefined;
     if (!fs) return '15';
     return fs.replace('px', '');
@@ -590,10 +613,15 @@ function FontSizeControl({
               key={s}
               onMouseDown={(e) => {
                 e.preventDefault();
-                withSelection((chain) => {
-                  if (!s) chain.unsetFontSize().run();
-                  else chain.setFontSize(`${s}px`).run();
-                });
+                if (selectedTextAnnotation && onAnnotationUpdate) {
+                  const n = parseInt(s, 10);
+                  if (!isNaN(n)) onAnnotationUpdate({ fontSize: n });
+                } else {
+                  withSelection((chain) => {
+                    if (!s) chain.unsetFontSize().run();
+                    else chain.setFontSize(`${s}px`).run();
+                  });
+                }
                 setOpen(false);
               }}
               style={{
@@ -1370,6 +1398,8 @@ export default function EditorToolbar({
   ruler,
   onRulerToggle,
   onClearDrawing,
+  selectedTextAnnotation,
+  onAnnotationUpdate,
 }: EditorToolbarProps) {
   const [, setTick] = useState(0);
   const bump = useCallback(() => setTick((t) => t + 1), []);
@@ -1422,40 +1452,86 @@ export default function EditorToolbar({
           gap: '4px',
         }}
       >
-        <FontFamilySelect editor={editor} withSelection={withSelection} />
-        <FontSizeControl editor={editor} withSelection={withSelection} />
+        <FontFamilySelect
+          editor={editor}
+          withSelection={withSelection}
+          selectedTextAnnotation={selectedTextAnnotation}
+          onAnnotationUpdate={onAnnotationUpdate}
+        />
+        <FontSizeControl
+          editor={editor}
+          withSelection={withSelection}
+          selectedTextAnnotation={selectedTextAnnotation}
+          onAnnotationUpdate={onAnnotationUpdate}
+        />
         <Sep />
         <ToolbarButton
           icon={Bold}
           label="Bold (Cmd+B)"
-          isActive={editor.isActive('bold')}
-          onClick={() => withSelection((c) => c.toggleBold().run())}
+          isActive={selectedTextAnnotation ? !!selectedTextAnnotation.bold : editor.isActive('bold')}
+          onClick={() => {
+            if (selectedTextAnnotation && onAnnotationUpdate) {
+              onAnnotationUpdate({ bold: !selectedTextAnnotation.bold });
+              return;
+            }
+            withSelection((c) => c.toggleBold().run());
+          }}
         />
         <ToolbarButton
           icon={Italic}
           label="Italic (Cmd+I)"
-          isActive={editor.isActive('italic')}
-          onClick={() => withSelection((c) => c.toggleItalic().run())}
+          isActive={selectedTextAnnotation ? !!selectedTextAnnotation.italic : editor.isActive('italic')}
+          onClick={() => {
+            if (selectedTextAnnotation && onAnnotationUpdate) {
+              onAnnotationUpdate({ italic: !selectedTextAnnotation.italic });
+              return;
+            }
+            withSelection((c) => c.toggleItalic().run());
+          }}
         />
         <ToolbarButton
           icon={Underline}
           label="Underline (Cmd+U)"
-          isActive={editor.isActive('underline')}
-          onClick={() => withSelection((c) => c.toggleUnderline().run())}
+          isActive={
+            selectedTextAnnotation ? !!selectedTextAnnotation.underline : editor.isActive('underline')
+          }
+          onClick={() => {
+            if (selectedTextAnnotation && onAnnotationUpdate) {
+              onAnnotationUpdate({ underline: !selectedTextAnnotation.underline });
+              return;
+            }
+            withSelection((c) => c.toggleUnderline().run());
+          }}
         />
         <ToolbarButton
           icon={Strikethrough}
           label="Strikethrough"
-          isActive={editor.isActive('strike')}
-          onClick={() => withSelection((c) => c.toggleStrike().run())}
+          isActive={
+            selectedTextAnnotation ? !!selectedTextAnnotation.strike : editor.isActive('strike')
+          }
+          onClick={() => {
+            if (selectedTextAnnotation && onAnnotationUpdate) {
+              onAnnotationUpdate({ strike: !selectedTextAnnotation.strike });
+              return;
+            }
+            withSelection((c) => c.toggleStrike().run());
+          }}
         />
         <Sep />
         <ColorPicker
           icon={Palette}
           label="Text Color"
           colors={TEXT_COLORS}
-          activeColor={editor.getAttributes('textStyle').color as string | undefined}
+          activeColor={
+            selectedTextAnnotation
+              ? selectedTextAnnotation.color
+              : (editor.getAttributes('textStyle').color as string | undefined)
+          }
           onPick={(c) => {
+            if (selectedTextAnnotation && onAnnotationUpdate) {
+              if (c) onAnnotationUpdate({ color: c });
+              return;
+            }
             withSelection((chain) => {
               if (c) chain.setColor(c).run();
               else chain.unsetColor().run();
