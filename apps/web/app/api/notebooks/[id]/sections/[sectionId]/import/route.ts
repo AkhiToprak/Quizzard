@@ -9,7 +9,8 @@ import {
   internalErrorResponse,
 } from '@/lib/api-response';
 import { extractText, ALLOWED_MIME_TYPES } from '@/lib/fileProcessing';
-import { textToTipTapJSON, htmlToTipTapJSON, pdfTextToTipTapJSON } from '@/lib/contentConverter';
+import { extractPdfTipTapNodes } from '@/lib/pdfjs-node';
+import { textToTipTapJSON, htmlToTipTapJSON } from '@/lib/contentConverter';
 import { downloadFromStorage, validateStoragePath, deleteFile, saveImage } from '@/lib/storage';
 import mammoth from 'mammoth';
 
@@ -61,9 +62,10 @@ export async function POST(request: NextRequest, { params }: Params) {
       const htmlResult = await mammoth.convertToHtml({ buffer });
       content = htmlToTipTapJSON(htmlResult.value);
     } else if (fileType === 'application/pdf') {
-      // PDFs don't carry structure — use the heading-aware converter
-      const text = await extractText(buffer, fileType);
-      content = pdfTextToTipTapJSON(text);
+      // Structured extractor recovers tables + paragraph/heading/list
+      // shape from positioned pdfjs items.
+      const nodes = await extractPdfTipTapNodes(buffer);
+      content = { type: 'doc', content: nodes.length > 0 ? nodes : [{ type: 'paragraph' }] };
     } else {
       // For TXT, MD — extract plain text then convert
       const text = await extractText(buffer, fileType);

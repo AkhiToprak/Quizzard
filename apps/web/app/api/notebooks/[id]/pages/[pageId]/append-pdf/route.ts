@@ -9,7 +9,7 @@ import {
   internalErrorResponse,
 } from '@/lib/api-response';
 import { extractText } from '@/lib/fileProcessing';
-import { pdfTextToTipTapJSON } from '@/lib/contentConverter';
+import { extractPdfTipTapNodes } from '@/lib/pdfjs-node';
 import { downloadFromStorage, validateStoragePath, deleteFile, saveImage } from '@/lib/storage';
 
 type Params = { params: Promise<{ id: string; pageId: string }> };
@@ -53,9 +53,8 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     const buffer = await downloadFromStorage(storagePath);
 
+    const extractedNodes = await extractPdfTipTapNodes(buffer);
     const text = await extractText(buffer, 'application/pdf');
-    const pdfDoc = pdfTextToTipTapJSON(text);
-    const extractedNodes = pdfDoc.content ?? [];
 
     // Extract + persist embedded images, build image nodes to embed
     const imageNodes: Array<Record<string, unknown>> = [];

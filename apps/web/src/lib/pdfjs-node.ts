@@ -2,20 +2,16 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import type { TipTapNode } from '@/lib/contentConverter';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Absolute URL of the bundled pdfjs worker file. The worker is copied
- * into src/lib/vendor/pdfjs-worker.mjs by the `prebuild` script — a
- * `new URL(..., import.meta.url)` reference is the one pattern that
+ * into src/lib/vendor/pdfjs-worker.mjs at next.config.ts load time —
+ * a `new URL(..., import.meta.url)` reference is the one pattern that
  * @vercel/nft reliably treats as a static asset dependency, which gets
  * the file shipped into the serverless output.
- *
- * On Vercel the resolved file path lives inside /var/task but may not
- * be a valid ESM specifier (pdfjs does a dynamic import on it). We
- * therefore copy the content to a stable /tmp path on first use and
- * point GlobalWorkerOptions.workerSrc at the file:// URL of that copy.
  */
 const WORKER_URL = new URL('./vendor/pdfjs-worker.mjs', import.meta.url);
 
@@ -59,25 +55,76 @@ interface PdfTextItem {
   height: number;
 }
 
-/**
- * Reconstruct a single page's text layout from pdfjs text items.
- *
- * pdfjs returns positioned glyph runs, not logical text — naive
- * concatenation produces garbage like "T ECHNIK UND U MWELT" from
- * letter-spaced headings and drops all paragraph structure. We:
- *
- *   1. Group items into lines by y-coordinate.
- *   2. Inside each line, insert a space only when the horizontal gap
- *      between two runs exceeds a fraction of the run's character
- *      width — catches real word gaps without inflating tracked text.
- *   3. Merge consecutive lines into the same paragraph when their
- *      vertical gap looks like normal leading; emit a blank line
- *      where the gap is larger (paragraph break).
- */
-function reconstructPageText(items: PdfTextItem[]): string {
-  if (items.length === 0) return '';
+interface Cell {
+  text: string;
+  startX: number;
+  endX: number;
+}
 
-  // Group items into lines keyed by rounded y-coordinate.
+interface Line {
+  y: number;
+  fontSize: number;
+  cells: Cell[];
+}
+
+// How large a horizontal gap between two runs must be, relative to a
+// run's character width, before we split them into separate cells.
+// Word gaps are typically ~0.3–1x charWidth; table-column gaps are
+// visibly larger. 3.5x is conservative — avoids false-positives on
+// body text with a tab or long space.
+const CELL_GAP_MULTIPLIER = 3.5;
+
+/**
+ * Group pdfjs text items on one visual line into cells. A cell is a
+ * run of glyphs with normal word-spacing; a gap that looks like a tab
+ * / column boundary starts a new cell.
+ */
+function buildLineCells(lineItems: PdfTextItem[]): { cells: Cell[]; fontSize: number } {
+  lineItems.sort((a, b) => a.transform[4] - b.transform[4]);
+  const cells: Cell[] = [];
+  let current: Cell | null = null;
+  let maxFontSize = 0;
+
+  for (const item of lineItems) {
+    const x = item.transform[4];
+    const w = item.width ?? 0;
+    const fontSize = Math.abs(item.transform[0] || item.height || 10);
+    if (fontSize > maxFontSize) maxFontSize = fontSize;
+
+    const charWidth = item.str.length > 0 ? w / item.str.length : fontSize * 0.5;
+
+    if (!current) {
+      current = { text: item.str, startX: x, endX: x + w };
+      continue;
+    }
+
+    const gap = x - current.endX;
+    if (gap > charWidth * CELL_GAP_MULTIPLIER || gap > fontSize * 2.5) {
+      cells.push(current);
+      current = { text: item.str, startX: x, endX: x + w };
+      continue;
+    }
+
+    if (gap > charWidth * 0.3 && !/\s$/.test(current.text) && !/^\s/.test(item.str)) {
+      current.text += ' ';
+    }
+    current.text += item.str;
+    current.endX = x + w;
+  }
+  if (current) cells.push(current);
+
+  // Tidy whitespace inside each cell
+  const cleaned = cells
+    .map((c) => ({ ...c, text: c.text.replace(/\s+/g, ' ').trim() }))
+    .filter((c) => c.text.length > 0);
+
+  return { cells: cleaned, fontSize: maxFontSize };
+}
+
+/**
+ * Group positioned items into visual lines by y-coordinate.
+ */
+function buildLines(items: PdfTextItem[]): Line[] {
   const lineMap = new Map<number, PdfTextItem[]>();
   const LINE_Y_TOLERANCE = 2;
   for (const item of items) {
@@ -96,62 +143,159 @@ function reconstructPageText(items: PdfTextItem[]): string {
     else lineMap.set(key, [item]);
   }
 
-  // PDF y grows upward, so sort descending to get top-to-bottom order.
-  const sortedLines = Array.from(lineMap.entries()).sort((a, b) => b[0] - a[0]);
+  // PDF y grows upward — sort descending to get top-to-bottom order.
+  const sortedEntries = Array.from(lineMap.entries()).sort((a, b) => b[0] - a[0]);
 
-  const lineRows: { y: number; text: string; fontSize: number }[] = [];
+  const lines: Line[] = [];
+  for (const [y, lineItems] of sortedEntries) {
+    const { cells, fontSize } = buildLineCells(lineItems);
+    if (cells.length === 0) continue;
+    lines.push({ y, fontSize, cells });
+  }
+  return lines;
+}
 
-  for (const [y, lineItems] of sortedLines) {
-    lineItems.sort((a, b) => a.transform[4] - b.transform[4]);
+/** Is two x-coordinates "the same column"? */
+const COLUMN_X_TOLERANCE = 6;
 
-    let text = '';
-    let prevEndX = Number.NEGATIVE_INFINITY;
-    let maxFontSize = 0;
+/**
+ * Find a run of consecutive lines starting at `startIdx` that look like
+ * one table: multiple multi-cell rows whose cell-start x-coordinates
+ * align. Single-cell lines are folded in as continuations of the cell
+ * whose startX they match. Returns the end index (exclusive) and the
+ * table rows, or null if no plausible table is found.
+ */
+function detectTableFrom(
+  lines: Line[],
+  startIdx: number
+): { endIdx: number; rows: Cell[][] } | null {
+  const first = lines[startIdx];
+  if (first.cells.length < 2) return null;
 
-    for (const item of lineItems) {
-      const x = item.transform[4];
-      const w = item.width ?? 0;
-      const fontSize = Math.abs(item.transform[0] || item.height || 10);
-      if (fontSize > maxFontSize) maxFontSize = fontSize;
+  const columnXs = first.cells.map((c) => c.startX);
+  const rows: Cell[][] = [first.cells.slice()];
+  let i = startIdx + 1;
+  let multiCellRowCount = 1;
 
-      if (text.length > 0) {
-        const gap = x - prevEndX;
-        const charWidth = item.str.length > 0 ? w / item.str.length : fontSize * 0.5;
-        const endsWithSpace = /\s$/.test(text);
-        const startsWithSpace = /^\s/.test(item.str);
-        // Insert a space for real word gaps; ignore tiny kerning jitters.
-        if (!endsWithSpace && !startsWithSpace && gap > charWidth * 0.3) {
-          text += ' ';
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Paragraph break: much larger vertical gap than normal → table ends.
+    const prevY = lines[i - 1].y;
+    const gap = prevY - line.y;
+    const leading = Math.max(lines[i - 1].fontSize, line.fontSize) * 1.25;
+    if (gap > leading * 2.5) break;
+
+    if (line.cells.length >= 2) {
+      // Must share at least one column with the table header/first row.
+      const sharesColumn = line.cells.some((c) =>
+        columnXs.some((x) => Math.abs(c.startX - x) < COLUMN_X_TOLERANCE)
+      );
+      if (!sharesColumn) break;
+      // Extend unknown columns
+      for (const c of line.cells) {
+        if (!columnXs.some((x) => Math.abs(c.startX - x) < COLUMN_X_TOLERANCE)) {
+          columnXs.push(c.startX);
         }
       }
-      text += item.str;
-      prevEndX = x + w;
+      rows.push(line.cells.slice());
+      multiCellRowCount++;
+      i++;
+      continue;
     }
 
-    const cleaned = text.replace(/\s+/g, ' ').trim();
-    if (cleaned) lineRows.push({ y, text: cleaned, fontSize: maxFontSize });
+    // Single-cell line: treat as continuation of a column in the current row.
+    const only = line.cells[0];
+    const matchIdx = columnXs.findIndex((x) => Math.abs(only.startX - x) < COLUMN_X_TOLERANCE);
+    if (matchIdx === -1) break;
+
+    const currentRow = rows[rows.length - 1];
+    // Find the cell in currentRow that sits in column `matchIdx`.
+    const targetCell = currentRow.find(
+      (c) => Math.abs(c.startX - columnXs[matchIdx]) < COLUMN_X_TOLERANCE
+    );
+    if (targetCell) {
+      // Soft-hyphen repair across wrapped table-cell lines.
+      const endsWithSoftHyphen = /[a-zäöüß]-$/.test(targetCell.text);
+      const nextStartsLower = /^[a-zäöüß]/.test(only.text);
+      if (endsWithSoftHyphen && nextStartsLower) {
+        targetCell.text = targetCell.text.slice(0, -1) + only.text;
+      } else {
+        targetCell.text += ' ' + only.text;
+      }
+    } else {
+      currentRow.push({ ...only });
+    }
+    i++;
   }
 
-  if (lineRows.length === 0) return '';
+  // Qualify as a table only if it has real tabular structure.
+  if (multiCellRowCount < 2 || rows.length < 2) return null;
+  return { endIdx: i, rows };
+}
 
-  // Merge lines into paragraphs based on vertical gap vs font size.
+/** Sort cells within a row by x so they render left-to-right. */
+function sortRowCells(rows: Cell[][]): Cell[][] {
+  return rows.map((r) => [...r].sort((a, b) => a.startX - b.startX));
+}
+
+/** Normalize every row to the same column count (pad with empty cells). */
+function padRowsToSameWidth(rows: Cell[][]): Cell[][] {
+  const maxCols = Math.max(...rows.map((r) => r.length));
+  return rows.map((r) => {
+    const copy = r.slice();
+    while (copy.length < maxCols) copy.push({ text: '', startX: 0, endX: 0 });
+    return copy;
+  });
+}
+
+function makeTableNode(rows: Cell[][]): TipTapNode {
+  const sorted = sortRowCells(rows);
+  const padded = padRowsToSameWidth(sorted);
+
+  const tableRows: TipTapNode[] = padded.map((row, rowIdx) => ({
+    type: 'tableRow',
+    content: row.map((cell) => ({
+      type: rowIdx === 0 ? 'tableHeader' : 'tableCell',
+      attrs: { colspan: 1, rowspan: 1, colwidth: null },
+      content: [
+        {
+          type: 'paragraph',
+          content: cell.text ? [{ type: 'text', text: cell.text }] : undefined,
+        },
+      ],
+    })),
+  }));
+
+  return { type: 'table', content: tableRows };
+}
+
+/**
+ * Merge text-only lines (single-cell) into paragraph strings, then
+ * hand off to pdfTextToTipTapJSON for heading / bullet / page-chrome
+ * handling.
+ */
+function textLinesToParagraphText(lines: Line[]): string {
+  if (lines.length === 0) return '';
+
+  const rows = lines.map((l) => ({
+    y: l.y,
+    fontSize: l.fontSize,
+    text: l.cells.map((c) => c.text).join(' '),
+  }));
+
   const paragraphs: string[] = [];
-  let current = lineRows[0].text;
-  let prevRow = lineRows[0];
-
-  for (let i = 1; i < lineRows.length; i++) {
-    const row = lineRows[i];
-    const gap = prevRow.y - row.y;
-    const expectedLeading = Math.max(prevRow.fontSize, row.fontSize) * 1.25;
+  let current = rows[0].text;
+  let prev = rows[0];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const gap = prev.y - row.y;
+    const expectedLeading = Math.max(prev.fontSize, row.fontSize) * 1.25;
 
     if (gap > expectedLeading * 1.6) {
       paragraphs.push(current);
       current = row.text;
     } else {
-      // Line-continuation: rejoin words broken by end-of-line hyphens.
-      // "adressatenge-" + "recht" → "adressatengerecht". Only collapse
-      // when the next line starts lowercase (real soft break), otherwise
-      // the hyphen is part of a compound (e.g. "E-Mail").
       const endsWithSoftHyphen = /[a-zäöüß]-$/.test(current);
       const nextStartsLower = /^[a-zäöüß]/.test(row.text);
       if (endsWithSoftHyphen && nextStartsLower) {
@@ -160,7 +304,7 @@ function reconstructPageText(items: PdfTextItem[]): string {
         current += ' ' + row.text;
       }
     }
-    prevRow = row;
+    prev = row;
   }
   if (current) paragraphs.push(current);
 
@@ -168,23 +312,82 @@ function reconstructPageText(items: PdfTextItem[]): string {
 }
 
 /**
- * Heuristic post-process that fixes a common pdfjs artefact where the
- * first glyph of a letter-spaced heading is emitted as its own item
- * (e.g. "T ECHNIK UND U MWELT" → "TECHNIK UND UMWELT") and fully
- * letter-spaced runs ("T E C H N I K") are reassembled into words.
+ * Conservative post-process that fixes the common pdfjs artefact where
+ * a letter-spaced heading is emitted glyph-by-glyph — "T E C H N I K" →
+ * "TECHNIK". Does NOT attempt to merge a lone cap onto the following
+ * word, because that false-positives on phrases like "FÜR DIE".
  */
 function collapseLetterSpacing(paragraph: string): string {
-  let out = paragraph;
-  // Fully spaced sequences: "A B C D" (3+ single uppercase letters) → "ABCD"
-  out = out.replace(/(?:\b[A-ZÄÖÜ] ){2,}[A-ZÄÖÜ]\b/g, (match) => match.replace(/ /g, ''));
-  // Leading lone uppercase glued to next uppercase word: "T ECHNIK" → "TECHNIK"
-  out = out.replace(/\b([A-ZÄÖÜ]) ([A-ZÄÖÜ]{2,})\b/g, '$1$2');
-  return out;
+  return paragraph.replace(/(?:\b[A-ZÄÖÜ] ){2,}[A-ZÄÖÜ]\b/g, (match) =>
+    match.replace(/ /g, '')
+  );
 }
 
 /**
- * Extract plain text from a PDF buffer, page by page, with a best-effort
- * reconstruction of paragraphs and word spacing.
+ * Main structured extractor. Returns TipTap nodes that preserve
+ * table structure, paragraph structure, and flat text. Callers that
+ * only need search text should use extractPdfText.
+ */
+export async function extractPdfTipTapNodes(buffer: Buffer): Promise<TipTapNode[]> {
+  // Lazy dep to avoid a hard cycle — contentConverter imports nothing
+  // from pdfjs-node but we import types from it at the top.
+  const { pdfTextToTipTapJSON } = await import('@/lib/contentConverter');
+
+  const pdfjsLib = await getPdfjs();
+  const doc = await pdfjsLib.getDocument({
+    data: new Uint8Array(buffer),
+    disableFontFace: true,
+    isEvalSupported: false,
+    useSystemFonts: false,
+  }).promise;
+
+  const allNodes: TipTapNode[] = [];
+
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
+    const content = await page.getTextContent();
+    const items = (content.items as any[]).filter(
+      (it) => typeof it.str === 'string'
+    ) as PdfTextItem[];
+    const lines = buildLines(items);
+
+    // Walk lines, peeling off tables where we find them; everything else
+    // accumulates as text and is flushed through pdfTextToTipTapJSON.
+    let i = 0;
+    let textBuffer: Line[] = [];
+
+    const flushText = () => {
+      if (textBuffer.length === 0) return;
+      const text = textLinesToParagraphText(textBuffer);
+      textBuffer = [];
+      if (!text.trim()) return;
+      const doc = pdfTextToTipTapJSON(text);
+      for (const node of doc.content) allNodes.push(node);
+    };
+
+    while (i < lines.length) {
+      const table = detectTableFrom(lines, i);
+      if (table) {
+        flushText();
+        allNodes.push(makeTableNode(table.rows));
+        i = table.endIdx;
+        continue;
+      }
+      textBuffer.push(lines[i]);
+      i++;
+    }
+    flushText();
+
+    page.cleanup();
+  }
+
+  await doc.destroy();
+  return allNodes;
+}
+
+/**
+ * Plain-text extractor used for the search/textContent field. Renders
+ * tables as "cell | cell | cell" lines so search finds them.
  */
 export async function extractPdfText(buffer: Buffer): Promise<string> {
   const pdfjsLib = await getPdfjs();
@@ -198,21 +401,45 @@ export async function extractPdfText(buffer: Buffer): Promise<string> {
 
   const pages: string[] = [];
 
-  for (let i = 1; i <= doc.numPages; i++) {
-    const page = await doc.getPage(i);
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
     const content = await page.getTextContent();
     const items = (content.items as any[]).filter(
-      (item) => typeof item.str === 'string'
+      (it) => typeof it.str === 'string'
     ) as PdfTextItem[];
+    const lines = buildLines(items);
 
-    const pageText = reconstructPageText(items);
+    let i = 0;
+    const chunks: string[] = [];
+    let textBuffer: Line[] = [];
+
+    const flush = () => {
+      if (textBuffer.length === 0) return;
+      chunks.push(textLinesToParagraphText(textBuffer));
+      textBuffer = [];
+    };
+
+    while (i < lines.length) {
+      const table = detectTableFrom(lines, i);
+      if (table) {
+        flush();
+        const sorted = sortRowCells(table.rows);
+        const padded = padRowsToSameWidth(sorted);
+        chunks.push(padded.map((r) => r.map((c) => c.text).join(' | ')).join('\n'));
+        i = table.endIdx;
+        continue;
+      }
+      textBuffer.push(lines[i]);
+      i++;
+    }
+    flush();
+
+    const pageText = chunks.filter(Boolean).join('\n\n');
     if (pageText) pages.push(pageText);
-
     page.cleanup();
   }
 
   await doc.destroy();
-
   return pages.join('\n\n');
 }
 
