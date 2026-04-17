@@ -28,12 +28,11 @@ export async function extractPdfImages(pdfBuffer: Buffer): Promise<ExtractedPdfI
   // IEND chunk within the PDF binary.
   extractPngImages(pdfBuffer, images);
 
-  // Try pdfjs-dist as a fallback / supplement for images we may have missed
-  try {
-    await extractWithPdfjs(pdfBuffer, images);
-  } catch {
-    // pdfjs extraction is best-effort; binary extraction above is the primary path
-  }
+  // Deliberately NOT calling the pdfjs operator-list fallback. It turns every
+  // paintImageXObject into a raw RGBA → BMP blob, but most of those XObjects
+  // are shading patterns, tiling images or masks rather than real photos,
+  // and the BMPs came out as colourful noise in normal PDFs. Real embedded
+  // photos are virtually always JPEG or PNG and are already caught above.
 
   return images.slice(0, MAX_IMAGES);
 }

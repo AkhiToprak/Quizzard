@@ -148,7 +148,17 @@ function reconstructPageText(items: PdfTextItem[]): string {
       paragraphs.push(current);
       current = row.text;
     } else {
-      current += ' ' + row.text;
+      // Line-continuation: rejoin words broken by end-of-line hyphens.
+      // "adressatenge-" + "recht" → "adressatengerecht". Only collapse
+      // when the next line starts lowercase (real soft break), otherwise
+      // the hyphen is part of a compound (e.g. "E-Mail").
+      const endsWithSoftHyphen = /[a-zäöüß]-$/.test(current);
+      const nextStartsLower = /^[a-zäöüß]/.test(row.text);
+      if (endsWithSoftHyphen && nextStartsLower) {
+        current = current.slice(0, -1) + row.text;
+      } else {
+        current += ' ' + row.text;
+      }
     }
     prevRow = row;
   }

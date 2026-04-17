@@ -148,15 +148,96 @@ function isLikelyHeading(line: string): { isHeading: boolean; level: 1 | 2 | 3 }
 }
 
 /**
+ * Strip obvious page-chrome artefacts from a block of PDF text:
+ * footer page-number patterns ("Seite 1/2", "Page 3 of 8") and bare
+ * integer page numbers that sit alone on a line.
+ */
+function stripPageChrome(text: string): string {
+  return text
+    .split('\n')
+    .filter((line) => {
+      const t = line.trim();
+      if (!t) return true;
+      if (/^seite\s+\d+\s*\/\s*\d+$/i.test(t)) return false;
+      if (/^page\s+\d+(\s*(of|\/)\s*\d+)?$/i.test(t)) return false;
+      if (/^\d{1,3}$/.test(t)) return false;
+      return true;
+    })
+    .join('\n');
+}
+
+/**
+ * Detect the bullet glyphs that pdfjs emits for list items. PDF bullet
+ * lists usually render as "•", "●", "◦", "▪", "-", or "*".
+ */
+const BULLET_RE = /^\s*([•●◦▪○■□◆▸▶►-])\s+/;
+
+function splitInlineBullets(paragraph: string): string[] {
+  // When lines are merged, bullets end up inline: "• item1 • item2 • item3".
+  // Split on a bullet glyph that has at least one space on each side so we
+  // don't eat hyphens or mid-word punctuation.
+  if (!/\s[•●◦▪○■□◆▸▶►]\s/.test(paragraph) && !BULLET_RE.test(paragraph)) {
+    return [paragraph];
+  }
+  const parts = paragraph.split(/\s+[•●◦▪○■□◆▸▶►]\s+/);
+  return parts.map((p) => p.trim()).filter(Boolean);
+}
+
+function makeBulletList(items: string[]): TipTapNode {
+  return {
+    type: 'bulletList',
+    content: items.map((text) => ({
+      type: 'listItem',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text }],
+        },
+      ],
+    })),
+  };
+}
+
+/**
  * Convert plain text extracted from a PDF into TipTap JSON with basic
- * heading detection. PDFs don't preserve structure, so we reconstruct
- * paragraphs from line groupings and promote visually distinct lines
- * (all-caps, numbered, chapter-style) to toggle headings.
+ * heading, bullet-list, and page-chrome handling. PDFs don't preserve
+ * structure, so we reconstruct paragraphs from line groupings, promote
+ * visually distinct lines (all-caps, numbered, chapter-style) to toggle
+ * headings, and turn runs of "•"-separated fragments into real lists.
  */
 export function pdfTextToTipTapJSON(text: string): TipTapDoc {
-  const normalized = text.replace(/\r\n?/g, '\n');
+  const normalized = stripPageChrome(text.replace(/\r\n?/g, '\n'));
   const blocks = normalized.split(/\n\n+/);
   const content: TipTapNode[] = [];
+
+  const pushParagraphOrList = (raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+
+    // If the block looks like a bullet run (starts with a bullet OR has
+    // multiple inline bullets), break it into a bulletList.
+    const leadsWithBullet = BULLET_RE.test(trimmed);
+    const hasInlineBullets = /\s+[•●◦▪○■□◆▸▶►]\s+/.test(trimmed);
+
+    if (leadsWithBullet || hasInlineBullets) {
+      // Strip any leading bullet marker then split on inline bullets.
+      const withoutLead = trimmed.replace(BULLET_RE, '');
+      const items = splitInlineBullets(withoutLead);
+      if (items.length >= 2) {
+        content.push(makeBulletList(items));
+        return;
+      }
+      if (items.length === 1) {
+        content.push(makeBulletList(items));
+        return;
+      }
+    }
+
+    content.push({
+      type: 'paragraph',
+      content: [{ type: 'text', text: trimmed }],
+    });
+  };
 
   for (const block of blocks) {
     const trimmed = block.trim();
@@ -164,7 +245,7 @@ export function pdfTextToTipTapJSON(text: string): TipTapDoc {
 
     const lines = trimmed.split('\n');
 
-    // Single-line block: check if it's a heading
+    // Single-line block: check if it's a heading, otherwise paragraph/list.
     if (lines.length === 1) {
       const { isHeading, level } = isLikelyHeading(lines[0]);
       if (isHeading) {
@@ -175,14 +256,11 @@ export function pdfTextToTipTapJSON(text: string): TipTapDoc {
         });
         continue;
       }
-      content.push({
-        type: 'paragraph',
-        content: [{ type: 'text', text: lines[0].trim() }],
-      });
+      pushParagraphOrList(lines[0]);
       continue;
     }
 
-    // Multi-line block: check first line for heading, then treat the rest as a paragraph.
+    // Multi-line block: first line may be a heading; rest becomes the body.
     const firstCheck = isLikelyHeading(lines[0]);
     let startIndex = 0;
     if (firstCheck.isHeading) {
@@ -194,17 +272,8 @@ export function pdfTextToTipTapJSON(text: string): TipTapDoc {
       startIndex = 1;
     }
 
-    // Join remaining lines into one paragraph, preserving hard breaks
-    // where the original line ended with a visible line break rather
-    // than wrapping. We can't tell perfectly from text alone, so keep
-    // the lines joined by spaces — a reasonable default for body text.
-    const paragraphText = lines.slice(startIndex).join(' ').replace(/\s+/g, ' ').trim();
-    if (paragraphText) {
-      content.push({
-        type: 'paragraph',
-        content: [{ type: 'text', text: paragraphText }],
-      });
-    }
+    const body = lines.slice(startIndex).join(' ').replace(/\s+/g, ' ').trim();
+    if (body) pushParagraphOrList(body);
   }
 
   if (content.length === 0) {
