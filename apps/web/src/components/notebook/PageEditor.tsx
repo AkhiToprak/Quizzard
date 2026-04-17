@@ -166,8 +166,6 @@ export default function PageEditor({
   });
   const [strokes, setStrokes] = useState<StrokeData[]>([]);
   const [texts, setTexts] = useState<TextData[]>([]);
-  const [textColor] = useState('#ede9ff');
-  const [textFontSize] = useState(16);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
   const titleRef = useRef(title);
@@ -1287,8 +1285,6 @@ export default function PageEditor({
             penColor={penColor}
             penWidth={penWidth}
             lineStyle={lineStyle}
-            textColor={textColor}
-            textFontSize={textFontSize}
             ruler={ruler}
             onRulerChange={setRuler}
           />

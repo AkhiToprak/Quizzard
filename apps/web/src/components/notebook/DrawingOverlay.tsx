@@ -46,8 +46,6 @@ interface DrawingOverlayProps {
   penColor: string;
   penWidth: number;
   lineStyle: LineStyle;
-  textColor: string;
-  textFontSize: number;
   ruler: RulerState;
   onRulerChange: (ruler: RulerState) => void;
 }
@@ -163,7 +161,10 @@ interface TextAnnotationProps {
   onBeginEdit: () => void;
   onDragStart: (e: React.PointerEvent) => void;
   onCommit: (value: string) => void;
+  onUpdate: (updates: Partial<TextData>) => void;
 }
+
+type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'e' | 'w';
 
 function TextAnnotation({
   data: t,
@@ -175,40 +176,62 @@ function TextAnnotation({
   onBeginEdit,
   onDragStart,
   onCommit,
+  onUpdate,
 }: TextAnnotationProps) {
-  const [draft, setDraft] = useState(t.text);
+  const [draft, setDraft] = useState<string>(() => t.text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const wasEditingRef = useRef(isEditing);
+  const resizeState = useRef<{
+    handle: ResizeHandle;
+    startClientX: number;
+    startClientY: number;
+    origWidth: number;
+    origFontSize: number;
+    origX: number;
+    origY: number;
+    origLines: number;
+  } | null>(null);
+  const [resizePreview, setResizePreview] = useState<{
+    width: number;
+    fontSize: number;
+    x: number;
+    y: number;
+  } | null>(null);
 
+  // Sync draft only when transitioning into editing (not on every t.text update)
   useEffect(() => {
-    if (isEditing) {
+    if (isEditing && !wasEditingRef.current) {
       setDraft(t.text);
-      requestAnimationFrame(() => {
-        const el = textareaRef.current;
-        if (el) {
-          el.focus();
-          el.setSelectionRange(el.value.length, el.value.length);
-        }
-      });
     }
+    wasEditingRef.current = isEditing;
   }, [isEditing, t.text]);
 
   const ox = dragOffset?.x ?? t.offset?.x ?? 0;
   const oy = dragOffset?.y ?? t.offset?.y ?? 0;
-  const padY = Math.max(2, t.fontSize * 0.2);
+
+  const liveWidth = resizePreview?.width ?? t.width;
+  const liveFontSize = resizePreview?.fontSize ?? t.fontSize;
+  const liveX = resizePreview?.x ?? t.x;
+  const liveY = resizePreview?.y ?? t.y;
+
+  const padY = Math.max(2, liveFontSize * 0.2);
   const padX = 4;
   const displayText = isEditing ? draft : t.text;
-  const lines = Math.max(1, (displayText.match(/\n/g)?.length ?? 0) + 1);
-  const foHeight = Math.max(t.fontSize * 1.4, lines * t.fontSize * 1.4) + padY * 2;
-  const pointerEventsValue: 'none' | 'auto' = mode === 'pen' ? 'none' : 'auto';
+  const lineCount = Math.max(1, (displayText.match(/\n/g)?.length ?? 0) + 1);
+  const foHeight = Math.max(liveFontSize * 1.4, lineCount * liveFontSize * 1.4) + padY * 2;
+  // Room for handles extending outside the text box
+  const handleMargin = 8;
+  const foPointerEventsValue: 'none' | 'auto' = mode === 'pen' ? 'none' : 'auto';
+  const showHandles = isSelected && !isEditing && mode === 'cursor';
 
   const commonStyle: React.CSSProperties = {
-    width: t.width,
+    width: liveWidth,
     boxSizing: 'border-box',
     padding: `${padY}px ${padX}px`,
     color: t.color,
-    fontSize: t.fontSize,
+    fontSize: liveFontSize,
     lineHeight: 1.4,
-    fontFamily: 'inherit',
+    fontFamily: "'DM Sans', sans-serif",
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
     borderRadius: 4,
@@ -223,77 +246,224 @@ function TextAnnotation({
     background: isEditing ? 'rgba(26,26,54,0.35)' : 'transparent',
   };
 
+  // ── Resize handlers ──
+  const handleResizePointerDown = (handle: ResizeHandle) => (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    resizeState.current = {
+      handle,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      origWidth: t.width,
+      origFontSize: t.fontSize,
+      origX: t.x,
+      origY: t.y,
+      origLines: lineCount,
+    };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+
+  const handleResizePointerMove = (e: React.PointerEvent) => {
+    const s = resizeState.current;
+    if (!s) return;
+    const dx = e.clientX - s.startClientX;
+    const dy = e.clientY - s.startClientY;
+    const origHeight = s.origLines * s.origFontSize * 1.4;
+
+    let sx = 0;
+    // East-direction growth for each handle (positive dx grows width)
+    if (s.handle === 'se' || s.handle === 'ne' || s.handle === 'e') sx = dx;
+    else if (s.handle === 'sw' || s.handle === 'nw' || s.handle === 'w') sx = -dx;
+
+    // For corners, combine with vertical drag so user can scale via either axis
+    if (s.handle === 'se' || s.handle === 'nw') sx = Math.max(sx, dy * (s.origWidth / origHeight));
+    if (s.handle === 'ne' || s.handle === 'sw') sx = Math.max(sx, -dy * (s.origWidth / origHeight));
+
+    const minWidth = 40;
+    const newWidth = Math.max(minWidth, s.origWidth + sx);
+
+    const isCorner = s.handle === 'nw' || s.handle === 'ne' || s.handle === 'sw' || s.handle === 'se';
+    const scale = newWidth / s.origWidth;
+    const newFontSize = isCorner ? Math.max(8, s.origFontSize * scale) : s.origFontSize;
+    const newHeight = s.origLines * newFontSize * 1.4;
+
+    // Adjust origin so the opposite edge/corner stays anchored
+    let newX = s.origX;
+    let newY = s.origY;
+    if (s.handle === 'nw' || s.handle === 'sw' || s.handle === 'w') {
+      newX = s.origX + (s.origWidth - newWidth);
+    }
+    if ((s.handle === 'nw' || s.handle === 'ne') && isCorner) {
+      newY = s.origY + (origHeight - newHeight);
+    }
+
+    setResizePreview({ width: newWidth, fontSize: newFontSize, x: newX, y: newY });
+  };
+
+  const handleResizePointerUp = () => {
+    const s = resizeState.current;
+    if (!s || !resizePreview) {
+      resizeState.current = null;
+      setResizePreview(null);
+      return;
+    }
+    onUpdate({
+      width: resizePreview.width,
+      fontSize: resizePreview.fontSize,
+      x: resizePreview.x,
+      y: resizePreview.y,
+    });
+    resizeState.current = null;
+    setResizePreview(null);
+  };
+
+  const handleDotStyle: React.CSSProperties = {
+    position: 'absolute',
+    width: 10,
+    height: 10,
+    background: '#1a1a36',
+    border: '1.5px solid rgba(164,123,255,0.8)',
+    borderRadius: '50%',
+    boxSizing: 'border-box',
+    pointerEvents: 'auto',
+  };
+
+  const contentHeight = lineCount * liveFontSize * 1.4 + padY * 2;
+
   return (
     <g transform={`translate(${ox}, ${oy})`} data-text-annotation="true">
       <foreignObject
-        x={t.x - padX}
-        y={t.y - padY}
-        width={t.width + padX * 2}
-        height={foHeight}
-        style={{ pointerEvents: pointerEventsValue, overflow: 'visible' }}
+        x={liveX - padX - handleMargin}
+        y={liveY - padY - handleMargin}
+        width={liveWidth + (padX + handleMargin) * 2}
+        height={foHeight + handleMargin * 2}
+        style={{ pointerEvents: foPointerEventsValue, overflow: 'visible' }}
       >
-        {isEditing ? (
-          <textarea
-            ref={textareaRef}
-            data-text-annotation="true"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onPointerDown={(e) => e.stopPropagation()}
-            onBlur={() => onCommit(draft)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                e.currentTarget.blur();
-              }
-            }}
-            rows={lines}
-            style={{
-              ...commonStyle,
-              resize: 'none',
-              overflow: 'hidden',
-              minHeight: t.fontSize * 1.4,
-              cursor: 'text',
-            }}
-          />
-        ) : (
-          <div
-            data-text-annotation="true"
-            onPointerDown={(e) => {
-              if (mode === 'cursor') {
-                e.stopPropagation();
-                if (isSelected) onDragStart(e);
-                else onSelect();
-              } else if (mode === 'text') {
-                e.stopPropagation();
-                onBeginEdit();
-              }
-            }}
-            onDoubleClick={(e) => {
-              if (mode === 'cursor') {
-                e.stopPropagation();
-                onBeginEdit();
-              }
-            }}
-            style={{
-              ...commonStyle,
-              minHeight: t.fontSize * 1.4,
-              cursor:
-                mode === 'cursor'
-                  ? isSelected
-                    ? 'grab'
-                    : 'pointer'
-                  : mode === 'text'
-                    ? 'text'
-                    : 'default',
-              userSelect: 'none',
-            }}
-          >
-            {t.text || (
-              <span style={{ opacity: 0.4, fontStyle: 'italic' }}>
-                {mode === 'text' ? 'Text' : ''}
-              </span>
-            )}
-          </div>
-        )}
+        <div
+          data-text-annotation="true"
+          style={{
+            position: 'relative',
+            width: liveWidth + (padX + handleMargin) * 2,
+            padding: handleMargin,
+            boxSizing: 'border-box',
+          }}
+        >
+          {isEditing ? (
+            <textarea
+              ref={textareaRef}
+              data-text-annotation="true"
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onPointerDown={(e) => e.stopPropagation()}
+              onBlur={() => onCommit(draft)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.currentTarget.blur();
+                }
+              }}
+              rows={lineCount}
+              style={{
+                ...commonStyle,
+                resize: 'none',
+                overflow: 'hidden',
+                minHeight: liveFontSize * 1.4,
+                cursor: 'text',
+                display: 'block',
+              }}
+            />
+          ) : (
+            <div
+              data-text-annotation="true"
+              onPointerDown={(e) => {
+                if (mode === 'cursor') {
+                  e.stopPropagation();
+                  if (isSelected) onDragStart(e);
+                  else onSelect();
+                } else if (mode === 'text') {
+                  e.stopPropagation();
+                  onBeginEdit();
+                }
+              }}
+              onDoubleClick={(e) => {
+                if (mode === 'cursor') {
+                  e.stopPropagation();
+                  onBeginEdit();
+                }
+              }}
+              style={{
+                ...commonStyle,
+                minHeight: liveFontSize * 1.4,
+                cursor:
+                  mode === 'cursor'
+                    ? isSelected
+                      ? 'grab'
+                      : 'pointer'
+                    : mode === 'text'
+                      ? 'text'
+                      : 'default',
+                userSelect: 'none',
+              }}
+            >
+              {t.text}
+            </div>
+          )}
+
+          {/* Resize handles (cursor mode, when selected and not editing) */}
+          {showHandles && (
+            <>
+              {(
+                [
+                  { h: 'nw' as const, top: handleMargin - 5, left: handleMargin - 5, cursor: 'nw-resize' },
+                  {
+                    h: 'ne' as const,
+                    top: handleMargin - 5,
+                    left: handleMargin + liveWidth - 5,
+                    cursor: 'ne-resize',
+                  },
+                  {
+                    h: 'sw' as const,
+                    top: handleMargin + contentHeight - 5,
+                    left: handleMargin - 5,
+                    cursor: 'sw-resize',
+                  },
+                  {
+                    h: 'se' as const,
+                    top: handleMargin + contentHeight - 5,
+                    left: handleMargin + liveWidth - 5,
+                    cursor: 'se-resize',
+                  },
+                  {
+                    h: 'w' as const,
+                    top: handleMargin + contentHeight / 2 - 5,
+                    left: handleMargin - 5,
+                    cursor: 'w-resize',
+                  },
+                  {
+                    h: 'e' as const,
+                    top: handleMargin + contentHeight / 2 - 5,
+                    left: handleMargin + liveWidth - 5,
+                    cursor: 'e-resize',
+                  },
+                ]
+              ).map((handle) => (
+                <div
+                  key={handle.h}
+                  data-text-annotation="true"
+                  onPointerDown={handleResizePointerDown(handle.h)}
+                  onPointerMove={handleResizePointerMove}
+                  onPointerUp={handleResizePointerUp}
+                  style={{
+                    ...handleDotStyle,
+                    top: handle.top,
+                    left: handle.left,
+                    cursor: handle.cursor,
+                  }}
+                />
+              ))}
+            </>
+          )}
+        </div>
       </foreignObject>
     </g>
   );
@@ -309,8 +479,6 @@ export default function DrawingOverlay({
   penColor,
   penWidth,
   lineStyle,
-  textColor,
-  textFontSize,
   ruler,
   onRulerChange,
 }: DrawingOverlayProps) {
@@ -389,6 +557,8 @@ export default function DrawingOverlay({
   // Create a new text at a given point and enter edit mode
   const createTextAt = useCallback(
     (point: { x: number; y: number }) => {
+      // Defaults mirror the .notemage-editor base style so new annotations
+      // match the surrounding body text.
       const newText: TextData = {
         kind: 'text',
         id: crypto.randomUUID(),
@@ -396,15 +566,15 @@ export default function DrawingOverlay({
         y: point.y,
         width: 220,
         text: '',
-        color: textColor,
-        fontSize: textFontSize,
+        color: '#ede9ff',
+        fontSize: 15,
         offset: { x: 0, y: 0 },
       };
       onTextsChange([...texts, newText]);
       setEditingTextId(newText.id);
       setSelectedId(newText.id);
     },
-    [texts, onTextsChange, textColor, textFontSize]
+    [texts, onTextsChange]
   );
 
   // Handle pointer down
@@ -840,6 +1010,9 @@ export default function DrawingOverlay({
             }}
             onDragStart={(e) => handleTextDragStart(e, t.id)}
             onCommit={(v) => commitTextEdit(t.id, v)}
+            onUpdate={(updates) =>
+              onTextsChange(texts.map((tt) => (tt.id === t.id ? { ...tt, ...updates } : tt)))
+            }
           />
         ))}
 
