@@ -532,7 +532,10 @@ export default function DrawingOverlay({
     origAngle: number;
   } | null>(null);
 
-  // Resize SVG to match parent content height
+  // Resize SVG to match parent content height. This is load-bearing for
+  // the "click over an image to place text" flow: if svgHeight doesn't
+  // reach the image's bottom, the SVG hit rect ends above the image and
+  // clicks fall through to the <img> below.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -540,7 +543,6 @@ export default function DrawingOverlay({
     if (!parent) return;
 
     const update = () => {
-      // Match the parent's full height so the overlay covers all content
       const h = Math.max(parent.scrollHeight, parent.clientHeight, 1000);
       setSvgHeight(h);
     };
@@ -548,10 +550,50 @@ export default function DrawingOverlay({
 
     const observer = new ResizeObserver(update);
     observer.observe(parent);
+
+    // Watch for new images being added to the editor. When a freshly
+    // inserted <img> finishes loading its content shifts the parent's
+    // height — we need a re-measure at that exact moment because the
+    // ResizeObserver alone can miss cases where explicit width/height
+    // attrs mean layout doesn't actually shift on load.
+    const attachImgLoaders = (root: ParentNode) => {
+      const imgs = root.querySelectorAll('img');
+      imgs.forEach((img) => {
+        if ((img as HTMLImageElement).complete) return;
+        img.addEventListener('load', update, { once: true });
+        img.addEventListener('error', update, { once: true });
+      });
+    };
+    attachImgLoaders(parent);
+
     const contentEl = parent.querySelector('.notemage-editor');
     if (contentEl) observer.observe(contentEl);
 
-    return () => observer.disconnect();
+    const mutationObs = new MutationObserver((records) => {
+      for (const rec of records) {
+        rec.addedNodes.forEach((n) => {
+          if (n.nodeType !== 1) return;
+          const el = n as Element;
+          if (el.tagName === 'IMG') {
+            const img = el as HTMLImageElement;
+            if (!img.complete) {
+              img.addEventListener('load', update, { once: true });
+              img.addEventListener('error', update, { once: true });
+            }
+          } else {
+            attachImgLoaders(el);
+          }
+        });
+      }
+      // Any DOM mutation inside the editor is a cheap signal to re-measure
+      update();
+    });
+    mutationObs.observe(parent, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      mutationObs.disconnect();
+    };
   }, []);
 
   const getSvgPoint = useCallback(
@@ -942,6 +984,22 @@ export default function DrawingOverlay({
           if (mode === 'pen') handlePointerUp();
         }}
       >
+        {/* Explicit full-canvas hit target for pen/text modes. Without
+            this, clicks over opaque <img> elements below the SVG can slip
+            through even though the SVG has pointer-events: all — some
+            browsers treat the root <svg>'s empty area inconsistently.
+            A transparent <rect> guarantees a hit target everywhere. */}
+        {(mode === 'pen' || mode === 'text') && (
+          <rect
+            x={0}
+            y={0}
+            width="100%"
+            height={svgHeight}
+            fill="transparent"
+            style={{ pointerEvents: 'all' }}
+          />
+        )}
+
         {/* Rendered strokes */}
         {strokes.map((stroke) => {
           const ox = dragOffset?.id === stroke.id ? dragOffset.x : (stroke.offset?.x ?? 0);
