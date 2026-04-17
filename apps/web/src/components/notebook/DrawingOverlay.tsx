@@ -180,7 +180,11 @@ function TextAnnotation({
 }: TextAnnotationProps) {
   const [draft, setDraft] = useState<string>(() => t.text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const wasEditingRef = useRef(isEditing);
+  // Start as `false` so the "entering editing" transition fires on the
+  // very first mount when a freshly-created text renders with
+  // isEditing=true. Otherwise focus() is never called and the textarea
+  // silently sits blurred inside the foreignObject.
+  const wasEditingRef = useRef(false);
   const resizeState = useRef<{
     handle: ResizeHandle;
     startClientX: number;
@@ -911,7 +915,12 @@ export default function DrawingOverlay({
         height={svgHeight}
         style={{
           display: 'block',
-          pointerEvents: mode === 'pen' || mode === 'text' ? 'auto' : 'none',
+          // `all` (not `auto`) forces the SVG to capture pointer events on
+          // its entire bounding box — including transparent areas over
+          // images below. With `auto`, the SVG root sometimes falls back
+          // to `visiblePainted` semantics and empty regions above
+          // images let clicks slip through to the image instead.
+          pointerEvents: mode === 'pen' || mode === 'text' ? 'all' : 'none',
           cursor: mode === 'pen' ? 'crosshair' : mode === 'text' ? 'text' : 'default',
         }}
         onPointerDown={

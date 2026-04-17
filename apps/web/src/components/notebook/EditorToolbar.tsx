@@ -74,6 +74,7 @@ const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28', '32', '40', '48'];
 const TEXT_COLORS = [
   '#ede9ff',
   '#ffffff',
+  '#000000',
   '#fca5a5',
   '#f87171',
   '#fdba74',
@@ -86,7 +87,6 @@ const TEXT_COLORS = [
   '#a78bfa',
   '#f9a8d4',
   '#fb7185',
-  '#94a3b8',
   '#64748b',
 ];
 
@@ -117,7 +117,7 @@ const INLINE_SCALE_LEVELS = [
 ];
 
 /* ── pen drawing constants ── */
-const PEN_COLORS = ['#ede9ff', '#8c52ff', '#5170ff', '#ef4444', '#22c55e', '#eab308'];
+const PEN_COLORS = ['#ede9ff', '#000000', '#8c52ff', '#5170ff', '#ef4444', '#22c55e', '#eab308'];
 
 const PEN_WIDTHS = [
   { label: 'Thin', value: 2 },
