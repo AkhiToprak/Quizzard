@@ -157,6 +157,27 @@ interface EditorToolbarProps {
    *  true if the update was applied (i.e. there was something to target),
    *  false if the caller should fall through to editor behaviour. */
   onAnnotationUpdate?: (updates: Partial<TextData>) => boolean;
+  /** Default style for newly-created text annotations. Toolbar controls
+   *  write to this while in text mode with no annotation selected so the
+   *  next-created text picks up the chosen color/font/size/etc. */
+  textDefaults?: {
+    color: string;
+    fontSize: number;
+    fontFamily?: string;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strike: boolean;
+  };
+  onTextDefaultsUpdate?: (updates: Partial<{
+    color: string;
+    fontSize: number;
+    fontFamily?: string;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strike: boolean;
+  }>) => void;
 }
 
 /*
@@ -419,11 +440,17 @@ function FontFamilySelect({
   withSelection,
   selectedTextAnnotation,
   onAnnotationUpdate,
+  textDefaultsActive,
+  textDefaults,
+  onTextDefaultsUpdate,
 }: {
   editor: Editor;
   withSelection: ReturnType<typeof useSelectionGuard>;
   selectedTextAnnotation?: TextData | null;
   onAnnotationUpdate?: (updates: Partial<TextData>) => boolean;
+  textDefaultsActive?: boolean;
+  textDefaults?: { fontFamily?: string };
+  onTextDefaultsUpdate?: (updates: { fontFamily?: string }) => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -431,7 +458,9 @@ function FontFamilySelect({
   const current = (() => {
     const fam = selectedTextAnnotation
       ? selectedTextAnnotation.fontFamily
-      : (editor.getAttributes('textStyle').fontFamily as string | undefined);
+      : textDefaultsActive
+        ? textDefaults?.fontFamily
+        : (editor.getAttributes('textStyle').fontFamily as string | undefined);
     if (!fam) return 'Default';
     const match = FONT_FAMILIES.find((f) => f.value === fam);
     return match?.label ?? 'Default';
@@ -496,6 +525,8 @@ function FontFamilySelect({
                 e.preventDefault();
                 if (selectedTextAnnotation && onAnnotationUpdate) {
                   onAnnotationUpdate({ fontFamily: f.value || undefined });
+                } else if (textDefaultsActive && onTextDefaultsUpdate) {
+                  onTextDefaultsUpdate({ fontFamily: f.value || undefined });
                 } else {
                   withSelection((chain) => {
                     if (f.value) chain.setFontFamily(f.value).run();
@@ -541,17 +572,24 @@ function FontSizeControl({
   withSelection,
   selectedTextAnnotation,
   onAnnotationUpdate,
+  textDefaultsActive,
+  textDefaults,
+  onTextDefaultsUpdate,
 }: {
   editor: Editor;
   withSelection: ReturnType<typeof useSelectionGuard>;
   selectedTextAnnotation?: TextData | null;
   onAnnotationUpdate?: (updates: Partial<TextData>) => boolean;
+  textDefaultsActive?: boolean;
+  textDefaults?: { fontSize: number };
+  onTextDefaultsUpdate?: (updates: { fontSize: number }) => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const currentSize = (() => {
     if (selectedTextAnnotation) return String(selectedTextAnnotation.fontSize);
+    if (textDefaultsActive && textDefaults) return String(textDefaults.fontSize);
     const fs = editor.getAttributes('textStyle').fontSize as string | undefined;
     if (!fs) return '15';
     return fs.replace('px', '');
@@ -613,9 +651,11 @@ function FontSizeControl({
               key={s}
               onMouseDown={(e) => {
                 e.preventDefault();
+                const n = parseInt(s, 10);
                 if (selectedTextAnnotation && onAnnotationUpdate) {
-                  const n = parseInt(s, 10);
                   if (!isNaN(n)) onAnnotationUpdate({ fontSize: n });
+                } else if (textDefaultsActive && onTextDefaultsUpdate) {
+                  if (!isNaN(n)) onTextDefaultsUpdate({ fontSize: n });
                 } else {
                   withSelection((chain) => {
                     if (!s) chain.unsetFontSize().run();
@@ -1400,7 +1440,13 @@ export default function EditorToolbar({
   onClearDrawing,
   selectedTextAnnotation,
   onAnnotationUpdate,
+  textDefaults,
+  onTextDefaultsUpdate,
 }: EditorToolbarProps) {
+  // Active when the user is in text mode without an annotation selected —
+  // toolbar controls should target textDefaults so the user's chosen
+  // style is applied to the NEXT-created text.
+  const textDefaultsActive = editorMode === 'text' && !selectedTextAnnotation;
   const [, setTick] = useState(0);
   const bump = useCallback(() => setTick((t) => t + 1), []);
   const withSelection = useSelectionGuard(editor);
@@ -1457,21 +1503,37 @@ export default function EditorToolbar({
           withSelection={withSelection}
           selectedTextAnnotation={selectedTextAnnotation}
           onAnnotationUpdate={onAnnotationUpdate}
+          textDefaultsActive={textDefaultsActive}
+          textDefaults={textDefaults}
+          onTextDefaultsUpdate={onTextDefaultsUpdate}
         />
         <FontSizeControl
           editor={editor}
           withSelection={withSelection}
           selectedTextAnnotation={selectedTextAnnotation}
           onAnnotationUpdate={onAnnotationUpdate}
+          textDefaultsActive={textDefaultsActive}
+          textDefaults={textDefaults}
+          onTextDefaultsUpdate={onTextDefaultsUpdate}
         />
         <Sep />
         <ToolbarButton
           icon={Bold}
           label="Bold (Cmd+B)"
-          isActive={selectedTextAnnotation ? !!selectedTextAnnotation.bold : editor.isActive('bold')}
+          isActive={
+            selectedTextAnnotation
+              ? !!selectedTextAnnotation.bold
+              : textDefaultsActive
+                ? !!textDefaults?.bold
+                : editor.isActive('bold')
+          }
           onClick={() => {
             if (selectedTextAnnotation && onAnnotationUpdate) {
               onAnnotationUpdate({ bold: !selectedTextAnnotation.bold });
+              return;
+            }
+            if (textDefaultsActive && onTextDefaultsUpdate) {
+              onTextDefaultsUpdate({ bold: !textDefaults?.bold });
               return;
             }
             withSelection((c) => c.toggleBold().run());
@@ -1480,10 +1542,20 @@ export default function EditorToolbar({
         <ToolbarButton
           icon={Italic}
           label="Italic (Cmd+I)"
-          isActive={selectedTextAnnotation ? !!selectedTextAnnotation.italic : editor.isActive('italic')}
+          isActive={
+            selectedTextAnnotation
+              ? !!selectedTextAnnotation.italic
+              : textDefaultsActive
+                ? !!textDefaults?.italic
+                : editor.isActive('italic')
+          }
           onClick={() => {
             if (selectedTextAnnotation && onAnnotationUpdate) {
               onAnnotationUpdate({ italic: !selectedTextAnnotation.italic });
+              return;
+            }
+            if (textDefaultsActive && onTextDefaultsUpdate) {
+              onTextDefaultsUpdate({ italic: !textDefaults?.italic });
               return;
             }
             withSelection((c) => c.toggleItalic().run());
@@ -1493,11 +1565,19 @@ export default function EditorToolbar({
           icon={Underline}
           label="Underline (Cmd+U)"
           isActive={
-            selectedTextAnnotation ? !!selectedTextAnnotation.underline : editor.isActive('underline')
+            selectedTextAnnotation
+              ? !!selectedTextAnnotation.underline
+              : textDefaultsActive
+                ? !!textDefaults?.underline
+                : editor.isActive('underline')
           }
           onClick={() => {
             if (selectedTextAnnotation && onAnnotationUpdate) {
               onAnnotationUpdate({ underline: !selectedTextAnnotation.underline });
+              return;
+            }
+            if (textDefaultsActive && onTextDefaultsUpdate) {
+              onTextDefaultsUpdate({ underline: !textDefaults?.underline });
               return;
             }
             withSelection((c) => c.toggleUnderline().run());
@@ -1507,11 +1587,19 @@ export default function EditorToolbar({
           icon={Strikethrough}
           label="Strikethrough"
           isActive={
-            selectedTextAnnotation ? !!selectedTextAnnotation.strike : editor.isActive('strike')
+            selectedTextAnnotation
+              ? !!selectedTextAnnotation.strike
+              : textDefaultsActive
+                ? !!textDefaults?.strike
+                : editor.isActive('strike')
           }
           onClick={() => {
             if (selectedTextAnnotation && onAnnotationUpdate) {
               onAnnotationUpdate({ strike: !selectedTextAnnotation.strike });
+              return;
+            }
+            if (textDefaultsActive && onTextDefaultsUpdate) {
+              onTextDefaultsUpdate({ strike: !textDefaults?.strike });
               return;
             }
             withSelection((c) => c.toggleStrike().run());
@@ -1525,11 +1613,17 @@ export default function EditorToolbar({
           activeColor={
             selectedTextAnnotation
               ? selectedTextAnnotation.color
-              : (editor.getAttributes('textStyle').color as string | undefined)
+              : textDefaultsActive
+                ? textDefaults?.color
+                : (editor.getAttributes('textStyle').color as string | undefined)
           }
           onPick={(c) => {
             if (selectedTextAnnotation && onAnnotationUpdate) {
               if (c) onAnnotationUpdate({ color: c });
+              return;
+            }
+            if (textDefaultsActive && onTextDefaultsUpdate) {
+              if (c) onTextDefaultsUpdate({ color: c });
               return;
             }
             withSelection((chain) => {

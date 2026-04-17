@@ -56,6 +56,17 @@ interface DrawingOverlayProps {
   /** Notify the parent of the currently selected text annotation (or null)
    *  so the editor toolbar can retarget its controls at overlay text. */
   onSelectedTextChange?: (annotation: TextData | null) => void;
+  /** Style defaults used when a fresh text annotation is created. Lets
+   *  the user pick color/font/size BEFORE dropping a text. */
+  textDefaults?: {
+    color: string;
+    fontSize: number;
+    fontFamily?: string;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strike: boolean;
+  };
 }
 
 /* ── Helpers ── */
@@ -516,6 +527,7 @@ export default function DrawingOverlay({
   ruler,
   onRulerChange,
   onSelectedTextChange,
+  textDefaults,
 }: DrawingOverlayProps) {
   const { isPhone } = useBreakpoint();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -638,9 +650,19 @@ export default function DrawingOverlay({
     textsRef.current = texts;
   }, [texts]);
 
-  // Create a new text at a given point and enter edit mode
+  // Keep textDefaults fresh via a ref so the capture-phase pointerdown
+  // handler doesn't need to re-subscribe every time a default changes.
+  const textDefaultsRef = useRef(textDefaults);
+  useEffect(() => {
+    textDefaultsRef.current = textDefaults;
+  }, [textDefaults]);
+
+  // Create a new text at a given point and enter edit mode. Style comes
+  // from the parent-provided textDefaults so toolbar changes made BEFORE
+  // placing the text are applied on first render.
   const createTextAt = useCallback(
     (point: { x: number; y: number }) => {
+      const d = textDefaultsRef.current;
       const newText: TextData = {
         kind: 'text',
         id: crypto.randomUUID(),
@@ -648,10 +670,13 @@ export default function DrawingOverlay({
         y: point.y,
         width: 220,
         text: '',
-        // Share the pen color picker as the text color source so the
-        // "chosen color" in the toolbar applies to new annotations too.
-        color: penColor,
-        fontSize: 15,
+        color: d?.color ?? penColor,
+        fontSize: d?.fontSize ?? 15,
+        fontFamily: d?.fontFamily,
+        bold: d?.bold ?? false,
+        italic: d?.italic ?? false,
+        underline: d?.underline ?? false,
+        strike: d?.strike ?? false,
         offset: { x: 0, y: 0 },
       };
       onTextsChange([...textsRef.current, newText]);

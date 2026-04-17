@@ -167,6 +167,26 @@ export default function PageEditor({
   const [strokes, setStrokes] = useState<StrokeData[]>([]);
   const [texts, setTexts] = useState<TextData[]>([]);
   const [selectedTextAnnotation, setSelectedTextAnnotation] = useState<TextData | null>(null);
+  // Style defaults for NEW text annotations. Writing to these while in
+  // text mode with no annotation selected lets the user pre-configure
+  // the look of the next text they drop, instead of having to place
+  // the text first and then restyle it.
+  const [textDefaults, setTextDefaults] = useState<{
+    color: string;
+    fontSize: number;
+    fontFamily?: string;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strike: boolean;
+  }>({
+    color: '#ede9ff',
+    fontSize: 15,
+    bold: false,
+    italic: false,
+    underline: false,
+    strike: false,
+  });
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
   const titleRef = useRef(title);
@@ -1278,6 +1298,10 @@ export default function PageEditor({
         }}
         selectedTextAnnotation={selectedTextAnnotation}
         onAnnotationUpdate={updateSelectedAnnotation}
+        textDefaults={textDefaults}
+        onTextDefaultsUpdate={(updates) =>
+          setTextDefaults((cur) => ({ ...cur, ...updates }))
+        }
       />
 
       {/* ── Editor canvas (full width, infinite scroll) ── */}
@@ -1314,6 +1338,7 @@ export default function PageEditor({
             ruler={ruler}
             onRulerChange={setRuler}
             onSelectedTextChange={setSelectedTextAnnotation}
+            textDefaults={textDefaults}
           />
         </div>
       </div>
