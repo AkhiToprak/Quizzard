@@ -3,7 +3,7 @@ import { getToken } from 'next-auth/jwt';
 import { getAuthUserId } from '@/lib/auth';
 import { getMageName } from '@/lib/scholar';
 import { db } from '@/lib/db';
-import { anthropic, AI_MODEL } from '@/lib/anthropic';
+import { anthropic, AI_MODEL, MAX_OUTPUT_TOKENS, MAX_CONTEXT_CHARS } from '@/lib/anthropic';
 import {
   successResponse,
   badRequestResponse,
@@ -76,12 +76,12 @@ export async function POST(request: NextRequest, { params }: Params) {
     // Call Anthropic
     const response = await anthropic.messages.create({
       model: AI_MODEL,
-      max_tokens: 4096,
+      max_tokens: MAX_OUTPUT_TOKENS,
       system: systemPrompt,
       messages: [
         {
           role: 'user',
-          content: `Generate ${type} from this content:\n\n${page.textContent.slice(0, 15000)}`,
+          content: `Generate ${type} from this content:\n\n${page.textContent.slice(0, MAX_CONTEXT_CHARS)}`,
         },
       ],
       tools: ALL_TOOLS,

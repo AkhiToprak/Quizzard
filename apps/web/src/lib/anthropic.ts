@@ -13,3 +13,8 @@ export const anthropic =
 if (process.env.NODE_ENV !== 'production') globalForAnthropic.anthropic = anthropic;
 
 export const AI_MODEL = 'claude-haiku-4-5-20251001';
+
+// Claude Haiku 4.5: 200K input context, 64K max output.
+// We budget generously but leave headroom for system prompt, tools, and conversation history.
+export const MAX_OUTPUT_TOKENS = 16000;
+export const MAX_CONTEXT_CHARS = 400_000;

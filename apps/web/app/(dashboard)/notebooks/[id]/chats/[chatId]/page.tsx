@@ -204,16 +204,29 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; cha
             };
           });
 
-          // Show warning if some context sources couldn't be read
+          // Show warning if some context sources couldn't be read or were truncated
+          const warnings: string[] = [];
           if (
             contextStatus &&
             Array.isArray(contextStatus.skipped) &&
             contextStatus.skipped.length > 0
           ) {
             const names = contextStatus.skipped.map((s: { name: string }) => s.name).join(', ');
-            setContextWarning(
+            warnings.push(
               `${contextStatus.skipped.length} Quelle(n) konnten nicht gelesen werden: ${names}`
             );
+          }
+          if (contextStatus?.truncated) {
+            const kept = contextStatus.keptChars ?? 0;
+            const original = contextStatus.originalChars ?? 0;
+            const keptK = Math.round(kept / 1000);
+            const originalK = Math.round(original / 1000);
+            warnings.push(
+              `Kontext gekürzt, damit er ins Modell passt (${keptK}k von ${originalK}k Zeichen verwendet).`
+            );
+          }
+          if (warnings.length > 0) {
+            setContextWarning(warnings.join(' · '));
             setTimeout(() => setContextWarning(null), 10_000);
           } else {
             setContextWarning(null);

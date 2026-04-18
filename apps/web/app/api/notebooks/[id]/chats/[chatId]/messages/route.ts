@@ -3,7 +3,7 @@ import { getToken } from 'next-auth/jwt';
 import { getAuthUserId } from '@/lib/auth';
 import { getMageName } from '@/lib/scholar';
 import { db } from '@/lib/db';
-import { anthropic, AI_MODEL } from '@/lib/anthropic';
+import { anthropic, AI_MODEL, MAX_OUTPUT_TOKENS, MAX_CONTEXT_CHARS } from '@/lib/anthropic';
 import {
   successResponse,
   badRequestResponse,
@@ -179,10 +179,34 @@ export async function POST(request: NextRequest, { params }: Params) {
       }
     }
 
+    // Soft guard: if combined context would overflow the model's 200K input window,
+    // trim the joined content and surface a flag so the UI can warn the user.
+    let contextTruncated = false;
+    let contextOriginalChars = 0;
+    let contextKeptChars = 0;
+    if (contextParts.length > 0) {
+      const joined = contextParts.join('\n\n---\n\n');
+      contextOriginalChars = joined.length;
+      if (joined.length > MAX_CONTEXT_CHARS) {
+        const trimmed = joined.slice(0, MAX_CONTEXT_CHARS);
+        contextParts.length = 0;
+        contextParts.push(
+          `${trimmed}\n\n[Note: context was truncated to fit the model's input window. Some source material is not included.]`
+        );
+        contextTruncated = true;
+        contextKeptChars = MAX_CONTEXT_CHARS;
+      } else {
+        contextKeptChars = joined.length;
+      }
+    }
+
     const contextStatus = {
       loaded: contextParts.length,
       skipped: skippedSources,
       total: contextParts.length + skippedSources.length,
+      truncated: contextTruncated,
+      originalChars: contextOriginalChars,
+      keptChars: contextKeptChars,
     };
 
     // ── Load conversation history ──
@@ -329,7 +353,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     const stream = anthropic.messages.stream(
       {
         model: AI_MODEL,
-        max_tokens: 4096,
+        max_tokens: MAX_OUTPUT_TOKENS,
         system: systemParts.join('\n'),
         messages: conversationMessages,
         tools: ALL_TOOLS,

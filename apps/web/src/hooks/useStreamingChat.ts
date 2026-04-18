@@ -24,6 +24,9 @@ export interface DonePayload {
     loaded: number;
     skipped: { type: string; name: string; reason: string }[];
     total: number;
+    truncated?: boolean;
+    originalChars?: number;
+    keptChars?: number;
   };
   aborted?: boolean;
   partialText?: string;

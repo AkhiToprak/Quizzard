@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { anthropic, AI_MODEL } from '@/lib/anthropic';
+import { anthropic, AI_MODEL, MAX_CONTEXT_CHARS } from '@/lib/anthropic';
 import { checkTokenBudget, recordTokenUsage } from '@/lib/token-budget';
 import {
   successResponse,
@@ -63,8 +63,8 @@ export async function POST(
     // Generate with Claude
     const prompt =
       length === 'brief'
-        ? `Summarize the following document in 3-5 concise bullet points. Focus on the key takeaways.\n\nDocument:\n${document.textContent.slice(0, 15000)}`
-        : `Provide a comprehensive summary of the following document. Include:\n- Key points and main arguments\n- Important details and supporting evidence\n- Conclusions and implications\n\nFormat with clear headings and bullet points.\n\nDocument:\n${document.textContent.slice(0, 15000)}`;
+        ? `Summarize the following document in 3-5 concise bullet points. Focus on the key takeaways.\n\nDocument:\n${document.textContent.slice(0, MAX_CONTEXT_CHARS)}`
+        : `Provide a comprehensive summary of the following document. Include:\n- Key points and main arguments\n- Important details and supporting evidence\n- Conclusions and implications\n\nFormat with clear headings and bullet points.\n\nDocument:\n${document.textContent.slice(0, MAX_CONTEXT_CHARS)}`;
 
     const response = await anthropic.messages.create({
       model: AI_MODEL,
