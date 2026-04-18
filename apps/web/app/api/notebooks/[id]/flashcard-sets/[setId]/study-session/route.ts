@@ -12,7 +12,7 @@ type Params = { params: Promise<{ id: string; setId: string }> };
 
 /**
  * GET – fetch flashcards due for review (spaced repetition study session)
- * Returns up to 20 cards: never-reviewed first, then by nextReviewAt ASC
+ * Returns all due cards: never-reviewed first, then by nextReviewAt ASC
  */
 export async function GET(request: NextRequest, { params }: Params) {
   try {
@@ -37,7 +37,6 @@ export async function GET(request: NextRequest, { params }: Params) {
         OR: [{ nextReviewAt: null }, { nextReviewAt: { lte: now } }],
       },
       orderBy: [{ nextReviewAt: 'asc' }],
-      take: 20,
       include: {
         images: {
           orderBy: { sortOrder: 'asc' },
