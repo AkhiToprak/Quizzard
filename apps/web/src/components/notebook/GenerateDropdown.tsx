@@ -42,9 +42,19 @@ export default function GenerateDropdown({
   const ref = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  // Dedupe: pointerup + the synthesized click both fire on touch. We
+  // trigger from both so iOS reliably runs the action even when click is
+  // suppressed for whatever reason; this guard blocks the double-fire.
+  const lastFireRef = useRef(0);
   const router = useRouter();
   const { startAiTask, finishAiTask } = useAiTask();
   const { refreshFlashcardSets, refreshQuizSets } = useNotebookWorkspace();
+
+  const fireOnce = useCallback((fn: () => void) => {
+    if (Date.now() - lastFireRef.current < 600) return;
+    lastFireRef.current = Date.now();
+    fn();
+  }, []);
 
   // Portal target only exists in the browser; gate the createPortal call
   // until after hydration so SSR/CSR markup matches.
@@ -153,8 +163,15 @@ export default function GenerateDropdown({
       <button
         ref={buttonRef}
         type="button"
+        onPointerUp={() => {
+          fireOnce(() => {
+            if (!disabled && !loading) setOpen((p) => !p);
+          });
+        }}
         onClick={() => {
-          if (!disabled && !loading) setOpen((p) => !p);
+          fireOnce(() => {
+            if (!disabled && !loading) setOpen((p) => !p);
+          });
         }}
         title="Generate from page"
         disabled={disabled || loading}
@@ -227,9 +244,8 @@ export default function GenerateDropdown({
               <button
                 key={type}
                 type="button"
-                onClick={() => {
-                  handleGenerate(type);
-                }}
+                onPointerUp={() => fireOnce(() => handleGenerate(type))}
+                onClick={() => fireOnce(() => handleGenerate(type))}
                 disabled={loading}
                 style={{
                   display: 'flex',
@@ -280,10 +296,18 @@ export default function GenerateDropdown({
               />
               <button
                 type="button"
-                onClick={() => {
-                  setOpen(false);
-                  onEssayCheck();
-                }}
+                onPointerUp={() =>
+                  fireOnce(() => {
+                    setOpen(false);
+                    onEssayCheck();
+                  })
+                }
+                onClick={() =>
+                  fireOnce(() => {
+                    setOpen(false);
+                    onEssayCheck();
+                  })
+                }
                 disabled={loading}
                 style={{
                   display: 'flex',

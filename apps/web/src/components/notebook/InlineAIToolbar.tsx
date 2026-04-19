@@ -76,6 +76,10 @@ export default function InlineAIToolbar({
   // touch-time selection collapse doesn't unmount the bar before the
   // click registers.
   const interactionEndRef = useRef(0);
+  // Dedupe ref: pointerup + the synthesized click both fire on touch, and
+  // we trigger from both so iOS reliably runs the action even if click is
+  // suppressed. The ref blocks the second one from firing twice.
+  const lastFireRef = useRef(0);
 
   // Reset hidden flag whenever the editor's selection changes.
   // Without this, dismissing the toolbar with Escape would persist forever
@@ -389,17 +393,14 @@ export default function InlineAIToolbar({
       role="toolbar"
       aria-label="Inline AI actions"
       style={wrapperStyle}
+      // Capture the selection ASAP via every entry-point event so the
+      // action handlers always have a valid range — runAction will
+      // re-focus the editor and restore selection from pendingRangeRef
+      // after the API call, so we no longer need preventDefault on
+      // mousedown (which can suppress the synthesized click on iOS).
       onPointerDown={captureSelection}
       onTouchStart={captureSelection}
-      onMouseDown={(e) => {
-        // Critical: prevent the editor from losing focus / collapsing the
-        // selection when the toolbar is clicked. On iOS this is the
-        // *synthesized* mousedown that fires after touchend — calling
-        // preventDefault here suppresses the focus default without
-        // cancelling the click chain (unlike pointerdown, which would).
-        e.preventDefault();
-        captureSelection();
-      }}
+      onMouseDown={captureSelection}
     >
       <div
         aria-hidden
@@ -424,12 +425,24 @@ export default function InlineAIToolbar({
       </div>
       {(['rewrite', 'summarize', 'expand'] as InlineAction[]).map((action) => {
         const active = busyAction === action;
+        const fire = () => {
+          // Dedupe: pointerup fires on touch, then iOS synthesizes click.
+          // Without this guard the action would run twice on tap.
+          if (Date.now() - lastFireRef.current < 600) return;
+          lastFireRef.current = Date.now();
+          runAction(action);
+        };
         return (
           <button
             key={action}
             type="button"
             disabled={busyAction !== null && !active}
-            onClick={() => runAction(action)}
+            // Trigger on pointerup AND click. iOS Safari sometimes
+            // suppresses the synthesized click when a parent has
+            // mousedown.preventDefault, so pointerup is the reliable
+            // touch path.
+            onPointerUp={fire}
+            onClick={fire}
             style={buttonStyle(active)}
             onMouseEnter={(e) => {
               if (busyAction) return;
