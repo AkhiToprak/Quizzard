@@ -8,9 +8,12 @@ set -euxo pipefail
 
 echo "==> Installing Node via Homebrew"
 brew install node
-# brew install does not modify the current shell's PATH, so corepack/npx
-# (linked into Homebrew's bin dir) aren't reachable until we add it.
-export PATH="$(brew --prefix)/bin:$PATH"
+# Point PATH at node's keg bin directly. Xcode Cloud's brew install does
+# NOT seem to link binaries into /usr/local/bin (corepack stays missing
+# even with /usr/local/bin on PATH), but the keg always has them.
+NODE_BIN="$(brew --prefix node)/bin"
+export PATH="$NODE_BIN:$PATH"
+ls -la "$NODE_BIN" | head -20  # diagnostic: confirm node/npm/corepack exist
 
 echo "==> Activating pnpm@9.12.0 via corepack"
 corepack enable
