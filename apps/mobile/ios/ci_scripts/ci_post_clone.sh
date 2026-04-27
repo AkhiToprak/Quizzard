@@ -4,7 +4,10 @@
 # by `expo prebuild` from app.json + the local config plugins. Without this
 # script, xcodebuild can't find Notemage.xcworkspace on a fresh CI clone.
 
-set -euo pipefail
+set -euxo pipefail
+
+echo "==> Installing Node via Homebrew"
+brew install node
 
 echo "==> Activating pnpm@9.12.0 via corepack"
 corepack enable
