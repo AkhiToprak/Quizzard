@@ -15,9 +15,10 @@ export PATH="$NODE_BIN:$PATH"
 echo "==> Installing pnpm@9.12.0 via npm"
 npm install -g pnpm@9.12.0
 
-echo "==> Installing JS dependencies (monorepo root)"
+echo "==> Installing JS dependencies for mobile workspace"
 cd "$CI_PRIMARY_REPOSITORY_PATH"
-pnpm install --frozen-lockfile
+# Scope to mobile subgraph; apps/web's prisma postinstall hits binaries.prisma.sh which Xcode Cloud blocks.
+pnpm install --frozen-lockfile --filter 'mobile...'
 
 echo "==> Generating iOS native project via expo prebuild"
 cd "$CI_PRIMARY_REPOSITORY_PATH/apps/mobile"
