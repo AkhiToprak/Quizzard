@@ -12,16 +12,12 @@
 // Links daemon (`swcd`) is fussy about MIME, so we use a route handler
 // instead and set the header explicitly.
 //
-// Replace `TEAMID` below with the Apple Developer Team ID once the paid
-// program is approved (Phase 2 prerequisite). The bundle identifier is
-// fixed by `apps/mobile/app.json` → `ios.bundleIdentifier`.
-//
 // Apple caches this file aggressively. After deploying a change you may
 // have to delete the app and reinstall before iOS re-fetches it.
 
 import { NextResponse } from 'next/server';
 
-const APP_ID = 'TEAMID.app.notemage.mobile';
+const APP_ID = 'ULH58C5SCP.app.notemage.mobile';
 
 // Cache-control: short. The file rarely changes but if you do change it
 // (adding a new app, new path), you don't want a stale CDN copy floating
