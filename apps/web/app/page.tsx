@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Component as MagicCursor } from '@/components/ui/magic-cursor';
 import LandingNavbar from '@/components/landing/LandingNavbar';
 import Hero from '@/components/landing/Hero';
@@ -12,8 +14,21 @@ import HowItWorks from '@/components/landing/HowItWorks';
 import StatsStrip from '@/components/landing/StatsStrip';
 import FinalCta from '@/components/landing/FinalCta';
 import LandingFooter from '@/components/landing/LandingFooter';
+import { isInsideNativeShell } from '@/lib/native-bridge';
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  // Native shells (iOS WebView, Electron) are authenticated clients — they
+  // boot directly into the app, never the marketing landing. The shell
+  // initial URL is /auth/login; this guard catches deep links, programmatic
+  // navs, or errant redirects that drop a native user back at /.
+  useEffect(() => {
+    if (isInsideNativeShell()) {
+      router.replace('/auth/login');
+    }
+  }, [router]);
+
   return (
     <main
       className="nm-landing"
