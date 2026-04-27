@@ -23,7 +23,38 @@ Build to a real iPad — the simulator does not surface Pencil gestures, so veri
 
 ## Universal links
 
-The matching `apple-app-site-association` lives in `apps/web/app/.well-known/apple-app-site-association/route.ts`. Replace the `TEAMID` placeholder with the real Apple Developer Team ID before submitting to TestFlight, otherwise iOS will silently refuse to associate `https://notemage.app/notebook/*` with the app.
+The matching `apple-app-site-association` lives in `apps/web/app/.well-known/apple-app-site-association/route.ts` and is pinned to Team ID `ULH58C5SCP`. To rotate the Team ID, update both that file and `apps/mobile/eas.json` → `submit.production.ios.appleTeamId`.
+
+## TestFlight builds
+
+Two paths — pick one.
+
+### Option A: Local Xcode + Transporter
+
+Built locally in Xcode, uploaded with the **Transporter** app from the Mac App Store. No subscription.
+
+```bash
+cd apps/mobile
+pnpm prebuild           # regenerates ios/Notemage.xcworkspace
+open ios/Notemage.xcworkspace
+```
+
+### Option B: Xcode Cloud
+
+`apps/mobile/ios/ci_scripts/ci_post_clone.sh` runs prebuild + `pod install` after the CI clone, since `apps/mobile/ios/` is gitignored. Push the branch wired to your Xcode Cloud workflow and the build will resolve `Notemage.xcworkspace` from the regenerated project. If Node is missing on the CI image, prepend `brew install node` to the script.
+
+In Xcode:
+
+1. Select **Any iOS Device (arm64)** in the run-target dropdown.
+2. Bump `CFBundleVersion` (build number) in `Notemage/Info.plist` if you've already shipped a build with the current value — App Store Connect rejects duplicates.
+3. **Product → Archive**. The Organizer window opens when it finishes.
+4. Pick the new archive → **Distribute App** → **App Store Connect** → **Upload** → leave defaults → **Upload**.
+
+Alternative: in the Organizer, **Distribute App** → **Export** → **App Store Connect**, save the `.ipa`, then drag it into Transporter and click **Deliver**.
+
+After upload, App Store Connect needs ~5–15 min to process the build before TestFlight shows it. Add internal testers under TestFlight → Internal Testing → your group → **+**.
+
+Code signing uses Xcode's automatic signing tied to Team ID `ULH58C5SCP` (already set in `Notemage.xcodeproj/project.pbxproj`). For push, the APNs `.p8` key generated in the Apple Developer Portal lives on Apple's side — Xcode/Apple use it server-to-server when delivering pushes; nothing local to wire up.
 
 ## Push notifications
 
