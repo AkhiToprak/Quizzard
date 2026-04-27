@@ -23,7 +23,10 @@
 
 const fs = require('fs');
 const path = require('path');
-const { withXcodeProject, withDangerousMod } = require('@expo/config-plugins');
+// Resolve through `expo` (a direct dep) instead of `@expo/config-plugins`
+// directly, since pnpm doesn't expose transitive deps to plugin files.
+// See commit 95756ab — restored after an accidental revert.
+const { withXcodeProject, withDangerousMod } = require('expo/config-plugins');
 
 const SOURCES = [
   'PencilInteractionModule.swift',

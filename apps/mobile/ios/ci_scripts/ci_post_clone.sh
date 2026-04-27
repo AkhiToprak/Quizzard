@@ -8,6 +8,9 @@ set -euxo pipefail
 
 echo "==> Installing Node via Homebrew"
 brew install node
+# brew install does not modify the current shell's PATH, so corepack/npx
+# (linked into Homebrew's bin dir) aren't reachable until we add it.
+export PATH="$(brew --prefix)/bin:$PATH"
 
 echo "==> Activating pnpm@9.12.0 via corepack"
 corepack enable
