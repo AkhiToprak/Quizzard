@@ -8,16 +8,12 @@ set -euxo pipefail
 
 echo "==> Installing Node via Homebrew"
 brew install node
-# Point PATH at node's keg bin directly. Xcode Cloud's brew install does
-# NOT seem to link binaries into /usr/local/bin (corepack stays missing
-# even with /usr/local/bin on PATH), but the keg always has them.
+# Brew's node formula no longer ships corepack, so install pnpm via npm directly.
 NODE_BIN="$(brew --prefix node)/bin"
 export PATH="$NODE_BIN:$PATH"
-ls -la "$NODE_BIN" | head -20  # diagnostic: confirm node/npm/corepack exist
 
-echo "==> Activating pnpm@9.12.0 via corepack"
-corepack enable
-corepack prepare pnpm@9.12.0 --activate
+echo "==> Installing pnpm@9.12.0 via npm"
+npm install -g pnpm@9.12.0
 
 echo "==> Installing JS dependencies (monorepo root)"
 cd "$CI_PRIMARY_REPOSITORY_PATH"
