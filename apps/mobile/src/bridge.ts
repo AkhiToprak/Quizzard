@@ -25,6 +25,7 @@ import {
   Share as RNShare,
 } from 'react-native';
 import type { WebView } from 'react-native-webview';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -40,6 +41,7 @@ import type {
   HapticStyle,
   PushRegistration,
   ShareContent,
+  SignInWithAppleResult,
 } from '@notemage/shared';
 
 // ─── Pencil native module (custom Swift, registered via the bridging header).
@@ -330,15 +332,34 @@ export class ShellBridge {
         const registration = await this.registerForPush();
         return registration;
       }
+      case 'signInWithApple': {
+        const cred = await AppleAuthentication.signInAsync({
+          requestedScopes: [
+            AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+            AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          ],
+        });
+        if (!cred.identityToken) {
+          throw new Error('Apple did not return an identity token');
+        }
+        const fullName = cred.fullName
+          ? [cred.fullName.givenName, cred.fullName.familyName]
+              .filter((part): part is string => Boolean(part))
+              .join(' ')
+              .trim() || null
+          : null;
+        const result: SignInWithAppleResult = {
+          idToken: cred.identityToken,
+          user: { id: cred.user, email: cred.email, fullName },
+        };
+        return result;
+      }
       case 'getEntitlement':
       case 'getProducts':
       case 'purchase':
-      case 'restorePurchases':
-      case 'signInWithApple': {
-        // Wired in Phase 4 (Sign in with Apple) and Phase 6 (RevenueCat IAP).
-        // For now we report the feature as not yet available so the web side
-        // can fall back to its existing flows.
-        throw new Error(`${req.method} is not implemented in Phase 2`);
+      case 'restorePurchases': {
+        // Wired in Phase 6 (RevenueCat IAP).
+        throw new Error(`${req.method} is not implemented yet`);
       }
       default:
         throw new Error(`Unknown bridge method: ${String((req as BridgeRequest).method)}`);

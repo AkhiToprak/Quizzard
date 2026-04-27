@@ -48,6 +48,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "bcryptjs": "^3.0.3",
+    "jose": "^4.15.9",
     "better-sqlite3": "^12.8.0",
     "cheerio": "^1.2.0",
     "clsx": "^2.1.1",

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Notemage",
     "slug": "notemage-mobile",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": "notemage",
@@ -17,6 +17,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.notemage.mobile",
+      "buildNumber": "1",
+      "usesAppleSignIn": true,
       "associatedDomains": ["applinks:notemage.app"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -73,7 +75,8 @@
         {
           "faceIDPermission": "Notemage uses Face ID to re-unlock your notebooks after the app is backgrounded."
         }
-      ]
+      ],
+      "expo-apple-authentication"
     ]
   }
 }

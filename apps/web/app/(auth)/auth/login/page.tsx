@@ -5,6 +5,7 @@ import { FormEvent, useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { nativeBridge, isInsideNativeShell } from '@/lib/native-bridge';
 
 export default function LoginPage() {
   // useSearchParams in a client page must be wrapped in Suspense for the
@@ -44,9 +45,43 @@ function LoginForm() {
     }
   }, [searchParams]);
 
-  const handleOAuth = (provider: 'google' | 'apple') => {
+  const handleOAuth = async (provider: 'google' | 'apple') => {
     setError('');
     setOauthLoading(provider);
+
+    // Inside the iOS WebView shell, Apple Sign-In has to use the native
+    // ASAuthorizationAppleIDProvider flow — NextAuth's redirect handshake
+    // doesn't work in an embedded WebView. The shell hands us back an
+    // identity token which we exchange for a session cookie.
+    if (provider === 'apple' && isInsideNativeShell()) {
+      try {
+        const result = await nativeBridge.signInWithApple();
+        const res = await fetch('/api/auth/native/apple', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(result),
+        });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => null)) as { error?: string } | null;
+          if (data?.error === 'OAuthAccountExists') {
+            setError(
+              'An account already exists for this email. Please sign in with your password, then link Apple from settings.'
+            );
+          } else {
+            setError('Sign in with Apple failed. Please try again.');
+          }
+          setOauthLoading(null);
+          return;
+        }
+        router.push('/home');
+      } catch {
+        // User cancelled or the bridge rejected — silently reset.
+        setOauthLoading(null);
+      }
+      return;
+    }
+
+    // Web (and Google in any environment): NextAuth redirect handshake.
     // Keep OAuth users on the login surface while signups are paused.
     signIn(provider, { callbackUrl: '/auth/login' });
   };

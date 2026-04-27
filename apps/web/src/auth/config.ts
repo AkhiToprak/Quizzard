@@ -5,7 +5,8 @@ import AppleProvider from 'next-auth/providers/apple';
 import bcrypt from 'bcryptjs';
 import { headers } from 'next/headers';
 import { db } from '@/lib/db';
-import { enforceIpCap, generatePlaceholderUsername, getIpFromHeaders } from '@/lib/registration';
+import { getIpFromHeaders } from '@/lib/registration';
+import { findOrCreateOAuthUser } from '@/auth/oauth-user';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 60 * 60 * 1000; // 1 hour
@@ -18,7 +19,10 @@ const LOCKOUT_DURATION_MS = 60 * 60 * 1000; // 1 hour
  * what CredentialsProvider.authorize() returns so token shape is
  * identical across auth methods.
  */
-async function hydrateTokenFromDb(token: Record<string, unknown>, userId: string): Promise<void> {
+export async function hydrateTokenFromDb(
+  token: Record<string, unknown>,
+  userId: string
+): Promise<void> {
   const freshUser = await db.user.findUnique({
     where: { id: userId },
     select: {
@@ -239,86 +243,36 @@ export const authOptions: NextAuthOptions = {
       const providerAccountId = account.providerAccountId;
       if (!providerAccountId) return false;
 
-      // 1. Already linked? Just log in.
-      const existingLink = await db.oAuthAccount.findUnique({
-        where: {
-          provider_providerAccountId: { provider, providerAccountId },
-        },
-        select: { userId: true },
-      });
-      if (existingLink) {
-        // Hydrate `user.id` so the jwt callback can re-read from DB.
-        user.id = existingLink.userId;
-        return true;
-      }
-
-      // 2. Email collision? Safe-link or block.
-      const existingByEmail = await db.user.findUnique({
-        where: { email },
-        select: { id: true, password: true, onboardingComplete: true, banned: true },
-      });
-
-      if (existingByEmail) {
-        if (existingByEmail.banned) return false;
-
-        // Safe to silently link only if the existing account either:
-        //   (a) has no password set (already an OAuth account), OR
-        //   (b) never finished onboarding (no real profile data to hijack).
-        // Otherwise we block — the real owner must log in with their
-        // password and explicitly link OAuth from settings.
-        const safeToLink =
-          existingByEmail.password === null || existingByEmail.onboardingComplete === false;
-        if (!safeToLink) {
-          // Surfaces as ?error=OAuthAccountExists on the login page.
-          // We return false, NextAuth redirects to the error page.
-          return '/auth/login?error=OAuthAccountExists';
-        }
-
-        await db.oAuthAccount.create({
-          data: { userId: existingByEmail.id, provider, providerAccountId },
-        });
-        user.id = existingByEmail.id;
-        return true;
-      }
-
-      // 3. New user — enforce IP cap, then create User + OAuthAccount.
-      //    The signIn callback has no NextRequest, but NextAuth routes run
-      //    inside an App Router handler so headers() is available here.
+      // headers() can throw outside a request context — fail open and
+      // skip the IP cap. Provider email verification is our fallback.
       let ip = 'unknown';
       try {
-        // next/headers returns a ReadonlyHeaders synchronously in Next 14;
-        // the ReadonlyHeaders type is assignable to Headers for our helper.
         const h = headers();
         ip = getIpFromHeaders(h as unknown as Headers);
       } catch {
-        // headers() can throw outside a request context — fail open and
-        // skip the IP cap. Provider email verification is our fallback.
+        // ignore
       }
-      const cap = await enforceIpCap(ip);
-      if (!cap.ok) return false;
 
-      const placeholderUsername = generatePlaceholderUsername();
-      const createdUser = await db.$transaction(async (tx) => {
-        const created = await tx.user.create({
-          data: {
-            email,
-            name: (user.name ?? p.name ?? null) as string | null,
-            avatarUrl: (user.image ?? p.picture ?? null) as string | null,
-            password: null,
-            username: placeholderUsername,
-            onboardingComplete: false,
-          },
-        });
-        await tx.oAuthAccount.create({
-          data: { userId: created.id, provider, providerAccountId },
-        });
-        if (ip && ip !== 'unknown') {
-          await tx.ipRegistration.create({ data: { ip } });
-        }
-        return created;
+      const resolution = await findOrCreateOAuthUser({
+        provider,
+        providerAccountId,
+        email,
+        name: (user.name ?? p.name ?? null) as string | null,
+        avatarUrl: (user.image ?? p.picture ?? null) as string | null,
+        ip,
       });
 
-      user.id = createdUser.id;
+      if (!resolution.ok) {
+        // Surface OAuthAccountExists as a redirect to the error page on the
+        // login surface; banned/ip_cap stay opaque (return false).
+        if (resolution.reason === 'account_exists') {
+          return '/auth/login?error=OAuthAccountExists';
+        }
+        return false;
+      }
+
+      // Hydrate `user.id` so the jwt callback can re-read from DB.
+      user.id = resolution.userId;
       return true;
     },
 
