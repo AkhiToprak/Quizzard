@@ -1,51 +1,75 @@
+# syntax=docker/dockerfile:1.7
 # Multi-stage build for the Notemage Next.js app (apps/web).
-# The build context is the monorepo root so the Dockerfile can see the
-# pnpm workspace lockfile + the apps/web subdirectory.
+# Build context MUST be the monorepo root so the workspace lockfile +
+# packages/shared are visible. In Coolify: Base Directory = `.`,
+# Dockerfile Location = `Dockerfile`, Build Context = `.`.
 
+ARG NODE_VERSION=20-alpine
 ARG PNPM_VERSION=9.12.0
 
-# Stage 1: Dependencies (workspace install)
-FROM node:20-alpine AS deps
-WORKDIR /app
-RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION:-9.12.0} --activate
+# ── Base ───────────────────────────────────────────────────────────────
+# libc6-compat + openssl are required by Prisma on alpine.
+# python3/make/g++ are needed to compile native modules (better-sqlite3,
+# @napi-rs/canvas) when no prebuilt binary matches the alpine target.
+FROM node:${NODE_VERSION} AS base
+RUN apk add --no-cache libc6-compat openssl python3 make g++
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+ENV NEXT_TELEMETRY_DISABLED=1
+WORKDIR /repo
+
+# ── Deps ───────────────────────────────────────────────────────────────
+# Copy only the manifests + the prisma schema (needed by the
+# `postinstall: prisma generate` hook) so this layer caches across
+# unrelated source edits.
+FROM base AS deps
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY apps/web/package.json ./apps/web/package.json
-COPY packages/shared/package.json ./packages/shared/package.json
+COPY packages/shared/package.json packages/shared/
+COPY apps/web/package.json apps/web/
+COPY apps/web/prisma apps/web/prisma
 RUN pnpm install --frozen-lockfile
 
-# Stage 2: Builder (production build)
-FROM node:20-alpine AS builder
-WORKDIR /app
-RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION:-9.12.0} --activate
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules 2>/dev/null || true
+# ── Builder ────────────────────────────────────────────────────────────
+# NEXT_PUBLIC_* vars are baked into the client bundle at build time —
+# they MUST be set as ARGs (and toggled "Is Build Variable" in Coolify)
+# or the browser will see undefined for them.
+FROM base AS builder
+COPY --from=deps /repo/node_modules ./node_modules
+COPY --from=deps /repo/apps/web/node_modules ./apps/web/node_modules
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY apps ./apps
-COPY packages ./packages
-RUN pnpm --filter web build
+COPY packages packages
+COPY apps/web apps/web
 
-# Stage 3: Development (used by docker-compose)
-FROM node:20-alpine AS dev
-WORKDIR /app
-RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION:-9.12.0} --activate
-COPY apps/web/package.json ./package.json
-RUN pnpm install
-COPY apps/web/ ./
-RUN pnpm exec prisma generate
-EXPOSE 3000
-CMD ["pnpm", "dev"]
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG SENTRY_AUTH_TOKEN
+ARG SENTRY_ORG
+ARG SENTRY_PROJECT
+ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
+ENV SENTRY_ORG=$SENTRY_ORG
+ENV SENTRY_PROJECT=$SENTRY_PROJECT
 
-# Stage 4: Production runtime
-FROM node:20-alpine AS prod
-WORKDIR /app
+RUN pnpm --filter web exec next build
+
+# ── Runner ─────────────────────────────────────────────────────────────
+# Standalone output preserves the monorepo structure under .next/standalone/
+# because next.config.ts sets outputFileTracingRoot to the workspace root.
+# Final image runs as a non-root user.
+FROM node:${NODE_VERSION} AS runner
+RUN apk add --no-cache libc6-compat openssl
 ENV NODE_ENV=production
-RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION:-9.12.0} --activate
-COPY --from=builder /app/apps/web/.next ./.next
-COPY --from=builder /app/apps/web/public ./public
-COPY --from=builder /app/apps/web/package.json ./package.json
-COPY --from=builder /app/apps/web/next.config.ts ./next.config.ts
-COPY --from=builder /app/apps/web/prisma ./prisma
-RUN pnpm install --prod
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+WORKDIR /app
+
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
+
+COPY --from=builder --chown=nextjs:nodejs /repo/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /repo/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /repo/apps/web/public ./apps/web/public
+
+USER nextjs
 EXPOSE 3000
-CMD ["pnpm", "start"]
+CMD ["node", "apps/web/server.js"]

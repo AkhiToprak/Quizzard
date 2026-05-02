@@ -11,6 +11,65 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+// Always-allowed paths during maintenance. The AASA file MUST keep returning
+// 200/JSON or every iOS install loses its Universal Link binding for ~24h.
+// _next assets and the favicon are needed for the maintenance page itself
+// to render.
+function isMaintenanceAllowlisted(pathname: string): boolean {
+  return (
+    pathname === '/.well-known/apple-app-site-association' ||
+    pathname.startsWith('/_next/') ||
+    pathname === '/favicon.png' ||
+    pathname === '/favicon.ico'
+  );
+}
+
+function handleMaintenance(request: NextRequest, pathname: string): NextResponse {
+  if (isMaintenanceAllowlisted(pathname)) {
+    return withSecurityHeaders(NextResponse.next());
+  }
+  // API callers (the iOS shell, fetch from the SPA) get JSON, not HTML —
+  // otherwise they try to parse the maintenance page and crash.
+  if (pathname.startsWith('/api/')) {
+    return withSecurityHeaders(
+      new NextResponse(
+        JSON.stringify({ error: 'maintenance', message: 'Service temporarily unavailable' }),
+        {
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '300',
+          },
+        }
+      )
+    );
+  }
+  // Everything else: render the maintenance page with a 503 status.
+  // Rewriting /maintenance → /maintenance is intentional and non-recursive.
+  return withSecurityHeaders(
+    NextResponse.rewrite(new URL('/maintenance', request.url), { status: 503 })
+  );
+}
+
+// Paths the existing auth/redirect logic owns. Anything outside this set
+// passes through with just security headers — preserves pre-maintenance
+// behavior exactly when MAINTENANCE_MODE is off, even though the matcher
+// below is broad enough to cover the maintenance interception.
+const AUTH_LOGIC_PATTERNS: RegExp[] = [
+  /^\/$/,
+  /^\/auth\/(login|register)(\/|$)/,
+  /^\/dashboard(\/|$)/,
+  /^\/notebooks\//,
+  /^\/settings(\/|$)/,
+  /^\/(pricing|about|contact|waitlist)$/,
+  /^\/legal(\/|$)/,
+  /^\/docs(\/|$)/,
+];
+
+function isAuthLogicRoute(pathname: string): boolean {
+  return AUTH_LOGIC_PATTERNS.some((p) => p.test(pathname));
+}
+
 // The native shells (iOS + Windows/Electron) append a `NotemageShell/<plat>`
 // token to their default Chromium UA string before loading any URL. We use
 // that to gate the marketing experience out of the shell: landing, pricing,
@@ -36,8 +95,24 @@ function isMarketingRoute(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
   const { pathname } = request.nextUrl;
+
+  // Maintenance mode — handled before any auth/token work so a flipped env
+  // var takes the whole app offline regardless of the user's auth state.
+  if (process.env.MAINTENANCE_MODE === 'true') {
+    return handleMaintenance(request, pathname);
+  }
+
+  // Outside maintenance, only the routes the existing logic was designed for
+  // get the full auth pipeline. Everything else (API routes, .well-known,
+  // /maintenance itself when accessed directly, anything not in the list)
+  // gets security headers and falls through. This preserves pre-maintenance
+  // behavior exactly even though the matcher below is now broad.
+  if (!isAuthLogicRoute(pathname)) {
+    return withSecurityHeaders(NextResponse.next());
+  }
+
+  const token = await getToken({ req: request });
 
   // Native shell hitting a marketing/landing route → bounce to /auth/login.
   // This runs before the token check because the redirect target is the
@@ -97,25 +172,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/',
-    '/auth/login',
-    '/auth/register',
-    '/dashboard',
-    '/dashboard/:path*',
-    '/notebooks/:path*',
-    '/settings',
-    '/settings/:path*',
-    // Marketing surfaces — the middleware reroutes these to /auth/login
-    // when the request comes from a native shell (see isNativeShell above).
-    // Unauthed web visitors still see them unchanged.
-    '/pricing',
-    '/about',
-    '/contact',
-    '/waitlist',
-    '/legal',
-    '/legal/:path*',
-    '/docs',
-    '/docs/:path*',
-  ],
+  // Broadened so MAINTENANCE_MODE can intercept every request. When the
+  // env var is OFF, isAuthLogicRoute() above gates everything else through
+  // a fast pass with just security headers — so the auth pipeline still
+  // only runs on the original list of routes.
+  matcher: ['/((?!_next/static|_next/image).*)'],
 };

@@ -42,6 +42,11 @@ import { createRequire } from 'node:module';
 })();
 
 const nextConfig: NextConfig = {
+  // Standalone output bundles a minimal node_modules + server.js into
+  // .next/standalone/, which the Hetzner Dockerfile copies into a slim
+  // runner. Vercel ignores this and uses its own runtime, so it's safe
+  // for both targets.
+  output: 'standalone',
   // The native bridge contract lives in @notemage/shared as raw .ts so
   // both Next (web) and Metro (mobile) consume the same source. Without
   // this hint Next would refuse to compile a non-bundled workspace pkg.
