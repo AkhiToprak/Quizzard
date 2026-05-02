@@ -5,9 +5,9 @@ import { createRequire } from 'node:module';
 
 // Copy pdfjs-dist's worker file into src/lib/vendor/ so that it can be
 // referenced via new URL(..., import.meta.url) from pdfjs-node.ts and
-// thereby picked up by @vercel/nft / Turbopack asset tracing. We do
-// this unconditionally at config-load time because Vercel invokes
-// `next build` directly, bypassing pnpm lifecycle hooks.
+// thereby picked up by @vercel/nft / Turbopack asset tracing. Done at
+// config-load time so the worker is in place before Next scans files,
+// regardless of how the build is invoked.
 (function ensurePdfjsWorkerCopied() {
   try {
     const req = createRequire(path.join(__dirname, 'package.json'));
@@ -43,9 +43,7 @@ import { createRequire } from 'node:module';
 
 const nextConfig: NextConfig = {
   // Standalone output bundles a minimal node_modules + server.js into
-  // .next/standalone/, which the Hetzner Dockerfile copies into a slim
-  // runner. Vercel ignores this and uses its own runtime, so it's safe
-  // for both targets.
+  // .next/standalone/, which the Dockerfile copies into a slim runner.
   output: 'standalone',
   // The native bridge contract lives in @notemage/shared as raw .ts so
   // both Next (web) and Metro (mobile) consume the same source. Without
