@@ -38,8 +38,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       return badRequestResponse('cardIds must be a non-empty array');
     }
 
-    if (cardIds.length > 5000) {
-      return badRequestResponse('Too many cardIds. Maximum is 5000.');
+    if (cardIds.length > 20000) {
+      return badRequestResponse('Too many cardIds. Maximum is 20000.');
     }
 
     if (!cardIds.every((id: unknown) => typeof id === 'string')) {

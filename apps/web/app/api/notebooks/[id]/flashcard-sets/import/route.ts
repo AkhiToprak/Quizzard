@@ -14,7 +14,7 @@ import {
 
 type Params = { params: Promise<{ id: string }> };
 
-const MAX_CARDS = 5000;
+const MAX_CARDS = 20000;
 const QUESTION_HEADERS = ['question', 'front', 'term'];
 const ANSWER_HEADERS = ['answer', 'back', 'definition'];
 
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     if (cards.length === 0) return badRequestResponse('No valid flashcards found in file');
 
     if (cards.length > MAX_CARDS) {
-      return badRequestResponse('Too many cards. Maximum is 5000 per import.');
+      return badRequestResponse(`Too many cards. Maximum is ${MAX_CARDS} per import.`);
     }
 
     // Derive title from filename if not provided

@@ -67,8 +67,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       return badRequestResponse('Title must be 500 characters or less');
     }
 
-    if (questions && questions.length > 500) {
-      return badRequestResponse('Too many questions. Maximum is 500 per set.');
+    if (questions && questions.length > 2000) {
+      return badRequestResponse('Too many questions. Maximum is 2000 per set.');
     }
 
     if (questions) {

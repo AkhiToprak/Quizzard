@@ -69,8 +69,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       return badRequestResponse('Title must be 500 characters or less');
     }
 
-    if (cards && cards.length > 5000) {
-      return badRequestResponse('Too many cards. Maximum is 5000 per set.');
+    if (cards && cards.length > 20000) {
+      return badRequestResponse('Too many cards. Maximum is 20000 per set.');
     }
 
     if (cards) {
